@@ -6,7 +6,7 @@ import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.method.constraints.ConstraintBuilder;
 import com.artools.method.probabilitytables.TableBuilder;
-import com.artools.method.solver.GradientDescent;
+import com.artools.method.solver.ProportionalFitter;
 import java.util.*;
 import lombok.Getter;
 
@@ -170,7 +170,7 @@ public class BayesNet implements BayesianNetwork {
   public BayesNet solveNetwork() {
     TableBuilder.buildNetworkTables(networkData);
     TableBuilder.buildObservationMap(networkData);
-    new GradientDescent(networkData, solverConfigs).solveNetwork();
+    new ProportionalFitter(networkData, solverConfigs).solveNetwork();
     networkData.setSolved(true);
     return this;
   }

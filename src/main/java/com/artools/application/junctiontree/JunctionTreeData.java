@@ -19,6 +19,7 @@ public class JunctionTreeData {
   private final Set<Clique> leafCliques;
   private final Map<Clique, Set<ProbabilityTable>> associatedTables;
   private final List<JunctionTreeTable> junctionTreeTables;
+  private final Map<ParameterConstraint, Clique> cliqueForConstraint;
 
   public JunctionTreeData(
       BayesNetData bayesNetData,
@@ -26,13 +27,15 @@ public class JunctionTreeData {
       Set<Separator> separators,
       Set<Clique> leafCliques,
       Map<Clique, Set<ProbabilityTable>> associatedTables,
-      List<JunctionTreeTable> junctionTreeTables) {
+      List<JunctionTreeTable> junctionTreeTables,
+      Map<ParameterConstraint, Clique> cliqueForConstraint) {
     this.bayesNetData = bayesNetData;
     this.cliqueSet = cliqueSet;
     this.separators = separators;
     this.leafCliques = leafCliques;
     this.associatedTables = associatedTables;
     this.junctionTreeTables = junctionTreeTables;
+    this.cliqueForConstraint = cliqueForConstraint;
   }
 
   public List<Node> getNodes() {

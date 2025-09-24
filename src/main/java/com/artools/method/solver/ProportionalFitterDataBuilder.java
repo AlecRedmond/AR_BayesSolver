@@ -3,7 +3,7 @@ package com.artools.method.solver;
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.constraints.SumToOneConstraint;
 import com.artools.application.network.BayesNetData;
-import com.artools.application.network.GradientDescentData;
+import com.artools.application.network.ProportionalFitterData;
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.GradientTable;
 import com.artools.application.probabilitytables.LogitTable;
@@ -14,19 +14,19 @@ import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GradientDescentDataBuilder {
+public class ProportionalFitterDataBuilder {
 
-  private GradientDescentDataBuilder() {}
+  private ProportionalFitterDataBuilder() {}
 
-  public static GradientDescentData build(BayesNetData data, SolverConfigs solverConfigs) {
-    addSumToOneConstraints(data);
+  public static ProportionalFitterData build(BayesNetData data, SolverConfigs solverConfigs) {
+      //addSumToOneConstraints(data);
     Map<Node, MarginalTable> functionTables = buildFunctionTables(data.getNodes());
     Map<Node, Boolean> functionTablesCalculated = buildFunctionTablesCalculated(data.getNodes());
     Map<Node, GradientTable> gradients = buildGradients(data.getNetworkTablesMap());
     Map<Node, LogitTable> logitTableMap = buildLogitTableMap(data.getNetworkTablesMap());
     double lastError = 0.0;
     double convergence = Double.MAX_VALUE;
-    return new GradientDescentData(
+    return new ProportionalFitterData(
         data,
         functionTables,
         functionTablesCalculated,
@@ -34,14 +34,6 @@ public class GradientDescentDataBuilder {
         logitTableMap,
         lastError,
         convergence);
-  }
-
-  private static void addSumToOneConstraints(BayesNetData data) {
-    List<ParameterConstraint> parameterConstraints = data.getConstraints();
-    data.getNodes().stream()
-        .findAny()
-        .map(SumToOneConstraint::new)
-        .ifPresent(parameterConstraints::add);
   }
 
   private static Map<Node, MarginalTable> buildFunctionTables(List<Node> nodes) {
@@ -71,5 +63,13 @@ public class GradientDescentDataBuilder {
     return networkTablesMap.entrySet().stream()
         .map(entry -> Map.entry(entry.getKey(), TableBuilder.createLogitTable(entry.getValue())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static void addSumToOneConstraints(BayesNetData data) {
+    List<ParameterConstraint> parameterConstraints = data.getConstraints();
+    data.getNodes().stream()
+        .findAny()
+        .map(SumToOneConstraint::new)
+        .ifPresent(parameterConstraints::add);
   }
 }

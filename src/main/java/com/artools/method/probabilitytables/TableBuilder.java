@@ -95,6 +95,7 @@ public class TableBuilder {
               Set<Node> events = Set.of(node);
               Set<Node> conditions = new HashSet<>(node.getParents());
               ProbabilityTable table = buildNetworkTable(events, conditions);
+              TableUtils.marginalizeTable(table);
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

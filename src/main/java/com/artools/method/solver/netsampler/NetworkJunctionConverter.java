@@ -67,7 +67,10 @@ public class NetworkJunctionConverter {
     data.getAssociatedTables()
         .forEach(
             ((clique, netTables) -> {
-              for (ProbabilityTable table : netTables) {}
+              JunctionTreeTable junctionTable = clique.getTable();
+              netTables.forEach(
+                  nt -> TableUtils.updateNetworkTableFromJunctionTable(junctionTable, nt));
             }));
   }
+
 }

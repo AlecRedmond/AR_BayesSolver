@@ -14,21 +14,28 @@ import java.util.stream.Collectors;
 
 public class JunctionTreeAlgorithm implements NetworkSampler {
   private final JunctionTreeData data;
+  private final IterativeProportionalFitter fitter;
   private final NetworkJunctionConverter converter;
 
   public JunctionTreeAlgorithm(BayesNetData networkData) {
     this.data = JunctionTreeDataBuilder.build(networkData);
+    this.fitter = new IterativeProportionalFitter();
     this.converter = new NetworkJunctionConverter(data);
     this.converter.initializeJunctionTreeFromNetwork();
   }
 
   @Override
-  public double getR2error(ParameterConstraint constraint) {
-    Map<Node, NodeState> evidence = convertToEvidence(constraint.getConditionStates());
-    sampleNetwork(evidence);
-    double sampledValue = getMarginalOf(constraint.getEventStates());
-    double expectedValue = constraint.getProbability();
-    return Math.pow((sampledValue - expectedValue), 2);
+  public double adjustAndReturnError(ParameterConstraint constraint) {
+    Clique clique = data.getCliqueForConstraint().get(constraint);
+    distributeAndCollectMessages(clique, new HashSet<>(), null);
+
+    double error = fitter.fitData(constraint, clique.getTable()).getError();
+
+    if (error != 0) {
+      distributeAndCollectMessages(clique, new HashSet<>(), null);
+      marginalizeTables();
+    }
+    return error;
   }
 
   @Override
@@ -37,7 +44,6 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     setEvidence(evidence);
     Clique startingClique = data.getLeafCliques().stream().findAny().orElseThrow();
     distributeAndCollectMessages(startingClique, new HashSet<>(), null);
-    mapChangesToJointTable(evidence);
     marginalizeTables();
     converter.writeToObservations();
   }
@@ -46,13 +52,12 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     sampleNetwork(new HashMap<>());
   }
 
-  private void marginalizeTables() {
-    data.getJunctionTreeTables().forEach(TableUtils::marginalizeTable);
+  public void writeTablesToNetwork() {
+    converter.writeToNetwork();
   }
 
-  private void mapChangesToJointTable(Map<Node, NodeState> evidence) {
-    if (evidence.isEmpty()) return;
-    data.getJunctionTreeTables().forEach(TableUtils::adjustProbabilityFromObserved);
+  private void marginalizeTables() {
+    data.getJunctionTreeTables().forEach(TableUtils::marginalizeTable);
   }
 
   private void setEvidence(Map<Node, NodeState> evidence) {
@@ -73,8 +78,10 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
   private void distributeAndCollectMessages(
       Clique currentClique, Set<Clique> cliqueChain, Separator lastSeparator) {
     cliqueChain.add(currentClique);
+
     boolean hasLastSeparator = Optional.ofNullable(lastSeparator).isPresent();
-    if (hasLastSeparator) passMessage(currentClique.getTable(), lastSeparator.getTable(), false);
+    getMessageFromLastSeparator(currentClique, lastSeparator, hasLastSeparator);
+
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
@@ -82,8 +89,20 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
               distributeAndCollectMessages(nextClique, cliqueChain, separator);
               passMessage(currentClique.getTable(), separator.getTable(), false);
             });
-    if (hasLastSeparator) passMessage(currentClique.getTable(), lastSeparator.getTable(), true);
+
+    passMessageToLastSeparator(currentClique, lastSeparator, hasLastSeparator);
+
     cliqueChain.remove(currentClique);
+  }
+
+  private void passMessageToLastSeparator(
+      Clique currentClique, Separator lastSeparator, boolean hasLastSeparator) {
+    if (hasLastSeparator) passMessage(currentClique.getTable(), lastSeparator.getTable(), true);
+  }
+
+  private void getMessageFromLastSeparator(
+      Clique currentClique, Separator lastSeparator, boolean hasLastSeparator) {
+    if (hasLastSeparator) passMessage(currentClique.getTable(), lastSeparator.getTable(), false);
   }
 
   private Map<Clique, Separator> getNextSeparators(Clique currentClique, Set<Clique> cliqueChain) {
@@ -113,14 +132,7 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
 
               double separatorSum = separatorTable.getCorrectProb(separatorTableKey);
               double ratio = cliqueSum == 0 ? 0.0 : separatorSum / cliqueSum;
-              cliqueTableKey.forEach(cr -> cliqueTable.setByRatio(cr, ratio));
+              cliqueTableKey.forEach(cr -> cliqueTable.setCorrectByRatio(cr, ratio));
             });
-  }
-
-  private double getMarginalOf(Set<NodeState> eventStates) {
-    return eventStates.stream()
-        .mapToDouble(
-            es -> data.getObservationMap().get(es.getParentNode()).getProbability(Set.of(es)))
-        .reduce(1.0, (x, y) -> x * y);
   }
 }

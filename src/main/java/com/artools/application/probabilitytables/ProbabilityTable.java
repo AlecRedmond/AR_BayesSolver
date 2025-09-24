@@ -37,21 +37,21 @@ public abstract class ProbabilityTable {
     return getProbability(validRequest);
   }
 
-  public double getProbability(Set<NodeState> states) {
-    double probability = probabilitiesMap.get(states);
+  public double getProbability(Set<NodeState> key) {
+    double probability = probabilitiesMap.get(key);
     if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
     return probability;
   }
 
-  public void setProbability(Set<NodeState> states, double probability) {
-    if (!probabilitiesMap.containsKey(states)) {
+  public void setProbability(Set<NodeState> key, double probability) {
+    if (!probabilitiesMap.containsKey(key)) {
       throw new IllegalArgumentException(String.format("Illegal set request to table %s", tableID));
     }
     if (Double.isNaN(probability)) throw new IllegalArgumentException("tried to add NaN");
-    probabilitiesMap.put(states, probability);
+    probabilitiesMap.put(key, probability);
   }
 
-  public Set<Set<NodeState>> getKeySet(){
-      return probabilitiesMap.keySet();
+  public Set<Set<NodeState>> getKeySet() {
+    return probabilitiesMap.keySet();
   }
 }

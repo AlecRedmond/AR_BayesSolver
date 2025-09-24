@@ -27,7 +27,12 @@ public class JunctionTreeTable extends ProbabilityTable {
     this.observedStates.addAll(newEvidence);
   }
 
-  public void setByRatio(Set<NodeState> request, double ratio) {
+  public void clearObservations() {
+    this.observed = false;
+    this.observedStates.clear();
+  }
+
+  public void setCorrectByRatio(Set<NodeState> request, double ratio) {
     double newVal = getCorrectProb(request) * ratio;
     setCorrectProb(request, newVal);
   }
@@ -48,5 +53,9 @@ public class JunctionTreeTable extends ProbabilityTable {
 
   public void setObservedProb(Set<NodeState> request, double newVal) {
     observedProbMap.put(request, newVal);
+  }
+
+  public void setProbabilityByRatio(Set<NodeState> request, double ratio) {
+    super.setProbability(request, getProbability(request) * ratio);
   }
 }

@@ -11,30 +11,30 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class GradientDescentData {
+public class ProportionalFitterData {
   private final BayesNetData bayesNetData;
   private final Map<Node, MarginalTable> functionTables;
   private final Map<Node, Boolean> functionTablesSolved;
   private final Map<Node, GradientTable> gradientsMap;
   private final Map<Node, LogitTable> logitTableMap;
-  private double lastError;
-  private double lastLoss;
+  private double error;
+  private double loss;
 
-  public GradientDescentData(
+  public ProportionalFitterData(
       BayesNetData data,
       Map<Node, MarginalTable> functionTables,
       Map<Node, Boolean> functionTablesSolved,
       Map<Node, GradientTable> gradientsMap,
       Map<Node, LogitTable> logitTableMap,
-      double lastError,
-      double lastLoss) {
+      double error,
+      double loss) {
     this.bayesNetData = data;
     this.functionTables = functionTables;
     this.functionTablesSolved = functionTablesSolved;
     this.gradientsMap = gradientsMap;
     this.logitTableMap = logitTableMap;
-    this.lastError = lastError;
-    this.lastLoss = lastLoss;
+    this.error = error;
+    this.loss = loss;
   }
 
   public List<Node> getNodes() {

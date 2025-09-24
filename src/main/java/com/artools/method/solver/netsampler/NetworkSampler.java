@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface NetworkSampler {
 
-  double getR2error(ParameterConstraint constraint);
+  double adjustAndReturnError(ParameterConstraint constraint);
 
   void sampleNetwork(Map<Node, NodeState> evidence);
 
@@ -30,4 +30,5 @@ public interface NetworkSampler {
       throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
     }
   }
+
 }

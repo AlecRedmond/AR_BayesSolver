@@ -1,5 +1,6 @@
 package com.artools.method.solver.netsampler;
 
+import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.junctiontree.Clique;
 import com.artools.application.junctiontree.JunctionTreeData;
 import com.artools.application.junctiontree.Separator;
@@ -23,7 +24,24 @@ public class JunctionTreeDataBuilder {
     Set<Clique> leafCliques = buildLeafCliques(cliques);
     Map<Clique, Set<ProbabilityTable>> associatedTables = buildAssociatedTablesMap(cliques, data);
     List<JunctionTreeTable> allTables = buildAllTablesList(cliques, separators);
-    return new JunctionTreeData(data, cliques, separators, leafCliques, associatedTables,allTables);
+    Map<ParameterConstraint, Clique> cliqueForConstraint = findCliquesForConstraints(cliques, data);
+    return new JunctionTreeData(
+        data, cliques, separators, leafCliques, associatedTables, allTables, cliqueForConstraint);
+  }
+
+  private static Map<ParameterConstraint, Clique> findCliquesForConstraints(
+      Set<Clique> cliques, BayesNetData data) {
+    Map<ParameterConstraint, Clique> cfc = new HashMap<>();
+    for (ParameterConstraint constraint : data.getConstraints()) {
+      Clique bestClique =
+          cliques.stream()
+              .filter(clique -> clique.getNodes().containsAll(constraint.getAllNodes()))
+              .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
+              .orElseThrow();
+
+      cfc.put(constraint, bestClique);
+    }
+    return cfc;
   }
 
   private static List<JunctionTreeTable> buildAllTablesList(
@@ -55,10 +73,27 @@ public class JunctionTreeDataBuilder {
   }
 
   private static Set<Clique> buildCliques(BayesNetData data) {
-    Map<Node, Set<Node>> moralGraph = moralizeGraph(data);
-    Map<Node, Set<Node>> triangulatedGraph = triangulateGraph(moralGraph, data);
-    Set<Set<Node>> maximalCliques = findMaximalCliques(triangulatedGraph);
+    Map<Node, Set<Node>> graph = initializeGraph(data);
+    moralizeGraph(graph, data);
+    triangulateGraph(graph, data);
+    Set<Set<Node>> maximalCliques = findMaximalCliques(graph);
     return maximalCliques.stream().map(Clique::new).collect(Collectors.toSet());
+  }
+
+  private static Map<Node, Set<Node>> initializeGraph(BayesNetData data) {
+    Map<Node, Set<Node>> graph = new HashMap<>();
+    for (Node node : data.getNodes()) {
+      Set<Node> connected = new HashSet<>(node.getParents());
+      connected.addAll(node.getChildren());
+
+      data.getConstraints().stream()
+          .filter(c -> c.getEventNodes().contains(node))
+          .map(ParameterConstraint::getConditionNodes)
+          .forEach(connected::addAll);
+
+      graph.put(node, connected);
+    }
+    return graph;
   }
 
   private static void buildTables(Set<Clique> cliques, Set<Separator> separators) {
@@ -76,25 +111,21 @@ public class JunctionTreeDataBuilder {
         });
   }
 
-  private static Map<Node, Set<Node>> moralizeGraph(BayesNetData data) {
-    Map<Node, Set<Node>> moralGraph = new HashMap<>();
-    data.getNodes().forEach(n -> moralGraph.put(n, new HashSet<>()));
-
+  private static void moralizeGraph(Map<Node, Set<Node>> graph, BayesNetData data) {
     for (Node node : data.getNodes()) {
-      Set<Node> nodeEdges = moralGraph.get(node);
-      nodeEdges.addAll(node.getParents());
-      for (Node child : node.getChildren()) {
-        nodeEdges.add(child);
-        nodeEdges.addAll(child.getParents());
+      List<Node> parents = node.getParents();
+      for (int i = 0; i < parents.size(); i++) {
+        for (int j = i + 1; j < parents.size(); j++) {
+          Node parent1 = parents.get(i);
+          Node parent2 = parents.get(j);
+          graph.get(parent1).add(parent2);
+          graph.get(parent2).add(parent1);
+        }
       }
-      nodeEdges.remove(node);
     }
-
-    return moralGraph;
   }
 
-  private static Map<Node, Set<Node>> triangulateGraph(
-      Map<Node, Set<Node>> moralGraph, BayesNetData data) {
+  private static void triangulateGraph(Map<Node, Set<Node>> moralGraph, BayesNetData data) {
 
     Map<Node, Set<Node>> graph = new HashMap<>();
     moralGraph.keySet().forEach(node -> graph.put(node, new HashSet<>(moralGraph.get(node))));
@@ -111,14 +142,63 @@ public class JunctionTreeDataBuilder {
       }
       neighbours.forEach(neighbour -> graph.get(neighbour).remove(toEliminate));
     }
-    return moralGraph;
   }
 
   private static Set<Set<Node>> findMaximalCliques(Map<Node, Set<Node>> graph) {
     Set<Set<Node>> maximalCliques = new HashSet<>();
-    bronKerbosch(
-        new HashSet<>(), new HashSet<>(graph.keySet()), new HashSet<>(), graph, maximalCliques);
+
+    List<Node> degeneracyOrdering =
+        graph.entrySet().stream()
+            .sorted(Comparator.comparingInt(entry -> entry.getValue().size()))
+            .map(Map.Entry::getKey)
+            .toList();
+
+    Set<Node> pBase = new HashSet<>(degeneracyOrdering);
+    Set<Node> xBase = new HashSet<>();
+
+    for (Node node : degeneracyOrdering) {
+      Set<Node> neighbours = graph.get(node);
+      Set<Node> newR = new HashSet<>(Set.of(node));
+      Set<Node> newP = intersectionOf(pBase, neighbours);
+      Set<Node> newX = intersectionOf(xBase, neighbours);
+      bronKerbosch(newR, newP, newX, graph, maximalCliques);
+      pBase.remove(node);
+      xBase.add(node);
+    }
     return maximalCliques;
+  }
+
+  /**
+   * The Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a graph.
+   *
+   * @param currentNodes The set of nodes in the clique currently being built.
+   * @param candidateNodes The set of candidate nodes that can be added to extend the clique.
+   * @param processedNodes The set of nodes already processed and cannot be used to extend the
+   *     clique.
+   * @param edges The graph's adjacency list.
+   * @param maximalCliques The collection to store the found maximal cliques.
+   */
+  private static void bronKerbosch(
+      Set<Node> currentNodes,
+      Set<Node> candidateNodes,
+      Set<Node> processedNodes,
+      Map<Node, Set<Node>> edges,
+      Set<Set<Node>> maximalCliques) {
+
+    if (candidateNodes.isEmpty() && processedNodes.isEmpty()) {
+      maximalCliques.add(new HashSet<>(currentNodes));
+      return;
+    }
+
+    for (Node node : new HashSet<>(candidateNodes)) {
+      Set<Node> neighbours = edges.get(node);
+      Set<Node> newR = unionOf(currentNodes, Set.of(node));
+      Set<Node> newP = intersectionOf(candidateNodes, neighbours);
+      Set<Node> newX = intersectionOf(processedNodes, neighbours);
+      bronKerbosch(newR, newP, newX, edges, maximalCliques);
+      candidateNodes.remove(node);
+      processedNodes.add(node);
+    }
   }
 
   private static Set<Separator> buildSeparators(Set<Clique> cliquesSet) {
@@ -218,41 +298,6 @@ public class JunctionTreeDataBuilder {
     return cliques.stream()
         .filter(clique -> clique.getSeparators().size() <= 1)
         .collect(Collectors.toSet());
-  }
-
-  /**
-   * The Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a graph.
-   *
-   * @param currentNodes The set of nodes in the clique currently being built.
-   * @param candidateNodes The set of candidate nodes that can be added to extend the clique.
-   * @param processedNodes The set of nodes already processed and cannot be used to extend the
-   *     clique.
-   * @param edges The graph's adjacency list.
-   * @param maximalCliques The collection to store the found maximal cliques.
-   */
-  private static void bronKerbosch(
-      Set<Node> currentNodes,
-      Set<Node> candidateNodes,
-      Set<Node> processedNodes,
-      Map<Node, Set<Node>> edges,
-      Set<Set<Node>> maximalCliques) {
-
-    if (candidateNodes.isEmpty() && processedNodes.isEmpty()) {
-      maximalCliques.add(new HashSet<>(currentNodes));
-      return;
-    }
-
-    for (Node node : new HashSet<>(candidateNodes)) {
-      Set<Node> neighbours = edges.get(node);
-      bronKerbosch(
-          unionOf(currentNodes, Set.of(node)),
-          intersectionOf(candidateNodes, neighbours),
-          intersectionOf(processedNodes, neighbours),
-          edges,
-          maximalCliques);
-      candidateNodes.remove(node);
-      processedNodes.add(node);
-    }
   }
 
   private static Set<Node> unionOf(Set<Node> setA, Set<Node> setB) {

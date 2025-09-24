@@ -15,13 +15,13 @@ class BayesianNetworkTest {
         .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
         .addParent("SPRINKLER", "RAIN")
         .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-        .addEvidence("RAIN:TRUE", 0.3)
+        .addEvidence("RAIN:TRUE", 0.2)
         .addEvidence("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
-        .addEvidence("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.3)
-        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.95)
+        .addEvidence("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
+        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
         .addEvidence("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
-        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.25)
-        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.93)
+        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
+        .addEvidence("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.8)
         .solveNetwork()
         .printNetwork();
 
