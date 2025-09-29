@@ -7,18 +7,20 @@ import com.artools.application.network.BayesNetData;
 import com.artools.application.node.NodeState;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ConstraintBuilder {
+
+  private ConstraintBuilder() {}
 
   public static <T, E> ParameterConstraint buildConstraint(
       Collection<T> eventStateIDs,
       Collection<E> conditionStateIDs,
       double probability,
       BayesNetData data) {
-    if (eventStateIDs.size() == 1)
+    if (eventStateIDs.size() == 1) {
       return buildConstraint(
-          eventStateIDs.stream().findAny().get(), conditionStateIDs, probability, data);
+          eventStateIDs.stream().findAny().orElseThrow(), conditionStateIDs, probability, data);
+    }
     List<NodeState> eventStates = getNodeStates(eventStateIDs, data);
     List<NodeState> conditionStates = getNodeStates(conditionStateIDs, data);
     return new ParameterConstraint(eventStates, conditionStates, probability);
@@ -34,9 +36,7 @@ public class ConstraintBuilder {
 
   private static <E> List<NodeState> getNodeStates(
       Collection<E> conditionStateIDs, BayesNetData data) {
-    return conditionStateIDs.stream()
-        .map(sID -> data.getNodeStateMap().get(sID))
-        .collect(Collectors.toList());
+    return conditionStateIDs.stream().map(sID -> data.getNodeStateMap().get(sID)).toList();
   }
 
   private static <T> NodeState getNodeState(T eventStateID, BayesNetData data) {

@@ -2,49 +2,46 @@ package com.artools.method.solver;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
-import com.artools.application.network.ProportionalFitterData;
 import com.artools.application.solver.SolverConfigs;
-import com.artools.method.probabilitytables.TableUtils;
-import com.artools.method.solver.netsampler.JunctionTreeAlgorithm;
-import com.artools.method.solver.netsampler.NetworkSampler;
+import com.artools.method.junctiontree.JunctionTreeAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ProportionalFitter {
+public class BayesSolver {
   private final SolverConfigs configs;
-  private final ProportionalFitterData data;
+  private final BayesNetData data;
 
-  public ProportionalFitter(BayesNetData netData, SolverConfigs configs) {
+  public BayesSolver(BayesNetData bayesNetData, SolverConfigs configs) {
     this.configs = configs;
-    this.data = ProportionalFitterDataBuilder.build(netData, configs);
+    this.data = bayesNetData;
   }
 
   public void solveNetwork() {
-    // TODO - Fix the fact this doesn't work
-    JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(data.getBayesNetData());
+    System.out.println("STARTING SOLVER");
+    JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(data);
+    System.out.println("JTA BUILT");
     double lastError;
+    double error = Double.MAX_VALUE;
+    double converge = Double.MAX_VALUE;
     int percentileStep = configs.getCyclesLimit() / 100;
+
     for (int i = 0; i < configs.getCyclesLimit(); i++) {
-      double error = data.getError();
-      if (endSolverRun()) {
-        logCycleComplete(i, data.getLoss(), error);
+      if (converge < configs.getConvergeThreshold()) {
+        logCycleComplete(i - 1, converge, error, true);
         break;
       }
+
       lastError = error;
       error = runCycle(jta);
-      double loss = Math.abs(error - lastError);
-      if (i % percentileStep == 0) logCycleComplete(i, loss, error);
-      data.setLoss(loss);
-      data.setError(error);
+      converge = Math.abs(error - lastError);
+
+      logCycleComplete(i, converge, error, false);
     }
     jta.writeTablesToNetwork();
   }
 
-  private boolean endSolverRun() {
-    return Math.abs(data.getLoss()) < configs.getConvergeThreshold();
-  }
-
-  private void logCycleComplete(int i, double loss, double error) {
+  private void logCycleComplete(int i, double loss, double error, boolean solverRunComplete) {
+    if (solverRunComplete) System.out.println("!!SOLUTION FOUND!!");
     String output =
         String.format(
             "CYCLE %d : LOSS = %1.2e : ERROR = %1.2e : STEP_SIZE = %1.2e",

@@ -1,7 +1,6 @@
-package com.artools.method.solver.netsampler;
+package com.artools.method.solver;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.constraints.SumToOneConstraint;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.method.probabilitytables.TableUtils;
@@ -12,7 +11,9 @@ import lombok.Getter;
 public class IterativeProportionalFitter {
   private double error;
 
-  public IterativeProportionalFitter() {}
+  public IterativeProportionalFitter() {
+    error = Double.NaN;
+  }
 
   public IterativeProportionalFitter fitData(
       ParameterConstraint constraint, JunctionTreeTable table) {
@@ -61,6 +62,6 @@ public class IterativeProportionalFitter {
   }
 
   private boolean chooseRatio(ParameterConstraint constraint, Set<NodeState> key) {
-    return constraint instanceof SumToOneConstraint || key.containsAll(constraint.getEventStates());
+    return key.containsAll(constraint.getEventStates());
   }
 }

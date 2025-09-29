@@ -1,11 +1,9 @@
 package com.artools.application.probabilitytables;
 
 import com.artools.application.node.Node;
-
+import com.artools.application.node.NodeState;
 import java.util.Map;
 import java.util.Set;
-
-import com.artools.application.node.NodeState;
 import lombok.Getter;
 
 @Getter
@@ -14,12 +12,13 @@ public class ConditionalTable extends ProbabilityTable {
 
   public ConditionalTable(
       String tableName,
-      Map<Set<NodeState>,Double> probabilityMap,
+      Map<Set<NodeState>, Integer> indexMap,
+      double[] probabilities,
       Set<Node> nodes,
       Set<Node> events,
       Set<Node> conditions,
       Node eventNode) {
-    super(tableName,probabilityMap, nodes,events,conditions);
+    super(indexMap, probabilities, tableName, nodes, events, conditions);
     this.eventNode = eventNode;
   }
 }

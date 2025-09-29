@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.artools.application.junctiontree.JunctionTreeData;
 import com.artools.application.network.BayesNetData;
 import com.artools.method.network.BayesNet;
-import com.artools.method.solver.netsampler.JunctionTreeDataBuilder;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class JunctionTreeDataBuilderTest {
             .addParents("F", List.of("D"))
             .addParents("G", List.of("D", "E"))
             .addParents("H", List.of("E"))
-            .addEvidence("A+", List.of("H+"), 1.0)
+            .addConstraint("A+", List.of("H+"), 1.0)
             .solveNetwork()
             .getNetworkData();
   }

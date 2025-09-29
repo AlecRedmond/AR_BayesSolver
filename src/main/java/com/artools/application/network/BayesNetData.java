@@ -1,6 +1,7 @@
 package com.artools.application.network;
 
 import com.artools.application.constraints.ParameterConstraint;
+import com.artools.application.junctiontree.JunctionTreeData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.MarginalTable;
@@ -26,6 +27,7 @@ public class BayesNetData {
   protected Map<Node, MarginalTable> observationMap;
   protected List<ParameterConstraint> constraints;
   protected boolean solved;
+  protected JunctionTreeData junctionTreeData;
 
   public BayesNetData() {
     this.nodes = new ArrayList<>();
@@ -35,5 +37,6 @@ public class BayesNetData {
     this.observationMap = new HashMap<>();
     this.constraints = new ArrayList<>();
     this.solved = false;
+    this.junctionTreeData = null;
   }
 }

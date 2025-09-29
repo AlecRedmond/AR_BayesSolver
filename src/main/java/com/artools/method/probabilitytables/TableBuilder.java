@@ -7,31 +7,43 @@ import com.artools.application.probabilitytables.*;
 import com.artools.method.node.NodeUtils;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class TableBuilder {
 
   private TableBuilder() {}
 
-  public static MarginalTable buildTable(Node eventNode) {
-    return buildMarginalTable(Set.of(eventNode));
+  public static void buildObservationMap(BayesNetData networkData) {
+    networkData
+        .getNodes()
+        .forEach(
+            node -> networkData.getObservationMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
   private static MarginalTable buildMarginalTable(Set<Node> events) {
     Node eventNode = events.stream().findAny().orElseThrow();
     String tableName = buildTableName(eventNode);
-    Map<Set<NodeState>, Double> probabilityMap = buildProbabilityMap(events);
-    return new MarginalTable(tableName, probabilityMap, eventNode);
+    Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
+    double[] probabilities = buildProbTable(indexMap.size());
+    return new MarginalTable(indexMap, probabilities, tableName, eventNode);
   }
 
   private static String buildTableName(Node eventNode) {
     return buildTableName(Set.of(eventNode), new HashSet<>());
   }
 
-  private static Map<Set<NodeState>, Double> buildProbabilityMap(Set<Node> nodes) {
-    return NodeUtils.generateStateCombinations(nodes).stream()
-        .map(combo -> Map.entry(combo, 1.0))
+  private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
+    List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
+    return IntStream.range(0, keys.size())
+        .mapToObj(i -> Map.entry(keys.get(i), i))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static double[] buildProbTable(int size) {
+    double[] probabilities = new double[size];
+    Arrays.fill(probabilities, 1.0);
+    return probabilities;
   }
 
   private static String buildTableName(Set<Node> events, Set<Node> conditions) {
@@ -45,45 +57,6 @@ public class TableBuilder {
       sb.append(condition.getNodeID().toString()).append(" ");
     }
     return sb.append(")").toString();
-  }
-
-    public static LogitTable createLogitTable(ProbabilityTable table) {
-    String tableID = table.getTableID().toString() + " LOGIT";
-    Map<Set<NodeState>, Double> logitMap = buildLogitTableLogitMap(table);
-    return new LogitTable(
-        tableID, logitMap, table.getNodes(), table.getEvents(), table.getConditions());
-  }
-
-  private static Map<Set<NodeState>, Double> buildLogitTableLogitMap(ProbabilityTable table) {
-    return table.getProbabilitiesMap().entrySet().stream()
-        .map(TableBuilder::logitTableEntry)
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private static Map.Entry<Set<NodeState>, Double> logitTableEntry(
-      Map.Entry<Set<NodeState>, Double> entry) {
-    Set<NodeState> key = entry.getKey();
-    double val = (entry.getValue() != 0) ? entry.getValue() : LogitTable.ZERO_REPLACEMENT;
-    return Map.entry(key, Math.log(val));
-  }
-
-  public static GradientTable buildGradientTable(ProbabilityTable table) {
-    String tableID = table.getTableID().toString() + " GRADIENTS";
-    Map<Set<NodeState>, Double> gradientMap =
-        table.getProbabilitiesMap().keySet().stream()
-            .map(key -> Map.entry(key, 1.0))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    Set<Node> nodes = table.getNodes();
-    Set<Node> events = table.getEvents();
-    Set<Node> conditions = table.getConditions();
-    return new GradientTable(tableID, gradientMap, nodes, events, conditions);
-  }
-
-  public static void buildObservationMap(BayesNetData networkData) {
-    networkData
-        .getNodes()
-        .forEach(
-            node -> networkData.getObservationMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
   public static void buildNetworkTables(BayesNetData networkData) {
@@ -111,10 +84,17 @@ public class TableBuilder {
 
   private static ProbabilityTable buildConditionalTable(Set<Node> events, Set<Node> conditions) {
     Set<Node> nodes = joinSets(events, conditions);
-    Map<Set<NodeState>, Double> probabilityMap = buildProbabilityMap(nodes);
+    Map<Set<NodeState>, Integer> indexMap = buildIndexMap(nodes);
+    double[] probabilities = buildProbTable(indexMap.size());
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
     return new ConditionalTable(
-        buildTableName(events, conditions), probabilityMap, nodes, events, conditions, eventNode);
+        buildTableName(events, conditions),
+        indexMap,
+        probabilities,
+        nodes,
+        events,
+        conditions,
+        eventNode);
   }
 
   private static Set<Node> joinSets(Set<Node> events, Set<Node> conditions) {
@@ -122,7 +102,16 @@ public class TableBuilder {
   }
 
   public static JunctionTreeTable buildJunctionTreeTable(Set<Node> events) {
-    Map<Set<NodeState>, Double> requestMap = buildProbabilityMap(events);
-    return new JunctionTreeTable(buildTableName(events, new HashSet<>()), requestMap, events);
+    Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
+    double[] probabilities = buildProbTable(indexMap.size());
+    double[] observedProbabilities = buildProbTable(indexMap.size());
+    Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
+    return new JunctionTreeTable(
+        buildTableName(events, new HashSet<>()),
+        indexMap,
+        probabilities,
+        events,
+        observedProbabilities,
+        equivalentIndexes);
   }
 }

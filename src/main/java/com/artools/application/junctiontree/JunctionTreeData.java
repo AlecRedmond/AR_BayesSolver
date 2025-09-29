@@ -6,6 +6,7 @@ import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
+import com.artools.method.indexer.ConstraintIndexer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,7 @@ public class JunctionTreeData {
   private final Map<Clique, Set<ProbabilityTable>> associatedTables;
   private final List<JunctionTreeTable> junctionTreeTables;
   private final Map<ParameterConstraint, Clique> cliqueForConstraint;
+  private final Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap;
 
   public JunctionTreeData(
       BayesNetData bayesNetData,
@@ -28,7 +30,8 @@ public class JunctionTreeData {
       Set<Clique> leafCliques,
       Map<Clique, Set<ProbabilityTable>> associatedTables,
       List<JunctionTreeTable> junctionTreeTables,
-      Map<ParameterConstraint, Clique> cliqueForConstraint) {
+      Map<ParameterConstraint, Clique> cliqueForConstraint,
+      Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap) {
     this.bayesNetData = bayesNetData;
     this.cliqueSet = cliqueSet;
     this.separators = separators;
@@ -36,6 +39,7 @@ public class JunctionTreeData {
     this.associatedTables = associatedTables;
     this.junctionTreeTables = junctionTreeTables;
     this.cliqueForConstraint = cliqueForConstraint;
+    this.constraintIndexerMap = constraintIndexerMap;
   }
 
   public List<Node> getNodes() {

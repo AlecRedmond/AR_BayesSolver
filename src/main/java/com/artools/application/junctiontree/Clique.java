@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.artools.method.indexer.TableIndexer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,10 +16,14 @@ import lombok.EqualsAndHashCode;
 public class Clique {
   private Set<Node> nodes;
   private JunctionTreeTable table;
+  private TableIndexer indexer;
   private Map<Clique, Separator> separatorMap;
 
-  public Clique(Set<Node> nodes) {
+
+  public Clique(Set<Node> nodes,JunctionTreeTable table) {
     this.nodes = nodes;
+    this.table = table;
+    this.indexer = new TableIndexer(table);
     this.separatorMap = new HashMap<>();
   }
 

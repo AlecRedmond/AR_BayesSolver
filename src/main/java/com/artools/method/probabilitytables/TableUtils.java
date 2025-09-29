@@ -6,6 +6,8 @@ import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.method.node.NodeUtils;
+
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,51 +15,38 @@ public class TableUtils {
 
   private TableUtils() {}
 
-  public static void fillObservedTable(MarginalTable observedTable, ProbabilityTable bestTable) {
+    public static void fillObservedTable(MarginalTable observedTable, JunctionTreeTable bestTable) {
+    double[] prob =
+        bestTable.isObserved()
+            ? bestTable.getObservedProbabilities()
+            : bestTable.getProbabilities();
+
     observedTable
         .getKeySet()
         .forEach(
             key -> {
-              double sum = sumOfJointKey(bestTable.getProbabilitiesMap(), key);
+              double sum = sumOfJointKey(observedTable.getIndexMap(), prob, key);
               observedTable.setProbability(key, sum);
             });
   }
 
   private static double sumOfJointKey(
-      Map<Set<NodeState>, Double> tableMap, Set<NodeState> keySet) {
-    return tableMap.entrySet().stream()
+      Map<Set<NodeState>, Integer> indexMap, double[] probTable, Set<NodeState> keySet) {
+    return indexMap.entrySet().stream()
         .filter(entry -> entry.getKey().containsAll(keySet))
-        .mapToDouble(Map.Entry::getValue)
+        .mapToDouble(entry -> probTable[entry.getValue()])
         .sum();
   }
 
   public static void recalculateObservedProbabilityMap(JunctionTreeTable table) {
     if (table.getObservedStates().isEmpty()) return;
     table
-        .getProbabilitiesMap()
+        .getIndexMap()
         .forEach(
-            (keySet, value) -> {
-              double newVal = keySet.containsAll(table.getObservedStates()) ? value : 0.0;
+            (keySet, index) -> {
+              double newVal = keySet.containsAll(table.getObservedStates()) ? index : 0.0;
               table.setObservedProb(keySet, newVal);
             });
-  }
-
-  public static void adjustProbabilityFromObserved(JunctionTreeTable table) {
-    if (table.getObservedStates().isEmpty()) return;
-    double observedMapSum = sumOfJointKey(table.getObservedProbMap(), table.getObservedStates());
-    double probMapSum = sumOfJointKey(table.getProbabilitiesMap(), table.getObservedStates());
-    double normalizationFactor = observedMapSum == 0 ? 0 : probMapSum / observedMapSum;
-
-    table.getKeySet().stream()
-        .filter(key -> key.containsAll(table.getObservedStates()))
-        .forEach(
-            key -> {
-              double newEntry = normalizationFactor * table.getObservedProb(key);
-              table.setProbability(key, newEntry);
-            });
-
-    table.clearObservations();
-    marginalizeTable(table);
   }
 
   public static void marginalizeTable(ProbabilityTable table) {
@@ -67,10 +56,10 @@ public class TableUtils {
   }
 
   private static void marginalizeWithoutConditions(ProbabilityTable table) {
-    double tableSum = table.getProbabilitiesMap().values().stream().mapToDouble(d -> d).sum();
+    double tableSum = Arrays.stream(table.getProbabilities()).sum();
     if (tableSum == 0) return;
     double ratio = 1 / tableSum;
-    Set<Set<NodeState>> keys = table.getProbabilitiesMap().keySet();
+    Set<Set<NodeState>> keys = table.getIndexMap().keySet();
     keys.forEach(key -> multiplyEntry(table, key, ratio));
   }
 
@@ -92,7 +81,7 @@ public class TableUtils {
   }
 
   public static double sumOfJointKey(ProbabilityTable table, Set<NodeState> key) {
-    return sumOfJointKey(table.getProbabilitiesMap(), key);
+    return sumOfJointKey(table.getIndexMap(), table.getProbabilities(), key);
   }
 
   public static void updateNetworkTableFromJunctionTable(

@@ -4,9 +4,12 @@ import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
+import com.artools.export.BayesianNetwork;
 import com.artools.method.constraints.ConstraintBuilder;
+import com.artools.method.junctiontree.JunctionTreeAlgorithm;
 import com.artools.method.probabilitytables.TableBuilder;
-import com.artools.method.solver.ProportionalFitter;
+import com.artools.method.solver.BayesSolver;
+import com.artools.method.solver.NetworkSampler;
 import java.util.*;
 import lombok.Getter;
 
@@ -14,10 +17,12 @@ import lombok.Getter;
 public class BayesNet implements BayesianNetwork {
   private final BayesNetData networkData;
   private final SolverConfigs solverConfigs;
+  private NetworkSampler sampler;
 
   public BayesNet() {
     this.networkData = new BayesNetData();
     this.solverConfigs = new SolverConfigs();
+    this.sampler = null;
   }
 
   public <T> BayesNet addNode(T nodeID) {
@@ -117,7 +122,7 @@ public class BayesNet implements BayesianNetwork {
     return this;
   }
 
-  public <T, E> BayesNet addEvidence(
+  public <T, E> BayesNet addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     networkData
@@ -128,7 +133,7 @@ public class BayesNet implements BayesianNetwork {
     return this;
   }
 
-  public <T> BayesNet addEvidence(T eventStateID, double probability) {
+  public <T> BayesNet addConstraint(T eventStateID, double probability) {
     networkData.setSolved(false);
     networkData
         .getConstraints()
@@ -136,7 +141,7 @@ public class BayesNet implements BayesianNetwork {
     return this;
   }
 
-  public <T, E> BayesNet addEvidence(
+  public <T, E> BayesNet addConstraint(
       Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     networkData
@@ -170,29 +175,76 @@ public class BayesNet implements BayesianNetwork {
   public BayesNet solveNetwork() {
     TableBuilder.buildNetworkTables(networkData);
     TableBuilder.buildObservationMap(networkData);
-    new ProportionalFitter(networkData, solverConfigs).solveNetwork();
+    new BayesSolver(networkData, solverConfigs).solveNetwork();
     networkData.setSolved(true);
+    sampler = new JunctionTreeAlgorithm(networkData);
     return this;
   }
 
   @Override
-  public void printNetwork() {
+  public BayesNet printNetwork() {
     networkData
         .getNetworkTablesMap()
         .forEach(
             (node, table) -> {
               System.out.println(table.getTableID());
               table
-                  .getProbabilitiesMap()
+                  .getIndexMap()
                   .forEach(
-                      (keyset, prob) -> {
+                      (keyset, index) -> {
                         StringBuilder sb = new StringBuilder("\t");
                         keyset.stream()
                             .sorted(Comparator.comparing(NodeState::toString))
                             .forEach(state -> sb.append(state).append(", "));
-                        sb.append(prob.toString());
+                        sb.append(table.getProbability(keyset));
                         System.out.println(sb);
                       });
             });
+    return this;
+  }
+
+  @Override
+  public <T> BayesNet observeNetwork(Collection<T> observedNodeStateIDs) {
+    if (observedNodeStateIDs.isEmpty()) {
+      observeMarginals();
+      return this;
+    }
+
+    if (!networkData.isSolved()) solveNetwork();
+
+    List<NodeState> states =
+        observedNodeStateIDs.stream().map(networkData.getNodeStateMap()::get).toList();
+    Map<Node, NodeState> observations = sampler.convertToEvidence(states);
+    sampler.sampleNetwork(observations);
+    return this;
+  }
+
+  @Override
+  public BayesNet observeMarginals() {
+    if (!networkData.isSolved()) solveNetwork();
+    sampler.sampleNetwork();
+    return this;
+  }
+
+  @Override
+  public BayesNet printObserved() {
+    networkData
+        .getObservationMap()
+        .forEach(
+            (node, table) -> {
+              System.out.println(table.getTableID());
+              table
+                  .getIndexMap()
+                  .forEach(
+                      (keyset, index) -> {
+                        StringBuilder sb = new StringBuilder("\t");
+                        keyset.stream()
+                            .sorted(Comparator.comparing(NodeState::toString))
+                            .forEach(state -> sb.append(state).append(", "));
+                        sb.append(table.getProbability(keyset));
+                        System.out.println(sb);
+                      });
+            });
+    return this;
   }
 }

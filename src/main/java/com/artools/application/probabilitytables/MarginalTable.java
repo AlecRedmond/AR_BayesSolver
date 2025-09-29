@@ -12,8 +12,12 @@ public class MarginalTable extends ProbabilityTable {
   private final Node eventNode;
 
   public MarginalTable(
-      String tableName, Map<Set<NodeState>, Double> probabilitiesMap, Node eventNode) {
-    super(tableName, probabilitiesMap, Set.of(eventNode), Set.of(eventNode), new HashSet<>());
+      Map<Set<NodeState>, Integer> indexMap,
+      double[] probabilities,
+      String tableName,
+      Node eventNode) {
+    super(
+        indexMap, probabilities, tableName, Set.of(eventNode), Set.of(eventNode), new HashSet<>());
     this.eventNode = eventNode;
   }
 

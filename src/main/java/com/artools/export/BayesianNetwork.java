@@ -1,4 +1,6 @@
-package com.artools.method.network;
+package com.artools.export;
+
+import com.artools.method.network.BayesNet;
 
 import java.util.Collection;
 
@@ -32,11 +34,11 @@ public interface BayesianNetwork {
 
     <T> BayesianNetwork removeParents(T childID);
 
-    <T,E> BayesianNetwork addEvidence(T eventStateID, Collection<E> conditionStateIDs, double probability);
+    <T,E> BayesianNetwork addConstraint(T eventStateID, Collection<E> conditionStateIDs, double probability);
 
-    <T> BayesianNetwork addEvidence(T eventStateID, double probability);
+    <T> BayesianNetwork addConstraint(T eventStateID, double probability);
 
-    <T,E> BayesianNetwork addEvidence(Collection<T> eventStateIDs,Collection<E> conditionStateIDs,double probability);
+    <T,E> BayesianNetwork addConstraint(Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
 
     BayesianNetwork solverCyclesLimit(int cyclesLimit);
 
@@ -48,7 +50,13 @@ public interface BayesianNetwork {
 
     BayesianNetwork solveNetwork();
 
-    void printNetwork();
+    BayesianNetwork printNetwork();
+
+    <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
+
+    BayesianNetwork observeMarginals();
+
+    BayesianNetwork printObserved();
 
 
 

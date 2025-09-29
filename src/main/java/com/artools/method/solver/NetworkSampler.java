@@ -1,4 +1,4 @@
-package com.artools.method.solver.netsampler;
+package com.artools.method.solver;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.node.Node;
@@ -11,7 +11,7 @@ public interface NetworkSampler {
 
   double adjustAndReturnError(ParameterConstraint constraint);
 
-  void sampleNetwork(Map<Node, NodeState> evidence);
+  void sampleNetwork(Map<Node, NodeState> observedStates);
 
   void sampleNetwork();
 
