@@ -1,4 +1,4 @@
-package com.artools.application.junctiontree;
+package com.artools.application.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
@@ -10,9 +10,13 @@ import com.artools.method.indexer.ConstraintIndexer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class JunctionTreeData {
   private final BayesNetData bayesNetData;
   private final Set<Clique> cliqueSet;
@@ -22,25 +26,6 @@ public class JunctionTreeData {
   private final List<JunctionTreeTable> junctionTreeTables;
   private final Map<ParameterConstraint, Clique> cliqueForConstraint;
   private final Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap;
-
-  public JunctionTreeData(
-      BayesNetData bayesNetData,
-      Set<Clique> cliqueSet,
-      Set<Separator> separators,
-      Set<Clique> leafCliques,
-      Map<Clique, Set<ProbabilityTable>> associatedTables,
-      List<JunctionTreeTable> junctionTreeTables,
-      Map<ParameterConstraint, Clique> cliqueForConstraint,
-      Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap) {
-    this.bayesNetData = bayesNetData;
-    this.cliqueSet = cliqueSet;
-    this.separators = separators;
-    this.leafCliques = leafCliques;
-    this.associatedTables = associatedTables;
-    this.junctionTreeTables = junctionTreeTables;
-    this.cliqueForConstraint = cliqueForConstraint;
-    this.constraintIndexerMap = constraintIndexerMap;
-  }
 
   public List<Node> getNodes() {
     return bayesNetData.getNodes();

@@ -1,15 +1,15 @@
-package com.artools.method.junctiontree;
+package com.artools.method.sampler;
 
 import com.artools.application.constraints.ConditionalConstraint;
 import com.artools.application.constraints.MarginalConstraint;
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.junctiontree.Clique;
-import com.artools.application.junctiontree.JunctionTreeData;
-import com.artools.application.junctiontree.Separator;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
+import com.artools.application.sampler.Clique;
+import com.artools.application.sampler.JunctionTreeData;
+import com.artools.application.sampler.Separator;
 import com.artools.method.indexer.ConditionalIndexer;
 import com.artools.method.indexer.ConstraintIndexer;
 import com.artools.method.indexer.MarginalIndexer;
@@ -24,49 +24,56 @@ public class JunctionTreeDataBuilder {
 
   private JunctionTreeDataBuilder() {}
 
-  public static JunctionTreeData build(BayesNetData data) {
-    if (data.isSolved()) return data.getJunctionTreeData();
+  public static JunctionTreeData build(BayesNetData bayesNetData) {
+    if (satisfactoryDataExists(bayesNetData)) return bayesNetData.getJunctionTreeData();
 
-    Set<Clique> cliques = CliqueBuilder.buildCliques(data);
-    Set<Separator> separators = buildSeparators(cliques);
-    Set<Clique> leafCliques = buildLeafCliques(cliques);
-    Map<Clique, Set<ProbabilityTable>> associatedTables = buildAssociatedTablesMap(cliques, data);
-    List<JunctionTreeTable> allTables = buildAllTablesList(cliques, separators);
+    var cliqueSet = CliqueBuilder.buildCliques(bayesNetData);
+    var separators = buildSeparators(cliqueSet);
+    var leafCliques = buildLeafCliques(cliqueSet);
+    var associatedTables = buildAssociatedTablesMap(cliqueSet, bayesNetData);
+    var junctionTreeTables = buildAllTablesList(cliqueSet, separators);
 
     log.info("CLIQUES BUILT");
 
-    if (data.isSolved()) {
+    var builder =
+        JunctionTreeData.builder()
+            .bayesNetData(bayesNetData)
+            .cliqueSet(cliqueSet)
+            .separators(separators)
+            .leafCliques(leafCliques)
+            .associatedTables(associatedTables)
+            .junctionTreeTables(junctionTreeTables);
+
+    if (bayesNetData.isSolved()) {
       JunctionTreeData jtd =
-          new JunctionTreeData(
-              data,
-              cliques,
-              separators,
-              leafCliques,
-              associatedTables,
-              allTables,
-              new HashMap<>(),
-              new HashMap<>());
-      data.setJunctionTreeData(jtd);
+          builder
+              .cliqueForConstraint(new HashMap<>())
+              .constraintIndexerMap(new HashMap<>())
+              .build();
+
+      bayesNetData.setJunctionTreeData(jtd);
       return jtd;
     }
 
-    Map<ParameterConstraint, Clique> cliqueForConstraint = findCliquesForConstraints(cliques, data);
-    Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap =
-        buildConstraintIndexerMap(data, cliqueForConstraint);
-    System.out.println("CONSTRAINT INDEXERS BUILT");
+    var cliqueForConstraint = findCliquesForConstraints(cliqueSet, bayesNetData);
+    var constraintIndexerMap = buildConstraintIndexerMap(bayesNetData, cliqueForConstraint);
+
+    log.info("CONSTRAINT INDEXERS BUILT");
 
     JunctionTreeData jtd =
-        new JunctionTreeData(
-            data,
-            cliques,
-            separators,
-            leafCliques,
-            associatedTables,
-            allTables,
-            cliqueForConstraint,
-            constraintIndexerMap);
-    data.setJunctionTreeData(jtd);
+        builder
+            .cliqueForConstraint(cliqueForConstraint)
+            .constraintIndexerMap(constraintIndexerMap)
+            .build();
+
+    bayesNetData.setJunctionTreeData(jtd);
+
     return jtd;
+  }
+
+  private static boolean satisfactoryDataExists(BayesNetData bayesNetData) {
+    if (!bayesNetData.isSolved()) return false;
+    return bayesNetData.getJunctionTreeData().getConstraintIndexerMap().isEmpty();
   }
 
   private static Map<ParameterConstraint, ConstraintIndexer> buildConstraintIndexerMap(

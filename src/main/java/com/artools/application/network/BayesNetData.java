@@ -1,7 +1,7 @@
 package com.artools.application.network;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.junctiontree.JunctionTreeData;
+import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.MarginalTable;
@@ -13,7 +13,6 @@ import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 @Data

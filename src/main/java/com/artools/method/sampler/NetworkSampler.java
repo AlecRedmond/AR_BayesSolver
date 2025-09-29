@@ -1,4 +1,4 @@
-package com.artools.method.solver;
+package com.artools.method.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.node.Node;

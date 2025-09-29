@@ -21,11 +21,4 @@ public class MarginalTable extends ProbabilityTable {
     this.eventNode = eventNode;
   }
 
-  public void addProbability(NodeState state, double toAdd) {
-    if (Double.isNaN(toAdd)) throw new IllegalArgumentException("Found a NaN");
-    Set<NodeState> stateSet = Set.of(state);
-    double oldVal = super.getProbability(stateSet);
-    double newVal = oldVal + toAdd;
-    super.setProbability(stateSet, newVal);
-  }
 }

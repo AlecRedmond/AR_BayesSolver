@@ -1,7 +1,7 @@
-package com.artools.method.junctiontree;
+package com.artools.method.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.junctiontree.Clique;
+import com.artools.application.sampler.Clique;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.method.probabilitytables.TableBuilder;

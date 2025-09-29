@@ -1,8 +1,8 @@
-package com.artools.method.junctiontree;
+package com.artools.method.sampler;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.artools.application.junctiontree.JunctionTreeData;
+import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.network.BayesNetData;
 import com.artools.method.network.BayesNet;
 

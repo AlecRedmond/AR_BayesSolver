@@ -78,13 +78,7 @@ public class TableIndexer {
     return common;
   }
 
-  public List<Integer> getCommon(Set<NodeState> key, Collection<Integer> indexes) {
-    Set<Integer> common = new HashSet<>(indexes);
-    key.forEach(ns -> common.retainAll(new HashSet<>(stateIndexes.get(ns))));
-    return common.stream().toList();
-  }
-
-  protected Set<Integer> getIndexes(NodeState state) {
+    protected Set<Integer> getIndexes(NodeState state) {
     return new HashSet<>(stateIndexes.get(checkValid(state)));
   }
 

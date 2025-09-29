@@ -3,10 +3,15 @@ package com.artools.method.solver;
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.solver.SolverConfigs;
-import com.artools.method.junctiontree.JunctionTreeAlgorithm;
+import com.artools.method.sampler.JunctionTreeAlgorithm;
+import java.time.Instant;
+
+import com.artools.method.sampler.NetworkSampler;
+import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@CommonsLog
 public class BayesSolver {
   private final SolverConfigs configs;
   private final BayesNetData data;
@@ -17,17 +22,21 @@ public class BayesSolver {
   }
 
   public void solveNetwork() {
-    System.out.println("STARTING SOLVER");
+    log.info("STARTING SOLVER");
     JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(data);
-    System.out.println("JTA BUILT");
+    log.info("JUNCTION TREE BUILT");
+
     double lastError;
     double error = Double.MAX_VALUE;
     double converge = Double.MAX_VALUE;
-    int percentileStep = configs.getCyclesLimit() / 100;
+
+    long now = Instant.now().getEpochSecond();
+    long nextLogTime = now + configs.getLogIntervalSeconds();
+    long endTime = now + configs.getTimeLimitSeconds();
 
     for (int i = 0; i < configs.getCyclesLimit(); i++) {
-      if (converge < configs.getConvergeThreshold()) {
-        logCycleComplete(i - 1, converge, error, true);
+      if (checkEndCycles(i, converge, endTime)) {
+        logCycleComplete(i - 1, converge, error, nextLogTime, true, true);
         break;
       }
 
@@ -35,19 +44,30 @@ public class BayesSolver {
       error = runCycle(jta);
       converge = Math.abs(error - lastError);
 
-      logCycleComplete(i, converge, error, false);
+      nextLogTime = logCycleComplete(i, converge, error, nextLogTime, false, false);
     }
     jta.writeTablesToNetwork();
   }
 
-  private void logCycleComplete(int i, double loss, double error, boolean solverRunComplete) {
-    if (solverRunComplete) System.out.println("!!SOLUTION FOUND!!");
-    String output =
-        String.format(
-            "CYCLE %d : LOSS = %1.2e : ERROR = %1.2e : STEP_SIZE = %1.2e",
-            i, loss, error, configs.getStepSize());
+  private boolean checkEndCycles(int i, double converge, long endTime) {
+    if (converge <= configs.getConvergeThreshold()) return true;
+    if (i >= configs.getCyclesLimit()) return true;
+    return Instant.now().getEpochSecond() >= endTime;
+  }
+
+  private long logCycleComplete(
+      int i,
+      double loss,
+      double error,
+      long nextLogTime,
+      boolean solverRunComplete,
+      boolean converged) {
+    long now = Instant.now().getEpochSecond();
+    if (checkSkipLog(now, nextLogTime, solverRunComplete)) return nextLogTime;
+    if (converged) log.info("!!SOLUTION FOUND!!");
+    String output = String.format("CYCLE %d : LOSS = %1.2e : ERROR = %1.2e", i, loss, error);
     log.info(output);
-    System.out.println(output);
+    return now + configs.getLogIntervalSeconds();
   }
 
   private double runCycle(NetworkSampler sampler) {
@@ -56,5 +76,10 @@ public class BayesSolver {
       error += sampler.adjustAndReturnError(constraint);
     }
     return error;
+  }
+
+  private boolean checkSkipLog(long now, long nextLogTime, boolean solverRunComplete) {
+    if (solverRunComplete) return false;
+    return now < nextLogTime;
   }
 }

@@ -1,4 +1,4 @@
-package com.artools.application.junctiontree;
+package com.artools.application.sampler;
 
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;

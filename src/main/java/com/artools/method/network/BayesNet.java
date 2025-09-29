@@ -6,10 +6,10 @@ import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.export.BayesianNetwork;
 import com.artools.method.constraints.ConstraintBuilder;
-import com.artools.method.junctiontree.JunctionTreeAlgorithm;
+import com.artools.method.sampler.JunctionTreeAlgorithm;
 import com.artools.method.probabilitytables.TableBuilder;
 import com.artools.method.solver.BayesSolver;
-import com.artools.method.solver.NetworkSampler;
+import com.artools.method.sampler.NetworkSampler;
 import java.util.*;
 import lombok.Getter;
 
@@ -162,8 +162,8 @@ public class BayesNet implements BayesianNetwork {
     return this;
   }
 
-  public BayesNet solverStepSize(double stepSize) {
-    solverConfigs.setStepSize(stepSize);
+  public BayesNet logIntervalSeconds(int seconds) {
+    solverConfigs.setLogIntervalSeconds(seconds);
     return this;
   }
 

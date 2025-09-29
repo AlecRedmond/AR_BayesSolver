@@ -44,7 +44,7 @@ public interface BayesianNetwork {
 
     BayesianNetwork solverTimeLimit(int timeLimitSeconds);
 
-    BayesianNetwork solverStepSize(double stepSize);
+    BayesianNetwork logIntervalSeconds(int seconds);
 
     BayesianNetwork solverConvergeThreshold(double threshold);
 

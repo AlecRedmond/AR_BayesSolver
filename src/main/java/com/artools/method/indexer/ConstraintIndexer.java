@@ -4,7 +4,9 @@ import com.artools.application.constraints.MarginalConstraint;
 import com.artools.application.constraints.ParameterConstraint;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public abstract class ConstraintIndexer {
   protected static final double EPSILON = 1E-9;
   protected static int counter = 0;
@@ -27,7 +29,7 @@ public abstract class ConstraintIndexer {
         constraint.getAllStates().stream()
             .map(ns -> ns.toString() + " ")
             .collect(Collectors.joining());
-    System.out.printf("%s constraint %d built %s%n", type, counter, constraintToString);
+    log.info(String.format("%s constraint %d built %s", type, counter, constraintToString));
     counter++;
   }
 

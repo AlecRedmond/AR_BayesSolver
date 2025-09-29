@@ -1,7 +1,7 @@
-package com.artools.method.junctiontree;
+package com.artools.method.sampler;
 
-import com.artools.application.junctiontree.JunctionTreeData;
-import com.artools.application.junctiontree.Separator;
+import com.artools.application.sampler.JunctionTreeData;
+import com.artools.application.sampler.Separator;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ConditionalTable;
@@ -11,7 +11,9 @@ import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.method.indexer.TableIndexer;
 import com.artools.method.probabilitytables.TableUtils;
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class NetworkJunctionConverter {
   private final JunctionTreeData data;
 
@@ -91,12 +93,12 @@ public class NetworkJunctionConverter {
   }
 
   public void writeToNetwork() {
-    System.out.println("WRITING TO NETWORK");
+    log.info("WRITING TO NETWORK");
     data.getAssociatedTables()
         .forEach(
             ((clique, netTables) ->
                 netTables.forEach(nt -> writeNetworkTable(clique.getTable(), nt))));
-    System.out.println("NETWORK TABLES WRITTEN");
+    log.info("NETWORK TABLES WRITTEN");
   }
 
   private void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {

@@ -1,7 +1,7 @@
 package com.artools.method.indexer;
 
-import com.artools.application.junctiontree.Clique;
-import com.artools.application.junctiontree.Separator;
+import com.artools.application.sampler.Clique;
+import com.artools.application.sampler.Separator;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import java.util.*;

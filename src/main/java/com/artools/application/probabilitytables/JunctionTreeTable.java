@@ -3,7 +3,6 @@ package com.artools.application.probabilitytables;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
@@ -53,7 +52,4 @@ public class JunctionTreeTable extends ProbabilityTable {
     observedProbabilities[indexMap.get(request)] = newVal;
   }
 
-  public void setProbabilityByRatio(Set<NodeState> request, double ratio) {
-    super.setProbability(request, getProbability(request) * ratio);
-  }
 }
