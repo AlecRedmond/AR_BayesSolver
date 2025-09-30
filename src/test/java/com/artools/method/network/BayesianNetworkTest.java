@@ -22,9 +22,11 @@ class BayesianNetworkTest {
         .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
         .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
         .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
-        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.8)
+        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
         .solveNetwork()
         .printNetwork()
+        .observeMarginals()
+        .printObserved()
         .observeNetwork(List.of("WET_GRASS:TRUE"))
         .printObserved();
 
@@ -120,173 +122,177 @@ class BayesianNetworkTest {
                     "VOTE:CSD",
                     "VOTE:OTH",
                     "VOTE:NONE"))
-                .addParents("DISTRICT_TYPE", List.of())
-                .addParents("DISTRICT", List.of("DISTRICT_TYPE"))
-                .addParents("RACE", List.of("DISTRICT"))
-                .addParents("AGE", List.of("RACE", "DISTRICT"))
-                .addParents("WEALTH", List.of("RACE", "DISTRICT"))
-                .addParents("OUTLOOK", List.of("WEALTH", "AGE", "DISTRICT"))
-                .addParents("VOTE", List.of("RACE", "AGE", "DISTRICT", "OUTLOOK"))
-                // Known marginals
-                // DISTRICT
-                .addConstraint("DISTRICT:CAPITAL_CITY", 600E3 / 320E6)
-                .addConstraint("DISTRICT:CITY_SUBURBS", 600E3 / 320E6)
-                .addConstraint("DISTRICT:FARM_TOWN", 600E3 / 320E6)
-                .addConstraint("DISTRICT:MINING_OUTPOST", 600E3 / 320E6)
-                // RACE
-                .addConstraint("RACE:HUMAN", 0.65)
-                .addConstraint("RACE:ANK", 0.14)
-                .addConstraint("RACE:ORC", 0.07)
-                .addConstraint("RACE:GOBLIN", 0.06)
-                .addConstraint("RACE:DWARF", 0.05)
-                .addConstraint("RACE:ELF", 0.03)
-                // VOTE
-                .addConstraint("VOTE:SDP", 0.1090)
-                .addConstraint("VOTE:VNG", 0.0941)
-                .addConstraint("VOTE:CPK", 0.0834)
-                .addConstraint("VOTE:UNF", 0.0685)
-                .addConstraint("VOTE:SND", 0.0214)
-                .addConstraint("VOTE:FPK", 0.0173)
-                .addConstraint("VOTE:KNC", 0.0066)
-                .addConstraint("VOTE:CSD", 0.0057)
-                .addConstraint("VOTE:OTH", 0.0066)
-                // WEALTH
-                .addConstraint("WEALTH:MARGINAL", 0.287)
-                .addConstraint("WEALTH:LOW", 0.325)
-                .addConstraint("WEALTH:HIGH", 0.12)
-                .addConstraint("WEALTH:ULTRA", 0.001)
-                // AGE
-                .addConstraint("AGE:CHILD", 0.388)
-                .addConstraint("AGE:YOUNG_ADULT", 0.318)
-                .addConstraint("AGE:MIDDLE_AGE", 0.209)
-                .addConstraint("AGE:ELDERLY", 0.085)
-                // DISTRICT_TYPE
-                .addConstraint("DISTRICT_TYPE:URBAN", 0.35)
-                .addConstraint("DISTRICT_TYPE:SUBURBAN", 0.25)
-                .addConstraint("DISTRICT_TYPE:RURAL", 0.30)
-                .addConstraint("DISTRICT_TYPE:FRONTIER", 0.10)
-                // ---
-                // CONDITIONALS
-                // DISTRICT_TYPE | DISTRICT
-                .addConstraint("DISTRICT_TYPE:URBAN", List.of("DISTRICT:CAPITAL_CITY"), 1.0)
-                .addConstraint("DISTRICT_TYPE:SUBURBAN", List.of("DISTRICT:CITY_SUBURBS"), 1.0)
-                .addConstraint("DISTRICT_TYPE:RURAL", List.of("DISTRICT:FARM_TOWN"), 1.0)
-                .addConstraint("DISTRICT_TYPE:FRONTIER", List.of("DISTRICT:MINING_OUTPOST"), 1.0)
-                // Age|Race
-                .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ORC"), 0.177)
-                .addConstraint("AGE:YOUNG_ADULT", List.of("RACE:ANK"), 0.335)
-                .addConstraint("AGE:CHILD", List.of("RACE:DWARF"), 0.303)
-                .addConstraint("AGE:CHILD", List.of("RACE:GOBLIN"), 0.410)
-                .addConstraint("AGE:ELDERLY", List.of("RACE:ELF"), 0.13)
-                .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ELF"), 0.23)
-                // Race|DISTRICT_TYPE
-                .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.65)
-                .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:SUBURBAN"), 1.05 * 0.65)
-                .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:RURAL"), 1.03 * 0.65)
-                .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.14)
-                .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:SUBURBAN"), 0.78 * 0.14)
-                .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.14)
-                .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:URBAN"), 1.05 * 0.07)
-                .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:SUBURBAN"), 0.73 * 0.07)
-                .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:RURAL"), 1.01 * 0.07)
-                .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:URBAN"), 1.03 * 0.06)
-                .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:SUBURBAN"), 0.70 * 0.06)
-                .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.06)
-                .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.05)
-                .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.01 * 0.05)
-                .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:FRONTIER"), 1.1 * 0.05)
-                .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.03)
-                .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.03 * 0.03)
-                .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:RURAL"), 1.02 * 0.03)
+            .addParents("DISTRICT_TYPE", List.of())
+            .addParents("DISTRICT", List.of("DISTRICT_TYPE"))
+            .addParents("RACE", List.of("DISTRICT"))
+            .addParents("AGE", List.of("RACE", "DISTRICT"))
+            .addParents("WEALTH", List.of("RACE", "DISTRICT"))
+            .addParents("OUTLOOK", List.of("WEALTH", "AGE", "DISTRICT"))
+            .addParents("VOTE", List.of("RACE", "AGE", "DISTRICT", "OUTLOOK"))
+            // Known marginals
+            // DISTRICT
+            .addConstraint("DISTRICT:CAPITAL_CITY", 600E3 / 320E6)
+            .addConstraint("DISTRICT:CITY_SUBURBS", 600E3 / 320E6)
+            .addConstraint("DISTRICT:FARM_TOWN", 600E3 / 320E6)
+            .addConstraint("DISTRICT:MINING_OUTPOST", 600E3 / 320E6)
+            // RACE
+            .addConstraint("RACE:HUMAN", 0.65)
+            .addConstraint("RACE:ANK", 0.14)
+            .addConstraint("RACE:ORC", 0.07)
+            .addConstraint("RACE:GOBLIN", 0.06)
+            .addConstraint("RACE:DWARF", 0.05)
+            .addConstraint("RACE:ELF", 0.03)
+            // VOTE
+            .addConstraint("VOTE:SDP", 0.1090)
+            .addConstraint("VOTE:VNG", 0.0941)
+            .addConstraint("VOTE:CPK", 0.0834)
+            .addConstraint("VOTE:UNF", 0.0685)
+            .addConstraint("VOTE:SND", 0.0214)
+            .addConstraint("VOTE:FPK", 0.0173)
+            .addConstraint("VOTE:KNC", 0.0066)
+            .addConstraint("VOTE:CSD", 0.0057)
+            .addConstraint("VOTE:OTH", 0.0066)
+            // WEALTH
+            .addConstraint("WEALTH:MARGINAL", 0.287)
+            .addConstraint("WEALTH:LOW", 0.325)
+            .addConstraint("WEALTH:HIGH", 0.12)
+            .addConstraint("WEALTH:ULTRA", 0.001)
+            // AGE
+            .addConstraint("AGE:CHILD", 0.388)
+            .addConstraint("AGE:YOUNG_ADULT", 0.318)
+            .addConstraint("AGE:MIDDLE_AGE", 0.209)
+            .addConstraint("AGE:ELDERLY", 0.085)
+            // DISTRICT_TYPE
+            .addConstraint("DISTRICT_TYPE:URBAN", 0.35)
+            .addConstraint("DISTRICT_TYPE:SUBURBAN", 0.25)
+            .addConstraint("DISTRICT_TYPE:RURAL", 0.30)
+            .addConstraint("DISTRICT_TYPE:FRONTIER", 0.10)
+            // ---
+            // CONDITIONALS
+            // DISTRICT_TYPE | DISTRICT
+            .addConstraint("DISTRICT_TYPE:URBAN", List.of("DISTRICT:CAPITAL_CITY"), 1.0)
+            .addConstraint("DISTRICT_TYPE:SUBURBAN", List.of("DISTRICT:CITY_SUBURBS"), 1.0)
+            .addConstraint("DISTRICT_TYPE:RURAL", List.of("DISTRICT:FARM_TOWN"), 1.0)
+            .addConstraint("DISTRICT_TYPE:FRONTIER", List.of("DISTRICT:MINING_OUTPOST"), 1.0)
+            // Age|Race
+            .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ORC"), 0.177)
+            .addConstraint("AGE:YOUNG_ADULT", List.of("RACE:ANK"), 0.335)
+            .addConstraint("AGE:CHILD", List.of("RACE:DWARF"), 0.303)
+            .addConstraint("AGE:CHILD", List.of("RACE:GOBLIN"), 0.410)
+            .addConstraint("AGE:ELDERLY", List.of("RACE:ELF"), 0.13)
+            .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ELF"), 0.23)
+            // Race|DISTRICT_TYPE
+            .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.65)
+            .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:SUBURBAN"), 1.05 * 0.65)
+            .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:RURAL"), 1.03 * 0.65)
+            .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.14)
+            .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:SUBURBAN"), 0.78 * 0.14)
+            .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.14)
+            .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:URBAN"), 1.05 * 0.07)
+            .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:SUBURBAN"), 0.73 * 0.07)
+            .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:RURAL"), 1.01 * 0.07)
+            .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:URBAN"), 1.03 * 0.06)
+            .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:SUBURBAN"), 0.70 * 0.06)
+            .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.06)
+            .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.05)
+            .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.01 * 0.05)
+            .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:FRONTIER"), 1.1 * 0.05)
+            .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.03)
+            .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.03 * 0.03)
+            .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:RURAL"), 1.02 * 0.03)
 
-                // Wealth|Race,DISTRICT_TYPE
-                .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.25)
-                .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
-                .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
-                .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.23)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
-                .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.10)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.003)
-                .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.29)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.000)
-                // Outlook|Race,Wealth,Age,DISTRICT_TYPE
-                .addConstraint(
-                        "OUTLOOK:REACTIONARY",
-                        List.of("RACE:HUMAN", "WEALTH:MIDDLE", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:SUBURBAN"),
-                        0.42)
-                .addConstraint(
-                        "OUTLOOK:REVOLUTIONARY",
-                        List.of("RACE:ANK", "WEALTH:MARGINAL", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
-                        0.66)
-                .addConstraint(
-                        "OUTLOOK:CONSERVATIVE",
-                        List.of("RACE:HUMAN", "WEALTH:LOW", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:RURAL"),
-                        0.387)
-                .addConstraint(
-                        "OUTLOOK:PROGRESSIVE",
-                        List.of("RACE:DWARF", "WEALTH:MIDDLE", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
-                        0.42)
-                .addConstraint(
-                        "OUTLOOK:MODERATE",
-                        List.of("RACE:ELF", "WEALTH:MIDDLE", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:SUBURBAN"),
-                        0.41)
-                // NON-LOCAL CONDITIONALS
-                // VOTE | DISTRICT, OUTLOOK
-                .addConstraint("VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:CAPITAL_CITY"), 0.8)
-                .addConstraint("VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:FARM_TOWN"), 0.62)
-                .addConstraint("VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.25)
-                .addConstraint("VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.05)
-                .addConstraint("VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.21)
-                .addConstraint("VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.45)
-                .addConstraint("VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:CAPITAL_CITY"), 0.51)
-                .addConstraint("VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:FARM_TOWN"), 0.28)
-                // DISTRICT
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.05)
-                .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.258)
-                .addConstraint("AGE:CHILD", List.of("DISTRICT:CITY_SUBURBS"), 0.345)
-                .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.1)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.275)
-                .addConstraint("OUTLOOK:CONSERVATIVE", List.of("DISTRICT:FARM_TOWN"), 0.300)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:FARM_TOWN"), 0.08)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:MINING_OUTPOST"), 0.15)
-                // OTHERS
-                .addConstraint("VOTE:NONE", List.of("AGE:CHILD"), 1.0)
-                .addConstraint("OUTLOOK:APATHY", List.of("VOTE:NONE"), 0.75)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:MARGINAL"), 0.44)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:ULTRA"), 0.02)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:HIGH"), 0.05)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:CPK"), 0.65)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SND"), 0.55)
-                .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SDP"), 0.20)
-                .addConstraint("OUTLOOK:PROGRESSIVE", List.of("RACE:DWARF"), 0.46)
-                .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:SDP"), 0.48)
-                .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:CPK"), 0.20)
-                .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:VNG"), 0.20)
-                .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:FPK"), 0.41)
-                .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:SDP"), 0.25)
-                .addConstraint("OUTLOOK:CONSERVATIVE", List.of("WEALTH:HIGH"), 0.48)
-                .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:FPK"), 0.55)
-                .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:VNG"), 0.42)
-                .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:UNF"), 0.35)
-                .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:UNF"), 0.50)
-                .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:CSD"), 0.44)
-                .addConstraint("VOTE:UNF", List.of("RACE:ANK"), 0.02)
-                .addConstraint("VOTE:UNF", List.of("RACE:DWARF"), 0.02)
-                .addConstraint("VOTE:UNF", List.of("RACE:GOBLIN"), 0.03)
-                .addConstraint("VOTE:UNF", List.of("RACE:ORC"), 0.08)
-                .addConstraint("RACE:ORC", List.of("VOTE:KNC"), 0.59)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:ANK"), 0.0005)
-                .addConstraint("WEALTH:HIGH", List.of("RACE:ANK"), 0.008)
-                .addConstraint("WEALTH:MIDDLE", List.of("RACE:ANK"), 0.0726)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:ORC"), 0.0005)
-                .addConstraint("WEALTH:HIGH", List.of("RACE:ORC"), 0.008)
-                .addConstraint("WEALTH:MIDDLE", List.of("RACE:ORC"), 0.0726)
-                .addConstraint("WEALTH:ULTRA", List.of("RACE:GOBLIN"), 0.0005)
-                .addConstraint("WEALTH:HIGH", List.of("RACE:GOBLIN"), 0.008)
-                .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
-                .solveNetwork()
-                .observeMarginals()
-                .printObserved();
+            // Wealth|Race,DISTRICT_TYPE
+            .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.25)
+            .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
+            .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
+            .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.23)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
+            .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.10)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.003)
+            .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.29)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.000)
+            // Outlook|Race,Wealth,Age,DISTRICT_TYPE
+            .addConstraint(
+                "OUTLOOK:REACTIONARY",
+                List.of("RACE:HUMAN", "WEALTH:MIDDLE", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:SUBURBAN"),
+                0.42)
+            .addConstraint(
+                "OUTLOOK:REVOLUTIONARY",
+                List.of("RACE:ANK", "WEALTH:MARGINAL", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
+                0.66)
+            .addConstraint(
+                "OUTLOOK:CONSERVATIVE",
+                List.of("RACE:HUMAN", "WEALTH:LOW", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:RURAL"),
+                0.387)
+            .addConstraint(
+                "OUTLOOK:PROGRESSIVE",
+                List.of("RACE:DWARF", "WEALTH:MIDDLE", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
+                0.42)
+            .addConstraint(
+                "OUTLOOK:MODERATE",
+                List.of("RACE:ELF", "WEALTH:MIDDLE", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:SUBURBAN"),
+                0.41)
+            // NON-LOCAL CONDITIONALS
+            // VOTE | DISTRICT, OUTLOOK
+            .addConstraint(
+                "VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:CAPITAL_CITY"), 0.8)
+            .addConstraint("VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:FARM_TOWN"), 0.62)
+            .addConstraint(
+                "VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.25)
+            .addConstraint("VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.05)
+            .addConstraint(
+                "VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.21)
+            .addConstraint("VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.45)
+            .addConstraint(
+                "VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:CAPITAL_CITY"), 0.51)
+            .addConstraint("VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:FARM_TOWN"), 0.28)
+            // DISTRICT
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.05)
+            .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.258)
+            .addConstraint("AGE:CHILD", List.of("DISTRICT:CITY_SUBURBS"), 0.345)
+            .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.1)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.275)
+            .addConstraint("OUTLOOK:CONSERVATIVE", List.of("DISTRICT:FARM_TOWN"), 0.300)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:FARM_TOWN"), 0.08)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:MINING_OUTPOST"), 0.15)
+            // OTHERS
+            .addConstraint("VOTE:NONE", List.of("AGE:CHILD"), 1.0)
+            .addConstraint("OUTLOOK:APATHY", List.of("VOTE:NONE"), 0.75)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:MARGINAL"), 0.44)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:ULTRA"), 0.02)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:HIGH"), 0.05)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:CPK"), 0.65)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SND"), 0.55)
+            .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SDP"), 0.20)
+            .addConstraint("OUTLOOK:PROGRESSIVE", List.of("RACE:DWARF"), 0.46)
+            .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:SDP"), 0.48)
+            .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:CPK"), 0.20)
+            .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:VNG"), 0.20)
+            .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:FPK"), 0.41)
+            .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:SDP"), 0.25)
+            .addConstraint("OUTLOOK:CONSERVATIVE", List.of("WEALTH:HIGH"), 0.48)
+            .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:FPK"), 0.55)
+            .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:VNG"), 0.42)
+            .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:UNF"), 0.35)
+            .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:UNF"), 0.50)
+            .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:CSD"), 0.44)
+            .addConstraint("VOTE:UNF", List.of("RACE:ANK"), 0.02)
+            .addConstraint("VOTE:UNF", List.of("RACE:DWARF"), 0.02)
+            .addConstraint("VOTE:UNF", List.of("RACE:GOBLIN"), 0.03)
+            .addConstraint("VOTE:UNF", List.of("RACE:ORC"), 0.08)
+            .addConstraint("RACE:ORC", List.of("VOTE:KNC"), 0.59)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:ANK"), 0.0005)
+            .addConstraint("WEALTH:HIGH", List.of("RACE:ANK"), 0.008)
+            .addConstraint("WEALTH:MIDDLE", List.of("RACE:ANK"), 0.0726)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:ORC"), 0.0005)
+            .addConstraint("WEALTH:HIGH", List.of("RACE:ORC"), 0.008)
+            .addConstraint("WEALTH:MIDDLE", List.of("RACE:ORC"), 0.0726)
+            .addConstraint("WEALTH:ULTRA", List.of("RACE:GOBLIN"), 0.0005)
+            .addConstraint("WEALTH:HIGH", List.of("RACE:GOBLIN"), 0.008)
+            .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
+            .solveNetwork()
+            .observeMarginals()
+            .printObserved();
   }
 }

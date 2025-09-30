@@ -1,16 +1,14 @@
 package com.artools.method.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.sampler.Clique;
-import com.artools.application.sampler.JunctionTreeData;
-import com.artools.application.sampler.Separator;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
-import com.artools.method.jtahandlers.SeparatorTableHandler;
+import com.artools.application.sampler.Clique;
+import com.artools.application.sampler.JunctionTreeData;
+import com.artools.application.sampler.Separator;
 import com.artools.method.jtahandlers.JunctionTableHandler;
-import com.artools.method.probabilitytables.TableUtils;
-
+import com.artools.method.jtahandlers.SeparatorTableHandler;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,18 +59,15 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
   }
 
   private void setEvidence(Map<Node, NodeState> evidence) {
-    data.getJunctionTreeTables()
-        .forEach(
-            table -> {
-              Set<NodeState> evidenceInTable =
-                  table.getNodes().stream()
-                      .filter(evidence::containsKey)
-                      .map(evidence::get)
-                      .collect(Collectors.toSet());
+    for (Clique clique : data.getCliqueSet()) {
+      Set<NodeState> evidenceInTable =
+          clique.getNodes().stream()
+              .filter(evidence::containsKey)
+              .map(evidence::get)
+              .collect(Collectors.toSet());
 
-              table.setObserved(evidenceInTable, !evidence.isEmpty());
-              TableUtils.recalculateObservedProbabilityMap(table);
-            });
+      clique.getHandler().setObserved(evidenceInTable, !evidenceInTable.isEmpty());
+    }
   }
 
   private void distributeAndCollectMessages(Clique currentClique, Set<Clique> cliqueChain) {

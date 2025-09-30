@@ -27,7 +27,7 @@ public class SeparatorTableHandler extends JunctionTableHandler {
   }
 
   private List<Set<Integer>> buildSumToIndex(JunctionTableHandler cliqueIndexer) {
-    List<Set<Integer>> intSetList = new ArrayList<>(table.getProbabilities().length);
+    List<Set<Integer>> intSetList = new ArrayList<>(getProbabilities().length);
     for (Set<NodeState> key : table.getKeySet()) {
       int index = table.getIndexMap().get(key);
       Set<Integer> cliqueIndexerSet = cliqueIndexer.getIndexes(key);
@@ -54,7 +54,7 @@ public class SeparatorTableHandler extends JunctionTableHandler {
       List<Set<Integer>> sumFinderFrom,
       JunctionTableHandler indexerTo,
       List<Set<Integer>> sumFinderTo) {
-    double[] probabilities = getCorrectProbabilities();
+    double[] probabilities = getProbabilities();
     for (int i = 0; i < probabilities.length; i++) {
       double sumFrom = indexerFrom.sumFromTableIndexes(sumFinderFrom.get(i));
       probabilities[i] = sumFrom;

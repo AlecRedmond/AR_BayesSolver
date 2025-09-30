@@ -12,8 +12,8 @@ import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
 import com.artools.method.jtahandlers.ConditionalHandler;
 import com.artools.method.jtahandlers.ConstraintHandler;
-import com.artools.method.jtahandlers.MarginalHandler;
 import com.artools.method.jtahandlers.JunctionTableHandler;
+import com.artools.method.jtahandlers.MarginalHandler;
 import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,15 +27,16 @@ public class JunctionTreeDataBuilder {
   public static JunctionTreeData build(BayesNetData bayesNetData) {
     if (satisfactoryDataExists(bayesNetData)) return bayesNetData.getJunctionTreeData();
 
-    var cliqueSet = CliqueBuilder.buildCliques(bayesNetData);
-    var separators = buildSeparators(cliqueSet);
-    var leafCliques = buildLeafCliques(cliqueSet);
-    var associatedTables = buildAssociatedTablesMap(cliqueSet, bayesNetData);
-    var junctionTreeTables = buildAllTablesList(cliqueSet, separators);
+    Set<Clique> cliqueSet = CliqueBuilder.buildCliques(bayesNetData);
+    Set<Separator> separators = buildSeparators(cliqueSet);
+    Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
+    Map<Clique, Set<ProbabilityTable>> associatedTables =
+        buildAssociatedTablesMap(cliqueSet, bayesNetData);
+    List<JunctionTreeTable> junctionTreeTables = buildAllTablesList(cliqueSet, separators);
 
     log.info("CLIQUES BUILT");
 
-    var builder =
+    JunctionTreeData.JunctionTreeDataBuilder builder =
         JunctionTreeData.builder()
             .bayesNetData(bayesNetData)
             .cliqueSet(cliqueSet)
@@ -44,30 +45,39 @@ public class JunctionTreeDataBuilder {
             .associatedTables(associatedTables)
             .junctionTreeTables(junctionTreeTables);
 
-    if (bayesNetData.isSolved()) {
-      JunctionTreeData jtd =
-          builder
-              .cliqueForConstraint(new HashMap<>())
-              .constraintHandlers(new HashMap<>())
-              .build();
+    return bayesNetData.isSolved()
+        ? buildDataForSolved(bayesNetData, builder)
+        : buildDataForUnsolved(bayesNetData, cliqueSet, builder);
+  }
 
-      bayesNetData.setJunctionTreeData(jtd);
-      return jtd;
-    }
-
-    var cliqueForConstraint = findCliquesForConstraints(cliqueSet, bayesNetData);
-    var constraintIndexerMap = buildConstraintIndexerMap(bayesNetData, cliqueForConstraint);
+  private static JunctionTreeData buildDataForUnsolved(
+      BayesNetData bayesNetData,
+      Set<Clique> cliqueSet,
+      JunctionTreeData.JunctionTreeDataBuilder builder) {
+    Map<ParameterConstraint, Clique> cliqueForConstraint =
+        findCliquesForConstraints(cliqueSet, bayesNetData);
+    Map<ParameterConstraint, ConstraintHandler> constraintHandlerMap =
+        buildConstraintIndexerMap(bayesNetData, cliqueForConstraint);
 
     log.info("CONSTRAINT INDEXERS BUILT");
 
     JunctionTreeData jtd =
         builder
             .cliqueForConstraint(cliqueForConstraint)
-            .constraintHandlers(constraintIndexerMap)
+            .constraintHandlers(constraintHandlerMap)
             .build();
 
     bayesNetData.setJunctionTreeData(jtd);
 
+    return jtd;
+  }
+
+  private static JunctionTreeData buildDataForSolved(
+      BayesNetData bayesNetData, JunctionTreeData.JunctionTreeDataBuilder builder) {
+    JunctionTreeData jtd =
+        builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
+
+    bayesNetData.setJunctionTreeData(jtd);
     return jtd;
   }
 
@@ -79,11 +89,11 @@ public class JunctionTreeDataBuilder {
   private static Map<ParameterConstraint, ConstraintHandler> buildConstraintIndexerMap(
       BayesNetData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
     return data.getConstraints().stream()
-        .map(c -> Map.entry(c, buildConstraintIndexer(c, constraintCliqueMap.get(c).getHandler())))
+        .map(c -> Map.entry(c, buildConstraintHandler(c, constraintCliqueMap.get(c).getHandler())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static ConstraintHandler buildConstraintIndexer(
+  private static ConstraintHandler buildConstraintHandler(
       ParameterConstraint constraint, JunctionTableHandler junctionTableHandler) {
     switch (constraint) {
       case MarginalConstraint mc -> {

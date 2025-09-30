@@ -34,7 +34,6 @@ public class NetworkJunctionConverter {
                           setProbabilityAndSubTableIndexes(
                               clique.getTable(), networkTables, request));
             });
-
     setSeparatorsToUnity();
   }
 

@@ -9,10 +9,10 @@ import lombok.Getter;
 
 @Getter
 public class JunctionTableHandler {
-  protected final ProbabilityTable table;
+  protected final JunctionTreeTable table;
   protected final Map<NodeState, List<Integer>> stateIndexes;
 
-  public JunctionTableHandler(ProbabilityTable table) {
+  public JunctionTableHandler(JunctionTreeTable table) {
     this.table = table;
     this.stateIndexes = fillStateIndexes(table);
   }
@@ -29,39 +29,14 @@ public class JunctionTableHandler {
     return stateIndexMap;
   }
 
-  public void marginalize() {
-    double[] probs = getProbabilities();
-    double sum = Arrays.stream(probs).sum();
-    if (sum == 0 || sum == 1.0) return;
-    double ratio = 1 / sum;
-    IntStream.range(0, probs.length).forEach(i -> probs[i] = probs[i] * ratio);
-  }
-
-  public double[] getProbabilities() {
-    return table.getProbabilities();
-  }
-
-  public void adjustByRatio(Set<Integer> integers, double ratio) {
-    double[] probs = getCorrectProbabilities();
-    integers.forEach(i -> probs[i] = probs[i] * ratio);
-  }
-
-  protected double[] getCorrectProbabilities() {
-    JunctionTreeTable t = (JunctionTreeTable) table;
-    return t.isObserved() ? t.getObservedProbabilities() : t.getProbabilities();
-  }
-
-  public double sumFromTable(Set<NodeState> states) {
-    return sumFromTableIndexes(getIndexes(states));
-  }
-
-  public double sumFromTableIndexes(Collection<Integer> indexes) {
+  public void setObserved(Set<NodeState> evidenceInTable, boolean isObserved) {
+    table.setObserved(evidenceInTable, isObserved);
+    if (!isObserved) return;
     double[] probabilities = table.getProbabilities();
-    double prob = 0.0;
-    for (int index : indexes) {
-      prob += probabilities[index];
-    }
-    return prob;
+    double[] observed = table.getObservedProbabilities();
+    Arrays.fill(observed, 0.0);
+    getIndexes(evidenceInTable).forEach(index -> observed[index] = probabilities[index]);
+    marginalize();
   }
 
   public Set<Integer> getIndexes(Set<NodeState> key) {
@@ -76,6 +51,36 @@ public class JunctionTableHandler {
       common.retainAll(new HashSet<>(stateIndexes.get(state)));
     }
     return common;
+  }
+
+  public void marginalize() {
+    double[] probs = getProbabilities();
+    double sum = Arrays.stream(probs).sum();
+    if (sum == 0 || sum == 1.0) return;
+    double ratio = 1 / sum;
+    IntStream.range(0, probs.length).forEach(i -> probs[i] = probs[i] * ratio);
+  }
+
+  public double[] getProbabilities() {
+    return table.isObserved() ? table.getObservedProbabilities() : table.getProbabilities();
+  }
+
+  public void adjustByRatio(Set<Integer> integers, double ratio) {
+    double[] probs = getProbabilities();
+    integers.forEach(i -> probs[i] = probs[i] * ratio);
+  }
+
+  public double sumFromTable(Set<NodeState> states) {
+    return sumFromTableIndexes(getIndexes(states));
+  }
+
+  public double sumFromTableIndexes(Collection<Integer> indexes) {
+    double[] probabilities = getProbabilities();
+    double prob = 0.0;
+    for (int index : indexes) {
+      prob += probabilities[index];
+    }
+    return prob;
   }
 
   protected Set<Integer> getIndexes(NodeState state) {
