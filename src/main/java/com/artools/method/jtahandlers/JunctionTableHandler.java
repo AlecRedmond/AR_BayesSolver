@@ -1,4 +1,4 @@
-package com.artools.method.indexer;
+package com.artools.method.jtahandlers;
 
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.JunctionTreeTable;
@@ -8,11 +8,11 @@ import java.util.stream.IntStream;
 import lombok.Getter;
 
 @Getter
-public class TableIndexer {
+public class JunctionTableHandler {
   protected final ProbabilityTable table;
   protected final Map<NodeState, List<Integer>> stateIndexes;
 
-  public TableIndexer(ProbabilityTable table) {
+  public JunctionTableHandler(ProbabilityTable table) {
     this.table = table;
     this.stateIndexes = fillStateIndexes(table);
   }
@@ -78,7 +78,7 @@ public class TableIndexer {
     return common;
   }
 
-    protected Set<Integer> getIndexes(NodeState state) {
+  protected Set<Integer> getIndexes(NodeState state) {
     return new HashSet<>(stateIndexes.get(checkValid(state)));
   }
 

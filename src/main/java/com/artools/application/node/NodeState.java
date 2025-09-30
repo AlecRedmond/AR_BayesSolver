@@ -13,7 +13,7 @@ public class NodeState {
   }
 
   @Override
-  public String toString(){
+  public String toString() {
     return stateID.toString();
   }
 }

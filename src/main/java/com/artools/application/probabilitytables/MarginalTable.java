@@ -20,5 +20,4 @@ public class MarginalTable extends ProbabilityTable {
         indexMap, probabilities, tableName, Set.of(eventNode), Set.of(eventNode), new HashSet<>());
     this.eventNode = eventNode;
   }
-
 }

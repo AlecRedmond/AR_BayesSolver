@@ -10,10 +10,10 @@ import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
-import com.artools.method.indexer.ConditionalIndexer;
-import com.artools.method.indexer.ConstraintIndexer;
-import com.artools.method.indexer.MarginalIndexer;
-import com.artools.method.indexer.TableIndexer;
+import com.artools.method.jtahandlers.ConditionalHandler;
+import com.artools.method.jtahandlers.ConstraintHandler;
+import com.artools.method.jtahandlers.MarginalHandler;
+import com.artools.method.jtahandlers.JunctionTableHandler;
 import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +48,7 @@ public class JunctionTreeDataBuilder {
       JunctionTreeData jtd =
           builder
               .cliqueForConstraint(new HashMap<>())
-              .constraintIndexerMap(new HashMap<>())
+              .constraintHandlers(new HashMap<>())
               .build();
 
       bayesNetData.setJunctionTreeData(jtd);
@@ -63,7 +63,7 @@ public class JunctionTreeDataBuilder {
     JunctionTreeData jtd =
         builder
             .cliqueForConstraint(cliqueForConstraint)
-            .constraintIndexerMap(constraintIndexerMap)
+            .constraintHandlers(constraintIndexerMap)
             .build();
 
     bayesNetData.setJunctionTreeData(jtd);
@@ -73,24 +73,24 @@ public class JunctionTreeDataBuilder {
 
   private static boolean satisfactoryDataExists(BayesNetData bayesNetData) {
     if (!bayesNetData.isSolved()) return false;
-    return bayesNetData.getJunctionTreeData().getConstraintIndexerMap().isEmpty();
+    return bayesNetData.getJunctionTreeData().getConstraintHandlers().isEmpty();
   }
 
-  private static Map<ParameterConstraint, ConstraintIndexer> buildConstraintIndexerMap(
+  private static Map<ParameterConstraint, ConstraintHandler> buildConstraintIndexerMap(
       BayesNetData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
     return data.getConstraints().stream()
-        .map(c -> Map.entry(c, buildConstraintIndexer(c, constraintCliqueMap.get(c).getIndexer())))
+        .map(c -> Map.entry(c, buildConstraintIndexer(c, constraintCliqueMap.get(c).getHandler())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static ConstraintIndexer buildConstraintIndexer(
-      ParameterConstraint constraint, TableIndexer tableIndexer) {
+  private static ConstraintHandler buildConstraintIndexer(
+      ParameterConstraint constraint, JunctionTableHandler junctionTableHandler) {
     switch (constraint) {
       case MarginalConstraint mc -> {
-        return new MarginalIndexer(tableIndexer, mc);
+        return new MarginalHandler(junctionTableHandler, mc);
       }
       case ConditionalConstraint cc -> {
-        return new ConditionalIndexer(tableIndexer, cc);
+        return new ConditionalHandler(junctionTableHandler, cc);
       }
       default -> throw new IllegalStateException("Unexpected value: " + constraint);
     }

@@ -31,7 +31,7 @@ public abstract class ProbabilityTable {
     this.conditions = conditions;
   }
 
-    public double getProbability(Set<NodeState> key) {
+  public double getProbability(Set<NodeState> key) {
     double probability = probabilities[indexMap.get(key)];
     if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
     return probability;

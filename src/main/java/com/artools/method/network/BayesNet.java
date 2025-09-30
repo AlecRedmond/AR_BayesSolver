@@ -1,15 +1,16 @@
 package com.artools.method.network;
 
+import static com.artools.method.constraints.ConstraintBuilder.*;
+
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.export.BayesianNetwork;
-import com.artools.method.constraints.ConstraintBuilder;
-import com.artools.method.sampler.JunctionTreeAlgorithm;
 import com.artools.method.probabilitytables.TableBuilder;
-import com.artools.method.solver.BayesSolver;
+import com.artools.method.sampler.JunctionTreeAlgorithm;
 import com.artools.method.sampler.NetworkSampler;
+import com.artools.method.solver.BayesSolver;
 import java.util.*;
 import lombok.Getter;
 
@@ -70,7 +71,7 @@ public class BayesNet implements BayesianNetwork {
   }
 
   public <T, E> BayesNet addNodeStates(T nodeID, Collection<E> nodeStateIDs) {
-    nodeStateIDs.forEach(sID -> addNodeState(nodeID, nodeStateIDs));
+    nodeStateIDs.forEach(sID -> addNodeState(nodeID, sID));
     return this;
   }
 
@@ -127,17 +128,13 @@ public class BayesNet implements BayesianNetwork {
     networkData.setSolved(false);
     networkData
         .getConstraints()
-        .add(
-            ConstraintBuilder.buildConstraint(
-                eventStateID, conditionStateIDs, probability, networkData));
+        .add(buildConstraint(eventStateID, conditionStateIDs, probability, networkData));
     return this;
   }
 
   public <T> BayesNet addConstraint(T eventStateID, double probability) {
     networkData.setSolved(false);
-    networkData
-        .getConstraints()
-        .add(ConstraintBuilder.buildConstraint(eventStateID, probability, networkData));
+    networkData.getConstraints().add(buildConstraint(eventStateID, probability, networkData));
     return this;
   }
 
@@ -146,9 +143,7 @@ public class BayesNet implements BayesianNetwork {
     networkData.setSolved(false);
     networkData
         .getConstraints()
-        .add(
-            ConstraintBuilder.buildConstraint(
-                eventStateIDs, conditionStateIDs, probability, networkData));
+        .add(buildConstraint(eventStateIDs, conditionStateIDs, probability, networkData));
     return this;
   }
 

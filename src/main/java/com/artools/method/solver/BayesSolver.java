@@ -4,14 +4,11 @@ import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.method.sampler.JunctionTreeAlgorithm;
-import java.time.Instant;
-
 import com.artools.method.sampler.NetworkSampler;
-import lombok.extern.apachecommons.CommonsLog;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@CommonsLog
 public class BayesSolver {
   private final SolverConfigs configs;
   private final BayesNetData data;

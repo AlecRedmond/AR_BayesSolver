@@ -21,11 +21,11 @@ public class JunctionTreeTable extends ProbabilityTable {
    * @param indexMap a map that links every set of Node States to its associated probability on the
    *     array
    * @param probabilities a flat array of probability values
-   * @param events the nodes which are not conditional on the table
+   * @param events all nodes associated with the table
    * @param observedProbabilities a copy of the probabilities array, used when calculating observed
    *     marginals in the Junction Tree Algorithm
-   * @param equivalentIndexMap links a JunctionTreeTable index to the equivalent indexes in the
-   *     Network Probability Tables it was built from. Used for faster read/write back to the
+   * @param equivalentIndexMap links a JunctionTreeTable index to its equivalent indexes in the
+   *     Network Probability Tables it was constructed from. Used for faster read/write back to the
    *     network.
    */
   public <T> JunctionTreeTable(

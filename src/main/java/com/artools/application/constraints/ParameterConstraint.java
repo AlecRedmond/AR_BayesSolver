@@ -24,10 +24,10 @@ public class ParameterConstraint {
       throw new IllegalArgumentException("Constraint constructor found empty event states!");
     this.eventStates = Set.copyOf(eventStates);
     this.conditionStates = Set.copyOf(conditionStates);
-    this.allStates = Set.copyOf(NodeUtils.combineStates(eventStates, conditionStates));
+    this.allStates = NodeUtils.combineStates(eventStates, conditionStates);
     this.probability = probability;
-    this.eventNodes = Set.copyOf(NodeUtils.getNodes(eventStates));
-    this.conditionNodes = Set.copyOf(NodeUtils.getNodes(conditionStates));
-    this.allNodes = Set.copyOf(NodeUtils.getNodes(allStates));
+    this.eventNodes = NodeUtils.getNodes(eventStates);
+    this.conditionNodes = NodeUtils.getNodes(conditionStates);
+    this.allNodes = NodeUtils.getNodes(allStates);
   }
 }

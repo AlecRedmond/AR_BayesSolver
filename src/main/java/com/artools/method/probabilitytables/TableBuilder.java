@@ -23,27 +23,10 @@ public class TableBuilder {
 
   private static MarginalTable buildMarginalTable(Set<Node> events) {
     Node eventNode = events.stream().findAny().orElseThrow();
-    String tableName = buildTableName(eventNode);
+    String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
     Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
     double[] probabilities = buildProbTable(indexMap.size());
     return new MarginalTable(indexMap, probabilities, tableName, eventNode);
-  }
-
-  private static String buildTableName(Node eventNode) {
-    return buildTableName(Set.of(eventNode), new HashSet<>());
-  }
-
-  private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
-    List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
-    return IntStream.range(0, keys.size())
-        .mapToObj(i -> Map.entry(keys.get(i), i))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private static double[] buildProbTable(int size) {
-    double[] probabilities = new double[size];
-    Arrays.fill(probabilities, 1.0);
-    return probabilities;
   }
 
   private static String buildTableName(Set<Node> events, Set<Node> conditions) {
@@ -57,6 +40,19 @@ public class TableBuilder {
       sb.append(condition.getNodeID().toString()).append(" ");
     }
     return sb.append(")").toString();
+  }
+
+  private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
+    List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
+    return IntStream.range(0, keys.size())
+        .mapToObj(i -> Map.entry(keys.get(i), i))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static double[] buildProbTable(int size) {
+    double[] probabilities = new double[size];
+    Arrays.fill(probabilities, 1.0);
+    return probabilities;
   }
 
   public static void buildNetworkTables(BayesNetData networkData) {

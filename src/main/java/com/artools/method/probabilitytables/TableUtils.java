@@ -6,7 +6,6 @@ import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.method.node.NodeUtils;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 public class TableUtils {
@@ -41,12 +40,12 @@ public class TableUtils {
   private static void marginalizeWithConditions(ProbabilityTable table, Set<Node> conditions) {
     NodeUtils.generateStateCombinations(conditions)
         .forEach(
-            conditionCombo -> {
-              double probOfCondition = sumOfJointKey(table, conditionCombo);
+            conditionKey -> {
+              double probOfCondition = jointProbOfKey(table, conditionKey);
               if (probOfCondition == 0) return;
               double normalizationFactor = 1 / probOfCondition;
               table.getKeySet().stream()
-                  .filter(key -> key.containsAll(conditionCombo))
+                  .filter(key -> key.containsAll(conditionKey))
                   .forEach(key -> multiplyEntry(table, key, normalizationFactor));
             });
   }
@@ -55,15 +54,10 @@ public class TableUtils {
     table.setProbability(states, table.getProbability(states) * ratio);
   }
 
-  public static double sumOfJointKey(ProbabilityTable table, Set<NodeState> key) {
-    return sumOfJointKey(table.getIndexMap(), table.getProbabilities(), key);
-  }
-
-  private static double sumOfJointKey(
-      Map<Set<NodeState>, Integer> indexMap, double[] probTable, Set<NodeState> keySet) {
-    return indexMap.entrySet().stream()
-        .filter(entry -> entry.getKey().containsAll(keySet))
-        .mapToDouble(entry -> probTable[entry.getValue()])
+  public static double jointProbOfKey(ProbabilityTable table, Set<NodeState> key) {
+    return table.getIndexMap().entrySet().stream()
+        .filter(entry -> entry.getKey().containsAll(key))
+        .mapToDouble(entry -> table.getProbabilities()[entry.getValue()])
         .sum();
   }
 }

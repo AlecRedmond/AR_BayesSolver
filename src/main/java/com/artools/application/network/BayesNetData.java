@@ -1,23 +1,20 @@
 package com.artools.application.network;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
+import com.artools.application.sampler.JunctionTreeData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 
 @Data
 @AllArgsConstructor
-@SuperBuilder(toBuilder = true)
 public class BayesNetData {
   protected List<Node> nodes;
   protected Map<Object, Node> nodesMap;

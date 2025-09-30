@@ -1,32 +1,32 @@
-package com.artools.method.indexer;
+package com.artools.method.jtahandlers;
 
-import com.artools.application.sampler.Clique;
-import com.artools.application.sampler.Separator;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.JunctionTreeTable;
+import com.artools.application.sampler.Clique;
+import com.artools.application.sampler.Separator;
 import java.util.*;
 
-public class SeparatorTableIndexer extends TableIndexer {
+public class SeparatorTableHandler extends JunctionTableHandler {
   private final Separator separator;
   private final JunctionTreeTable tableCliqueA;
-  private final TableIndexer cliqueIndexerA;
+  private final JunctionTableHandler cliqueIndexerA;
   private final List<Set<Integer>> sumFinderA;
   private final JunctionTreeTable tableCliqueB;
-  private final TableIndexer cliqueIndexerB;
+  private final JunctionTableHandler cliqueIndexerB;
   private final List<Set<Integer>> sumFinderB;
 
-  public SeparatorTableIndexer(Separator separator) {
+  public SeparatorTableHandler(Separator separator) {
     super(separator.getTable());
     this.separator = separator;
     this.tableCliqueA = separator.getCliqueA().getTable();
-    this.cliqueIndexerA = new TableIndexer(tableCliqueA);
+    this.cliqueIndexerA = new JunctionTableHandler(tableCliqueA);
     this.tableCliqueB = separator.getCliqueB().getTable();
-    this.cliqueIndexerB = new TableIndexer(tableCliqueB);
+    this.cliqueIndexerB = new JunctionTableHandler(tableCliqueB);
     this.sumFinderA = buildSumToIndex(cliqueIndexerA);
     this.sumFinderB = buildSumToIndex(cliqueIndexerB);
   }
 
-  private List<Set<Integer>> buildSumToIndex(TableIndexer cliqueIndexer) {
+  private List<Set<Integer>> buildSumToIndex(JunctionTableHandler cliqueIndexer) {
     List<Set<Integer>> intSetList = new ArrayList<>(table.getProbabilities().length);
     for (Set<NodeState> key : table.getKeySet()) {
       int index = table.getIndexMap().get(key);
@@ -36,12 +36,12 @@ public class SeparatorTableIndexer extends TableIndexer {
     return intSetList;
   }
 
-  public void passMessage(Clique startingClique) {
+  public void passMessageFrom(Clique startingClique) {
     JunctionTreeTable cliqueTable = startingClique.getTable();
     if (cliqueTable.equals(tableCliqueA))
-      passMessage(cliqueIndexerA, sumFinderA, cliqueIndexerB, sumFinderB);
+      passMessageFrom(cliqueIndexerA, sumFinderA, cliqueIndexerB, sumFinderB);
     if (cliqueTable.equals(tableCliqueB))
-      passMessage(cliqueIndexerB, sumFinderB, cliqueIndexerA, sumFinderA);
+      passMessageFrom(cliqueIndexerB, sumFinderB, cliqueIndexerA, sumFinderA);
     else
       throw new IllegalArgumentException(
           String.format(
@@ -49,10 +49,10 @@ public class SeparatorTableIndexer extends TableIndexer {
               cliqueTable.getTableID(), separator.getTable().getTableID()));
   }
 
-  private void passMessage(
-      TableIndexer indexerFrom,
+  private void passMessageFrom(
+      JunctionTableHandler indexerFrom,
       List<Set<Integer>> sumFinderFrom,
-      TableIndexer indexerTo,
+      JunctionTableHandler indexerTo,
       List<Set<Integer>> sumFinderTo) {
     double[] probabilities = getCorrectProbabilities();
     for (int i = 0; i < probabilities.length; i++) {

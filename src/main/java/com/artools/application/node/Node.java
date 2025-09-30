@@ -23,7 +23,7 @@ public class Node {
   }
 
   public <T> NodeState addState(T stateIdentifier) {
-    NodeState newState = new NodeState(stateIdentifier,this);
+    NodeState newState = new NodeState(stateIdentifier, this);
     states.add(newState);
     return newState;
   }
@@ -52,10 +52,11 @@ public class Node {
   }
 
   public <E> void removeState(E stateID) {
-    states.removeIf(state -> state.getStateID().equals(stateID));  }
+    states.removeIf(state -> state.getStateID().equals(stateID));
+  }
 
   @Override
-  public String toString(){
+  public String toString() {
     return nodeID.toString();
   }
 }

@@ -2,7 +2,7 @@ package com.artools.application.sampler;
 
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
-import com.artools.method.indexer.SeparatorTableIndexer;
+import com.artools.method.jtahandlers.SeparatorTableHandler;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,7 @@ public class Separator {
   private Clique cliqueB;
   private Set<Node> connectingNodes;
   private JunctionTreeTable table;
-  private SeparatorTableIndexer tableIndexer;
+  private SeparatorTableHandler handler;
 
   public Separator(
       Clique cliqueA, Clique cliqueB, Set<Node> connectingNodes, JunctionTreeTable table) {
@@ -22,7 +22,7 @@ public class Separator {
     this.cliqueB = cliqueB;
     this.connectingNodes = connectingNodes;
     this.table = table;
-    this.tableIndexer = new SeparatorTableIndexer(this);
+    this.handler = new SeparatorTableHandler(this);
   }
 
   @Override

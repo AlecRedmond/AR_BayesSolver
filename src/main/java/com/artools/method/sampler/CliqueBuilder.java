@@ -1,9 +1,9 @@
 package com.artools.method.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.sampler.Clique;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
+import com.artools.application.sampler.Clique;
 import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,13 +30,13 @@ public class CliqueBuilder {
     for (Node node : data.getNodes()) {
       Set<Node> connected = new HashSet<>(node.getParents());
       connected.addAll(node.getChildren());
-      addConstraints(data, node, connected);
+      addConstraintsIfUnsolved(data, node, connected);
       edges.put(node, connected);
     }
     return edges;
   }
 
-  private static void addConstraints(BayesNetData data, Node node, Set<Node> connected) {
+  private static void addConstraintsIfUnsolved(BayesNetData data, Node node, Set<Node> connected) {
     if (data.isSolved()) return;
     data.getConstraints().stream()
         .filter(c -> c.getEventNodes().contains(node))
@@ -59,7 +59,6 @@ public class CliqueBuilder {
   }
 
   private static void triangulateGraph(Map<Node, Set<Node>> edges, BayesNetData data) {
-
     Map<Node, Set<Node>> graph = new HashMap<>();
     edges.keySet().forEach(node -> graph.put(node, new HashSet<>(edges.get(node))));
 

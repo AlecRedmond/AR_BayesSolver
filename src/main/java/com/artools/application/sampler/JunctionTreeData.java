@@ -6,7 +6,7 @@ import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
-import com.artools.method.indexer.ConstraintIndexer;
+import com.artools.method.jtahandlers.ConstraintHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +25,7 @@ public class JunctionTreeData {
   private final Map<Clique, Set<ProbabilityTable>> associatedTables;
   private final List<JunctionTreeTable> junctionTreeTables;
   private final Map<ParameterConstraint, Clique> cliqueForConstraint;
-  private final Map<ParameterConstraint, ConstraintIndexer> constraintIndexerMap;
+  private final Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
 
   public List<Node> getNodes() {
     return bayesNetData.getNodes();

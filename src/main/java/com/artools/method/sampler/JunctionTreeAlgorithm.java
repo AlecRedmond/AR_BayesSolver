@@ -7,8 +7,8 @@ import com.artools.application.sampler.Separator;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
-import com.artools.method.indexer.SeparatorTableIndexer;
-import com.artools.method.indexer.TableIndexer;
+import com.artools.method.jtahandlers.SeparatorTableHandler;
+import com.artools.method.jtahandlers.JunctionTableHandler;
 import com.artools.method.probabilitytables.TableUtils;
 
 import java.util.*;
@@ -26,7 +26,7 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
   }
 
   private void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getIndexer).forEach(TableIndexer::marginalize);
+    data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
   }
 
   @Override
@@ -34,7 +34,7 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     Clique clique = data.getCliqueForConstraint().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
 
-    double error = data.getConstraintIndexerMap().get(constraint).adjustAndReturnError();
+    double error = data.getConstraintHandlers().get(constraint).adjustAndReturnError();
 
     if (error != 0) {
       distributeAndCollectMessages(clique, new HashSet<>());
@@ -81,10 +81,10 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
-              SeparatorTableIndexer si = separator.getTableIndexer();
-              si.passMessage(currentClique);
+              SeparatorTableHandler sth = separator.getHandler();
+              sth.passMessageFrom(currentClique);
               distributeAndCollectMessages(nextClique, cliqueChain);
-              si.passMessage(nextClique);
+              sth.passMessageFrom(nextClique);
             });
 
     cliqueChain.remove(currentClique);

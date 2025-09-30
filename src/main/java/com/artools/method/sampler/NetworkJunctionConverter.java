@@ -8,7 +8,7 @@ import com.artools.application.probabilitytables.ConditionalTable;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
-import com.artools.method.indexer.TableIndexer;
+import com.artools.method.jtahandlers.JunctionTableHandler;
 import com.artools.method.probabilitytables.TableUtils;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 public class NetworkJunctionConverter {
   private final JunctionTreeData data;
 
-  public NetworkJunctionConverter(JunctionTreeData data) {
+  protected NetworkJunctionConverter(JunctionTreeData data) {
     this.data = data;
   }
 
-  public void initializeJunctionTreeFromNetwork() {
+  protected void initializeJunctionTreeFromNetwork() {
     data.getAssociatedTables()
         .forEach(
             (clique, networkTables) -> {
@@ -64,35 +64,35 @@ public class NetworkJunctionConverter {
     cliqueTable.getProbabilities()[cliqueTableKeyIndex] = jointProb;
   }
 
-  public void setSeparatorsToUnity() {
+  protected void setSeparatorsToUnity() {
     data.getSeparators().stream()
         .map(Separator::getTable)
         .forEach(table -> Arrays.fill(table.getProbabilities(), 1.0));
   }
 
-  public void writeToObservations() {
+  protected void writeToObservations() {
     for (Node node : data.getNodes()) {
-      TableIndexer indexer = getBestTableIndexer(node);
+      JunctionTableHandler indexer = getBestTableIndexer(node);
       MarginalTable observedTable = data.getObservationMap().get(node);
       writeToMarginalTable(observedTable, indexer);
     }
   }
 
-  private TableIndexer getBestTableIndexer(Node node) {
+  private JunctionTableHandler getBestTableIndexer(Node node) {
     return data.getCliqueSet().stream()
         .filter(clique -> clique.getNodes().contains(node))
         .min(Comparator.comparingInt(table -> table.getNodes().size()))
         .orElseThrow()
-        .getIndexer();
+        .getHandler();
   }
 
-  private void writeToMarginalTable(MarginalTable marginalTable, TableIndexer indexer) {
+  private void writeToMarginalTable(MarginalTable marginalTable, JunctionTableHandler indexer) {
     marginalTable
         .getKeySet()
         .forEach(key -> marginalTable.setProbability(key, indexer.sumFromTable(key)));
   }
 
-  public void writeToNetwork() {
+  protected void writeToNetwork() {
     log.info("WRITING TO NETWORK");
     data.getAssociatedTables()
         .forEach(
@@ -101,7 +101,7 @@ public class NetworkJunctionConverter {
     log.info("NETWORK TABLES WRITTEN");
   }
 
-  private void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
+  protected void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
     double[] netProbs = networkTable.getProbabilities();
     Arrays.fill(netProbs, 0.0);
     double[] cliqueProbs = cliqueTable.getProbabilities();

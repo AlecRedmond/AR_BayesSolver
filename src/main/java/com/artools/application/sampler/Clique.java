@@ -2,12 +2,11 @@ package com.artools.application.sampler;
 
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
+import com.artools.method.jtahandlers.JunctionTableHandler;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.artools.method.indexer.TableIndexer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,14 +15,13 @@ import lombok.EqualsAndHashCode;
 public class Clique {
   private Set<Node> nodes;
   private JunctionTreeTable table;
-  private TableIndexer indexer;
+  private JunctionTableHandler handler;
   private Map<Clique, Separator> separatorMap;
 
-
-  public Clique(Set<Node> nodes,JunctionTreeTable table) {
+  public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
     this.table = table;
-    this.indexer = new TableIndexer(table);
+    this.handler = new JunctionTableHandler(table);
     this.separatorMap = new HashMap<>();
   }
 

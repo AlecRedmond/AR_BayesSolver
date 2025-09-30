@@ -31,7 +31,7 @@ public class ConstraintBuilder {
     NodeState eventState = getNodeState(eventStateID, data);
     List<NodeState> conditionStates = getNodeStates(conditionStateIDs, data);
     if (conditionStates.isEmpty()) return new MarginalConstraint(eventState, probability);
-    else return new ConditionalConstraint(eventState, conditionStates, probability);
+    return new ConditionalConstraint(eventState, conditionStates, probability);
   }
 
   private static <E> List<NodeState> getNodeStates(

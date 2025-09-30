@@ -13,11 +13,8 @@ public class NodeUtils {
 
     public static List<Set<NodeState>> generateStateCombinations(Set<Node> nodes) {
     List<Set<NodeState>> stateCombos = new ArrayList<>();
-
     List<Node> nodesList = new ArrayList<>(nodes);
-
     recursiveCombinationBuilder(stateCombos, nodesList, 0, new ArrayList<>());
-
     return stateCombos;
   }
 

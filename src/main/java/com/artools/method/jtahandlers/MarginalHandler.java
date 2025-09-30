@@ -1,14 +1,14 @@
-package com.artools.method.indexer;
+package com.artools.method.jtahandlers;
 
 import com.artools.application.constraints.MarginalConstraint;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-public class MarginalIndexer extends ConstraintIndexer {
+public class MarginalHandler extends ConstraintHandler {
 
-  public MarginalIndexer(TableIndexer tableIndexer, MarginalConstraint constraint) {
-    super(tableIndexer, constraint);
+  public MarginalHandler(JunctionTableHandler junctionTableHandler, MarginalConstraint constraint) {
+    super(junctionTableHandler, constraint);
   }
 
   @Override
@@ -18,13 +18,13 @@ public class MarginalIndexer extends ConstraintIndexer {
 
   @Override
   protected Set<Integer> getConstraintIndexeSet(Set<Integer> conditionIndexSet) {
-    return tableIndexer.getIndexes(constraint.getAllStates());
+    return junctionTableHandler.getIndexes(constraint.getAllStates());
   }
 
   @Override
   protected List<Integer> getComplementIndexList(
       Set<Integer> constraintIndexSet, Set<Integer> conditionIndexSet) {
-    return IntStream.range(0, tableIndexer.getProbabilities().length)
+    return IntStream.range(0, junctionTableHandler.getProbabilities().length)
         .filter(i -> !constraintIndexSet.contains(i))
         .boxed()
         .toList();
