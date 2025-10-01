@@ -1,4 +1,4 @@
-package com.artools.method.sampler;
+package com.artools.method.sampler.jtasampler;
 
 import com.artools.application.constraints.ConditionalConstraint;
 import com.artools.application.constraints.MarginalConstraint;
@@ -10,10 +10,10 @@ import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
-import com.artools.method.jtahandlers.ConditionalHandler;
-import com.artools.method.jtahandlers.ConstraintHandler;
-import com.artools.method.jtahandlers.JunctionTableHandler;
-import com.artools.method.jtahandlers.MarginalHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.ConditionalHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.MarginalHandler;
 import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;

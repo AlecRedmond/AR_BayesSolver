@@ -3,8 +3,7 @@ package com.artools.method.solver;
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
 import com.artools.application.solver.SolverConfigs;
-import com.artools.method.sampler.JunctionTreeAlgorithm;
-import com.artools.method.sampler.NetworkSampler;
+import com.artools.method.sampler.jtasampler.JunctionTreeAlgorithm;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,10 +66,10 @@ public class BayesSolver {
     return now + configs.getLogIntervalSeconds();
   }
 
-  private double runCycle(NetworkSampler sampler) {
+  private double runCycle(JunctionTreeAlgorithm jta) {
     double error = 0.0;
     for (ParameterConstraint constraint : data.getConstraints()) {
-      error += sampler.adjustAndReturnError(constraint);
+      error += jta.adjustAndReturnError(constraint);
     }
     return error;
   }

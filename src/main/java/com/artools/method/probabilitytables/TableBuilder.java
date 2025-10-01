@@ -32,13 +32,15 @@ public class TableBuilder {
   private static String buildTableName(Set<Node> events, Set<Node> conditions) {
     StringBuilder sb = new StringBuilder("P(");
     for (Node event : events) {
-      sb.append(event.getNodeID().toString()).append(" ");
+      sb.append(event.getNodeID().toString()).append(",");
     }
+    sb.deleteCharAt(sb.length() - 1);
     if (conditions.isEmpty()) return sb.append(")").toString();
     sb.append("|");
     for (Node condition : conditions) {
-      sb.append(condition.getNodeID().toString()).append(" ");
+      sb.append(condition.getNodeID().toString()).append(",");
     }
+    sb.deleteCharAt(sb.length() - 1);
     return sb.append(")").toString();
   }
 

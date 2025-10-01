@@ -1,4 +1,4 @@
-package com.artools.method.sampler;
+package com.artools.method.sampler.jtasampler;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
@@ -7,8 +7,9 @@ import com.artools.application.node.NodeState;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
-import com.artools.method.jtahandlers.JunctionTableHandler;
-import com.artools.method.jtahandlers.SeparatorTableHandler;
+import com.artools.method.sampler.NetworkSampler;
+import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,6 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
   }
 
-  @Override
   public double adjustAndReturnError(ParameterConstraint constraint) {
     Clique clique = data.getCliqueForConstraint().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
@@ -47,11 +47,7 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     setEvidence(observedStates);
     Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
     distributeAndCollectMessages(clique, new HashSet<>());
-    converter.writeToObservations();
-  }
-
-  public void sampleNetwork() {
-    sampleNetwork(new HashMap<>());
+    converter.writeToObservations(observedStates);
   }
 
   public void writeTablesToNetwork() {

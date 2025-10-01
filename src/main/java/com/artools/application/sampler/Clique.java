@@ -2,7 +2,7 @@ package com.artools.application.sampler;
 
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
-import com.artools.method.jtahandlers.JunctionTableHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

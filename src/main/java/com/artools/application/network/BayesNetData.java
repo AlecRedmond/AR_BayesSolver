@@ -16,6 +16,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BayesNetData {
+  protected String networkName;
   protected List<Node> nodes;
   protected Map<Object, Node> nodesMap;
   protected Map<Object, NodeState> nodeStateMap;
@@ -26,6 +27,7 @@ public class BayesNetData {
   protected JunctionTreeData junctionTreeData;
 
   public BayesNetData() {
+    this.networkName = "";
     this.nodes = new ArrayList<>();
     this.nodesMap = new HashMap<>();
     this.nodeStateMap = new HashMap<>();

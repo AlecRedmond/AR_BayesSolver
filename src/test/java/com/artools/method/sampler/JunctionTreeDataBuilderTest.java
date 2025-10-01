@@ -8,6 +8,8 @@ import com.artools.method.network.BayesNet;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.artools.method.sampler.jtasampler.JunctionTreeDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

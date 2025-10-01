@@ -2,26 +2,15 @@ package com.artools.method.probabilitytables;
 
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
-import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.method.node.NodeUtils;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 
 public class TableUtils {
 
   private TableUtils() {}
-
-  public static void recalculateObservedProbabilityMap(JunctionTreeTable table) {
-    if (table.getObservedStates().isEmpty()) return;
-    table
-        .getIndexMap()
-        .forEach(
-            (keySet, index) -> {
-              double newVal = keySet.containsAll(table.getObservedStates()) ? index : 0.0;
-              table.setObservedProb(keySet, newVal);
-            });
-  }
 
   public static void marginalizeTable(ProbabilityTable table) {
     Set<Node> conditions = table.getConditions();
@@ -59,5 +48,12 @@ public class TableUtils {
         .filter(entry -> entry.getKey().containsAll(key))
         .mapToDouble(entry -> table.getProbabilities()[entry.getValue()])
         .sum();
+  }
+
+  public static void buildProbabilityMap(ProbabilityTable table) {
+    Map<Set<NodeState>, Double> probMap = table.getProbabilityMap();
+    if (!probMap.isEmpty()) return;
+    double[] probs = table.getProbabilities();
+    table.getIndexMap().forEach((key, index) -> probMap.put(key, probs[index]));
   }
 }

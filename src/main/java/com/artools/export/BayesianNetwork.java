@@ -1,63 +1,65 @@
 package com.artools.export;
 
 import com.artools.method.network.BayesNet;
-
 import java.util.Collection;
 
 public interface BayesianNetwork {
 
-    static BayesianNetwork newNetwork(){
-        return new BayesNet();
-    }
+  static BayesianNetwork newNetwork() {
+    return new BayesNet();
+  }
 
-    <T> BayesianNetwork addNode(T nodeID);
+  static BayesianNetwork newNetwork(String networkName) {
+    return new BayesNet(networkName);
+  }
 
-    <T, E> BayesianNetwork addNode(T nodeID, Collection<E> nodeStateIDs);
+  <T> BayesianNetwork addNode(T nodeID);
 
-    <T> BayesianNetwork removeNode(T nodeID);
+  <T, E> BayesianNetwork addNode(T nodeID, Collection<E> nodeStateIDs);
 
-    BayesianNetwork removeAllNodes();
+  <T> BayesianNetwork removeNode(T nodeID);
 
-    <T, E> BayesianNetwork addNodeStates(T nodeID, Collection<E> nodeStateIDs);
+  BayesianNetwork removeAllNodes();
 
-    <T, E> BayesianNetwork addNodeState(T nodeID, E nodeStateID);
+  <T, E> BayesianNetwork addNodeStates(T nodeID, Collection<E> nodeStateIDs);
 
-    <T> BayesianNetwork removeNodeStates(T nodeID);
+  <T, E> BayesianNetwork addNodeState(T nodeID, E nodeStateID);
 
-    <T, E> BayesianNetwork removeNodeState(T nodeID, E nodeStateID);
+  <T> BayesianNetwork removeNodeStates(T nodeID);
 
-    <T, E> BayesianNetwork addParents(T childID, Collection<E> parentIDs);
+  <T, E> BayesianNetwork removeNodeState(T nodeID, E nodeStateID);
 
-    <T, E> BayesianNetwork addParent(T childID, E parentID);
+  <T, E> BayesianNetwork addParents(T childID, Collection<E> parentIDs);
 
-    <T, E> BayesianNetwork removeParent(T childID, E parentID);
+  <T, E> BayesianNetwork addParent(T childID, E parentID);
 
-    <T> BayesianNetwork removeParents(T childID);
+  <T, E> BayesianNetwork removeParent(T childID, E parentID);
 
-    <T,E> BayesianNetwork addConstraint(T eventStateID, Collection<E> conditionStateIDs, double probability);
+  <T> BayesianNetwork removeParents(T childID);
 
-    <T> BayesianNetwork addConstraint(T eventStateID, double probability);
+  <T, E> BayesianNetwork addConstraint(
+      T eventStateID, Collection<E> conditionStateIDs, double probability);
 
-    <T,E> BayesianNetwork addConstraint(Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
+  <T> BayesianNetwork addConstraint(T eventStateID, double probability);
 
-    BayesianNetwork solverCyclesLimit(int cyclesLimit);
+  <T, E> BayesianNetwork addConstraint(
+      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
 
-    BayesianNetwork solverTimeLimit(int timeLimitSeconds);
+  BayesianNetwork solverCyclesLimit(int cyclesLimit);
 
-    BayesianNetwork logIntervalSeconds(int seconds);
+  BayesianNetwork solverTimeLimit(int timeLimitSeconds);
 
-    BayesianNetwork solverConvergeThreshold(double threshold);
+  BayesianNetwork logIntervalSeconds(int seconds);
 
-    BayesianNetwork solveNetwork();
+  BayesianNetwork solverConvergeThreshold(double threshold);
 
-    BayesianNetwork printNetwork();
+  BayesianNetwork solveNetwork();
 
-    <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
+  BayesianNetwork printNetwork();
 
-    BayesianNetwork observeMarginals();
+  <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
 
-    BayesianNetwork printObserved();
+  BayesianNetwork observeMarginals();
 
-
-
+  BayesianNetwork printObserved();
 }

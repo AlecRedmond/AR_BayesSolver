@@ -1,6 +1,5 @@
-package com.artools.method.jtahandlers;
+package com.artools.method.sampler.jtasampler.jtahandlers;
 
-import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.Separator;
@@ -27,22 +26,21 @@ public class SeparatorTableHandler extends JunctionTableHandler {
   }
 
   private List<Set<Integer>> buildSumToIndex(JunctionTableHandler cliqueIndexer) {
-    List<Set<Integer>> intSetList = new ArrayList<>(getProbabilities().length);
-    for (Set<NodeState> key : table.getKeySet()) {
-      int index = table.getIndexMap().get(key);
-      Set<Integer> cliqueIndexerSet = cliqueIndexer.getIndexes(key);
-      intSetList.add(index, cliqueIndexerSet);
-    }
-    return intSetList;
+    List<Set<Integer>> sumFinder = new ArrayList<>();
+    table.getIndexMap().entrySet().stream()
+        .sorted(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .forEach(key -> sumFinder.add(cliqueIndexer.getIndexes(key)));
+    return sumFinder;
   }
 
   public void passMessageFrom(Clique startingClique) {
     JunctionTreeTable cliqueTable = startingClique.getTable();
-    if (cliqueTable.equals(tableCliqueA))
+    if (cliqueTable.equals(tableCliqueA)) {
       passMessageFrom(cliqueIndexerA, sumFinderA, cliqueIndexerB, sumFinderB);
-    if (cliqueTable.equals(tableCliqueB))
+    } else if (cliqueTable.equals(tableCliqueB)) {
       passMessageFrom(cliqueIndexerB, sumFinderB, cliqueIndexerA, sumFinderA);
-    else
+    } else
       throw new IllegalArgumentException(
           String.format(
               "unexpected table %s in separator indexer for %s",

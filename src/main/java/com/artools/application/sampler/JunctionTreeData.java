@@ -6,7 +6,7 @@ import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
-import com.artools.method.jtahandlers.ConstraintHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

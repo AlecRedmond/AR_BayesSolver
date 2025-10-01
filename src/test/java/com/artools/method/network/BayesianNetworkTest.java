@@ -7,28 +7,30 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
-  BayesianNetwork test = BayesianNetwork.newNetwork();
+  BayesianNetwork test;
 
   @Test
   void testSolves() {
-    test.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
-        .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
-        .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
-        .addParent("SPRINKLER", "RAIN")
-        .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-        .addConstraint("RAIN:TRUE", 0.2)
-        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
-        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
-        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
-        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
-        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
-        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
-        .solveNetwork()
-        .printNetwork()
-        .observeMarginals()
-        .printObserved()
-        .observeNetwork(List.of("WET_GRASS:TRUE"))
-        .printObserved();
+    test =
+        BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS")
+            .addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
+            .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
+            .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
+            .addParent("SPRINKLER", "RAIN")
+            .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
+            .addConstraint("RAIN:TRUE", 0.2)
+            .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+            .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
+            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
+            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
+            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
+            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
+            .solveNetwork()
+            .printNetwork()
+            .observeMarginals()
+            .printObserved()
+            .observeNetwork(List.of("WET_GRASS:TRUE"))
+            .printObserved();
 
     assertTrue(true);
   }
@@ -36,7 +38,7 @@ class BayesianNetworkTest {
   @Test
   void testNetworkAH() {
     test =
-        new BayesNet()
+        BayesianNetwork.newNetwork("A_TO_H")
             .addNode("A", List.of("A+", "A-"))
             .addNode("B", List.of("B+", "B-"))
             .addNode("C", List.of("C+", "C-"))
@@ -70,7 +72,7 @@ class BayesianNetworkTest {
   @Test
   void testFantasyGraph() {
     test =
-        new BayesNet()
+        BayesianNetwork.newNetwork("FANTASY_ELECTION")
             .addNode(
                 "DISTRICT_TYPE",
                 List.of(
@@ -293,6 +295,8 @@ class BayesianNetworkTest {
             .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
             .solveNetwork()
             .observeMarginals()
+            .printObserved()
+            .observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
             .printObserved();
   }
 }

@@ -2,7 +2,7 @@ package com.artools.application.sampler;
 
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
-import com.artools.method.jtahandlers.SeparatorTableHandler;
+import com.artools.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -2,10 +2,12 @@ package com.artools.application.probabilitytables;
 
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public abstract class ProbabilityTable {
@@ -14,7 +16,8 @@ public abstract class ProbabilityTable {
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
-  protected Object tableID;
+  @Setter protected Object tableID;
+  protected Map<Set<NodeState>, Double> probabilityMap;
 
   protected <T> ProbabilityTable(
       Map<Set<NodeState>, Integer> indexMap,
@@ -29,6 +32,7 @@ public abstract class ProbabilityTable {
     this.nodes = nodes;
     this.events = events;
     this.conditions = conditions;
+    this.probabilityMap = new HashMap<>();
   }
 
   public double getProbability(Set<NodeState> key) {

@@ -7,9 +7,10 @@ import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.export.BayesianNetwork;
+import com.artools.method.printer.NetworkPrinter;
 import com.artools.method.probabilitytables.TableBuilder;
-import com.artools.method.sampler.JunctionTreeAlgorithm;
 import com.artools.method.sampler.NetworkSampler;
+import com.artools.method.sampler.jtasampler.JunctionTreeAlgorithm;
 import com.artools.method.solver.BayesSolver;
 import java.util.*;
 import lombok.Getter;
@@ -20,8 +21,16 @@ public class BayesNet implements BayesianNetwork {
   private final SolverConfigs solverConfigs;
   private NetworkSampler sampler;
 
+  public BayesNet(String networkName) {
+    this.networkData = new BayesNetData();
+    networkData.setNetworkName(networkName);
+    this.solverConfigs = new SolverConfigs();
+    this.sampler = null;
+  }
+
   public BayesNet() {
     this.networkData = new BayesNetData();
+    networkData.setNetworkName("UNNAMED_NETWORK");
     this.solverConfigs = new SolverConfigs();
     this.sampler = null;
   }
@@ -178,23 +187,7 @@ public class BayesNet implements BayesianNetwork {
 
   @Override
   public BayesNet printNetwork() {
-    networkData
-        .getNetworkTablesMap()
-        .forEach(
-            (node, table) -> {
-              System.out.println(table.getTableID());
-              table
-                  .getIndexMap()
-                  .forEach(
-                      (keyset, index) -> {
-                        StringBuilder sb = new StringBuilder("\t");
-                        keyset.stream()
-                            .sorted(Comparator.comparing(NodeState::toString))
-                            .forEach(state -> sb.append(state).append(", "));
-                        sb.append(table.getProbability(keyset));
-                        System.out.println(sb);
-                      });
-            });
+    new NetworkPrinter(networkData).printNetwork();
     return this;
   }
 
@@ -223,23 +216,7 @@ public class BayesNet implements BayesianNetwork {
 
   @Override
   public BayesNet printObserved() {
-    networkData
-        .getObservationMap()
-        .forEach(
-            (node, table) -> {
-              System.out.println(table.getTableID());
-              table
-                  .getIndexMap()
-                  .forEach(
-                      (keyset, index) -> {
-                        StringBuilder sb = new StringBuilder("\t");
-                        keyset.stream()
-                            .sorted(Comparator.comparing(NodeState::toString))
-                            .forEach(state -> sb.append(state).append(", "));
-                        sb.append(table.getProbability(keyset));
-                        System.out.println(sb);
-                      });
-            });
+    new NetworkPrinter(networkData).printObserved();
     return this;
   }
 }

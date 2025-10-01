@@ -1,4 +1,4 @@
-package com.artools.method.jtahandlers;
+package com.artools.method.sampler.jtasampler.jtahandlers;
 
 import com.artools.application.constraints.MarginalConstraint;
 import java.util.List;

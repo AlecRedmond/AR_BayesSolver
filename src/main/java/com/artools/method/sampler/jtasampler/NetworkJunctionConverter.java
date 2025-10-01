@@ -1,15 +1,15 @@
-package com.artools.method.sampler;
+package com.artools.method.sampler.jtasampler;
 
-import com.artools.application.sampler.JunctionTreeData;
-import com.artools.application.sampler.Separator;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ConditionalTable;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
-import com.artools.method.jtahandlers.JunctionTableHandler;
+import com.artools.application.sampler.JunctionTreeData;
+import com.artools.application.sampler.Separator;
 import com.artools.method.probabilitytables.TableUtils;
+import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,11 +69,12 @@ public class NetworkJunctionConverter {
         .forEach(table -> Arrays.fill(table.getProbabilities(), 1.0));
   }
 
-  protected void writeToObservations() {
+  protected void writeToObservations(Map<Node, NodeState> observedStates) {
     for (Node node : data.getNodes()) {
       JunctionTableHandler indexer = getBestTableIndexer(node);
       MarginalTable observedTable = data.getObservationMap().get(node);
       writeToMarginalTable(observedTable, indexer);
+      updateTableName(node, observedTable, observedStates.values());
     }
   }
 
@@ -89,6 +90,18 @@ public class NetworkJunctionConverter {
     marginalTable
         .getKeySet()
         .forEach(key -> marginalTable.setProbability(key, indexer.sumFromTable(key)));
+  }
+
+  private void updateTableName(
+      Node node, MarginalTable observedTable, Collection<NodeState> states) {
+    StringBuilder sb = new StringBuilder("P(").append(node.getNodeID().toString());
+    if (!states.isEmpty()) {
+      sb.append("|");
+      states.forEach(observed -> sb.append(observed.getStateID().toString()).append(","));
+      sb.deleteCharAt(sb.length() - 1);
+    }
+    sb.append(")");
+    observedTable.setTableID(sb.toString());
   }
 
   protected void writeToNetwork() {

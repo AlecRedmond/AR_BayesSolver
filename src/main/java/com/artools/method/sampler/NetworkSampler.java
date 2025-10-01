@@ -1,6 +1,5 @@
 package com.artools.method.sampler;
 
-import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import java.util.Collection;
@@ -9,11 +8,11 @@ import java.util.Map;
 
 public interface NetworkSampler {
 
-  double adjustAndReturnError(ParameterConstraint constraint);
+  default void sampleNetwork(){
+      sampleNetwork(new HashMap<>());
+  }
 
   void sampleNetwork(Map<Node, NodeState> observedStates);
-
-  void sampleNetwork();
 
   default Map<Node, NodeState> convertToEvidence(Collection<NodeState> evidenceStates) {
     Map<Node, NodeState> evidence = new HashMap<>();
@@ -30,5 +29,4 @@ public interface NetworkSampler {
       throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
     }
   }
-
 }

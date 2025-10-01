@@ -1,4 +1,4 @@
-package com.artools.method.sampler;
+package com.artools.method.sampler.jtasampler;
 
 import com.artools.application.constraints.ParameterConstraint;
 import com.artools.application.network.BayesNetData;
