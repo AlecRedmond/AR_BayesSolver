@@ -33,7 +33,7 @@ public class NetworkPrinter {
         .getObservationMap()
         .values()
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
-    printLines(outputLines);
+    printToFile(outputLines);
   }
 
   public void printNetwork() {
@@ -43,7 +43,7 @@ public class NetworkPrinter {
         .getNetworkTablesMap()
         .values()
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
-    printLines(outputLines);
+    printToFile(outputLines);
   }
 
   private List<String> generateTableLines(ProbabilityTable table) {
@@ -72,15 +72,16 @@ public class NetworkPrinter {
         conditionColumnWidth);
   }
 
-  private void printLines(List<String> lines) {
+  private void printToFile(List<String> lines) {
     String filePath = createOrRename(getFilePath(), 0);
     try {
       FileWriter fw = new FileWriter(filePath);
       PrintWriter pw = new PrintWriter(fw);
       lines.forEach(pw::println);
       pw.close();
+      log.info("File saved to {}", filePath);
     } catch (IOException e) {
-      log.error(String.format("Error attempting to write to %s", filePath));
+      log.error(String.format("%s attempting to write to %s",e, filePath));
     }
   }
 

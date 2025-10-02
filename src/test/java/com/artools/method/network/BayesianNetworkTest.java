@@ -2,7 +2,6 @@ package com.artools.method.network;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.artools.export.BayesianNetwork;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

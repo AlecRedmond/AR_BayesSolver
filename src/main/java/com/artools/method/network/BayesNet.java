@@ -6,7 +6,6 @@ import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
-import com.artools.export.BayesianNetwork;
 import com.artools.method.printer.NetworkPrinter;
 import com.artools.method.probabilitytables.TableBuilder;
 import com.artools.method.sampler.NetworkSampler;

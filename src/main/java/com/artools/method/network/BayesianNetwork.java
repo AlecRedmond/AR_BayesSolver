@@ -1,6 +1,5 @@
-package com.artools.export;
+package com.artools.method.network;
 
-import com.artools.method.network.BayesNet;
 import java.util.Collection;
 
 public interface BayesianNetwork {
