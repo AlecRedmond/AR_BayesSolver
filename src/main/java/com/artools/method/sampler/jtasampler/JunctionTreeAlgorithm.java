@@ -1,23 +1,22 @@
 package com.artools.method.sampler.jtasampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
-import com.artools.method.sampler.NetworkSampler;
 import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import com.artools.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class JunctionTreeAlgorithm implements NetworkSampler {
+public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
   private final NetworkJunctionConverter converter;
 
-  public JunctionTreeAlgorithm(BayesNetData networkData) {
+  public JunctionTreeAlgorithm(BayesianNetworkData networkData) {
     this.data = JunctionTreeDataBuilder.build(networkData);
     this.converter = new NetworkJunctionConverter(data);
     this.converter.initializeJunctionTreeFromNetwork();
@@ -26,6 +25,22 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
 
   private void marginalizeTables() {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
+  }
+
+  public Map<Node, NodeState> convertToMap(Collection<NodeState> evidenceStates) {
+    Map<Node, NodeState> evidence = new HashMap<>();
+    evidenceStates.forEach(
+        state -> {
+          checkNoDuplicates(evidence, state);
+          evidence.put(state.getParentNode(), state);
+        });
+    return evidence;
+  }
+
+  private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
+    if (evidence.containsKey(state.getParentNode())) {
+      throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
+    }
   }
 
   public double adjustAndReturnError(ParameterConstraint constraint) {
@@ -41,13 +56,12 @@ public class JunctionTreeAlgorithm implements NetworkSampler {
     return error;
   }
 
-  @Override
-  public void sampleNetwork(Map<Node, NodeState> observedStates) {
+  public void sampleNetwork(Map<Node,NodeState> observed) {
     converter.setSeparatorsToUnity();
-    setEvidence(observedStates);
+    setEvidence(observed);
     Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
     distributeAndCollectMessages(clique, new HashSet<>());
-    converter.writeToObservations(observedStates);
+    converter.writeToObservations(observed);
   }
 
   public void writeTablesToNetwork() {

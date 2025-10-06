@@ -1,6 +1,5 @@
 package com.artools.method.probabilitytables;
 
-import com.artools.application.network.BayesNetData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.*;
@@ -13,63 +12,6 @@ import java.util.stream.Stream;
 public class TableBuilder {
 
   private TableBuilder() {}
-
-  public static void buildObservationMap(BayesNetData networkData) {
-    networkData
-        .getNodes()
-        .forEach(
-            node -> networkData.getObservationMap().put(node, buildMarginalTable(Set.of(node))));
-  }
-
-  private static MarginalTable buildMarginalTable(Set<Node> events) {
-    Node eventNode = events.stream().findAny().orElseThrow();
-    String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
-    Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
-    double[] probabilities = buildProbTable(indexMap.size());
-    return new MarginalTable(indexMap, probabilities, tableName, eventNode);
-  }
-
-  private static String buildTableName(Set<Node> events, Set<Node> conditions) {
-    StringBuilder sb = new StringBuilder("P(");
-    for (Node event : events) {
-      sb.append(event.getNodeID().toString()).append(",");
-    }
-    sb.deleteCharAt(sb.length() - 1);
-    if (conditions.isEmpty()) return sb.append(")").toString();
-    sb.append("|");
-    for (Node condition : conditions) {
-      sb.append(condition.getNodeID().toString()).append(",");
-    }
-    sb.deleteCharAt(sb.length() - 1);
-    return sb.append(")").toString();
-  }
-
-  private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
-    List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
-    return IntStream.range(0, keys.size())
-        .mapToObj(i -> Map.entry(keys.get(i), i))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private static double[] buildProbTable(int size) {
-    double[] probabilities = new double[size];
-    Arrays.fill(probabilities, 1.0);
-    return probabilities;
-  }
-
-  public static void buildNetworkTables(BayesNetData networkData) {
-    networkData
-        .getNodesMap()
-        .values()
-        .forEach(
-            node -> {
-              Set<Node> events = Set.of(node);
-              Set<Node> conditions = new HashSet<>(node.getParents());
-              ProbabilityTable table = buildNetworkTable(events, conditions);
-              TableUtils.marginalizeTable(table);
-              networkData.getNetworkTablesMap().put(node, table);
-            });
-  }
 
   public static ProbabilityTable buildNetworkTable(Set<Node> events, Set<Node> conditions) {
     if (events.isEmpty())
@@ -95,8 +37,44 @@ public class TableBuilder {
         eventNode);
   }
 
+  public static MarginalTable buildMarginalTable(Set<Node> events) {
+    Node eventNode = events.stream().findAny().orElseThrow();
+    String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
+    Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
+    double[] probabilities = buildProbTable(indexMap.size());
+    return new MarginalTable(indexMap, probabilities, tableName, eventNode);
+  }
+
   private static Set<Node> joinSets(Set<Node> events, Set<Node> conditions) {
     return Stream.concat(events.stream(), conditions.stream()).collect(Collectors.toSet());
+  }
+
+  private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
+    List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
+    return IntStream.range(0, keys.size())
+        .mapToObj(i -> Map.entry(keys.get(i), i))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static double[] buildProbTable(int size) {
+    double[] probabilities = new double[size];
+    Arrays.fill(probabilities, 1.0);
+    return probabilities;
+  }
+
+  private static String buildTableName(Set<Node> events, Set<Node> conditions) {
+    StringBuilder sb = new StringBuilder("P(");
+    for (Node event : events) {
+      sb.append(event.getNodeID().toString()).append(",");
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    if (conditions.isEmpty()) return sb.append(")").toString();
+    sb.append("|");
+    for (Node condition : conditions) {
+      sb.append(condition.getNodeID().toString()).append(",");
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    return sb.append(")").toString();
   }
 
   public static JunctionTreeTable buildJunctionTreeTable(Set<Node> events) {

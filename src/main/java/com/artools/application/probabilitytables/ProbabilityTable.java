@@ -2,9 +2,7 @@ package com.artools.application.probabilitytables;
 
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,11 +33,22 @@ public abstract class ProbabilityTable {
     this.probabilityMap = new HashMap<>();
   }
 
+  public double getProbability(Collection<NodeState> key,boolean containsRedundant){
+      if(!containsRedundant) return getProbability(new HashSet<>(key));
+      return getProbability(getValidKey(key));
+  }
+
   public double getProbability(Set<NodeState> key) {
     double probability = probabilities[indexMap.get(key)];
     if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
     return probability;
   }
+
+    private Set<NodeState> getValidKey(Collection<NodeState> invalid) {
+        return invalid.stream()
+                .filter(state -> nodes.contains(state.getParentNode()))
+                .collect(Collectors.toSet());
+    }
 
   public void setProbability(Set<NodeState> key, double probability) {
     if (!indexMap.containsKey(key)) {
@@ -56,9 +65,7 @@ public abstract class ProbabilityTable {
   public int getIndex(Set<NodeState> key, boolean containsRedundant) {
     if (!containsRedundant) return indexMap.get(key);
     Set<NodeState> validKey =
-        key.stream()
-            .filter(state -> nodes.contains(state.getParentNode()))
-            .collect(Collectors.toSet());
+            getValidKey(key);
     return indexMap.get(validKey);
   }
 }

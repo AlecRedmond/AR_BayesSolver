@@ -3,18 +3,18 @@ package com.artools.method.sampler.jtasampler;
 import com.artools.application.constraints.ConditionalConstraint;
 import com.artools.application.constraints.MarginalConstraint;
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.application.sampler.Clique;
 import com.artools.application.sampler.JunctionTreeData;
 import com.artools.application.sampler.Separator;
+import com.artools.method.probabilitytables.TableBuilder;
 import com.artools.method.sampler.jtasampler.jtahandlers.ConditionalHandler;
 import com.artools.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
 import com.artools.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import com.artools.method.sampler.jtasampler.jtahandlers.MarginalHandler;
-import com.artools.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -24,40 +24,41 @@ public class JunctionTreeDataBuilder {
 
   private JunctionTreeDataBuilder() {}
 
-  public static JunctionTreeData build(BayesNetData bayesNetData) {
-    if (satisfactoryDataExists(bayesNetData)) return bayesNetData.getJunctionTreeData();
+  public static JunctionTreeData build(BayesianNetworkData bayesianNetworkData) {
+    if (satisfactoryDataExists(bayesianNetworkData))
+      return bayesianNetworkData.getJunctionTreeData();
 
-    Set<Clique> cliqueSet = CliqueBuilder.buildCliques(bayesNetData);
+    Set<Clique> cliqueSet = CliqueBuilder.buildCliques(bayesianNetworkData);
     Set<Separator> separators = buildSeparators(cliqueSet);
     Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
     Map<Clique, Set<ProbabilityTable>> associatedTables =
-        buildAssociatedTablesMap(cliqueSet, bayesNetData);
+        buildAssociatedTablesMap(cliqueSet, bayesianNetworkData);
     List<JunctionTreeTable> junctionTreeTables = buildAllTablesList(cliqueSet, separators);
 
     log.info("CLIQUES BUILT");
 
     JunctionTreeData.JunctionTreeDataBuilder builder =
         JunctionTreeData.builder()
-            .bayesNetData(bayesNetData)
+            .bayesianNetworkData(bayesianNetworkData)
             .cliqueSet(cliqueSet)
             .separators(separators)
             .leafCliques(leafCliques)
             .associatedTables(associatedTables)
             .junctionTreeTables(junctionTreeTables);
 
-    return bayesNetData.isSolved()
-        ? buildDataForSolved(bayesNetData, builder)
-        : buildDataForUnsolved(bayesNetData, cliqueSet, builder);
+    return bayesianNetworkData.isSolved()
+        ? buildDataForSolved(bayesianNetworkData, builder)
+        : buildDataForUnsolved(bayesianNetworkData, cliqueSet, builder);
   }
 
   private static JunctionTreeData buildDataForUnsolved(
-      BayesNetData bayesNetData,
+      BayesianNetworkData bayesianNetworkData,
       Set<Clique> cliqueSet,
       JunctionTreeData.JunctionTreeDataBuilder builder) {
     Map<ParameterConstraint, Clique> cliqueForConstraint =
-        findCliquesForConstraints(cliqueSet, bayesNetData);
+        findCliquesForConstraints(cliqueSet, bayesianNetworkData);
     Map<ParameterConstraint, ConstraintHandler> constraintHandlerMap =
-        buildConstraintIndexerMap(bayesNetData, cliqueForConstraint);
+        buildConstraintIndexerMap(bayesianNetworkData, cliqueForConstraint);
 
     log.info("CONSTRAINT INDEXERS BUILT");
 
@@ -67,27 +68,27 @@ public class JunctionTreeDataBuilder {
             .constraintHandlers(constraintHandlerMap)
             .build();
 
-    bayesNetData.setJunctionTreeData(jtd);
+    bayesianNetworkData.setJunctionTreeData(jtd);
 
     return jtd;
   }
 
   private static JunctionTreeData buildDataForSolved(
-      BayesNetData bayesNetData, JunctionTreeData.JunctionTreeDataBuilder builder) {
+      BayesianNetworkData bayesianNetworkData, JunctionTreeData.JunctionTreeDataBuilder builder) {
     JunctionTreeData jtd =
         builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
 
-    bayesNetData.setJunctionTreeData(jtd);
+    bayesianNetworkData.setJunctionTreeData(jtd);
     return jtd;
   }
 
-  private static boolean satisfactoryDataExists(BayesNetData bayesNetData) {
-    if (!bayesNetData.isSolved()) return false;
-    return bayesNetData.getJunctionTreeData().getConstraintHandlers().isEmpty();
+  private static boolean satisfactoryDataExists(BayesianNetworkData bayesianNetworkData) {
+    if (!bayesianNetworkData.isSolved()) return false;
+    return bayesianNetworkData.getJunctionTreeData().getConstraintHandlers().isEmpty();
   }
 
   private static Map<ParameterConstraint, ConstraintHandler> buildConstraintIndexerMap(
-      BayesNetData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
+      BayesianNetworkData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
     return data.getConstraints().stream()
         .map(c -> Map.entry(c, buildConstraintHandler(c, constraintCliqueMap.get(c).getHandler())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -95,19 +96,16 @@ public class JunctionTreeDataBuilder {
 
   private static ConstraintHandler buildConstraintHandler(
       ParameterConstraint constraint, JunctionTableHandler junctionTableHandler) {
-    switch (constraint) {
-      case MarginalConstraint mc -> {
-        return new MarginalHandler(junctionTableHandler, mc);
-      }
-      case ConditionalConstraint cc -> {
-        return new ConditionalHandler(junctionTableHandler, cc);
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + constraint);
+    if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
+      return new MarginalHandler(junctionTableHandler, mc);
+    } else if (constraint instanceof ConditionalConstraint cc) {
+      return new ConditionalHandler(junctionTableHandler, cc);
     }
+    throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
   private static Map<ParameterConstraint, Clique> findCliquesForConstraints(
-      Set<Clique> cliques, BayesNetData data) {
+      Set<Clique> cliques, BayesianNetworkData data) {
     Map<ParameterConstraint, Clique> cfc = new HashMap<>();
     for (ParameterConstraint constraint : data.getConstraints()) {
       Clique bestClique =
@@ -130,7 +128,7 @@ public class JunctionTreeDataBuilder {
   }
 
   private static Map<Clique, Set<ProbabilityTable>> buildAssociatedTablesMap(
-      Set<Clique> cliques, BayesNetData data) {
+      Set<Clique> cliques, BayesianNetworkData data) {
     Map<Clique, Set<ProbabilityTable>> associated =
         cliques.stream()
             .map(c -> Map.entry(c, new HashSet<ProbabilityTable>()))

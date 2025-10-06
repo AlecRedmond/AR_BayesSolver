@@ -3,8 +3,8 @@ package com.artools.method.sampler;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.artools.application.sampler.JunctionTreeData;
-import com.artools.application.network.BayesNetData;
-import com.artools.method.network.BayesNet;
+import com.artools.application.network.BayesianNetworkData;
+import com.artools.method.network.BayesianNetworkImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,12 +14,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class JunctionTreeDataBuilderTest {
-  BayesNetData bayesNetData;
+  BayesianNetworkData bayesianNetworkData;
 
   @BeforeEach
   void setData() {
-    bayesNetData =
-        new BayesNet()
+    bayesianNetworkData =
+        new BayesianNetworkImpl()
             .addNode("A", List.of("A+", "A-"))
             .addNode("B", List.of("B+", "B-"))
             .addNode("C", List.of("C+", "C-"))
@@ -40,12 +40,12 @@ class JunctionTreeDataBuilderTest {
 
   @Test
   void doesNotThrowErrors() {
-    assertDoesNotThrow(() -> JunctionTreeDataBuilder.build(bayesNetData));
+    assertDoesNotThrow(() -> JunctionTreeDataBuilder.build(bayesianNetworkData));
   }
 
   @Test
   void analyseResults() {
-    JunctionTreeData jtd = JunctionTreeDataBuilder.build(bayesNetData);
+    JunctionTreeData jtd = JunctionTreeDataBuilder.build(bayesianNetworkData);
     var cliques = jtd.getCliqueSet();
     var separators =
         jtd.getCliqueSet().stream()

@@ -70,6 +70,7 @@ public class NetworkJunctionConverter {
   }
 
   protected void writeToObservations(Map<Node, NodeState> observedStates) {
+    data.getBayesianNetworkData().setObservedStatesMap(observedStates);
     for (Node node : data.getNodes()) {
       JunctionTableHandler indexer = getBestTableIndexer(node);
       MarginalTable observedTable = data.getObservationMap().get(node);

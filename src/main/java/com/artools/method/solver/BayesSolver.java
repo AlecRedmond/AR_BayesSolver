@@ -1,7 +1,7 @@
 package com.artools.method.solver;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.method.sampler.jtasampler.JunctionTreeAlgorithm;
 import java.time.Instant;
@@ -10,11 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BayesSolver {
   private final SolverConfigs configs;
-  private final BayesNetData data;
+  private final BayesianNetworkData data;
 
-  public BayesSolver(BayesNetData bayesNetData, SolverConfigs configs) {
+  public BayesSolver(BayesianNetworkData bayesianNetworkData, SolverConfigs configs) {
     this.configs = configs;
-    this.data = bayesNetData;
+    this.data = bayesianNetworkData;
   }
 
   public void solveNetwork() {

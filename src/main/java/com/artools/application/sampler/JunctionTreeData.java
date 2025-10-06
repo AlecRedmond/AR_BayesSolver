@@ -1,7 +1,7 @@
 package com.artools.application.sampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.probabilitytables.JunctionTreeTable;
 import com.artools.application.probabilitytables.MarginalTable;
@@ -18,7 +18,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class JunctionTreeData {
-  private final BayesNetData bayesNetData;
+  private final BayesianNetworkData bayesianNetworkData;
   private final Set<Clique> cliqueSet;
   private final Set<Separator> separators;
   private final Set<Clique> leafCliques;
@@ -28,14 +28,14 @@ public class JunctionTreeData {
   private final Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
 
   public List<Node> getNodes() {
-    return bayesNetData.getNodes();
+    return bayesianNetworkData.getNodes();
   }
 
   public Map<Node, MarginalTable> getObservationMap() {
-    return bayesNetData.getObservationMap();
+    return bayesianNetworkData.getObservationMap();
   }
 
   public List<ParameterConstraint> getConstraints() {
-    return bayesNetData.getConstraints();
+    return bayesianNetworkData.getConstraints();
   }
 }

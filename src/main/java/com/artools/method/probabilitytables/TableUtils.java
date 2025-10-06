@@ -50,7 +50,7 @@ public class TableUtils {
         .sum();
   }
 
-  public static void buildProbabilityMap(ProbabilityTable table) {
+  public static void writeProbabilityMap(ProbabilityTable table) {
     Map<Set<NodeState>, Double> probMap = table.getProbabilityMap();
     if (!probMap.isEmpty()) return;
     double[] probs = table.getProbabilities();

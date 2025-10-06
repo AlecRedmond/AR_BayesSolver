@@ -7,7 +7,7 @@ public class PrinterFormats {
   @Getter @Setter private static int probPadding = 7;
 
   @Getter @Setter
-  private static String getSaveDirectory =
+  private static String defaultSaveDirectory =
       System.getProperty("user.home") + "\\AR_Tools\\proportional_fitter\\output\\";
 
   private PrinterFormats() {}

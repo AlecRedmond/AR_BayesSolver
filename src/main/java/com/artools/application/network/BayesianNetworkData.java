@@ -6,35 +6,43 @@ import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.application.sampler.JunctionTreeData;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class BayesNetData {
+public class BayesianNetworkData {
   protected String networkName;
   protected List<Node> nodes;
-  protected Map<Object, Node> nodesMap;
-  protected Map<Object, NodeState> nodeStateMap;
+  protected Map<Object, Node> nodeIDsMap;
+  protected Map<Object, NodeState> nodeStateIDsMap;
   protected Map<Node, ProbabilityTable> networkTablesMap;
   protected Map<Node, MarginalTable> observationMap;
+  protected Map<Node, NodeState> observedStatesMap;
   protected List<ParameterConstraint> constraints;
   protected boolean solved;
   protected JunctionTreeData junctionTreeData;
 
-  public BayesNetData() {
+  public BayesianNetworkData() {
     this.networkName = "";
     this.nodes = new ArrayList<>();
-    this.nodesMap = new HashMap<>();
-    this.nodeStateMap = new HashMap<>();
-    this.networkTablesMap = new HashMap<>();
-    this.observationMap = new HashMap<>();
+    this.nodeIDsMap = new HashMap<>();
+    this.nodeStateIDsMap = new HashMap<>();
+    this.networkTablesMap = new LinkedHashMap<>();
+    this.observationMap = new LinkedHashMap<>();
     this.constraints = new ArrayList<>();
     this.solved = false;
     this.junctionTreeData = null;
+  }
+
+  public <T> ProbabilityTable getNetworkTable(T nodeID) {
+    return networkTablesMap.get(nodeIDsMap.get(nodeID));
+  }
+
+  public <T> MarginalTable getObservedTable(T nodeID) {
+    return observationMap.get(nodeIDsMap.get(nodeID));
   }
 }

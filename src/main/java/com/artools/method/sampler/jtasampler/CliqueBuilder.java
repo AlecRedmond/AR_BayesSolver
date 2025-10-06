@@ -1,7 +1,7 @@
 package com.artools.method.sampler.jtasampler;
 
 import com.artools.application.constraints.ParameterConstraint;
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.sampler.Clique;
 import com.artools.method.probabilitytables.TableBuilder;
@@ -13,7 +13,7 @@ public class CliqueBuilder {
 
   private CliqueBuilder() {}
 
-  static Set<Clique> buildCliques(BayesNetData data) {
+  static Set<Clique> buildCliques(BayesianNetworkData data) {
     Map<Node, Set<Node>> edgeGraph = initializeGraph(data);
     moralizeGraph(edgeGraph, data);
     triangulateGraph(edgeGraph, data);
@@ -25,7 +25,7 @@ public class CliqueBuilder {
         .collect(Collectors.toSet());
   }
 
-  private static Map<Node, Set<Node>> initializeGraph(BayesNetData data) {
+  private static Map<Node, Set<Node>> initializeGraph(BayesianNetworkData data) {
     Map<Node, Set<Node>> edges = new HashMap<>();
     for (Node node : data.getNodes()) {
       Set<Node> connected = new HashSet<>(node.getParents());
@@ -36,7 +36,7 @@ public class CliqueBuilder {
     return edges;
   }
 
-  private static void addConstraintsIfUnsolved(BayesNetData data, Node node, Set<Node> connected) {
+  private static void addConstraintsIfUnsolved(BayesianNetworkData data, Node node, Set<Node> connected) {
     if (data.isSolved()) return;
     data.getConstraints().stream()
         .filter(c -> c.getEventNodes().contains(node))
@@ -44,7 +44,7 @@ public class CliqueBuilder {
         .forEach(connected::addAll);
   }
 
-  private static void moralizeGraph(Map<Node, Set<Node>> edges, BayesNetData data) {
+  private static void moralizeGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
     for (Node node : data.getNodes()) {
       List<Node> parents = node.getParents();
       for (int i = 0; i < parents.size(); i++) {
@@ -58,7 +58,7 @@ public class CliqueBuilder {
     }
   }
 
-  private static void triangulateGraph(Map<Node, Set<Node>> edges, BayesNetData data) {
+  private static void triangulateGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
     Map<Node, Set<Node>> graph = new HashMap<>();
     edges.keySet().forEach(node -> graph.put(node, new HashSet<>(edges.get(node))));
 

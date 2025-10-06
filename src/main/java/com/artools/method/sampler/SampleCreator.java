@@ -1,96 +1,82 @@
 package com.artools.method.sampler;
 
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ProbabilityTable;
-import com.artools.method.probabilitytables.TableUtils;
 import com.artools.method.utils.WeightedRandom;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class SampleCreator {
+public class SampleCreator<T> {
+  private final BayesianNetworkData data;
+  private final Class<T> tClass;
 
-  private final BayesNetData data;
-
-  public SampleCreator(BayesNetData data) {
+  public SampleCreator(BayesianNetworkData data, Class<T> tClass) {
     this.data = data;
+    this.tClass = tClass;
   }
 
-  public List<List<Object>> generateSamples(
-      Map<Node, NodeState> observations, Set<Node> exclusions, int numberOfSamples) {
-    List<List<Object>> samples = new ArrayList<>();
-    List<Node> orderedNodes = orderNodes(data.getNodes());
-    buildProbabilityMaps(orderedNodes);
-    for (int i = 0; i < numberOfSamples; i++) {
-      samples.add(newSample(observations, exclusions, orderedNodes));
+  public List<List<T>> generateSamples(
+      Map<Node, NodeState> observations,
+      Set<Node> excludedNodes,
+      Set<Node> includedNodes,
+      int numberOfSamples) {
+    Map<List<T>, Double> weights = new HashMap<>();
+    recursiveWeightFinder(
+        0, 1.0, observations, excludedNodes, includedNodes, weights, new ArrayList<>());
+    WeightedRandom<List<T>> weightedRandom = new WeightedRandom<>(weights);
+    return IntStream.range(0, numberOfSamples).mapToObj(i -> weightedRandom.nextRandom()).toList();
+  }
+
+  private void recursiveWeightFinder(
+      int depth,
+      double jointProb,
+      Map<Node, NodeState> observations,
+      Set<Node> excludeNodes,
+      Set<Node> includeNodes,
+      Map<List<T>, Double> weights,
+      List<NodeState> currentStates) {
+
+    if (depth == data.getNodes().size()) {
+      List<T> ids = getIds(currentStates, excludeNodes, includeNodes);
+      if (!weights.containsKey(ids)) weights.put(ids, 0.0);
+      weights.put(ids, weights.get(ids) + jointProb);
+      return;
     }
-    return samples;
+
+    Node node = data.getNodes().get(depth);
+    List<NodeState> validStates = getValidStates(observations, node);
+    ProbabilityTable networkTable = data.getNetworkTable(node.getNodeID());
+
+    for (NodeState state : validStates) {
+      currentStates.add(state);
+      double tableProb = networkTable.getProbability(currentStates, true);
+      if (tableProb != 0) {
+        recursiveWeightFinder(
+            depth + 1,
+            tableProb * jointProb,
+            observations,
+            excludeNodes,
+            includeNodes,
+            weights,
+            currentStates);
+      }
+      currentStates.remove(state);
+    }
   }
 
-  private void buildProbabilityMaps(List<Node> orderedNodes) {
-    orderedNodes.forEach(
-        node -> {
-          ProbabilityTable table = data.getNetworkTablesMap().get(node);
-          TableUtils.buildProbabilityMap(table);
-        });
+  private List<NodeState> getValidStates(Map<Node, NodeState> observations, Node node) {
+    return observations.containsKey(node) ? List.of(observations.get(node)) : node.getStates();
   }
 
-  private List<Node> orderNodes(List<Node> nodes) {
-    Map<Node, Integer> layerMap = new HashMap<>();
-    nodes.forEach(node -> calculateNodeLayer(node, layerMap));
-    return layerMap.entrySet().stream()
-        .sorted(Map.Entry.comparingByValue())
-        .map(Map.Entry::getKey)
-        .toList();
-  }
-
-  private int calculateNodeLayer(Node node, Map<Node, Integer> layerMap) {
-    if (layerMap.containsKey(node)) return layerMap.get(node);
-
-    int layer =
-        node.getParents().stream()
-            .mapToInt(parent -> calculateNodeLayer(parent, layerMap) + 1)
-            .max()
-            .orElse(0);
-
-    layerMap.put(node, layer);
-    return layer;
-  }
-
-  private List<Object> newSample(
-      Map<Node, NodeState> observations, Set<Node> exclusions, List<Node> orderedNodes) {
-    Set<NodeState> sample = new HashSet<>();
-    orderedNodes.forEach(node -> sample.add(getWeightedRandomSample(observations, node, sample)));
-
-    return sample.stream()
-        .filter(state -> !exclusions.contains(state.getParentNode()))
+  private List<T> getIds(
+      List<NodeState> currentStates, Set<Node> excludeNodes, Set<Node> includeNodes) {
+    return currentStates.stream()
+        .filter(ns -> !excludeNodes.contains(ns.getParentNode()))
+        .filter(ns -> includeNodes.contains(ns.getParentNode()))
         .map(NodeState::getStateID)
+        .map(tClass::cast)
         .toList();
-  }
-
-  private Set<NodeState> getConditionStates(Node node, Set<NodeState> sample) {
-    return node.getParents().stream()
-        .flatMap(n -> n.getParents().stream())
-        .flatMap(p -> p.getStates().stream())
-        .filter(sample::contains)
-        .collect(Collectors.toSet());
-  }
-
-  private NodeState getWeightedRandomSample(
-      Map<Node, NodeState> observations, Node node, Set<NodeState> sample) {
-    if (observations.containsKey(node)) return observations.get(node);
-    Set<NodeState> conditionStates = getConditionStates(node, sample);
-    Map<Set<NodeState>, Double> validEntries = getValidEntries(node, conditionStates);
-    return Objects.requireNonNull(WeightedRandom.nextRandom(validEntries)).stream()
-        .filter(state -> state.getParentNode().equals(node))
-        .findAny()
-        .orElseThrow();
-  }
-
-  private Map<Set<NodeState>, Double> getValidEntries(Node node, Set<NodeState> conditionStates) {
-    return data.getNetworkTablesMap().get(node).getProbabilityMap().entrySet().stream()
-        .filter(entry -> entry.getKey().containsAll(conditionStates))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

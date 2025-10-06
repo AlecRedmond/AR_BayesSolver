@@ -1,6 +1,6 @@
 package com.artools.method.printer;
 
-import com.artools.application.network.BayesNetData;
+import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.MarginalTable;
 import com.artools.application.probabilitytables.ProbabilityTable;
@@ -20,30 +20,39 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NetworkPrinter {
-  private final BayesNetData networkData;
+  private final BayesianNetworkData networkData;
+  private final String directory;
 
-  public NetworkPrinter(BayesNetData networkData) {
+  public NetworkPrinter(BayesianNetworkData networkData, String directory) {
     this.networkData = networkData;
+    this.directory = directory;
   }
 
-  public void printObserved() {
+  public NetworkPrinter(BayesianNetworkData networkData) {
+    this.networkData = networkData;
+    this.directory = PrinterFormats.getDefaultSaveDirectory();
+  }
+
+  public void printObserved(boolean toFile) {
     List<String> outputLines = new ArrayList<>();
     outputLines.add("OBSERVED TABLES:\n");
     networkData
         .getObservationMap()
         .values()
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
-    printToFile(outputLines);
+    if (toFile) printToFile(outputLines, "observed");
+    else outputLines.forEach(System.out::println);
   }
 
-  public void printNetwork() {
+  public void printNetwork(boolean toFile) {
     List<String> outputLines = new ArrayList<>();
     outputLines.add("NETWORK TABLES:\n");
     networkData
         .getNetworkTablesMap()
         .values()
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
-    printToFile(outputLines);
+    if (toFile) printToFile(outputLines, "network");
+    else outputLines.forEach(System.out::println);
   }
 
   private List<String> generateTableLines(ProbabilityTable table) {
@@ -72,8 +81,8 @@ public class NetworkPrinter {
         conditionColumnWidth);
   }
 
-  private void printToFile(List<String> lines) {
-    String filePath = createOrRename(getFilePath(), 0);
+  private void printToFile(List<String> lines, String type) {
+    String filePath = createOrRename(getFilePath(), type, 0);
     try {
       FileWriter fw = new FileWriter(filePath);
       PrintWriter pw = new PrintWriter(fw);
@@ -81,7 +90,7 @@ public class NetworkPrinter {
       pw.close();
       log.info("File saved to {}", filePath);
     } catch (IOException e) {
-      log.error(String.format("%s attempting to write to %s",e, filePath));
+      log.error("{} attempting to write to {}", e, filePath);
     }
   }
 
@@ -157,25 +166,24 @@ public class NetworkPrinter {
   private String getFilePath() {
     String networkName = networkData.getNetworkName();
     String dateTime = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-    String path = PrinterFormats.getGetSaveDirectory();
     try {
-      Files.createDirectories(Paths.get(path));
+      Files.createDirectories(Paths.get(directory));
     } catch (IOException e) {
-      log.error("COULD NOT CREATE DIRECTORY {}", path);
+      log.error("{} : COULD NOT CREATE DIRECTORY {}", e, directory);
     }
-    return String.format("%s%s_%s", path, networkName, dateTime);
+    return String.format("%s%s_%s", directory, dateTime, networkName);
   }
 
-  private String createOrRename(String filePath, int counter) {
-    String newFilePath = filePath + "_" + counter;
+  private String createOrRename(String filePath, String type, int counter) {
+    String newFilePath = String.format("%s_%s_%d", filePath, type, counter);
     File file = new File(newFilePath + ".txt");
     try {
       if (file.createNewFile()) {
         return newFilePath + ".txt";
-      } else return createOrRename(filePath, counter + 1);
+      } else return createOrRename(filePath, type, counter + 1);
 
     } catch (IOException e) {
-      log.error("IO Exception creating new file {}", filePath);
+      log.error("{} creating new file {}", e, filePath);
     }
     return "";
   }

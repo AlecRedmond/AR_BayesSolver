@@ -1,15 +1,17 @@
 package com.artools.method.network;
 
+import com.artools.application.network.BayesianNetworkData;
 import java.util.Collection;
+import java.util.List;
 
 public interface BayesianNetwork {
 
   static BayesianNetwork newNetwork() {
-    return new BayesNet();
+    return new BayesianNetworkImpl();
   }
 
   static BayesianNetwork newNetwork(String networkName) {
-    return new BayesNet(networkName);
+    return new BayesianNetworkImpl(networkName);
   }
 
   <T> BayesianNetwork addNode(T nodeID);
@@ -56,9 +58,27 @@ public interface BayesianNetwork {
 
   BayesianNetwork printNetwork();
 
+  BayesianNetwork printObserved();
+
+  BayesianNetwork printObserved(boolean toFile);
+
+  BayesianNetwork printNetwork(boolean toFile);
+
+  BayesianNetwork printNetwork(String directory);
+
+  BayesianNetwork printObserved(String directory);
+
   <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
 
   BayesianNetwork observeMarginals();
 
-  BayesianNetwork printObserved();
+  BayesianNetworkData getNetworkData();
+
+  <T, E> List<List<T>> generateSamples(
+      int numberOfSamples,
+      Collection<E> excludeNodeIDs,
+      Collection<E> includeNodeIDs,
+      Class<T> tClass);
+
+  <T> double observeProbability(Collection<T> eventStates);
 }
