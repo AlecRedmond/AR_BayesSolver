@@ -4,6 +4,7 @@ import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ProbabilityTable;
+import com.artools.method.probabilitytables.TableUtils;
 import com.artools.method.utils.WeightedRandom;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -46,12 +47,13 @@ public class SampleCreator<T> {
     }
 
     Node node = data.getNodes().get(depth);
-    List<NodeState> validStates = getValidStates(observations, node);
+    List<NodeState> observedStates = getObservedStates(observations, node);
     ProbabilityTable networkTable = data.getNetworkTable(node.getNodeID());
 
-    for (NodeState state : validStates) {
+    for (NodeState state : observedStates) {
       currentStates.add(state);
-      double tableProb = networkTable.getProbability(currentStates, true);
+      Set<NodeState> statesInTable = TableUtils.removeRedundantStates(currentStates, networkTable);
+      double tableProb = networkTable.getProbability(statesInTable);
       if (tableProb != 0) {
         recursiveWeightFinder(
             depth + 1,
@@ -66,7 +68,7 @@ public class SampleCreator<T> {
     }
   }
 
-  private List<NodeState> getValidStates(Map<Node, NodeState> observations, Node node) {
+  private List<NodeState> getObservedStates(Map<Node, NodeState> observations, Node node) {
     return observations.containsKey(node) ? List.of(observations.get(node)) : node.getStates();
   }
 

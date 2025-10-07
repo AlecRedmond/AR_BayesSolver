@@ -27,6 +27,8 @@ public class JunctionTreeTable extends ProbabilityTable {
    * @param equivalentIndexMap links a JunctionTreeTable index to its equivalent indexes in the
    *     Network Probability Tables it was constructed from. Used for faster read/write back to the
    *     network.
+   * @param nodeStateIDMap a map which can obtain a NodeState from its ID
+   * @param nodeIDMap a map which can obtain a Node from its ID
    */
   public <T> JunctionTreeTable(
       T tableID,
@@ -34,8 +36,18 @@ public class JunctionTreeTable extends ProbabilityTable {
       double[] probabilities,
       Set<Node> events,
       double[] observedProbabilities,
-      Map<ProbabilityTable, Integer[]> equivalentIndexMap) {
-    super(indexMap, probabilities, tableID, events, events, new HashSet<>());
+      Map<ProbabilityTable, Integer[]> equivalentIndexMap,
+      Map<?, NodeState> nodeStateIDMap,
+      Map<?, Node> nodeIDMap) {
+    super(
+        nodeStateIDMap,
+        nodeIDMap,
+        indexMap,
+        probabilities,
+        tableID,
+        events,
+        events,
+        new HashSet<>());
     this.observedProbabilities = observedProbabilities;
     this.equivalentIndexMap = equivalentIndexMap;
     observedStates = new HashSet<>();
@@ -51,5 +63,4 @@ public class JunctionTreeTable extends ProbabilityTable {
   public void setObservedProb(Set<NodeState> request, double newVal) {
     observedProbabilities[indexMap.get(request)] = newVal;
   }
-
 }

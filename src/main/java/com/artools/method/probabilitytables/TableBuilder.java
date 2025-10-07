@@ -27,6 +27,8 @@ public class TableBuilder {
     Map<Set<NodeState>, Integer> indexMap = buildIndexMap(nodes);
     double[] probabilities = buildProbTable(indexMap.size());
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
+    Map<?, Node> nodeIDMap = getNodeIDMap(nodes);
+    Map<?, NodeState> nodeStateIDMap = getNodeStateIDMap(nodes);
     return new ConditionalTable(
         buildTableName(events, conditions),
         indexMap,
@@ -34,7 +36,9 @@ public class TableBuilder {
         nodes,
         events,
         conditions,
-        eventNode);
+        eventNode,
+        nodeIDMap,
+        nodeStateIDMap);
   }
 
   public static MarginalTable buildMarginalTable(Set<Node> events) {
@@ -42,7 +46,10 @@ public class TableBuilder {
     String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
     Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
     double[] probabilities = buildProbTable(indexMap.size());
-    return new MarginalTable(indexMap, probabilities, tableName, eventNode);
+    Map<?, Node> nodeIDMap = getNodeIDMap(List.of(eventNode));
+    Map<?, NodeState> nodeStateIDMap = getNodeStateIDMap(List.of(eventNode));
+    return new MarginalTable(
+        indexMap, probabilities, tableName, eventNode, nodeStateIDMap, nodeIDMap);
   }
 
   private static Set<Node> joinSets(Set<Node> events, Set<Node> conditions) {
@@ -60,6 +67,20 @@ public class TableBuilder {
     double[] probabilities = new double[size];
     Arrays.fill(probabilities, 1.0);
     return probabilities;
+  }
+
+  private static Map<?, Node> getNodeIDMap(Collection<Node> nodes) {
+    return nodes.stream()
+        .map(n -> Map.entry(n.getNodeID(), n))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static Map<?, NodeState> getNodeStateIDMap(Collection<Node> nodes) {
+    return nodes.stream()
+        .map(Node::getStates)
+        .flatMap(Collection::stream)
+        .map(ns -> Map.entry(ns.getStateID(), ns))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static String buildTableName(Set<Node> events, Set<Node> conditions) {
@@ -82,12 +103,16 @@ public class TableBuilder {
     double[] probabilities = buildProbTable(indexMap.size());
     double[] observedProbabilities = buildProbTable(indexMap.size());
     Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
+    Map<?, NodeState> nodeStateIDMap = getNodeStateIDMap(events);
+    Map<?, Node> nodeIDMap = getNodeIDMap(events);
     return new JunctionTreeTable(
         buildTableName(events, new HashSet<>()),
         indexMap,
         probabilities,
         events,
         observedProbabilities,
-        equivalentIndexes);
+        equivalentIndexes,
+        nodeStateIDMap,
+        nodeIDMap);
   }
 }

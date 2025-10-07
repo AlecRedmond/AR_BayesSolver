@@ -71,11 +71,11 @@ class BayesianNetworkTest {
                 .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
                 .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
                 .solveNetwork()
-                .printNetwork(false)
+                .printNetwork(true)
                 .observeMarginals()
-                .printObserved(false)
+                .printObserved(true)
                 .observeNetwork(List.of("WET_GRASS:TRUE"))
-                .printObserved(false));
+                .printObserved(true));
 
     int numOfSamples = 1_000_000;
     String testState = "RAIN:TRUE";

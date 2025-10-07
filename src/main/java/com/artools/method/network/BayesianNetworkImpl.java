@@ -3,6 +3,8 @@ package com.artools.method.network;
 import static com.artools.method.constraints.ConstraintBuilder.*;
 
 import com.artools.application.network.BayesianNetworkData;
+import com.artools.application.probabilitytables.MarginalTable;
+import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.application.solver.SolverConfigs;
 import com.artools.method.printer.NetworkPrinter;
 import com.artools.method.sampler.NetworkSampler;
@@ -107,16 +109,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public <T, E> BayesianNetworkImpl addConstraint(
-      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
-    networkData.setSolved(false);
-    networkData
-        .getConstraints()
-        .add(buildConstraint(eventStateIDs, conditionStateIDs, probability, networkData));
-    return this;
-  }
-
-  public BayesianNetworkImpl solverCyclesLimit(int cyclesLimit) {
+    public BayesianNetworkImpl solverCyclesLimit(int cyclesLimit) {
     solverConfigs.setCyclesLimit(cyclesLimit);
     return this;
   }
@@ -142,17 +135,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetworkImpl printNetwork() {
-    new NetworkPrinter(networkData).printNetwork(true);
-    return this;
-  }
-
-  public BayesianNetworkImpl printObserved() {
-    new NetworkPrinter(networkData).printObserved(true);
-    return this;
-  }
-
-  public BayesianNetworkImpl printObserved(boolean toFile) {
+    public BayesianNetworkImpl printObserved(boolean toFile) {
     new NetworkPrinter(networkData).printObserved(toFile);
     return this;
   }
@@ -198,4 +181,14 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return sampler.observeProbability(
         utils.getStatesByID(eventStates));
   }
+
+    @Override
+    public <T> ProbabilityTable getNetworkTable(T nodeID) {
+        return null; //TODO
+    }
+
+    @Override
+    public <T> MarginalTable getObservedTable(T nodeID) {
+        return null; //TODO
+    }
 }

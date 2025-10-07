@@ -5,8 +5,9 @@ import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ProbabilityTable;
 import com.artools.method.node.NodeUtils;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TableUtils {
 
@@ -22,7 +23,7 @@ public class TableUtils {
     double tableSum = Arrays.stream(table.getProbabilities()).sum();
     if (tableSum == 0) return;
     double ratio = 1 / tableSum;
-    Set<Set<NodeState>> keys = table.getIndexMap().keySet();
+    Set<Set<NodeState>> keys = table.getKeySet();
     keys.forEach(key -> multiplyEntry(table, key, ratio));
   }
 
@@ -50,10 +51,11 @@ public class TableUtils {
         .sum();
   }
 
-  public static void writeProbabilityMap(ProbabilityTable table) {
-    Map<Set<NodeState>, Double> probMap = table.getProbabilityMap();
-    if (!probMap.isEmpty()) return;
-    double[] probs = table.getProbabilities();
-    table.getIndexMap().forEach((key, index) -> probMap.put(key, probs[index]));
+  public static Set<NodeState> removeRedundantStates(
+      Collection<NodeState> currentStates, ProbabilityTable table) {
+    Set<Node> tableNodes = table.getNodes();
+    return currentStates.stream()
+        .filter(ns -> tableNodes.contains(ns.getParentNode()))
+        .collect(Collectors.toSet());
   }
 }

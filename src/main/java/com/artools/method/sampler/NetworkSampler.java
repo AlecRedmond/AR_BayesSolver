@@ -4,11 +4,10 @@ import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.solver.SolverConfigs;
-import com.artools.method.probabilitytables.TableUtils;
 import com.artools.method.sampler.jtasampler.JunctionTreeAlgorithm;
 import com.artools.method.solver.BayesSolver;
 import java.util.*;
-import java.util.stream.Stream;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,7 +49,6 @@ public class NetworkSampler {
 
   public void runSolver() {
     new BayesSolver(networkData, configs).solveNetwork();
-    writeProbabilityTables();
     networkData.setSolved(true);
     jta = new JunctionTreeAlgorithm(networkData);
   }
@@ -65,14 +63,7 @@ public class NetworkSampler {
     return evidence;
   }
 
-  private void writeProbabilityTables() {
-    Stream.concat(
-            networkData.getNetworkTablesMap().values().stream(),
-            networkData.getObservationMap().values().stream())
-        .forEach(TableUtils::writeProbabilityMap);
-  }
-
-  private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
+    private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
     if (evidence.containsKey(state.getParentNode())) {
       throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
     }

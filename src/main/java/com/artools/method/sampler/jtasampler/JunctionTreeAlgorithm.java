@@ -27,23 +27,7 @@ public class JunctionTreeAlgorithm {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
   }
 
-  public Map<Node, NodeState> convertToMap(Collection<NodeState> evidenceStates) {
-    Map<Node, NodeState> evidence = new HashMap<>();
-    evidenceStates.forEach(
-        state -> {
-          checkNoDuplicates(evidence, state);
-          evidence.put(state.getParentNode(), state);
-        });
-    return evidence;
-  }
-
-  private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
-    if (evidence.containsKey(state.getParentNode())) {
-      throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
-    }
-  }
-
-  public double adjustAndReturnError(ParameterConstraint constraint) {
+    public double adjustAndReturnError(ParameterConstraint constraint) {
     Clique clique = data.getCliqueForConstraint().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
 

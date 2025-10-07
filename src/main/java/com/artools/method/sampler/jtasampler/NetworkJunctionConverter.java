@@ -49,12 +49,13 @@ public class NetworkJunctionConverter {
   private void setProbabilityAndSubTableIndexes(
       JunctionTreeTable cliqueTable, Set<ProbabilityTable> tableSet, Set<NodeState> request) {
 
-    int cliqueTableKeyIndex = cliqueTable.getIndex(request, false);
+    int cliqueTableKeyIndex = cliqueTable.getIndex(request);
 
     double jointProb = 1.0;
 
     for (ProbabilityTable table : tableSet) {
-      int networkTableKeyIndex = table.getIndex(request, true);
+      Set<NodeState> validRequest = TableUtils.removeRedundantStates(request, table);
+      int networkTableKeyIndex = table.getIndex(validRequest);
       cliqueTable.getEquivalentIndexMap().get(table)[cliqueTableKeyIndex] = networkTableKeyIndex;
       double tableProb = table.getProbabilities()[networkTableKeyIndex];
       jointProb = jointProb * tableProb;

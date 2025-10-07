@@ -14,6 +14,12 @@ public class Node {
   private List<Node> parents;
   private List<Node> children;
 
+  /**
+   * Builds a Node and populates the NodeState list using the given values
+   *
+   * @param nodeID ID value to be associated with the Node
+   * @param stateIDs collection of IDs which will become the IDs for the node's associated states
+   */
   public <T, E> Node(T nodeID, Collection<E> stateIDs) {
     this.nodeID = nodeID;
     this.parents = new ArrayList<>();
@@ -22,12 +28,22 @@ public class Node {
     stateIDs.forEach(this::addState);
   }
 
-  public <T> NodeState addState(T stateIdentifier) {
-    NodeState newState = new NodeState(stateIdentifier, this);
+  /**
+   * Adds a NodeState to the 'states' list, constructing it from the given identifier
+   *
+   * @param stateID ID value to be associated with the new NodeState
+   */
+  public <T> NodeState addState(T stateID) {
+    NodeState newState = new NodeState(stateID, this);
     states.add(newState);
     return newState;
   }
 
+  /**
+   * Builds a blank Node without any states
+   *
+   * @param nodeID ID value to be associated with the Node
+   */
   public <T> Node(T nodeID) {
     this.nodeID = nodeID;
     this.parents = new ArrayList<>();

@@ -7,6 +7,7 @@ import com.artools.application.network.BayesianNetworkData;
 import com.artools.application.node.Node;
 import com.artools.application.node.NodeState;
 import com.artools.application.probabilitytables.ProbabilityTable;
+import com.artools.exceptions.BayesNetIDException;
 import com.artools.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class NetworkDataUtils {
       }
     }
     if (!dupes.isEmpty()) {
-      throw new IllegalArgumentException(
+      throw new BayesNetIDException(
           String.format(
               "Error, found duplicate id(s)! : %s",
               dupes.stream()
