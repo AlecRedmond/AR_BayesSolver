@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 
+/**
+ * Represents the unconditional probability distribution for a single Node in the Bayesian Network.
+ * Used in Nodes without parents or in network observations
+ */
 @Getter
 public class MarginalTable extends ProbabilityTable {
   private final Node eventNode;

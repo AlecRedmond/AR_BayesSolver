@@ -2,11 +2,19 @@ package io.github.alecredmond.application.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.sampler.Clique;
+import io.github.alecredmond.application.sampler.Separator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 
+/**
+ * A potential table, used as a component of the Junction Tree Algorithm (JTA) for exact inference
+ * in the Bayesian Network. <br>
+ * In the Junction Tree architecture, instances of this table are associated with both the {@link
+ * Clique} and the {@link Separator} classes.
+ */
 @Getter
 public class JunctionTreeTable extends ProbabilityTable {
   private final double[] observedProbabilities;
@@ -60,7 +68,4 @@ public class JunctionTreeTable extends ProbabilityTable {
     this.observedStates.addAll(newEvidence);
   }
 
-  public void setObservedProb(Set<NodeState> request, double newVal) {
-    observedProbabilities[indexMap.get(request)] = newVal;
-  }
 }

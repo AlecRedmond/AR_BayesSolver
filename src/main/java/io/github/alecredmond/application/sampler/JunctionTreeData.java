@@ -13,26 +13,73 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Represents the data structure required for the Junction Tree Algorithm (JTA) inference process in
+ * a Bayesian Network. <br>
+ * This class encapsulates the structural components of the Junction Tree (cliques and separators),
+ * the specialized probability tables used in the JTA ({@link JunctionTreeTable}), and the mappings
+ * necessary to link these structures back to the core network data and applied constraints.
+ */
 @Getter
 @AllArgsConstructor
 public class JunctionTreeData {
+  /** The reference to the core data of the Bayesian Network. */
   private final BayesianNetworkData bayesianNetworkData;
+
+  /** The set of all {@link Clique} objects forming the Junction Tree structure. */
   private final Set<Clique> cliqueSet;
+
+  /** The set of all {@link Separator} objects connecting the cliques in the Junction Tree. */
   private final Set<Separator> separators;
+
+  /** A subset of {@link Clique} objects connected to only one separator */
   private final Set<Clique> leafCliques;
+
+  /**
+   * A map linking each {@link Clique} to the set of original network {@link ProbabilityTable}s
+   * (CPTs or marginals) that were absorbed into it during the junction tree construction.
+   */
   private final Map<Clique, Set<ProbabilityTable>> associatedTables;
+
+  /** A list of all {@link JunctionTreeTable} objects created for the cliques and separators. */
   private final List<JunctionTreeTable> junctionTreeTables;
+
+  /**
+   * A map linking each {@link ParameterConstraint} to the specific {@link Clique} that handles its
+   * probability distribution.
+   */
   private final Map<ParameterConstraint, Clique> cliqueForConstraint;
+
+  /**
+   * A map linking each {@link ParameterConstraint} to its dedicated {@link ConstraintHandler} used
+   * during the JTA inference.
+   */
   private final Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
 
+  /**
+   * Retrieves the list of all {@link Node} objects from the underlying Bayesian Network Data.
+   *
+   * @return A list of {@link Node} objects.
+   */
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();
   }
 
+  /**
+   * Returns the map of observed or calculated marginal probabilities for each {@link Node} from the
+   * underlying Bayesian Network Data.*
+   *
+   * @return A map of {@link Node} to {@link MarginalTable}.
+   */
   public Map<Node, MarginalTable> getObservationMap() {
     return bayesianNetworkData.getObservationMap();
   }
 
+  /**
+   * Retrieves the list of all constraints applied during the JTA solver cycle
+   *
+   * @return A list of {@link ParameterConstraint} objects.
+   */
   public List<ParameterConstraint> getConstraints() {
     return bayesianNetworkData.getConstraints();
   }
