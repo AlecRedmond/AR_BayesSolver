@@ -12,7 +12,8 @@ import lombok.Getter;
  */
 @Getter
 public class ConditionalTable extends ProbabilityTable {
-  private final Node eventNode;
+  /** The node in the network associated with the table */
+  private final Node networkNode;
 
   /**
    * @param nodeStateIDMap a map which can obtain a NodeState from its ID
@@ -32,10 +33,10 @@ public class ConditionalTable extends ProbabilityTable {
       Set<Node> nodes,
       Set<Node> events,
       Set<Node> conditions,
-      Node eventNode,
+      Node networkNode,
       Map<Object, Node> nodeIDMap,
       Map<Object, NodeState> nodeStateIDMap) {
     super(nodeStateIDMap, nodeIDMap, indexMap, probabilities, tableID, nodes, events, conditions);
-    this.eventNode = eventNode;
+    this.networkNode = networkNode;
   }
 }

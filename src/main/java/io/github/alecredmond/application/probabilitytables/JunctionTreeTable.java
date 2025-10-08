@@ -17,9 +17,23 @@ import lombok.Getter;
  */
 @Getter
 public class JunctionTreeTable extends ProbabilityTable {
+  /**
+   * A copy of the probabilities array, used when calculating observed marginals in the Junction
+   * Tree Algorithm. This array holds the current state of probabilities after observations have
+   * been set (clamped).
+   */
   private final double[] observedProbabilities;
+
+  /**
+   * links a JunctionTreeTable index to its equivalent indexes in the Network Probability Tables it
+   * was constructed from. Used for faster read/write back to the network.
+   */
   private final Map<ProbabilityTable, Integer[]> equivalentIndexMap;
+
+  /** The set of states that have been set as evidence (observations) in this table. */
   private final Set<NodeState> observedStates;
+
+  /** A flag indicating whether the Network has observations applied. */
   private boolean observed;
 
   /**
@@ -62,10 +76,17 @@ public class JunctionTreeTable extends ProbabilityTable {
     observed = false;
   }
 
+  /**
+   * Clears old evidence and sets new evidence in the table.<br>
+   * Regardless of the evidence in this table, if the network is observed, the JTA will run using
+   * the observed tables to prevent overwriting the true joint probabilities.
+   *
+   * @param newEvidence new observations to be clamped in the table
+   * @param observed whether the network has been observed.
+   */
   public void setObserved(Set<NodeState> newEvidence, boolean observed) {
     this.observed = observed;
     this.observedStates.clear();
     this.observedStates.addAll(newEvidence);
   }
-
 }

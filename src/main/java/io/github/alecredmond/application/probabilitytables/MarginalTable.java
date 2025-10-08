@@ -13,7 +13,8 @@ import lombok.Getter;
  */
 @Getter
 public class MarginalTable extends ProbabilityTable {
-  private final Node eventNode;
+  /** The node in the network associated with the table */
+  private final Node networkNode;
 
   /**
    * @param nodeStateIDMap a map which can obtain a NodeState from its ID
@@ -22,13 +23,13 @@ public class MarginalTable extends ProbabilityTable {
    *     array
    * @param tableID The Identifier for the table
    * @param probabilities a flat array of probability values
-   * @param eventNode the single node measured by the table
+   * @param networkNode the single node measured by the table
    */
   public MarginalTable(
       Map<Set<NodeState>, Integer> indexMap,
       double[] probabilities,
       String tableID,
-      Node eventNode,
+      Node networkNode,
       Map<Object, NodeState> nodeStateIDMap,
       Map<Object, Node> nodeIDMap) {
     super(
@@ -37,9 +38,9 @@ public class MarginalTable extends ProbabilityTable {
         indexMap,
         probabilities,
         tableID,
-        Set.of(eventNode),
-        Set.of(eventNode),
+        Set.of(networkNode),
+        Set.of(networkNode),
         new HashSet<>());
-    this.eventNode = eventNode;
+    this.networkNode = networkNode;
   }
 }
