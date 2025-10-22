@@ -1,18 +1,32 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
+import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.method.network.BayesianNetworkImpl;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a Bayesian Network, a probabilistic graphical model that represents a set of variables
- * and their conditional dependencies via a directed acyclic graph (DAG).
+ * An interface that provides a toolset for building, solving, and providing direct inference on a
+ * Bayesian Network.
+ *
+ * <p>Marginal and Conditional probability values are not directly entered into the network, but as
+ * <i>constraints</i> on the network. An Iterative Proportional Fitting Procedure (IPFP) is then
+ * carried out to find a 'best fit' for the network tables based on the given constraints. This is
+ * accelerated using the Junction Tree Algorithm (JTA).
+ *
+ * <p>It is worth noting that for each node on the network linked by a constraint outside its scope
+ * (i.e. not linked to a parent or child node), another virtual 'edge' is created on the solver's
+ * JTA graph. If enough additional edges are created, the solver will not subdivide the graph into
+ * cliques, and the algorithm becomes no more efficient than standard IPFP. This does not affect
+ * subsequent sampling as a new JTA instance is created upon completion of the solver's run.
  *
  * @author AR_TOOLS
- * @version 1.0
+ * @version 0.1.0-ALPHA
  */
 @SuppressWarnings("unused")
 public interface BayesianNetwork {
@@ -79,6 +93,16 @@ public interface BayesianNetwork {
   BayesianNetwork removeAllNodes();
 
   /**
+   * Returns a node from its input ID
+   *
+   * @param <T> class of the Node ID
+   * @param nodeID the node ID
+   * @throws IllegalArgumentException if the node ID is not mapped to a node value
+   * @return the Node object associated with the ID
+   */
+  <T> Node getNode(T nodeID);
+
+  /**
    * Adds a collection of states to an existing node.
    *
    * @param nodeID the identifier of the node to modify.
@@ -119,6 +143,16 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   <T, E> BayesianNetwork removeNodeState(T nodeID, E nodeStateID);
+
+  /**
+   * Returns a Node State from its input ID
+   *
+   * @param <E> class of the Node State ID
+   * @param nodeStateID the Node State ID
+   * @throws IllegalArgumentException if the Node State ID is not mapped to a Node State value
+   * @return the Node State object associated with the ID
+   */
+  <E> NodeState getNodeState(E nodeStateID);
 
   /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
@@ -329,8 +363,7 @@ public interface BayesianNetwork {
 
   /**
    * Calculates the joint probability of a specific set of events occurring. Note that this method
-   * utilizes the most recent result observations on the network, or the true marginals if no
-   * observation has been made.
+   * will change the observations on the network.
    *
    * @param eventStateIDs a collection of node states for which to calculate the joint probability.
    * @param <T> Class of the event state IDs

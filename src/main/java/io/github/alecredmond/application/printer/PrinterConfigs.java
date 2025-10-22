@@ -1,6 +1,6 @@
 package io.github.alecredmond.application.printer;
 
-import io.github.alecredmond.method.network.BayesianNetwork;
+import io.github.alecredmond.BayesianNetwork;
 import lombok.Data;
 
 /**
@@ -39,5 +39,12 @@ public class PrinterConfigs {
 
   private String getDefaultSaveDirectory() {
     return System.getProperty("user.home") + "\\AR_Tools\\bayes_solver\\output\\";
+  }
+
+  public void setProbDecimalPlaces(int probDecimalPlaces) {
+    if (probDecimalPlaces < 0) {
+      throw new IllegalArgumentException("Printer decimal places must not be negative!");
+    }
+    this.probDecimalPlaces = probDecimalPlaces;
   }
 }

@@ -70,7 +70,7 @@ public class SampleCreator<T> {
   }
 
   private List<NodeState> getObservedStates(Map<Node, NodeState> observations, Node node) {
-    return observations.containsKey(node) ? List.of(observations.get(node)) : node.getStates();
+    return observations.containsKey(node) ? List.of(observations.get(node)) : node.getNodeStates();
   }
 
   private List<T> getIds(

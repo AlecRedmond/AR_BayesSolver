@@ -17,7 +17,7 @@ public class Node {
   private final Object nodeID;
 
   /** The list of all possible states this Node can take. */
-  private List<NodeState> states;
+  private List<NodeState> nodeStates;
 
   /** The list of parent Nodes in the Bayesian Network. */
   private List<Node> parents;
@@ -37,7 +37,7 @@ public class Node {
     this.nodeID = nodeID;
     this.parents = new ArrayList<>();
     this.children = new ArrayList<>();
-    this.states = new ArrayList<>();
+    this.nodeStates = new ArrayList<>();
     stateIDs.forEach(this::addState);
   }
 
@@ -50,7 +50,7 @@ public class Node {
    */
   public <T> NodeState addState(T stateID) {
     NodeState newState = new NodeState(stateID, this);
-    states.add(newState);
+    nodeStates.add(newState);
     return newState;
   }
 
@@ -64,7 +64,7 @@ public class Node {
     this.nodeID = nodeID;
     this.parents = new ArrayList<>();
     this.children = new ArrayList<>();
-    this.states = new ArrayList<>();
+    this.nodeStates = new ArrayList<>();
   }
 
   /**
@@ -110,7 +110,7 @@ public class Node {
    * @param <E> The class of the state's ID.
    */
   public <E> void removeState(E stateID) {
-    states.removeIf(state -> state.getStateID().equals(stateID));
+    nodeStates.removeIf(state -> state.getStateID().equals(stateID));
   }
 
   /**

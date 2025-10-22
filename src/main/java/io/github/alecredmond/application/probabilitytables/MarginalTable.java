@@ -43,4 +43,15 @@ public class MarginalTable extends ProbabilityTable {
         new HashSet<>());
     this.networkNode = networkNode;
   }
+
+  /**
+   * Finds the probability for a given Event NodeState ID.
+   *
+   * @param nodeStateID the ID of the marginal state to be observed
+   * @param <T> The Class of the NodeState IDs
+   * @return a probability value between 0 and 1.
+   */
+  public <T> double getProbability(T nodeStateID) {
+    return super.getProbability(Set.of(nodeStateID));
+  }
 }

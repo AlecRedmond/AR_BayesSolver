@@ -29,4 +29,32 @@ public class SolverConfigs {
 
   /** The threshold value used to determine if the solver has converged. Default is 1e-9. */
   private double convergeThreshold = 1e-9;
+
+  public void setConvergeThreshold(double convergeThreshold) {
+    if (convergeThreshold <= 0) {
+      throw new IllegalArgumentException("Convergence threshold must be greater than zero!");
+    }
+    this.convergeThreshold = convergeThreshold;
+  }
+
+  public void setLogIntervalSeconds(int logIntervalSeconds) {
+    if (logIntervalSeconds <= 0) {
+      throw new IllegalArgumentException("Log interval must be positive!");
+    }
+    this.logIntervalSeconds = logIntervalSeconds;
+  }
+
+  public void setCyclesLimit(int cyclesLimit) {
+    if (cyclesLimit <= 0) {
+      throw new IllegalArgumentException("Number of cycles must be greater than zero!");
+    }
+    this.cyclesLimit = cyclesLimit;
+  }
+
+  public void setTimeLimitSeconds(int timeLimitSeconds) {
+    if (timeLimitSeconds <= 0) {
+      throw new IllegalArgumentException("Time limit must be greater than zero!");
+    }
+    this.timeLimitSeconds = timeLimitSeconds;
+  }
 }

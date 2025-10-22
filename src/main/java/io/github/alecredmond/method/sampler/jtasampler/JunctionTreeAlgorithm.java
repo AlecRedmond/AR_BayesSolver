@@ -9,7 +9,6 @@ import io.github.alecredmond.application.sampler.JunctionTreeData;
 import io.github.alecredmond.application.sampler.Separator;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ public class JunctionTreeAlgorithm {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
   }
 
-    public double adjustAndReturnError(ParameterConstraint constraint) {
+  public double adjustAndReturnError(ParameterConstraint constraint) {
     Clique clique = data.getCliqueForConstraint().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
 
@@ -41,7 +40,8 @@ public class JunctionTreeAlgorithm {
     return error;
   }
 
-  public void sampleNetwork(Map<Node,NodeState> observed) {
+  public void sampleNetwork(Map<Node, NodeState> observed) {
+    if (data.getNodes().isEmpty()) return;
     converter.setSeparatorsToUnity();
     setEvidence(observed);
     Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();

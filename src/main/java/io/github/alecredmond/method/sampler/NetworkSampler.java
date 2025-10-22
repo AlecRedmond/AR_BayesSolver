@@ -7,7 +7,7 @@ import io.github.alecredmond.application.solver.SolverConfigs;
 import io.github.alecredmond.method.sampler.jtasampler.JunctionTreeAlgorithm;
 import io.github.alecredmond.method.solver.BayesSolver;
 import java.util.*;
-
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,23 +23,30 @@ public class NetworkSampler {
   }
 
   public <T> List<List<T>> generateSamples(
-      int numberOfSamples,
-      Set<Node> excludeNodes,
-      Set<Node> includeNodes,
-      Class<T> tClass) {
+      int numberOfSamples, Set<Node> excludeNodes, Set<Node> includeNodes, Class<T> tClass) {
+    if (numberOfSamples < 0) {
+      throw new IllegalArgumentException("Attempted to generate < 0 samples!");
+    }
+    if (includeNodes.isEmpty()) {
+      includeNodes = new HashSet<>(networkData.getNodes());
+      includeNodes.removeAll(excludeNodes);
+    }
     return new SampleCreator<>(networkData, tClass)
-        .generateSamples(networkData.getObservedStatesMap(), excludeNodes, includeNodes, numberOfSamples);
+        .generateSamples(
+            networkData.getObservedStatesMap(), excludeNodes, includeNodes, numberOfSamples);
   }
 
   public double observeProbability(Set<NodeState> eventStates) {
-    return eventStates.stream()
-        .mapToDouble(
-            state ->
-                networkData
-                    .getObservationMap()
-                    .get(state.getParentNode())
-                    .getProbability(Set.of(state)))
-        .reduce(1.0, (a, b) -> a * b);
+    if (conflictingStates(eventStates)) return 0;
+    if (eventStates.isEmpty()) return 1.0;
+    NodeState event = eventStates.stream().findAny().orElseThrow();
+    Set<NodeState> conditions = new HashSet<>(eventStates);
+    conditions.remove(event);
+    observeNetwork(conditions);
+    double conditionalProb =
+        networkData.getObservationMap().get(event.getParentNode()).getProbability(Set.of(event));
+    double probOfConditions = observeProbability(conditions);
+    return probOfConditions * conditionalProb;
   }
 
   public void observeNetwork(Collection<NodeState> observed) {
@@ -63,7 +70,13 @@ public class NetworkSampler {
     return evidence;
   }
 
-    private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
+  private boolean conflictingStates(Set<NodeState> eventStates) {
+    Set<Node> nodes =
+        eventStates.stream().map(NodeState::getParentNode).collect(Collectors.toSet());
+    return nodes.size() != eventStates.size();
+  }
+
+  private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
     if (evidence.containsKey(state.getParentNode())) {
       throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
     }

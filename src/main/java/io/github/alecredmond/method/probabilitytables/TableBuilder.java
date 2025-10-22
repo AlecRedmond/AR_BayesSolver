@@ -80,7 +80,7 @@ public class TableBuilder {
 
   private static Map<Object, NodeState> getNodeStateIDMap(Collection<Node> nodes) {
     return nodes.stream()
-        .map(Node::getStates)
+        .map(Node::getNodeStates)
         .flatMap(Collection::stream)
         .map(ns -> Map.entry(ns.getStateID(), ns))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

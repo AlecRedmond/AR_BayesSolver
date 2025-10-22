@@ -5,7 +5,6 @@ import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.sampler.Clique;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,12 +36,15 @@ public class CliqueBuilder {
     return edges;
   }
 
-  private static void addConstraintsIfUnsolved(BayesianNetworkData data, Node node, Set<Node> connected) {
+  private static void addConstraintsIfUnsolved(
+      BayesianNetworkData data, Node node, Set<Node> connected) {
     if (data.isSolved()) return;
     data.getConstraints().stream()
-        .filter(c -> c.getEventNodes().contains(node))
-        .map(ParameterConstraint::getConditionNodes)
-        .forEach(connected::addAll);
+        .map(ParameterConstraint::getAllNodes)
+        .filter(allNodes -> allNodes.contains(node))
+        .flatMap(Collection::stream)
+        .filter(n -> !node.equals(n))
+        .forEach(connected::add);
   }
 
   private static void moralizeGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {

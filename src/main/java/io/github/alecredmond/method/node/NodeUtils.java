@@ -39,7 +39,7 @@ public class NodeUtils {
     }
 
     Node currentNode = nodesList.get(depth);
-    List<NodeState> currentNodeStates = currentNode.getStates();
+    List<NodeState> currentNodeStates = currentNode.getNodeStates();
 
     for (NodeState state : currentNodeStates) {
       currentCombo.add(state);

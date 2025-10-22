@@ -8,10 +8,12 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.exceptions.ParameterConstraintBuilderException;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -42,12 +44,12 @@ public class NetworkDataUtils {
   }
 
   public <T> void addNode(T nodeID) {
-    checkForDuplicateIDs(List.of(nodeID));
+    checkForExistingIDs(List.of(nodeID));
     networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
     networkData.setSolved(false);
   }
 
-  private <T> void checkForDuplicateIDs(Collection<T> ids) {
+  private <T> void checkForExistingIDs(Collection<T> ids) {
     List<Object> dupes = new ArrayList<>();
     for (T id : ids) {
       if (networkData.getNodeIDsMap().containsKey(id)
@@ -67,12 +69,12 @@ public class NetworkDataUtils {
   }
 
   public <T, E> void addNodeStates(T nodeID, Collection<E> nodeStateIDs) {
-    checkForDuplicateIDs(nodeStateIDs);
+    checkForExistingIDs(nodeStateIDs);
     nodeStateIDs.forEach(sID -> addNodeState(nodeID, sID));
   }
 
   public <T, E> void addNodeState(T nodeID, E nodeStateID) {
-    checkForDuplicateIDs(List.of(nodeStateID));
+    checkForExistingIDs(List.of(nodeStateID));
     Node node = getNodeByID(nodeID);
     NodeState state = node.addState(nodeStateID);
     networkData.getNodeStateIDsMap().put(nodeStateID, state);
@@ -85,8 +87,9 @@ public class NetworkDataUtils {
 
   public <T, E> void addNode(T nodeID, Collection<E> nodeStateIDs) {
     List<Object> dupesCheckList = new ArrayList<>(nodeStateIDs);
+    checkNoDuplicateStateIDs(nodeID, dupesCheckList);
     dupesCheckList.add(nodeID);
-    checkForDuplicateIDs(dupesCheckList);
+    checkForExistingIDs(dupesCheckList);
     Node newNode = new Node(nodeID, nodeStateIDs);
     networkData.getNodes().add(newNode);
     networkData.getNodeIDsMap().put(nodeID, newNode);
@@ -94,8 +97,17 @@ public class NetworkDataUtils {
     networkData.setSolved(false);
   }
 
+  private void checkNoDuplicateStateIDs(Object nodeID, List<Object> dupesCheckList) {
+    Set<Object> objectSet = new HashSet<>(dupesCheckList);
+    if (objectSet.size() == dupesCheckList.size()) {
+      return;
+    }
+    throw new ParameterConstraintBuilderException(
+        String.format("Duplicate state IDs found when building node %s", nodeID.toString()));
+  }
+
   private void addStatesToMap(Node node) {
-    node.getStates()
+    node.getNodeStates()
         .forEach(state -> networkData.getNodeStateIDsMap().put(state.getStateID(), state));
   }
 
@@ -105,32 +117,50 @@ public class NetworkDataUtils {
       return;
     }
     Node toRemove = getNodeByID(nodeID);
+
     networkData.getNetworkTablesMap().remove(toRemove);
     networkData.getObservationMap().remove(toRemove);
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove);
+
+    List<Node> nodes = networkData.getNodes();
+    nodes.remove(toRemove);
+    nodes.forEach(
+        node -> {
+          node.getParents().remove(toRemove);
+          node.getChildren().remove(toRemove);
+        });
+
     networkData.setSolved(false);
   }
 
   private void removeStatesFromMap(Node toRemove) {
     toRemove
-        .getStates()
+        .getNodeStates()
         .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getStateID()));
   }
 
   public <T> void removeNodeStates(T nodeID) {
-    getNodeByID(nodeID).getStates().stream()
-        .map(NodeState::getStateID)
-        .forEach(sID -> removeNodeState(nodeID, sID));
+    if (nodeDoesNotExist(nodeID)) return;
+    Node node = getNodeByID(nodeID);
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    node.setNodeStates(new ArrayList<>());
+    stateIDs.forEach(networkData.getNodeStateIDsMap()::remove);
+  }
+
+  private <T> boolean nodeDoesNotExist(T nodeID) {
+    return !networkData.getNodeIDsMap().containsKey(nodeID);
   }
 
   public <T, E> void removeNodeState(T nodeID, E nodeStateID) {
+    if (nodeDoesNotExist(nodeID)) return;
     getNodeByID(nodeID).removeState(nodeStateID);
     networkData.getNodeStateIDsMap().remove(nodeStateID);
     networkData.setSolved(false);
   }
 
   public <E> Set<Node> getNodesByID(Collection<E> nodeIDs) {
+    if (Optional.ofNullable(nodeIDs).isEmpty()) return new HashSet<>();
     return nodeIDs.stream().map(networkData.getNodeIDsMap()::get).collect(Collectors.toSet());
   }
 
@@ -147,15 +177,49 @@ public class NetworkDataUtils {
   public <T, E> void addParent(T childID, E parentID) {
     Node parent = getNodeByID(parentID);
     Node child = getNodeByID(childID);
+    checkValidRelationship(parent, child);
     parent.addChild(child);
     child.addParent(parent);
     networkData.setSolved(false);
   }
 
+  private void checkValidRelationship(Node parent, Node child) {
+    String error;
+    if (parent.equals(child)) {
+      error = String.format("Attempted to parent %s with itself!", child);
+      throw new NetworkStructureException(error);
+    }
+    boolean ownAncestor = checkReachable(parent, child, Node::getParents);
+    if (ownAncestor) {
+      error = String.format("Attempted to parent %s with its own ancestor %s", parent, child);
+      throw new NetworkStructureException(error);
+    }
+    boolean ownDescendant = checkReachable(child, parent, Node::getChildren);
+    if (ownDescendant) {
+      error = String.format("Attempted to parent %s with its own descendant %s", child, parent);
+      throw new NetworkStructureException(error);
+    }
+  }
+
+  private boolean checkReachable(
+      Node traversed, Node toCompare, Function<Node, Collection<Node>> function) {
+    Set<Node> currentSet = new HashSet<>(function.apply(traversed));
+    while (!currentSet.isEmpty()) {
+      if (currentSet.contains(toCompare)) {
+        return true;
+      }
+      Set<Node> nextSet = new HashSet<>();
+      currentSet.forEach(node -> nextSet.addAll(function.apply(node)));
+      currentSet = nextSet;
+    }
+    return false;
+  }
+
   public <T> void removeParents(T childID) {
-    getNodeByID(childID).getParents().stream()
-        .map(Node::getNodeID)
-        .forEach(parentID -> removeParent(childID, parentID));
+    Node child = getNodeByID(childID);
+    List<Node> parents = child.getParents();
+    child.setParents(new ArrayList<>());
+    parents.forEach(parent -> parent.getChildren().remove(child));
   }
 
   public <T, E> void removeParent(T childID, E parentID) {

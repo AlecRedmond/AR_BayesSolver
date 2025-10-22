@@ -3,13 +3,12 @@ package io.github.alecredmond.application.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * An abstract class representing a probability table in a Bayesian Network. This class serves as
- * the base for various table types like {@link ConditionalTable}, {@link MarginalTable}, and {@link
+ * An abstract class representing a probability table in the solver. This class serves as the base
+ * for various table types like {@link ConditionalTable}, {@link MarginalTable}, and {@link
  * JunctionTreeTable}, managing the core data structure for probabilities, node/state mappings, and
  * indexing.
  */
@@ -131,11 +130,29 @@ public abstract class ProbabilityTable {
    * objects by resolving them using the internal ID map.
    *
    * @param stateIDs a collection of NodeState IDs.
-   * @param <T> The class of the NodeState IDs.
    * @return a Set of resolved {@code NodeState} objects.
    */
   private <T> Set<NodeState> getStates(Collection<T> stateIDs) {
-    return stateIDs.stream().map(nodeStateIDMap::get).collect(Collectors.toSet());
+    Set<NodeState> set = new HashSet<>();
+    for (Object stateID : stateIDs) {
+      if (stateID instanceof NodeState state) {
+        set.add(state);
+        continue;
+      }
+      NodeState state = nodeStateIDMap.get(stateID);
+      set.add(state);
+    }
+    return set;
+  }
+
+  /**
+   * Returns a set of all possible unique combinations of node states (keys) that the table holds
+   * probabilities for.
+   *
+   * @return a Set of Sets of NodeStates.
+   */
+  public Set<Set<NodeState>> getKeySet() {
+    return indexMap.keySet();
   }
 
   /**
@@ -153,16 +170,6 @@ public abstract class ProbabilityTable {
     }
     if (Double.isNaN(probability)) throw new IllegalArgumentException("tried to add NaN");
     probabilities[indexMap.get(key)] = probability;
-  }
-
-  /**
-   * Returns a set of all possible unique combinations of node states (keys) that the table holds
-   * probabilities for.
-   *
-   * @return a Set of Sets of NodeStates.
-   */
-  public Set<Set<NodeState>> getKeySet() {
-    return indexMap.keySet();
   }
 
   /**
