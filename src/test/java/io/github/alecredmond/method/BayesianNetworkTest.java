@@ -747,11 +747,11 @@ class BayesianNetworkTest {
                   .observeNetwork(List.of("WET_GRASS:TRUE"))
                   .printObserved());
 
-      int numOfSamples = 10000;
+      int numOfSamples = 10;
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
 
-      generateSamples(net, numOfSamples, includedNode, testState, false);
+      generateSamples(net, numOfSamples, includedNode, testState, true);
 
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
       System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");

@@ -30,6 +30,13 @@ public class SolverConfigs {
   /** The threshold value used to determine if the solver has converged. Default is 1e-9. */
   private double convergeThreshold = 1e-9;
 
+  /**
+   * Sets a new convergence threshold for the solver
+   *
+   * @param convergeThreshold the loss threshold at which the solver considers itself solved.
+   *     Default == 1e-9
+   * @throws IllegalArgumentException if the converge threshold is not greater than zero
+   */
   public void setConvergeThreshold(double convergeThreshold) {
     if (convergeThreshold <= 0) {
       throw new IllegalArgumentException("Convergence threshold must be greater than zero!");
@@ -37,6 +44,12 @@ public class SolverConfigs {
     this.convergeThreshold = convergeThreshold;
   }
 
+  /**
+   * Sets the number of seconds between the logger outputting an update status.
+   *
+   * @param logIntervalSeconds new value for seconds between logging times. Default == 1 second.
+   * @throws IllegalArgumentException if the log interval is not greater than 0
+   */
   public void setLogIntervalSeconds(int logIntervalSeconds) {
     if (logIntervalSeconds <= 0) {
       throw new IllegalArgumentException("Log interval must be positive!");
@@ -44,6 +57,13 @@ public class SolverConfigs {
     this.logIntervalSeconds = logIntervalSeconds;
   }
 
+  /**
+   * Sets the maximum number of cycles the solver is allowed to run. A cycle's length is equal to
+   * the number of constraints on the network.
+   *
+   * @param cyclesLimit number of cycles before the solver will force quit. Default == 1,000
+   * @throws IllegalArgumentException if the number of cycles is not greater than 0.
+   */
   public void setCyclesLimit(int cyclesLimit) {
     if (cyclesLimit <= 0) {
       throw new IllegalArgumentException("Number of cycles must be greater than zero!");
@@ -51,6 +71,13 @@ public class SolverConfigs {
     this.cyclesLimit = cyclesLimit;
   }
 
+  /**
+   * Sets the time limit for the solver's run. After the given amount, the solver will complete its
+   * current cycle then exit.
+   *
+   * @param timeLimitSeconds the new time limit in seconds. Default == 60
+   * @throws IllegalArgumentException if given a time limit which is not greater than 0
+   */
   public void setTimeLimitSeconds(int timeLimitSeconds) {
     if (timeLimitSeconds <= 0) {
       throw new IllegalArgumentException("Time limit must be greater than zero!");

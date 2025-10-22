@@ -6,6 +6,7 @@ import io.github.alecredmond.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.sampler.Clique;
 import io.github.alecredmond.application.sampler.JunctionTreeData;
 import io.github.alecredmond.application.sampler.Separator;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
@@ -25,45 +26,48 @@ public class NetworkJunctionConverter {
     data.getAssociatedTables()
         .forEach(
             (clique, networkTables) -> {
-              initializeEquivalentIndexes(clique.getTable(), networkTables);
-              clique
-                  .getTable()
-                  .getKeySet()
-                  .forEach(
-                      request ->
-                          setProbabilityAndSubTableIndexes(
-                              clique.getTable(), networkTables, request));
+              initialiseIndexPointers(clique.getTable(), networkTables);
+              mapProbabilitiesAndIndexes(clique, networkTables);
             });
     setSeparatorsToUnity();
   }
 
-  private void initializeEquivalentIndexes(
+  private void initialiseIndexPointers(
       JunctionTreeTable cliqueTable, Set<ProbabilityTable> networkTables) {
     networkTables.forEach(
         table ->
             cliqueTable
-                .getEquivalentIndexMap()
+                .getIndexPointerMap()
                 .put(table, new Integer[cliqueTable.getProbabilities().length]));
   }
 
-  private void setProbabilityAndSubTableIndexes(
-          JunctionTreeTable cliqueTable, Set<ProbabilityTable> tableSet, Set<NodeState> request) {
+  /**
+   * When a clique table [e.g P(A,B,C)] is initialized and assigned network tables [e.g
+   * P(A)*P(B)*P(C|A,B)], this function fills the joint probabilities on the clique table
+   * accordingly and assigns a pointer from the clique table probability index to the associated
+   * indexes on each included network table
+   */
+  private void mapProbabilitiesAndIndexes(Clique clique, Set<ProbabilityTable> networkTables) {
+    JunctionTreeTable cliqueTable = clique.getTable();
 
-    int cliqueTableKeyIndex = cliqueTable.getIndex(request);
+    for (Set<NodeState> request : cliqueTable.getKeySet()) {
+      int cliqueIndex = cliqueTable.getIndex(request);
 
-    double jointProb = 1.0;
+      double jointProb = 1.0;
 
-    for (ProbabilityTable table : tableSet) {
-      Set<NodeState> validRequest = TableUtils.removeRedundantStates(request, table);
-      int networkTableKeyIndex = table.getIndex(validRequest);
-      cliqueTable.getEquivalentIndexMap().get(table)[cliqueTableKeyIndex] = networkTableKeyIndex;
-      double tableProb = table.getProbabilities()[networkTableKeyIndex];
-      jointProb = jointProb * tableProb;
+      for (ProbabilityTable table : networkTables) {
+        Set<NodeState> validRequest = TableUtils.removeRedundantStates(request, table);
+        int networkIndexPointer = table.getIndex(validRequest);
+        cliqueTable.getIndexPointerMap().get(table)[cliqueIndex] = networkIndexPointer;
+        double tableProb = table.getProbabilities()[networkIndexPointer];
+        jointProb = jointProb * tableProb;
+      }
+
+      cliqueTable.getProbabilities()[cliqueIndex] = jointProb;
     }
-
-    cliqueTable.getProbabilities()[cliqueTableKeyIndex] = jointProb;
   }
 
+  /** Separators are initialized with all of their table values set to 1.0 */
   protected void setSeparatorsToUnity() {
     data.getSeparators().stream()
         .map(Separator::getTable)
@@ -73,14 +77,14 @@ public class NetworkJunctionConverter {
   protected void writeToObservations(Map<Node, NodeState> observedStates) {
     data.getBayesianNetworkData().setObservedStatesMap(observedStates);
     for (Node node : data.getNodes()) {
-      JunctionTableHandler indexer = getBestTableIndexer(node);
+      JunctionTableHandler handler = getHandlerForSmallestRelevantClique(node);
       MarginalTable observedTable = data.getObservationMap().get(node);
-      writeToMarginalTable(observedTable, indexer);
+      writeToMarginalTable(observedTable, handler);
       updateTableName(node, observedTable, observedStates.values());
     }
   }
 
-  private JunctionTableHandler getBestTableIndexer(Node node) {
+  private JunctionTableHandler getHandlerForSmallestRelevantClique(Node node) {
     return data.getCliqueSet().stream()
         .filter(clique -> clique.getNodes().contains(node))
         .min(Comparator.comparingInt(table -> table.getNodes().size()))
@@ -88,10 +92,10 @@ public class NetworkJunctionConverter {
         .getHandler();
   }
 
-  private void writeToMarginalTable(MarginalTable marginalTable, JunctionTableHandler indexer) {
+  private void writeToMarginalTable(MarginalTable marginalTable, JunctionTableHandler handler) {
     marginalTable
         .getKeySet()
-        .forEach(key -> marginalTable.setProbability(key, indexer.sumFromTable(key)));
+        .forEach(key -> marginalTable.setProbability(key, handler.sumFromTable(key)));
   }
 
   private void updateTableName(
@@ -116,14 +120,14 @@ public class NetworkJunctionConverter {
   }
 
   protected void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
-    double[] netProbs = networkTable.getProbabilities();
-    Arrays.fill(netProbs, 0.0);
+    double[] networkProbs = networkTable.getProbabilities();
+    Arrays.fill(networkProbs, 0.0);
     double[] cliqueProbs = cliqueTable.getProbabilities();
-    Integer[] equivalentIndexes = cliqueTable.getEquivalentIndexMap().get(networkTable);
+    Integer[] indexPointers = cliqueTable.getIndexPointerMap().get(networkTable);
 
     for (int cliqueIndex = 0; cliqueIndex < cliqueProbs.length; cliqueIndex++) {
-      int netIndex = equivalentIndexes[cliqueIndex];
-      netProbs[netIndex] = netProbs[netIndex] + cliqueProbs[cliqueIndex];
+      int networkProbIndex = indexPointers[cliqueIndex];
+      networkProbs[networkProbIndex] = networkProbs[networkProbIndex] + cliqueProbs[cliqueIndex];
     }
 
     if (networkTable instanceof ConditionalTable) TableUtils.marginalizeTable(networkTable);

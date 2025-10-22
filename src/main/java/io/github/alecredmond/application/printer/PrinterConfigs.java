@@ -2,14 +2,17 @@ package io.github.alecredmond.application.printer;
 
 import io.github.alecredmond.BayesianNetwork;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Configuration settings for controlling the output and saving of results from {@link
- * BayesianNetwork} <br>
- * This class holds settings such as the output directory, console printing preference, file-opening
- * behavior, and the precision for displaying probability values.
+ * BayesianNetwork}
+ *
+ * <p>This class holds settings such as the output directory, console printing preference,
+ * file-opening behavior, and the precision for displaying probability values.
  */
 @Data
+@Slf4j
 public class PrinterConfigs {
   /** Absolute path to the save directory */
   private String saveDirectory;
@@ -41,9 +44,19 @@ public class PrinterConfigs {
     return System.getProperty("user.home") + "\\AR_Tools\\bayes_solver\\output\\";
   }
 
+  /**
+   * Sets the number of decimal places for the printer
+   *
+   * @param probDecimalPlaces the new number of decimal places to print
+   * @throws IllegalArgumentException if given an input less than 0
+   */
   public void setProbDecimalPlaces(int probDecimalPlaces) {
     if (probDecimalPlaces < 0) {
       throw new IllegalArgumentException("Printer decimal places must not be negative!");
+    }
+    if (probDecimalPlaces <= 1) {
+      log.warn(
+          "A low number of decimal places were selected! This may not give the results good resolution!");
     }
     this.probDecimalPlaces = probDecimalPlaces;
   }

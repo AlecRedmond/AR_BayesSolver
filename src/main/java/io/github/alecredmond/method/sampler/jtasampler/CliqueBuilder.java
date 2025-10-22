@@ -13,7 +13,7 @@ public class CliqueBuilder {
 
   private CliqueBuilder() {}
 
-  static Set<Clique> buildCliques(BayesianNetworkData data) {
+  protected static Set<Clique> buildCliques(BayesianNetworkData data) {
     Map<Node, Set<Node>> edgeGraph = initializeGraph(data);
     moralizeGraph(edgeGraph, data);
     triangulateGraph(edgeGraph, data);
@@ -23,6 +23,10 @@ public class CliqueBuilder {
     return maximalCliques.stream()
         .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes)))
         .collect(Collectors.toSet());
+  }
+
+  protected static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
+    return setA.stream().filter(setB::contains).collect(Collectors.toCollection(HashSet::new));
   }
 
   private static Map<Node, Set<Node>> initializeGraph(BayesianNetworkData data) {
@@ -43,6 +47,7 @@ public class CliqueBuilder {
         .map(ParameterConstraint::getAllNodes)
         .filter(allNodes -> allNodes.contains(node))
         .flatMap(Collection::stream)
+        .distinct()
         .filter(n -> !node.equals(n))
         .forEach(connected::add);
   }
@@ -144,9 +149,5 @@ public class CliqueBuilder {
   private static Set<Node> unionOf(Set<Node> setA, Set<Node> setB) {
     return Stream.concat(setA.stream(), setB.stream())
         .collect(Collectors.toCollection(HashSet::new));
-  }
-
-  static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
-    return setA.stream().filter(setB::contains).collect(Collectors.toCollection(HashSet::new));
   }
 }

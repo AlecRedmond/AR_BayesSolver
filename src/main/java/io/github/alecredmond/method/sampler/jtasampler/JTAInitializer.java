@@ -17,7 +17,6 @@ import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTable
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.MarginalHandler;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,7 +33,7 @@ public class JTAInitializer {
     Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
     Map<Clique, Set<ProbabilityTable>> associatedTables =
         buildAssociatedTablesMap(cliqueSet, bayesianNetworkData);
-    List<JunctionTreeTable> junctionTreeTables = buildAllTablesList(cliqueSet, separators);
+    List<JunctionTreeTable> junctionTreeTables = buildTreeTablesList(cliqueSet, separators);
 
     log.info("CLIQUES BUILT");
 
@@ -78,13 +77,14 @@ public class JTAInitializer {
       BayesianNetworkData bayesianNetworkData, JunctionTreeData.JunctionTreeDataBuilder builder) {
     JunctionTreeData jtd =
         builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
-
     bayesianNetworkData.setJunctionTreeData(jtd);
     return jtd;
   }
 
   private static boolean satisfactoryDataExists(BayesianNetworkData bayesianNetworkData) {
     if (!bayesianNetworkData.isSolved()) return false;
+    // Constraint handlers are only used for solving the network
+    // If it's a solved network, rebuilding the JTA may result in smaller Cliques (preferable)
     return bayesianNetworkData.getJunctionTreeData().getConstraintHandlers().isEmpty();
   }
 
@@ -120,7 +120,7 @@ public class JTAInitializer {
     return cfc;
   }
 
-  private static List<JunctionTreeTable> buildAllTablesList(
+  private static List<JunctionTreeTable> buildTreeTablesList(
       Set<Clique> cliques, Set<Separator> separators) {
     List<JunctionTreeTable> allTables = new ArrayList<>();
     cliques.stream().map(Clique::getTable).forEach(allTables::add);

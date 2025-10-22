@@ -127,7 +127,8 @@ public abstract class ProbabilityTable {
 
   /**
    * Private helper function, converts a collection of NodeState IDs into a set of {@code NodeState}
-   * objects by resolving them using the internal ID map.
+   * objects by resolving them using the internal ID map. If the stateIDs are instances of
+   * NodeStates, those nodeStates will instead be returned.
    *
    * @param stateIDs a collection of NodeState IDs.
    * @return a Set of resolved {@code NodeState} objects.

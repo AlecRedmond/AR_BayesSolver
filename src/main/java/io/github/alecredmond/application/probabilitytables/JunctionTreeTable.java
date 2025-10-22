@@ -28,7 +28,7 @@ public class JunctionTreeTable extends ProbabilityTable {
    * links a JunctionTreeTable index to its equivalent indexes in the Network Probability Tables it
    * was constructed from. Used for faster read/write back to the network.
    */
-  private final Map<ProbabilityTable, Integer[]> equivalentIndexMap;
+  private final Map<ProbabilityTable, Integer[]> indexPointerMap;
 
   /** The set of states that have been set as evidence (observations) in this table. */
   private final Set<NodeState> observedStates;
@@ -46,7 +46,7 @@ public class JunctionTreeTable extends ProbabilityTable {
    * @param events all nodes associated with the table
    * @param observedProbabilities a copy of the probabilities array, used when calculating observed
    *     marginals in the Junction Tree Algorithm
-   * @param equivalentIndexMap links a JunctionTreeTable index to its equivalent indexes in the
+   * @param indexPointerMap links a JunctionTreeTable index to its equivalent indexes in the
    *     Network Probability Tables it was constructed from. Used for faster read/write back to the
    *     network.
    * @param nodeStateIDMap a map which can obtain a NodeState from its ID
@@ -58,7 +58,7 @@ public class JunctionTreeTable extends ProbabilityTable {
       double[] probabilities,
       Set<Node> events,
       double[] observedProbabilities,
-      Map<ProbabilityTable, Integer[]> equivalentIndexMap,
+      Map<ProbabilityTable, Integer[]> indexPointerMap,
       Map<Object, NodeState> nodeStateIDMap,
       Map<Object, Node> nodeIDMap) {
     super(
@@ -71,7 +71,7 @@ public class JunctionTreeTable extends ProbabilityTable {
         events,
         new HashSet<>());
     this.observedProbabilities = observedProbabilities;
-    this.equivalentIndexMap = equivalentIndexMap;
+    this.indexPointerMap = indexPointerMap;
     observedStates = new HashSet<>();
     observed = false;
   }
