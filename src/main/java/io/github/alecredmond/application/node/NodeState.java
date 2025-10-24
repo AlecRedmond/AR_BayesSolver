@@ -12,18 +12,18 @@ public class NodeState {
   private final Object stateID;
 
   /** The {@link Node} that this state belongs to. */
-  private final Node parentNode;
+  private final Node node;
 
   /**
    * Constructs a new NodeState with an identifier and a reference to its parent node.
    *
    * @param stateID The unique ID to be associated with this state.
-   * @param parentNode The {@link Node} to which this state belongs.
+   * @param node The {@link Node} to which this state belongs.
    * @param <T> The class of the state's ID.
    */
-  public <T> NodeState(T stateID, Node parentNode) {
+  public <T> NodeState(T stateID, Node node) {
     this.stateID = stateID;
-    this.parentNode = parentNode;
+    this.node = node;
   }
 
   /**

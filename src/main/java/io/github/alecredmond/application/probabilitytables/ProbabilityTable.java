@@ -120,9 +120,13 @@ public abstract class ProbabilityTable {
    * @throws IllegalArgumentException if the map lookup returns {@code NaN}.
    */
   public double getProbability(Set<NodeState> key) {
-    double probability = probabilities[indexMap.get(key)];
-    if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
-    return probability;
+    try {
+      double probability = probabilities[indexMap.get(key)];
+      if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
+      return probability;
+    } catch (NullPointerException e) {
+      throw new NullPointerException();
+    }
   }
 
   /**

@@ -1,5 +1,7 @@
 package io.github.alecredmond.method.utils;
 
+import lombok.Getter;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -20,8 +22,9 @@ import java.util.stream.Collectors;
  *
  * @param <T> The type of the objects to be selected.
  */
+@Getter
 public class WeightedRandom<T> {
-  private static final Random RANDOM = new Random();
+  public static final Random RANDOM = new Random();
   private final Map<T, Double> cumulativeWeights;
   private final double totalWeight;
 

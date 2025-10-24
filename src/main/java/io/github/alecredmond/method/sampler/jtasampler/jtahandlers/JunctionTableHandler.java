@@ -61,7 +61,6 @@ public class JunctionTableHandler {
     double[] observed = table.getObservedProbabilities();
     Arrays.fill(observed, 0.0);
     getIndexes(evidenceInTable).forEach(index -> observed[index] = probabilities[index]);
-    marginalize();
   }
 
   /**

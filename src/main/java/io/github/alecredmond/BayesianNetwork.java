@@ -348,6 +348,7 @@ public interface BayesianNetwork {
    * marginals if no observation has been made.
    *
    * @param numberOfSamples the total number of samples to generate.
+   * @param burnIn the number of samples at the start of the sampling process to discard
    * @param excludeNodeIDs a collection of node IDs to exclude from the samples.
    * @param includeNodeIDs a collection of node IDs to include in the samples.
    * @param <T> class of NodeState IDs
@@ -356,20 +357,21 @@ public interface BayesianNetwork {
    * @return a list of samples, where each sample is a list of node states.
    */
   <T, E> List<List<T>> generateSamples(
-      int numberOfSamples,
       Collection<E> excludeNodeIDs,
       Collection<E> includeNodeIDs,
+      int numberOfSamples,
       Class<T> tClass);
 
   /**
-   * Calculates the joint probability of a specific set of events occurring. Note that this method
-   * will change the observations on the network.
+   * Calculates the joint probability of a set of events occurring, conditional on the current
+   * observed evidence.
    *
-   * @param eventStateIDs a collection of node states for which to calculate the joint probability.
+   * @param eventStateIDs a collection of node states representing joint events within the current
+   *     conditions.
    * @param <T> Class of the event state IDs
    * @return the calculated joint probability.
    */
-  <T> double observeProbability(Collection<T> eventStateIDs);
+  <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs);
 
   /**
    * Retrieves the Conditional Probability Table (CPT) for a given node.

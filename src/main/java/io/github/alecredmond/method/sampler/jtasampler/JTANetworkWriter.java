@@ -15,24 +15,21 @@ import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class NetworkJunctionConverter {
-  private final JunctionTreeData data;
+class JTANetworkWriter {
 
-  protected NetworkJunctionConverter(JunctionTreeData data) {
-    this.data = data;
-  }
+  private JTANetworkWriter() {}
 
-  protected void initializeJunctionTreeFromNetwork() {
+  static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
     data.getAssociatedTables()
         .forEach(
             (clique, networkTables) -> {
               initialiseIndexPointers(clique.getTable(), networkTables);
               mapProbabilitiesAndIndexes(clique, networkTables);
             });
-    setSeparatorsToUnity();
+    setSeparatorsToUnity(data);
   }
 
-  private void initialiseIndexPointers(
+  private static void initialiseIndexPointers(
       JunctionTreeTable cliqueTable, Set<ProbabilityTable> networkTables) {
     networkTables.forEach(
         table ->
@@ -47,7 +44,8 @@ public class NetworkJunctionConverter {
    * accordingly and assigns a pointer from the clique table probability index to the associated
    * indexes on each included network table
    */
-  private void mapProbabilitiesAndIndexes(Clique clique, Set<ProbabilityTable> networkTables) {
+  private static void mapProbabilitiesAndIndexes(
+      Clique clique, Set<ProbabilityTable> networkTables) {
     JunctionTreeTable cliqueTable = clique.getTable();
 
     for (Set<NodeState> request : cliqueTable.getKeySet()) {
@@ -68,23 +66,24 @@ public class NetworkJunctionConverter {
   }
 
   /** Separators are initialized with all of their table values set to 1.0 */
-  protected void setSeparatorsToUnity() {
+  static void setSeparatorsToUnity(JunctionTreeData data) {
     data.getSeparators().stream()
         .map(Separator::getTable)
         .forEach(table -> Arrays.fill(table.getProbabilities(), 1.0));
   }
 
-  protected void writeToObservations(Map<Node, NodeState> observedStates) {
-    data.getBayesianNetworkData().setObservedStatesMap(observedStates);
+  static void writeToObservations(JunctionTreeData data) {
+    data.getBayesianNetworkData().setObservedStatesMap(data.getObserved());
     for (Node node : data.getNodes()) {
-      JunctionTableHandler handler = getHandlerForSmallestRelevantClique(node);
+      JunctionTableHandler handler = getHandlerForSmallestRelevantClique(data, node);
       MarginalTable observedTable = data.getObservationMap().get(node);
       writeToMarginalTable(observedTable, handler);
-      updateTableName(node, observedTable, observedStates.values());
+      updateTableName(node, observedTable, data.getObserved().values());
     }
   }
 
-  private JunctionTableHandler getHandlerForSmallestRelevantClique(Node node) {
+  private static JunctionTableHandler getHandlerForSmallestRelevantClique(
+      JunctionTreeData data, Node node) {
     return data.getCliqueSet().stream()
         .filter(clique -> clique.getNodes().contains(node))
         .min(Comparator.comparingInt(table -> table.getNodes().size()))
@@ -92,13 +91,14 @@ public class NetworkJunctionConverter {
         .getHandler();
   }
 
-  private void writeToMarginalTable(MarginalTable marginalTable, JunctionTableHandler handler) {
+  private static void writeToMarginalTable(
+      MarginalTable marginalTable, JunctionTableHandler handler) {
     marginalTable
         .getKeySet()
         .forEach(key -> marginalTable.setProbability(key, handler.sumFromTable(key)));
   }
 
-  private void updateTableName(
+  private static void updateTableName(
       Node node, MarginalTable observedTable, Collection<NodeState> states) {
     StringBuilder sb = new StringBuilder("P(").append(node.getNodeID().toString());
     if (!states.isEmpty()) {
@@ -110,7 +110,7 @@ public class NetworkJunctionConverter {
     observedTable.setTableID(sb.toString());
   }
 
-  protected void writeToNetwork() {
+  static void writeToNetwork(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
     data.getAssociatedTables()
         .forEach(
@@ -119,7 +119,7 @@ public class NetworkJunctionConverter {
     log.info("NETWORK TABLES WRITTEN");
   }
 
-  protected void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
+  static void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
     double[] networkProbs = networkTable.getProbabilities();
     Arrays.fill(networkProbs, 0.0);
     double[] cliqueProbs = cliqueTable.getProbabilities();

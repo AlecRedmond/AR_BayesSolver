@@ -2,11 +2,12 @@ package io.github.alecredmond.application.sampler;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

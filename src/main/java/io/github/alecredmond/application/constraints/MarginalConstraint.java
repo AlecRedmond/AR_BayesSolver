@@ -18,6 +18,6 @@ public class MarginalConstraint extends ParameterConstraint {
   public MarginalConstraint(NodeState eventState, double probability) {
     super(Set.of(eventState), new HashSet<>(), probability);
     this.eventState = eventState;
-    this.eventNode = eventState.getParentNode();
+    this.eventNode = eventState.getNode();
   }
 }

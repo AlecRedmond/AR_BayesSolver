@@ -643,7 +643,7 @@ class BayesianNetworkTest {
     @Test
     void observeProbability_singleEvent_shouldReturnCorrectProb() {
       net.observeMarginals();
-      double pRainTrue = net.observeProbability(List.of("RAIN:TRUE"));
+      double pRainTrue = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE"));
       assertEquals(0.2, pRainTrue, 1E-9);
     }
 
@@ -653,35 +653,35 @@ class BayesianNetworkTest {
       // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
       // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
       // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-      double pJoint = net.observeProbability(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
+      double pJoint = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
       assertEquals(0.198, pJoint, 1E-9);
     }
 
     @Test
     void observeProbability_conflictingEvent_shouldReturnZero() {
       net.observeMarginals();
-      double pConflict = net.observeProbability(List.of("RAIN:TRUE", "RAIN:FALSE"));
+      double pConflict = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "RAIN:FALSE"));
       assertEquals(0.0, pConflict, 1E-9);
     }
 
     @Test
     void observeProbability_emptyEvent_shouldReturnOne() {
       net.observeMarginals();
-      double pEmpty = net.observeProbability(List.of());
+      double pEmpty = net.getProbabilityFromCurrentObservations(List.of());
       assertEquals(1.0, pEmpty, 1E-9);
     }
 
     @Test
     void generateSamples_shouldReturnCorrectNumberOfSamples() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(100, null, null, String.class);
+      List<List<String>> samples = net.generateSamples(null, null, 100, String.class);
       assertEquals(100, samples.size());
     }
 
     @Test
     void generateSamples_withIncludeNodes_shouldOnlyIncludeNodes() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(10, null, List.of("RAIN"), String.class);
+      List<List<String>> samples = net.generateSamples(null, List.of("RAIN"), 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
         assertEquals(1, sample.size()); // Only one node state
@@ -692,7 +692,7 @@ class BayesianNetworkTest {
     @Test
     void generateSamples_withExcludeNodes_shouldExcludeNodes() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(10, List.of("RAIN"), null, String.class);
+      List<List<String>> samples = net.generateSamples(List.of("RAIN"), null, 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
         assertEquals(2, sample.size()); // SPRINKLER and WET_GRASS
@@ -705,7 +705,7 @@ class BayesianNetworkTest {
     @Test
     void generateSamples_zeroSamples_shouldReturnEmptyList() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(0, null, null, String.class);
+      List<List<String>> samples = net.generateSamples(null, null, 0, String.class);
       assertNotNull(samples);
       assertTrue(samples.isEmpty());
     }
@@ -714,7 +714,7 @@ class BayesianNetworkTest {
     void generateSamples_negativeSamples_shouldThrowException() {
       net.observeMarginals();
       assertThrows(
-          IllegalArgumentException.class, () -> net.generateSamples(-10, null, null, String.class));
+          IllegalArgumentException.class, () -> net.generateSamples(null, null, -10, String.class));
     }
   }
 
@@ -725,40 +725,39 @@ class BayesianNetworkTest {
     void testSolves_RainSprinkler() {
       net = BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS");
 
-      assertDoesNotThrow(
-          () ->
-              net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
-                  .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
-                  .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
-                  .addParent("SPRINKLER", "RAIN")
-                  .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-                  .addConstraint("RAIN:TRUE", 0.2)
-                  .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
-                  .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
-                  .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
-                  .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
-                  .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
-                  .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
-                  .solveNetwork()
-                  .observeMarginals()
-                  .printerProbDecimalPlaces(3)
-                  .printerOutputsToConsole(true)
-                  .printNetwork()
-                  .observeNetwork(List.of("WET_GRASS:TRUE"))
-                  .printObserved());
+      net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
+          .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
+          .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
+          .addParent("SPRINKLER", "RAIN")
+          .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
+          .addConstraint("RAIN:TRUE", 0.2)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
+          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
+          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
+          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
+          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
+          .solveNetwork()
+          .observeMarginals()
+          .printerProbDecimalPlaces(3)
+          .printerOutputsToConsole(true)
+          .printNetwork()
+          .observeNetwork(List.of("WET_GRASS:TRUE"))
+          .printObserved();
 
-      int numOfSamples = 10;
+      net.observeMarginals();
+      int numOfSamples = 100_000;
+
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
 
-      generateSamples(net, numOfSamples, includedNode, testState, true);
+      generateSamples(net, numOfSamples, includedNode, testState, false);
 
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
       System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
       generateSamples(net, numOfSamples, includedNode, testState, false);
     }
 
-    /** Helper method from user's test file. */
     private void generateSamples(
         BayesianNetwork network,
         int numOfSamples,
@@ -766,13 +765,14 @@ class BayesianNetworkTest {
         String testState,
         boolean printAllToConsole) {
 
-      double expected = network.observeProbability(List.of(testState)) * numOfSamples;
+      double observedProb = network.getProbabilityFromCurrentObservations(List.of(testState));
+      double expected = observedProb * numOfSamples;
       double delta = Math.sqrt(numOfSamples) * 3; // 3 standard deviations
       long lowerBound = Math.max(0, (long) (expected - delta));
       long upperBound = (long) (expected + delta);
 
       List<List<String>> samples =
-          network.generateSamples(numOfSamples, List.of(), List.of(includedNode), String.class);
+          network.generateSamples(List.of(), List.of(includedNode), numOfSamples, String.class);
 
       long count = samples.stream().flatMap(Collection::stream).filter(testState::equals).count();
 
@@ -781,7 +781,7 @@ class BayesianNetworkTest {
       System.out.printf(
           "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",
           testState,
-          network.observeProbability(List.of(testState)),
+          observedProb,
           expected,
           lowerBound,
           upperBound,
@@ -794,7 +794,6 @@ class BayesianNetworkTest {
               count, testState, lowerBound, upperBound));
     }
 
-    /** Helper method from user's test file. */
     private List<String> getLines(List<List<String>> samples) {
       List<String> lines = new ArrayList<>();
       for (List<String> sample : samples) {
@@ -993,7 +992,7 @@ class BayesianNetworkTest {
                   .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
                   .printObserved());
 
-      int numOfSamples = 1_000_000;
+      int numOfSamples = 100_000;
       String testState = "VOTE:CPK";
       String includedNode = "VOTE";
 

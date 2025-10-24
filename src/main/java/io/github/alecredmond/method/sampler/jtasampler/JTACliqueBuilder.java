@@ -9,11 +9,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CliqueBuilder {
+class JTACliqueBuilder {
 
-  private CliqueBuilder() {}
+  private JTACliqueBuilder() {}
 
-  protected static Set<Clique> buildCliques(BayesianNetworkData data) {
+  static Set<Clique> buildCliques(BayesianNetworkData data) {
     Map<Node, Set<Node>> edgeGraph = initializeGraph(data);
     moralizeGraph(edgeGraph, data);
     triangulateGraph(edgeGraph, data);
@@ -25,7 +25,7 @@ public class CliqueBuilder {
         .collect(Collectors.toSet());
   }
 
-  protected static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
+  static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
     return setA.stream().filter(setB::contains).collect(Collectors.toCollection(HashSet::new));
   }
 

@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.sampler.jtasampler;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,7 +9,6 @@ import io.github.alecredmond.method.network.BayesianNetworkImpl;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.github.alecredmond.method.sampler.jtasampler.JTAInitializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

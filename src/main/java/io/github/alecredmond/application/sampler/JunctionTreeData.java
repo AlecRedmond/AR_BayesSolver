@@ -3,15 +3,18 @@ package io.github.alecredmond.application.sampler;
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents the data structure required for the Junction Tree Algorithm (JTA) inference process in
@@ -41,7 +44,10 @@ public class JunctionTreeData {
    */
   private final Map<Clique, Set<ProbabilityTable>> associatedTables;
 
-  /** A list of all {@link JunctionTreeTable} objects created for the cliques and separators. */
+  /**
+   * A list of all {@link JunctionTreeTable} objects created for the cliques and separators, sorted
+   * by ascending length of the probability tables.
+   */
   private final List<JunctionTreeTable> junctionTreeTables;
 
   /**
@@ -55,6 +61,12 @@ public class JunctionTreeData {
    * during the JTA inference.
    */
   private final Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
+
+  /** Flag tracking whether the Junction tree has been marginalized */
+  @Setter private boolean marginalized;
+
+  /** Map of the current evidence applied to the network */
+  @Setter private Map<Node, NodeState> observed;
 
   /**
    * Retrieves the list of all {@link Node} objects from the underlying Bayesian Network Data.
@@ -152,7 +164,9 @@ public class JunctionTreeData {
           this.associatedTables,
           this.junctionTreeTables,
           this.cliqueForConstraint,
-          this.constraintHandlers);
+          this.constraintHandlers,
+          false,
+          new HashMap<>());
     }
 
     public String toString() {

@@ -46,9 +46,8 @@ public class JunctionTreeTable extends ProbabilityTable {
    * @param events all nodes associated with the table
    * @param observedProbabilities a copy of the probabilities array, used when calculating observed
    *     marginals in the Junction Tree Algorithm
-   * @param indexPointerMap links a JunctionTreeTable index to its equivalent indexes in the
-   *     Network Probability Tables it was constructed from. Used for faster read/write back to the
-   *     network.
+   * @param indexPointerMap links a JunctionTreeTable index to its equivalent indexes in the Network
+   *     Probability Tables it was constructed from. Used for faster read/write back to the network.
    * @param nodeStateIDMap a map which can obtain a NodeState from its ID
    * @param nodeIDMap a map which can obtain a Node from its ID
    */
@@ -88,5 +87,15 @@ public class JunctionTreeTable extends ProbabilityTable {
     this.observed = observed;
     this.observedStates.clear();
     this.observedStates.addAll(newEvidence);
+  }
+
+  /**
+   * Returns the correct working array given the current evidence.
+   *
+   * @return {@code observedProbabilities} if there are no observed states on this table, otherwise
+   *     {@code probabilities}
+   */
+  public double[] getCorrectProbabilities() {
+    return observedStates.isEmpty() ? this.probabilities : this.observedProbabilities;
   }
 }

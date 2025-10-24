@@ -58,9 +58,9 @@ public class ConstraintBuilder {
 
   private static void noConditionsInEventNode(
       NodeState eventState, List<NodeState> conditionStates) {
-    Node node = eventState.getParentNode();
+    Node node = eventState.getNode();
     boolean conditionsInEventNode =
-        conditionStates.stream().anyMatch(state -> state.getParentNode().equals(node));
+        conditionStates.stream().anyMatch(state -> state.getNode().equals(node));
     if (conditionsInEventNode) {
       throw new ParameterConstraintBuilderException(
           String.format(

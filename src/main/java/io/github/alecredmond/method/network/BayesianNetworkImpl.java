@@ -7,27 +7,27 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.solver.SolverConfigs;
+import io.github.alecredmond.application.solver.InferenceEngineConfigs;
 import io.github.alecredmond.method.constraints.ConstraintBuilder;
 import io.github.alecredmond.method.printer.NetworkPrinter;
-import io.github.alecredmond.method.sampler.NetworkSampler;
+import io.github.alecredmond.method.sampler.InferenceEngine;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
 public class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
-  private final SolverConfigs solverConfigs;
+  private final InferenceEngineConfigs inferenceEngineConfigs;
   private final NetworkDataUtils utils;
-  private final NetworkSampler sampler;
+  private final InferenceEngine inferenceEngine;
   private final PrinterConfigs printerConfigs;
 
   public BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName(networkName);
     this.utils = new NetworkDataUtils(networkData);
-    this.solverConfigs = new SolverConfigs();
-    this.sampler = new NetworkSampler(networkData, solverConfigs);
+    this.inferenceEngineConfigs = new InferenceEngineConfigs();
+    this.inferenceEngine = new InferenceEngine(networkData, inferenceEngineConfigs);
     this.printerConfigs = new PrinterConfigs();
   }
 
@@ -35,8 +35,8 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName("UNNAMED_NETWORK");
     this.utils = new NetworkDataUtils(networkData);
-    this.solverConfigs = new SolverConfigs();
-    this.sampler = new NetworkSampler(networkData, solverConfigs);
+    this.inferenceEngineConfigs = new InferenceEngineConfigs();
+    this.inferenceEngine = new InferenceEngine(networkData, inferenceEngineConfigs);
     this.printerConfigs = new PrinterConfigs();
   }
 
@@ -138,28 +138,28 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   public BayesianNetworkImpl solverCyclesLimit(int cyclesLimit) {
-    solverConfigs.setCyclesLimit(cyclesLimit);
+    inferenceEngineConfigs.setSolverCyclesLimit(cyclesLimit);
     return this;
   }
 
   public BayesianNetworkImpl solverTimeLimit(int timeLimitSeconds) {
-    solverConfigs.setTimeLimitSeconds(timeLimitSeconds);
+    inferenceEngineConfigs.setSolverTimeLimitSeconds(timeLimitSeconds);
     return this;
   }
 
   public BayesianNetworkImpl logIntervalSeconds(int seconds) {
-    solverConfigs.setLogIntervalSeconds(seconds);
+    inferenceEngineConfigs.setSolverLogIntervalSeconds(seconds);
     return this;
   }
 
   public BayesianNetworkImpl solverConvergeThreshold(double threshold) {
-    solverConfigs.setConvergeThreshold(threshold);
+    inferenceEngineConfigs.setSolverConvergeThreshold(threshold);
     return this;
   }
 
   public BayesianNetworkImpl solveNetwork() {
     utils.buildNetworkData();
-    sampler.runSolver();
+    inferenceEngine.runSolver();
     observeMarginals();
     return this;
   }
@@ -198,7 +198,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
-    sampler.observeNetwork(utils.getStatesByID(observedNodeStateIDs));
+    inferenceEngine.observeNetwork(utils.getStatesByID(observedNodeStateIDs));
     return this;
   }
 
@@ -207,26 +207,27 @@ public class BayesianNetworkImpl implements BayesianNetwork {
       solveNetwork();
       return this;
     }
-    sampler.observeNetwork(List.of());
+    inferenceEngine.observeNetwork(List.of());
     return this;
   }
 
   public <T, E> List<List<T>> generateSamples(
-      int numberOfSamples,
       Collection<E> excludeNodeIDs,
       Collection<E> includeNodeIDs,
+      int numberOfSamples,
       Class<T> tClass) {
     if (!networkData.isSolved()) solveNetwork();
-    return sampler.generateSamples(
-        numberOfSamples,
+    return inferenceEngine.generateSamples(
         utils.getNodesByID(excludeNodeIDs),
         utils.getNodesByID(includeNodeIDs),
+        numberOfSamples,
         tClass);
   }
 
-  public <T> double observeProbability(Collection<T> eventStateIDs) {
+  public <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
-    return sampler.observeProbability(utils.getStatesByID(eventStateIDs));
+    return inferenceEngine.getProbabilityFromCurrentObservations(
+        utils.getStatesByID(eventStateIDs));
   }
 
   public <T> ProbabilityTable getNetworkTable(T nodeID) {

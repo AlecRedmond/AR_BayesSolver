@@ -31,6 +31,6 @@ public class ConditionalConstraint extends ParameterConstraint {
       NodeState eventState, Collection<NodeState> conditionStates, double probability) {
     super(Set.of(eventState), conditionStates, probability);
     this.eventState = eventState;
-    this.eventNode = eventState.getParentNode();
+    this.eventNode = eventState.getNode();
   }
 }

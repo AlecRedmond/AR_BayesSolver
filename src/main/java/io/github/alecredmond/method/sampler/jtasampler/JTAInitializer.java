@@ -11,24 +11,26 @@ import io.github.alecredmond.application.sampler.Clique;
 import io.github.alecredmond.application.sampler.JunctionTreeData;
 import io.github.alecredmond.application.sampler.Separator;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConditionalHandler;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
 import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.MarginalHandler;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JTAInitializer {
+class JTAInitializer {
 
   private JTAInitializer() {}
 
-  public static JunctionTreeData build(BayesianNetworkData bayesianNetworkData) {
+  static JunctionTreeData build(BayesianNetworkData bayesianNetworkData) {
     if (satisfactoryDataExists(bayesianNetworkData))
       return bayesianNetworkData.getJunctionTreeData();
 
-    Set<Clique> cliqueSet = CliqueBuilder.buildCliques(bayesianNetworkData);
+    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
     Set<Separator> separators = buildSeparators(cliqueSet);
     Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
     Map<Clique, Set<ProbabilityTable>> associatedTables =
@@ -125,7 +127,7 @@ public class JTAInitializer {
     List<JunctionTreeTable> allTables = new ArrayList<>();
     cliques.stream().map(Clique::getTable).forEach(allTables::add);
     separators.stream().map(Separator::getTable).forEach(allTables::add);
-    return allTables;
+    return allTables.stream().sorted(Comparator.comparingInt(table -> table.getProbabilities().length)).toList();
   }
 
   private static Map<Clique, Set<ProbabilityTable>> buildAssociatedTablesMap(
@@ -202,7 +204,7 @@ public class JTAInitializer {
   }
 
   private static Separator addSeparatorForNodes(Clique cliqueA, Clique cliqueB) {
-    Set<Node> common = CliqueBuilder.intersectionOf(cliqueA.getNodes(), cliqueB.getNodes());
+    Set<Node> common = JTACliqueBuilder.intersectionOf(cliqueA.getNodes(), cliqueB.getNodes());
     Separator separator =
         new Separator(cliqueA, cliqueB, common, TableBuilder.buildJunctionTreeTable(common));
 

@@ -55,7 +55,7 @@ public class TableUtils {
       Collection<NodeState> currentStates, ProbabilityTable table) {
     Set<Node> tableNodes = table.getNodes();
     return currentStates.stream()
-        .filter(ns -> tableNodes.contains(ns.getParentNode()))
+        .filter(ns -> tableNodes.contains(ns.getNode()))
         .collect(Collectors.toSet());
   }
 }

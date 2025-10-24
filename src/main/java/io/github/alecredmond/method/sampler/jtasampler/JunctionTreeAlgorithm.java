@@ -4,6 +4,7 @@ import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.sampler.Clique;
 import io.github.alecredmond.application.sampler.JunctionTreeData;
 import io.github.alecredmond.application.sampler.Separator;
@@ -14,20 +15,54 @@ import java.util.stream.Collectors;
 
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
-  private final NetworkJunctionConverter converter;
 
   public JunctionTreeAlgorithm(BayesianNetworkData networkData) {
     this.data = JTAInitializer.build(networkData);
-    this.converter = new NetworkJunctionConverter(data);
-    this.converter.initializeJunctionTreeFromNetwork();
+    JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
     marginalizeTables();
   }
 
-  private void marginalizeTables() {
+  public void marginalizeTables() {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
+    data.setMarginalized(true);
   }
 
-  public double adjustAndReturnError(ParameterConstraint constraint) {
+  public void writeObservations() {
+    JTANetworkWriter.writeToObservations(data);
+  }
+
+  public void observeNetwork(Map<Node, NodeState> observed) {
+    if (data.getNodes().isEmpty()) return;
+    JTANetworkWriter.setSeparatorsToUnity(data);
+    setEvidence(observed);
+    Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
+    distributeAndCollectMessages(clique, new HashSet<>());
+    data.setMarginalized(false);
+  }
+
+  public void writeTablesToNetwork() {
+    JTANetworkWriter.writeToNetwork(data);
+  }
+
+  /**
+   * Sums the values from the smallest table in the JTA. If the JTA has been marginalized, this will
+   * re-run inference.
+   */
+  public double getProbabilityOfEvidence() {
+    boolean resetMarginalisation = data.isMarginalized();
+    if (resetMarginalisation) observeNetwork(data.getObserved());
+    JunctionTreeTable smallestTable = data.getJunctionTreeTables().getFirst();
+    double[] probabilityArray = smallestTable.getCorrectProbabilities();
+    double jointProb = Arrays.stream(probabilityArray).sum();
+    if (resetMarginalisation) marginalizeTables();
+    return jointProb;
+  }
+
+  public boolean isMarginalized() {
+    return data.isMarginalized();
+  }
+
+  double adjustAndReturnError(ParameterConstraint constraint) {
     Clique clique = data.getCliqueForConstraint().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
 
@@ -40,20 +75,9 @@ public class JunctionTreeAlgorithm {
     return error;
   }
 
-  public void sampleNetwork(Map<Node, NodeState> observed) {
-    if (data.getNodes().isEmpty()) return;
-    converter.setSeparatorsToUnity();
-    setEvidence(observed);
-    Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
-    distributeAndCollectMessages(clique, new HashSet<>());
-    converter.writeToObservations(observed);
-  }
-
-  public void writeTablesToNetwork() {
-    converter.writeToNetwork();
-  }
-
   private void setEvidence(Map<Node, NodeState> evidence) {
+    data.setObserved(evidence);
+    data.getBayesianNetworkData().setObservedStatesMap(evidence);
     for (Clique clique : data.getCliqueSet()) {
       Set<NodeState> evidenceInTable =
           clique.getNodes().stream()
