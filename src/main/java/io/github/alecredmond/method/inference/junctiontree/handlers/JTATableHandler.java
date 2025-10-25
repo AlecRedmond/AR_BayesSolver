@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler.jtasampler.jtahandlers;
+package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
@@ -14,16 +14,16 @@ import lombok.Getter;
  * to a specific {@link NodeState}.
  */
 @Getter
-public class JunctionTableHandler {
+public class JTATableHandler {
   protected final JunctionTreeTable table;
   protected final Map<NodeState, List<Integer>> stateIndexes;
 
   /**
-   * Constructs a new {@code JunctionTableHandler}.
+   * Constructs a new {@code JTATableHandler}.
    *
    * @param table The {@link JunctionTreeTable} this handler will manage.
    */
-  public JunctionTableHandler(JunctionTreeTable table) {
+  public JTATableHandler(JunctionTreeTable table) {
     this.table = table;
     this.stateIndexes = fillStateIndexes(table);
   }

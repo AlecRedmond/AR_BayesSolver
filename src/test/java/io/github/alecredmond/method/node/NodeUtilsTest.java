@@ -1,15 +1,11 @@
 package io.github.alecredmond.method.node;
 
-import io.github.alecredmond.BayesianNetwork;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.github.alecredmond.method.network.BayesianNetwork;
 import io.github.alecredmond.application.node.Node;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import io.github.alecredmond.application.node.NodeState;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class NodeUtilsTest {
 
@@ -35,8 +31,8 @@ class NodeUtilsTest {
     int nodesSize = nodes.size();
     for (int blockSize = 0; blockSize <= nodesSize; blockSize++) {
       int binom = binomCoeff(nodesSize, blockSize);
-      var nodeSets = NodeUtils.generateNodeCombinations(nodes,blockSize);
-      assertEquals(binom,nodeSets.size());
+      var nodeSets = NodeUtils.generateNodeCombinations(nodes, blockSize);
+      assertEquals(binom, nodeSets.size());
     }
   }
 

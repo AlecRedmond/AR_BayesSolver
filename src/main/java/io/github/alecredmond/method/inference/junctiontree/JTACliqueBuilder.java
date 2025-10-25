@@ -1,9 +1,9 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.sampler.Clique;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;

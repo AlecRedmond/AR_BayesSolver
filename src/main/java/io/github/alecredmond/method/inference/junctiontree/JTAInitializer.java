@@ -1,24 +1,22 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
 import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.sampler.Clique;
-import io.github.alecredmond.application.sampler.JunctionTreeData;
-import io.github.alecredmond.application.sampler.Separator;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConditionalHandler;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.MarginalHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -59,7 +57,7 @@ class JTAInitializer {
       JunctionTreeData.JunctionTreeDataBuilder builder) {
     Map<ParameterConstraint, Clique> cliqueForConstraint =
         findCliquesForConstraints(cliqueSet, bayesianNetworkData);
-    Map<ParameterConstraint, ConstraintHandler> constraintHandlerMap =
+    Map<ParameterConstraint, JTAConstraintHandler> constraintHandlerMap =
         buildConstraintIndexerMap(bayesianNetworkData, cliqueForConstraint);
 
     log.info("CONSTRAINT INDEXERS BUILT");
@@ -90,19 +88,19 @@ class JTAInitializer {
     return bayesianNetworkData.getJunctionTreeData().getConstraintHandlers().isEmpty();
   }
 
-  private static Map<ParameterConstraint, ConstraintHandler> buildConstraintIndexerMap(
+  private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintIndexerMap(
       BayesianNetworkData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
     return data.getConstraints().stream()
         .map(c -> Map.entry(c, buildConstraintHandler(c, constraintCliqueMap.get(c).getHandler())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static ConstraintHandler buildConstraintHandler(
-      ParameterConstraint constraint, JunctionTableHandler junctionTableHandler) {
+  private static JTAConstraintHandler buildConstraintHandler(
+      ParameterConstraint constraint, JTATableHandler jtaTableHandler) {
     if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
-      return new MarginalHandler(junctionTableHandler, mc);
+      return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
     } else if (constraint instanceof ConditionalConstraint cc) {
-      return new ConditionalHandler(junctionTableHandler, cc);
+      return new JTAConstraintHandlerConditional(jtaTableHandler, cc);
     }
     throw new IllegalStateException("Unexpected value: " + constraint);
   }
@@ -127,7 +125,9 @@ class JTAInitializer {
     List<JunctionTreeTable> allTables = new ArrayList<>();
     cliques.stream().map(Clique::getTable).forEach(allTables::add);
     separators.stream().map(Separator::getTable).forEach(allTables::add);
-    return allTables.stream().sorted(Comparator.comparingInt(table -> table.getProbabilities().length)).toList();
+    return allTables.stream()
+        .sorted(Comparator.comparingInt(table -> table.getProbabilities().length))
+        .toList();
   }
 
   private static Map<Clique, Set<ProbabilityTable>> buildAssociatedTablesMap(

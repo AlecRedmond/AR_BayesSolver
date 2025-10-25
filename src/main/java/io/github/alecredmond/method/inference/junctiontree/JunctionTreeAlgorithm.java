@@ -1,15 +1,16 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.sampler.Clique;
-import io.github.alecredmond.application.sampler.JunctionTreeData;
-import io.github.alecredmond.application.sampler.Separator;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class JunctionTreeAlgorithm {
   }
 
   public void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getHandler).forEach(JunctionTableHandler::marginalize);
+    data.getCliqueSet().stream().map(Clique::getHandler).forEach(JTATableHandler::marginalize);
     data.setMarginalized(true);
   }
 
@@ -77,7 +78,6 @@ public class JunctionTreeAlgorithm {
 
   private void setEvidence(Map<Node, NodeState> evidence) {
     data.setObserved(evidence);
-    data.getBayesianNetworkData().setObservedStatesMap(evidence);
     for (Clique clique : data.getCliqueSet()) {
       Set<NodeState> evidenceInTable =
           clique.getNodes().stream()
@@ -95,7 +95,7 @@ public class JunctionTreeAlgorithm {
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
-              SeparatorTableHandler sth = separator.getHandler();
+              JTATableHandlerSeparator sth = separator.getHandler();
               sth.passMessageFrom(currentClique);
               distributeAndCollectMessages(nextClique, cliqueChain);
               sth.passMessageFrom(nextClique);

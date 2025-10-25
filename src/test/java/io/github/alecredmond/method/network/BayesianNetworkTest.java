@@ -1,14 +1,16 @@
-package io.github.alecredmond.method;
+package io.github.alecredmond.method.network;
 
+import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.BayesianNetwork;
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ParameterConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +20,8 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean simpleTests = true;
+  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
+  boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
   @BeforeEach
@@ -360,13 +363,13 @@ class BayesianNetworkTest {
 
     @Test
     void addConstraint_prior_invalidProbability_shouldThrowException() {
-      assertThrows(ParameterConstraintBuilderException.class, () -> net.addConstraint("A_T", 1.5));
-      assertThrows(ParameterConstraintBuilderException.class, () -> net.addConstraint("A_T", -0.5));
+      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", 1.5));
+      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", -0.5));
     }
 
     @Test
     void addConstraint_prior_forNonExistentState_shouldThrowException() {
-      assertThrows(ParameterConstraintBuilderException.class, () -> net.addConstraint("Z_T", 0.5));
+      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("Z_T", 0.5));
     }
 
     @Test
@@ -379,25 +382,21 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_conditional_invalidProbability_shouldThrowException() {
       assertThrows(
-          ParameterConstraintBuilderException.class,
-          () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
+          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
       assertThrows(
-          ParameterConstraintBuilderException.class,
-          () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
+          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentEventState_shouldThrowException() {
       assertThrows(
-          ParameterConstraintBuilderException.class,
-          () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
+          ConstraintBuilderException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentConditionState_shouldThrowException() {
       assertThrows(
-          ParameterConstraintBuilderException.class,
-          () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
+          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
     }
 
     @Test
@@ -408,7 +407,7 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_invalidConstraintBuilder_shouldThrowException() {
       assertThrows(
-          ParameterConstraintBuilderException.class,
+          ConstraintBuilderException.class,
           () -> net.addConstraint("B_T", List.of("A_T", "B_F"), 0.5));
     }
 
@@ -470,29 +469,104 @@ class BayesianNetworkTest {
   class PrinterConfigTests {
     @Test
     void printerSettings_shouldNotThrow() {
-      assertDoesNotThrow(() -> net.printerSaveDirectory("./output"));
-      assertDoesNotThrow(() -> net.printerOpenFileOnCreation(true));
-      assertDoesNotThrow(() -> net.printerOpenFileOnCreation(false));
-      assertDoesNotThrow(() -> net.printerOutputsToConsole(true));
-      assertDoesNotThrow(() -> net.printerOutputsToConsole(false));
-      assertDoesNotThrow(() -> net.printerProbDecimalPlaces(4));
+      PrinterConfigs configs = net.getPrinterConfigs();
+      assertDoesNotThrow(() -> configs.setSaveDirectory("./output"));
+      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(true));
+      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(false));
+      assertDoesNotThrow(() -> configs.setPrintToConsole(true));
+      assertDoesNotThrow(() -> configs.setPrintToConsole(false));
+      assertDoesNotThrow(() -> configs.setProbDecimalPlaces(4));
     }
 
     @Test
     void printerProbDecimalPlaces_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.printerProbDecimalPlaces(-1));
+      PrinterConfigs configs = net.getPrinterConfigs();
+      assertThrows(IllegalArgumentException.class, () -> configs.setProbDecimalPlaces(-1));
     }
 
     @Test
     void printNetwork_beforeSolve_shouldImplicitlySolve() {
       net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      assertDoesNotThrow(() -> net.printerOutputsToConsole(true).printNetwork());
+      PrinterConfigs configs = net.getPrinterConfigs();
+      assertDoesNotThrow(
+          () -> {
+            configs.setPrintToConsole(true);
+            net.printNetwork();
+          });
     }
 
     @Test
     void printObserved_beforeObserve_shouldImplicitlySolveAndObserveMarginals() {
       net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      assertDoesNotThrow(() -> net.printerOutputsToConsole(true).printObserved());
+      PrinterConfigs configs = net.getPrinterConfigs();
+      assertDoesNotThrow(
+          () -> {
+            configs.setPrintToConsole(true);
+            net.printObserved();
+          });
+    }
+  }
+
+  @Nested
+  class InferenceEngineConfigTests {
+    InferenceEngineConfigs configs;
+
+    @BeforeEach
+    void initializeConfigs() {
+      configs = net.getInferenceEngineConfigs();
+    }
+
+    @Test
+    void changeSamplerType_shouldSucceed() {
+      assertDoesNotThrow(() -> configs.setSampleGenerator(LIKELIHOOD_WEIGHTING_SAMPLER));
+    }
+
+    @Test
+    void changeSolverCyclesLimit_shouldSucceed() {
+      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(1000));
+      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(10_000));
+      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(100_000));
+      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(Integer.MAX_VALUE));
+    }
+
+    @Test
+    void changeSolverCyclesToInvalid_shouldThrowException() {
+      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
+      for (Integer i : invalid) {
+        assertThrows(IllegalArgumentException.class, () -> configs.setSolverCyclesLimit(i));
+      }
+    }
+
+    @Test
+    void changeSolverConvergeThreshold_shouldSucceed() {
+      List<Double> valid = List.of(1E-3, 1E-5, 1E-9, 1E-256, Double.MAX_VALUE);
+      for (double d : valid) {
+        assertDoesNotThrow(() -> configs.setSolverConvergeThreshold(d));
+      }
+    }
+
+    @Test
+    void changeSolverConvergeInvalid_shouldThrowException() {
+      List<Double> invalid = List.of(-1E-3, 0.0, -15.0);
+      for (double d : invalid) {
+        assertThrows(IllegalArgumentException.class, () -> configs.setSolverConvergeThreshold(d));
+      }
+    }
+
+    @Test
+    void changeLogIntervalToInvalid_shouldThrowException() {
+      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
+      for (Integer i : invalid) {
+        assertThrows(IllegalArgumentException.class, () -> configs.setSolverLogIntervalSeconds(i));
+      }
+    }
+
+    @Test
+    void changeTimeLimitToInvalid_shouldThrowException() {
+      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
+      for (Integer i : invalid) {
+        assertThrows(IllegalArgumentException.class, () -> configs.setSolverTimeLimitSeconds(i));
+      }
     }
   }
 
@@ -653,14 +727,16 @@ class BayesianNetworkTest {
       // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
       // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
       // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-      double pJoint = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
+      double pJoint =
+          net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
       assertEquals(0.198, pJoint, 1E-9);
     }
 
     @Test
     void observeProbability_conflictingEvent_shouldReturnZero() {
       net.observeMarginals();
-      double pConflict = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "RAIN:FALSE"));
+      double pConflict =
+          net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "RAIN:FALSE"));
       assertEquals(0.0, pConflict, 1E-9);
     }
 
@@ -725,6 +801,10 @@ class BayesianNetworkTest {
     void testSolves_RainSprinkler() {
       net = BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS");
 
+      PrinterConfigs printerConfigs = net.getPrinterConfigs();
+      printerConfigs.setProbDecimalPlaces(3);
+      printerConfigs.setPrintToConsole(true);
+
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
@@ -739,8 +819,6 @@ class BayesianNetworkTest {
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
           .solveNetwork()
           .observeMarginals()
-          .printerProbDecimalPlaces(3)
-          .printerOutputsToConsole(true)
           .printNetwork()
           .observeNetwork(List.of("WET_GRASS:TRUE"))
           .printObserved();
@@ -751,19 +829,15 @@ class BayesianNetworkTest {
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
 
-      generateSamples(net, numOfSamples, includedNode, testState, false);
+      generateSamples(net, numOfSamples, includedNode, testState);
 
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
       System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
-      generateSamples(net, numOfSamples, includedNode, testState, false);
+      generateSamples(net, numOfSamples, includedNode, testState);
     }
 
     private void generateSamples(
-        BayesianNetwork network,
-        int numOfSamples,
-        String includedNode,
-        String testState,
-        boolean printAllToConsole) {
+        BayesianNetwork network, int numOfSamples, String includedNode, String testState) {
 
       double observedProb = network.getProbabilityFromCurrentObservations(List.of(testState));
       double expected = observedProb * numOfSamples;
@@ -776,16 +850,11 @@ class BayesianNetworkTest {
 
       long count = samples.stream().flatMap(Collection::stream).filter(testState::equals).count();
 
-      if (printAllToConsole) getLines(samples).forEach(System.out::println);
+      if (debugPrintSamplesToConsole) getLines(samples).forEach(System.out::println);
 
       System.out.printf(
           "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",
-          testState,
-          observedProb,
-          expected,
-          lowerBound,
-          upperBound,
-          count);
+          testState, observedProb, expected, lowerBound, upperBound, count);
 
       assertTrue(
           count >= lowerBound && count <= upperBound,
@@ -811,6 +880,8 @@ class BayesianNetworkTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
+      net.getPrinterConfigs().setPrintToConsole(true);
+
       assertDoesNotThrow(
           () ->
               net =
@@ -839,7 +910,6 @@ class BayesianNetworkTest {
                       .addConstraint("H+", List.of("E+"), 0.43)
                       .addConstraint("H-", List.of("E-"), 0.18)
                       .addConstraint("A+", List.of("H+"), 0.25) // Non-local constraint
-                      .printerOutputsToConsole(true)
                       .solveNetwork()
                       .observeMarginals()
                       .printObserved());
@@ -847,8 +917,10 @@ class BayesianNetworkTest {
 
     @Test
     void testFantasyGraph_ComplexNetwork() {
-      if (simpleTests) return;
+      if (!debugSolveLengthyTests) return;
       net = BayesianNetwork.newNetwork("FANTASY_ELECTION");
+
+      net.getPrinterConfigs().setPrintToConsole(true);
 
       assertDoesNotThrow(
           () ->
@@ -986,17 +1058,19 @@ class BayesianNetworkTest {
                   // ...
                   .solveNetwork()
                   .observeMarginals()
-                  .printerOutputsToConsole(true)
                   .printObserved()
                   .observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
                   .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
                   .printObserved());
 
+      net.getPrinterConfigs().setPrintToConsole(true);
+      net.printNetwork();
+
       int numOfSamples = 100_000;
       String testState = "VOTE:CPK";
       String includedNode = "VOTE";
 
-      generateSamples(net, numOfSamples, includedNode, testState, false);
+      generateSamples(net, numOfSamples, includedNode, testState);
     }
   }
 }

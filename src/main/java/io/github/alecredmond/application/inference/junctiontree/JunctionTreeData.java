@@ -1,4 +1,4 @@
-package io.github.alecredmond.application.sampler;
+package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
@@ -7,8 +7,7 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.ConstraintHandler;
-import java.util.HashMap;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,16 +56,13 @@ public class JunctionTreeData {
   private final Map<ParameterConstraint, Clique> cliqueForConstraint;
 
   /**
-   * A map linking each {@link ParameterConstraint} to its dedicated {@link ConstraintHandler} used
+   * A map linking each {@link ParameterConstraint} to its dedicated {@link JTAConstraintHandler} used
    * during the JTA inference.
    */
-  private final Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
+  private final Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
 
   /** Flag tracking whether the Junction tree has been marginalized */
   @Setter private boolean marginalized;
-
-  /** Map of the current evidence applied to the network */
-  @Setter private Map<Node, NodeState> observed;
 
   /**
    * Retrieves the list of all {@link Node} objects from the underlying Bayesian Network Data.
@@ -96,6 +92,26 @@ public class JunctionTreeData {
     return bayesianNetworkData.getConstraints();
   }
 
+  /**
+   * Retrieves the map storing the specific {@link NodeState} that has been observed as evidence for
+   * a given {@link Node}.
+   *
+   * @return the current evidence applied to the network
+   */
+  public Map<Node, NodeState> getObserved() {
+    return this.bayesianNetworkData.getObserved();
+  }
+
+  /**
+   * Sets the map storing the specific {@link NodeState} that has been observed as evidence for a
+   * given {@link Node}.
+   *
+   * @param observed the current observed evidence in the network
+   */
+  public void setObserved(Map<Node, NodeState> observed) {
+    this.bayesianNetworkData.setObserved(observed);
+  }
+
   public static JunctionTreeDataBuilder builder() {
     return new JunctionTreeDataBuilder();
   }
@@ -108,7 +124,7 @@ public class JunctionTreeData {
     private Map<Clique, Set<ProbabilityTable>> associatedTables;
     private List<JunctionTreeTable> junctionTreeTables;
     private Map<ParameterConstraint, Clique> cliqueForConstraint;
-    private Map<ParameterConstraint, ConstraintHandler> constraintHandlers;
+    private Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
 
     JunctionTreeDataBuilder() {}
 
@@ -150,7 +166,7 @@ public class JunctionTreeData {
     }
 
     public JunctionTreeDataBuilder constraintHandlers(
-        Map<ParameterConstraint, ConstraintHandler> constraintHandlers) {
+        Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers) {
       this.constraintHandlers = constraintHandlers;
       return this;
     }
@@ -165,8 +181,7 @@ public class JunctionTreeData {
           this.junctionTreeTables,
           this.cliqueForConstraint,
           this.constraintHandlers,
-          false,
-          new HashMap<>());
+          false);
     }
 
     public String toString() {

@@ -6,7 +6,7 @@ import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.exceptions.ParameterConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -39,10 +39,10 @@ public class ConstraintBuilder {
 
   private static void checkProbabilityIsValid(double probability) {
     if (probability < 0) {
-      throw new ParameterConstraintBuilderException(
+      throw new ConstraintBuilderException(
           "Attempted to build a constraint with probability < 0");
     } else if (probability > 1) {
-      throw new ParameterConstraintBuilderException(
+      throw new ConstraintBuilderException(
           "Attempted to build a constraint with probability > 1");
     }
   }
@@ -62,7 +62,7 @@ public class ConstraintBuilder {
     boolean conditionsInEventNode =
         conditionStates.stream().anyMatch(state -> state.getNode().equals(node));
     if (conditionsInEventNode) {
-      throw new ParameterConstraintBuilderException(
+      throw new ConstraintBuilderException(
           String.format(
               "Constraint Builder found Condition States and Event States simultaneously on %s",
               node));
@@ -75,7 +75,7 @@ public class ConstraintBuilder {
 
   private static <T> void checkStateExists(T stateID, BayesianNetworkData data) {
     if (data.getNodeStateIDsMap().containsKey(stateID)) return;
-    throw new ParameterConstraintBuilderException(
+    throw new ConstraintBuilderException(
         String.format("No event state %s in data", stateID.toString()));
   }
 

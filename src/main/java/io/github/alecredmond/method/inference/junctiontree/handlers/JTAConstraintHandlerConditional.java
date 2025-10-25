@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler.jtasampler.jtahandlers;
+package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.node.NodeState;
@@ -6,22 +6,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ConditionalHandler extends ConstraintHandler {
+public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
 
-  public ConditionalHandler(JunctionTableHandler junctionTableHandler, ConditionalConstraint constraint) {
-    super(junctionTableHandler, constraint);
+  public JTAConstraintHandlerConditional(JTATableHandler jtaTableHandler, ConditionalConstraint constraint) {
+    super(jtaTableHandler, constraint);
   }
 
   @Override
   protected Set<Integer> getConditionIndexSet() {
-    return junctionTableHandler.getIndexes(constraint.getConditionStates());
+    return jtaTableHandler.getIndexes(constraint.getConditionStates());
   }
 
   @Override
   protected Set<Integer> getConstraintIndexeSet(Set<Integer> conditionIndexSet) {
     Set<Integer> conIndSet = new HashSet<>(conditionIndexSet);
     for (NodeState state : constraint.getEventStates()) {
-      conIndSet.retainAll(junctionTableHandler.getIndexes(state));
+      conIndSet.retainAll(jtaTableHandler.getIndexes(state));
     }
     return conIndSet;
   }
@@ -36,6 +36,6 @@ public class ConditionalHandler extends ConstraintHandler {
 
   @Override
   protected double getConditionProb() {
-    return junctionTableHandler.sumFromTableIndexes(conditionIndexes);
+    return jtaTableHandler.sumFromTableIndexes(conditionIndexes);
   }
 }

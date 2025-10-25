@@ -6,6 +6,7 @@ import io.github.alecredmond.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.method.node.NodeUtils;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,15 +14,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class TableBuilder {
+  private static final double NEW_TABLE_FILL = 1.0;
 
   private TableBuilder() {}
 
   public static ProbabilityTable buildNetworkTable(Set<Node> events, Set<Node> conditions) {
     if (events.isEmpty())
-      throw new IllegalArgumentException("attempted to build a table with no events!");
+      throw new TableBuilderException("attempted to build a table with no events!");
     if (!conditions.isEmpty()) return buildConditionalTable(events, conditions);
     if (events.size() == 1) return buildMarginalTable(events);
-    throw new IllegalArgumentException(
+    throw new TableBuilderException(
         "Could not build a marginal or conditional table from request!");
   }
 
@@ -30,8 +32,8 @@ public class TableBuilder {
     Map<Set<NodeState>, Integer> indexMap = buildIndexMap(nodes);
     double[] probabilities = buildProbTable(indexMap.size());
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
-    Map<Object, Node> nodeIDMap = getNodeIDMap(nodes);
-    Map<Object, NodeState> nodeStateIDMap = getNodeStateIDMap(nodes);
+    Map<Object, Node> nodeIDMap = buildNodeIDMap(nodes);
+    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(nodes);
     return new ConditionalTable(
         buildTableName(events, conditions),
         indexMap,
@@ -49,8 +51,8 @@ public class TableBuilder {
     String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
     Map<Set<NodeState>, Integer> indexMap = buildIndexMap(events);
     double[] probabilities = buildProbTable(indexMap.size());
-    Map<Object, Node> nodeIDMap = getNodeIDMap(List.of(eventNode));
-    Map<Object, NodeState> nodeStateIDMap = getNodeStateIDMap(List.of(eventNode));
+    Map<Object, Node> nodeIDMap = buildNodeIDMap(List.of(eventNode));
+    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(List.of(eventNode));
     return new MarginalTable(
         indexMap, probabilities, tableName, eventNode, nodeStateIDMap, nodeIDMap);
   }
@@ -68,17 +70,17 @@ public class TableBuilder {
 
   private static double[] buildProbTable(int size) {
     double[] probabilities = new double[size];
-    Arrays.fill(probabilities, 1.0);
+    Arrays.fill(probabilities, NEW_TABLE_FILL);
     return probabilities;
   }
 
-  private static Map<Object, Node> getNodeIDMap(Collection<Node> nodes) {
+  private static Map<Object, Node> buildNodeIDMap(Collection<Node> nodes) {
     return nodes.stream()
         .map(n -> Map.entry(n.getNodeID(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Map<Object, NodeState> getNodeStateIDMap(Collection<Node> nodes) {
+  private static Map<Object, NodeState> buildNodeStateIDMap(Collection<Node> nodes) {
     return nodes.stream()
         .map(Node::getNodeStates)
         .flatMap(Collection::stream)
@@ -106,8 +108,8 @@ public class TableBuilder {
     double[] probabilities = buildProbTable(indexMap.size());
     double[] observedProbabilities = buildProbTable(indexMap.size());
     Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
-    Map<Object, NodeState> nodeStateIDMap = getNodeStateIDMap(events);
-    Map<Object, Node> nodeIDMap = getNodeIDMap(events);
+    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
+    Map<Object, Node> nodeIDMap = buildNodeIDMap(events);
     return new JunctionTreeTable(
         buildTableName(events, new HashSet<>()),
         indexMap,

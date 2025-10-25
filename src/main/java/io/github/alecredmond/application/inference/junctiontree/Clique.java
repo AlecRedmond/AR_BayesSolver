@@ -1,4 +1,4 @@
-package io.github.alecredmond.application.sampler;
+package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,7 +30,7 @@ public class Clique {
   private JunctionTreeTable table;
 
   /** The handler responsible for JTA operations specific to the current Clique's table. */
-  private JunctionTableHandler handler;
+  private JTATableHandler handler;
 
   /**
    * A map linking neighboring {@link Clique} objects to the {@link Separator} that connects them.
@@ -46,7 +46,7 @@ public class Clique {
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
     this.table = table;
-    this.handler = new JunctionTableHandler(table);
+    this.handler = new JTATableHandler(table);
     this.separatorMap = new HashMap<>();
   }
 

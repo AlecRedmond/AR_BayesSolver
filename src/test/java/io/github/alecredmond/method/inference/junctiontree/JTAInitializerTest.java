@@ -1,14 +1,12 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.application.sampler.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
-import io.github.alecredmond.method.network.BayesianNetworkImpl;
-
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.method.network.BayesianNetwork;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +16,7 @@ class JTAInitializerTest {
   @BeforeEach
   void setData() {
     bayesianNetworkData =
-        new BayesianNetworkImpl()
+        BayesianNetwork.newNetwork()
             .addNode("A", List.of("A+", "A-"))
             .addNode("B", List.of("B+", "B-"))
             .addNode("C", List.of("C+", "C-"))

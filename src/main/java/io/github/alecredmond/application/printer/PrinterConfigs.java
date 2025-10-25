@@ -1,6 +1,6 @@
 package io.github.alecredmond.application.printer;
 
-import io.github.alecredmond.BayesianNetwork;
+import io.github.alecredmond.method.network.BayesianNetwork;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

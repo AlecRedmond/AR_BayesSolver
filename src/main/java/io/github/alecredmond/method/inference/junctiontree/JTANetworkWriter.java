@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -6,11 +6,12 @@ import io.github.alecredmond.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.sampler.Clique;
-import io.github.alecredmond.application.sampler.JunctionTreeData;
-import io.github.alecredmond.application.sampler.Separator;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.JunctionTableHandler;
+
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,16 +74,16 @@ class JTANetworkWriter {
   }
 
   static void writeToObservations(JunctionTreeData data) {
-    data.getBayesianNetworkData().setObservedStatesMap(data.getObserved());
+    data.getBayesianNetworkData().setObserved(data.getObserved());
     for (Node node : data.getNodes()) {
-      JunctionTableHandler handler = getHandlerForSmallestRelevantClique(data, node);
+      JTATableHandler handler = getHandlerForSmallestRelevantClique(data, node);
       MarginalTable observedTable = data.getObservationMap().get(node);
       writeToMarginalTable(observedTable, handler);
       updateTableName(node, observedTable, data.getObserved().values());
     }
   }
 
-  private static JunctionTableHandler getHandlerForSmallestRelevantClique(
+  private static JTATableHandler getHandlerForSmallestRelevantClique(
       JunctionTreeData data, Node node) {
     return data.getCliqueSet().stream()
         .filter(clique -> clique.getNodes().contains(node))
@@ -92,7 +93,7 @@ class JTANetworkWriter {
   }
 
   private static void writeToMarginalTable(
-      MarginalTable marginalTable, JunctionTableHandler handler) {
+      MarginalTable marginalTable, JTATableHandler handler) {
     marginalTable
         .getKeySet()
         .forEach(key -> marginalTable.setProbability(key, handler.sumFromTable(key)));

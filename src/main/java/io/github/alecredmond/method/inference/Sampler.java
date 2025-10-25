@@ -1,12 +1,14 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.inference;
 
+import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import java.util.*;
 
-public abstract class Sampler<T> {
+abstract class Sampler<T> {
 
   public abstract List<List<T>> generateSamples(
+          BayesianNetworkData data,
       Map<Node, NodeState> observations,
       Set<Node> excludedNodes,
       Set<Node> includedNodes,

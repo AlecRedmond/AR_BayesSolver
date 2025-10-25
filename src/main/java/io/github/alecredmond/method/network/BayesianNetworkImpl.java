@@ -1,28 +1,27 @@
 package io.github.alecredmond.method.network;
 
-import io.github.alecredmond.BayesianNetwork;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.solver.InferenceEngineConfigs;
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.method.constraints.ConstraintBuilder;
 import io.github.alecredmond.method.printer.NetworkPrinter;
-import io.github.alecredmond.method.sampler.InferenceEngine;
+import io.github.alecredmond.method.inference.InferenceEngine;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
-public class BayesianNetworkImpl implements BayesianNetwork {
+class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
   private final InferenceEngineConfigs inferenceEngineConfigs;
   private final NetworkDataUtils utils;
   private final InferenceEngine inferenceEngine;
   private final PrinterConfigs printerConfigs;
 
-  public BayesianNetworkImpl(String networkName) {
+  BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName(networkName);
     this.utils = new NetworkDataUtils(networkData);
@@ -31,7 +30,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     this.printerConfigs = new PrinterConfigs();
   }
 
-  public BayesianNetworkImpl() {
+  BayesianNetworkImpl() {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName("UNNAMED_NETWORK");
     this.utils = new NetworkDataUtils(networkData);
@@ -176,27 +175,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetworkImpl printerSaveDirectory(String directory) {
-    printerConfigs.setSaveDirectory(directory);
-    return this;
-  }
-
-  public BayesianNetworkImpl printerOpenFileOnCreation(boolean b) {
-    printerConfigs.setOpenFileOnCreation(b);
-    return this;
-  }
-
-  public BayesianNetworkImpl printerOutputsToConsole(boolean b) {
-    printerConfigs.setPrintToConsole(b);
-    return this;
-  }
-
-  public BayesianNetworkImpl printerProbDecimalPlaces(int decimalPlaces) {
-    printerConfigs.setProbDecimalPlaces(decimalPlaces);
-    return this;
-  }
-
-  public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
+    public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
     inferenceEngine.observeNetwork(utils.getStatesByID(observedNodeStateIDs));
     return this;

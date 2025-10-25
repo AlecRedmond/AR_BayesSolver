@@ -1,12 +1,9 @@
 package io.github.alecredmond.method.utils;
 
-import lombok.Getter;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import lombok.Getter;
 
 /**
  * A utility class for performing weighted-random selections from a collection of items.
@@ -61,24 +58,15 @@ public class WeightedRandom<T> {
     return nextRandomFromMap(cumulativeWeights);
   }
 
-  public <S> S nextRandomFromMap(Map<S,Double> weights){
-      double randomValue = RANDOM.nextDouble() * totalWeight;
-      for (Map.Entry<S, Double> entry : weights.entrySet()) {
-          randomValue -= entry.getValue();
-          if (randomValue <= 0.0) {
-              return entry.getKey();
-          }
+  public <S> S nextRandomFromMap(Map<S, Double> weights) {
+    double randomValue = RANDOM.nextDouble() * totalWeight;
+    for (Map.Entry<S, Double> entry : weights.entrySet()) {
+      randomValue -= entry.getValue();
+      if (randomValue <= 0.0) {
+        return entry.getKey();
       }
-      return null;
-  }
-
-  public T nextRandomFromPredicate(Predicate<? super Map.Entry<T, Double>> predicate) {
-    Map<T, Double> predWeights =
-        cumulativeWeights.entrySet().stream()
-            .filter(predicate)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    return nextRandomFromMap(predWeights);
+    }
+    return null;
   }
 
   /**

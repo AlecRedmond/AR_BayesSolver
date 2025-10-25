@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.inference;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
@@ -11,16 +11,15 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LikelihoodWeightingSampler<T> extends Sampler<T> {
-  private final BayesianNetworkData data;
+class LikelihoodWeightingSampler<T> extends Sampler<T> {
   private final Class<T> tClass;
 
-  public LikelihoodWeightingSampler(BayesianNetworkData data, Class<T> tClass) {
-    this.data = data;
+  LikelihoodWeightingSampler(Class<T> tClass) {
     this.tClass = tClass;
   }
 
   public List<List<T>> generateSamples(
+      BayesianNetworkData data,
       Map<Node, NodeState> observations,
       Set<Node> excludedNodes,
       Set<Node> includedNodes,

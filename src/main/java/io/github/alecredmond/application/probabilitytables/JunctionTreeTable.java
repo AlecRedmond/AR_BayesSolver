@@ -2,8 +2,8 @@ package io.github.alecredmond.application.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.sampler.Clique;
-import io.github.alecredmond.application.sampler.Separator;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

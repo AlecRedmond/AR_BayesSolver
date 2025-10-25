@@ -5,9 +5,8 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.sampler.JunctionTreeData;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import java.util.*;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -41,7 +40,7 @@ public class BayesianNetworkData {
    * A map storing the specific {@link NodeState} that has been observed as evidence for a given
    * {@link Node}.
    */
-  protected Map<Node, NodeState> observedStatesMap;
+  protected Map<Node, NodeState> observed;
 
   /** A list of all probability-related constraints applied to the network. */
   protected List<ParameterConstraint> constraints;
@@ -63,6 +62,7 @@ public class BayesianNetworkData {
     this.nodeStateIDsMap = new HashMap<>();
     this.networkTablesMap = new LinkedHashMap<>();
     this.observationMap = new LinkedHashMap<>();
+    this.observed = new HashMap<>();
     this.constraints = new ArrayList<>();
     this.solved = false;
     this.junctionTreeData = null;

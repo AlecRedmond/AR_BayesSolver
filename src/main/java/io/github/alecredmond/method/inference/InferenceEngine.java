@@ -1,11 +1,14 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.inference;
+
+import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.solver.InferenceEngineConfigs;
-import io.github.alecredmond.method.sampler.jtasampler.JTAConstraintSolver;
-import io.github.alecredmond.method.sampler.jtasampler.JunctionTreeAlgorithm;
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
+import io.github.alecredmond.application.inference.SampleGeneratorType;
+import io.github.alecredmond.method.inference.junctiontree.JTASolver;
+import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -31,37 +34,39 @@ public class InferenceEngine {
       includeNodes = new HashSet<>(networkData.getNodes());
       includeNodes.removeAll(excludeNodes);
     }
-    return new LikelihoodWeightingSampler<>(networkData, tClass)
+
+    return getSampler(tClass)
         .generateSamples(
-            networkData.getObservedStatesMap(), excludeNodes, includeNodes, numberOfSamples);
+            networkData, networkData.getObserved(), excludeNodes, includeNodes, numberOfSamples);
+  }
+
+  private <T> Sampler<T> getSampler(Class<T> tClass) {
+    SampleGeneratorType type = Objects.requireNonNull(configs.getSampleGenerator());
+    if (type == LIKELIHOOD_WEIGHTING_SAMPLER) {
+      return new LikelihoodWeightingSampler<>(tClass);
+    }
+    throw new IllegalStateException("Unexpected value: " + type);
   }
 
   public double getProbabilityFromCurrentObservations(Set<NodeState> newEvidence) {
-    if (!networkData.isSolved()) runSolver();
     if (conflictingEvidence(newEvidence)) return 0;
     if (newEvidence.isEmpty()) return 1.0;
 
-    Map<Node, NodeState> currentObservations = networkData.getObservedStatesMap();
-    Map<Node, NodeState> extraObservations = convertToMap(newEvidence);
-    extraObservations.putAll(currentObservations);
-    if (currentObservations.equals(extraObservations)) return 1.0;
+    Map<Node, NodeState> currentObservations = networkData.getObserved();
+    Map<Node, NodeState> newObservations = convertToMap(newEvidence);
+    newObservations.putAll(currentObservations);
+    if (currentObservations.equals(newObservations)) return 1.0;
 
     if (junctionTree.isMarginalized()) junctionTree.observeNetwork(currentObservations);
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
     if (jointProbWithCurrentEvidence == 0) return 0;
 
-    junctionTree.observeNetwork(extraObservations);
+    junctionTree.observeNetwork(newObservations);
     double jointProbWithExtraEvidence = junctionTree.getProbabilityOfEvidence();
 
     double probability = jointProbWithExtraEvidence / jointProbWithCurrentEvidence;
     junctionTree.observeNetwork(currentObservations);
     return probability;
-  }
-
-  public void runSolver() {
-    JTAConstraintSolver.solveNetwork(networkData, configs);
-    networkData.setSolved(true);
-    junctionTree = new JunctionTreeAlgorithm(networkData);
   }
 
   private boolean conflictingEvidence(Set<NodeState> evidenceStates) {
@@ -78,7 +83,7 @@ public class InferenceEngine {
 
     if (newEvidence.size() != evidenceStates.size()) return true;
 
-    return networkData.getObservedStatesMap().entrySet().stream()
+    return networkData.getObserved().entrySet().stream()
         .anyMatch(observedEntry -> sameKeyDifferentValue(observedEntry, newEvidence));
   }
 
@@ -113,5 +118,11 @@ public class InferenceEngine {
     junctionTree.observeNetwork(observedMap);
     junctionTree.marginalizeTables();
     junctionTree.writeObservations();
+  }
+
+  public void runSolver() {
+    JTASolver.solveNetwork(networkData, configs);
+    networkData.setSolved(true);
+    junctionTree = new JunctionTreeAlgorithm(networkData);
   }
 }

@@ -1,8 +1,8 @@
-package io.github.alecredmond.application.sampler;
+package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.method.sampler.jtasampler.jtahandlers.SeparatorTableHandler;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +31,7 @@ public class Separator {
   private JunctionTreeTable table;
 
   /** The handler responsible for JTA operations specific to the Separator's probability table. */
-  private SeparatorTableHandler handler;
+  private JTATableHandlerSeparator handler;
 
   /**
    * Constructs a new Separator, initializing its table and handler. <br>
@@ -47,7 +47,7 @@ public class Separator {
     this.cliqueB = cliqueB;
     this.connectingNodes = connectingNodes;
     this.table = table;
-    this.handler = new SeparatorTableHandler(this);
+    this.handler = new JTATableHandlerSeparator(this);
   }
 
   @Override

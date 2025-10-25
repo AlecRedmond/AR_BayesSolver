@@ -1,12 +1,14 @@
-package io.github.alecredmond;
+package io.github.alecredmond.method.network;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.method.network.BayesianNetworkImpl;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -281,41 +283,19 @@ public interface BayesianNetwork {
   BayesianNetwork printNetwork();
 
   /**
-   * Sets the directory where saved .txt files will be stored. <br>
-   * Default == {@code {USER_HOME}\AR_Tools\bayes_solver\output}
+   * Retrieves the configuration class for the Inference Engine, which includes configurations for
+   * the Constraint Solver and Sample Generators
    *
-   * @param directory the path to the directory where the output file will be saved.
-   * @return this instance for method chaining.
+   * @return the current InferenceEngineConfigs class used by the network
    */
-  BayesianNetwork printerSaveDirectory(String directory);
+  InferenceEngineConfigs getInferenceEngineConfigs();
 
   /**
-   * Sets the printer config to open the printed .txt file after creation.<br>
-   * Default == true
+   * Retrieves the configuration class for the Printer
    *
-   * @param b true = printer will open files on creation
-   * @return this instance for method chaining.
+   * @return the current PrinterConfigs
    */
-  BayesianNetwork printerOpenFileOnCreation(boolean b);
-
-  /**
-   * Toggle whether the network printer prints to console instead of to a .txt file. <br>
-   * Default == false
-   *
-   * @param b true == printer will print the results to the console.
-   * @return this instance for chaining.
-   */
-  BayesianNetwork printerOutputsToConsole(boolean b);
-
-  /**
-   * Sets the number of decimal places the probability values will have when output via the printer
-   * <br>
-   * Default == 5
-   *
-   * @param decimalPlaces the number of decimal places the probability values will have
-   * @return this instance for chaining
-   */
-  BayesianNetwork printerProbDecimalPlaces(int decimalPlaces);
+  PrinterConfigs getPrinterConfigs();
 
   /**
    * Sets evidence in the network by observing one or more node states. This fixes the state of
@@ -348,7 +328,6 @@ public interface BayesianNetwork {
    * marginals if no observation has been made.
    *
    * @param numberOfSamples the total number of samples to generate.
-   * @param burnIn the number of samples at the start of the sampling process to discard
    * @param excludeNodeIDs a collection of node IDs to exclude from the samples.
    * @param includeNodeIDs a collection of node IDs to include in the samples.
    * @param <T> class of NodeState IDs

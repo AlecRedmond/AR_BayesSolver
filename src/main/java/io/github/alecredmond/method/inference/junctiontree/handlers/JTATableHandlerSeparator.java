@@ -1,39 +1,39 @@
-package io.github.alecredmond.method.sampler.jtasampler.jtahandlers;
+package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.sampler.Clique;
-import io.github.alecredmond.application.sampler.Separator;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
 import java.util.*;
 
 /**
- * Extends {@link JunctionTableHandler} to specifically manage the transfer of messages
+ * Extends {@link JTATableHandler} to specifically manage the transfer of messages
  * (probabilities) between two {@link Clique}s connected by a {@link Separator} in the Junction Tree
  * Algorithm. It is used in the Collect and Distribute steps of the algorithm by passing messages
  * between the connected cliques and updating their probabilities.
  */
-public class SeparatorTableHandler extends JunctionTableHandler {
+public class JTATableHandlerSeparator extends JTATableHandler {
   private final Separator separator;
   private final JunctionTreeTable tableCliqueA;
-  private final JunctionTableHandler cliqueIndexerA;
+  private final JTATableHandler cliqueIndexerA;
   private final List<Set<Integer>> sumFinderA;
   private final JunctionTreeTable tableCliqueB;
-  private final JunctionTableHandler cliqueIndexerB;
+  private final JTATableHandler cliqueIndexerB;
   private final List<Set<Integer>> sumFinderB;
 
   /**
-   * Constructs a {@code SeparatorTableHandler} for a given {@link Separator}. Initializes handlers
+   * Constructs a {@code JTATableHandlerSeparator} for a given {@link Separator}. Initializes handlers
    * for the two connected cliques and prepares the index lists for summing probabilities during
    * message passing.
    *
    * @param separator The {@link Separator} object containing the table and connected cliques.
    */
-  public SeparatorTableHandler(Separator separator) {
+  public JTATableHandlerSeparator(Separator separator) {
     super(separator.getTable());
     this.separator = separator;
     this.tableCliqueA = separator.getCliqueA().getTable();
-    this.cliqueIndexerA = new JunctionTableHandler(tableCliqueA);
+    this.cliqueIndexerA = new JTATableHandler(tableCliqueA);
     this.tableCliqueB = separator.getCliqueB().getTable();
-    this.cliqueIndexerB = new JunctionTableHandler(tableCliqueB);
+    this.cliqueIndexerB = new JTATableHandler(tableCliqueB);
     this.sumFinderA = buildSumToIndex(cliqueIndexerA);
     this.sumFinderB = buildSumToIndex(cliqueIndexerB);
   }
@@ -46,7 +46,7 @@ public class SeparatorTableHandler extends JunctionTableHandler {
    * @param cliqueIndexer The handler for the clique whose indexes are being built.
    * @return A list of sets of integers for summing probabilities in the clique table.
    */
-  private List<Set<Integer>> buildSumToIndex(JunctionTableHandler cliqueIndexer) {
+  private List<Set<Integer>> buildSumToIndex(JTATableHandler cliqueIndexer) {
     List<Set<Integer>> sumFinder = new ArrayList<>();
     table.getIndexMap().entrySet().stream()
         .sorted(Map.Entry.comparingByValue())
@@ -90,9 +90,9 @@ public class SeparatorTableHandler extends JunctionTableHandler {
    * @param sumFinderTo The list of index sets for the receiving clique.
    */
   private void passMessageFrom(
-      JunctionTableHandler indexerFrom,
+      JTATableHandler indexerFrom,
       List<Set<Integer>> sumFinderFrom,
-      JunctionTableHandler indexerTo,
+      JTATableHandler indexerTo,
       List<Set<Integer>> sumFinderTo) {
     double[] probabilities = getProbabilities();
     for (int i = 0; i < probabilities.length; i++) {

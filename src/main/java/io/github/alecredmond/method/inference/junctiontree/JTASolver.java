@@ -1,15 +1,15 @@
-package io.github.alecredmond.method.sampler.jtasampler;
+package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
-import io.github.alecredmond.application.solver.InferenceEngineConfigs;
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JTAConstraintSolver {
+public class JTASolver {
 
-  private JTAConstraintSolver() {}
+  private JTASolver() {}
 
   public static void solveNetwork(BayesianNetworkData data, InferenceEngineConfigs configs) {
     log.info("STARTING SOLVER");

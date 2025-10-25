@@ -120,7 +120,7 @@ public class NetworkPrinter {
   }
 
   private int calculateColumnWidth(
-          List<String> columnContent, ProbabilityTable table, boolean isEventColumn) {
+      List<String> columnContent, ProbabilityTable table, boolean isEventColumn) {
     if (!isEventColumn && table instanceof MarginalTable) return 0;
     int contentWidth = columnContent.stream().mapToInt(String::length).max().orElse(0);
     return Math.max(contentWidth, printerConfigs.getProbDecimalPlaces() + 2);
