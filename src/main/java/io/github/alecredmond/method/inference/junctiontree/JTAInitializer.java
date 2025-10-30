@@ -8,8 +8,9 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
+import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
@@ -24,31 +25,32 @@ class JTAInitializer {
 
   private JTAInitializer() {}
 
-  static JunctionTreeData build(BayesianNetworkData bayesianNetworkData) {
-    if (satisfactoryDataExists(bayesianNetworkData))
-      return bayesianNetworkData.getJunctionTreeData();
+  static JunctionTreeData build(InferenceEngine engine) {
+    if (satisfactoryDataExists(engine)) return engine.getJunctionTree().getData();
 
-    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
+    BayesianNetworkData bayesNetData = engine.getNetworkData();
+
+    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesNetData);
     Set<Separator> separators = buildSeparators(cliqueSet);
     Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
     Map<Clique, Set<ProbabilityTable>> associatedTables =
-        buildAssociatedTablesMap(cliqueSet, bayesianNetworkData);
+        buildAssociatedTablesMap(cliqueSet, bayesNetData);
     List<JunctionTreeTable> junctionTreeTables = buildTreeTablesList(cliqueSet, separators);
 
     log.info("CLIQUES BUILT");
 
     JunctionTreeData.JunctionTreeDataBuilder builder =
         JunctionTreeData.builder()
-            .bayesianNetworkData(bayesianNetworkData)
+            .bayesianNetworkData(bayesNetData)
             .cliqueSet(cliqueSet)
             .separators(separators)
             .leafCliques(leafCliques)
             .associatedTables(associatedTables)
             .junctionTreeTables(junctionTreeTables);
 
-    return bayesianNetworkData.isSolved()
-        ? buildDataForSolved(bayesianNetworkData, builder)
-        : buildDataForUnsolved(bayesianNetworkData, cliqueSet, builder);
+    return bayesNetData.isSolved()
+        ? buildDataForSolved(builder)
+        : buildDataForUnsolved(bayesNetData, cliqueSet, builder);
   }
 
   private static JunctionTreeData buildDataForUnsolved(
@@ -62,30 +64,24 @@ class JTAInitializer {
 
     log.info("CONSTRAINT INDEXERS BUILT");
 
-    JunctionTreeData jtd =
-        builder
-            .cliqueForConstraint(cliqueForConstraint)
-            .constraintHandlers(constraintHandlerMap)
-            .build();
-
-    bayesianNetworkData.setJunctionTreeData(jtd);
-
-    return jtd;
+    return builder
+        .cliqueForConstraint(cliqueForConstraint)
+        .constraintHandlers(constraintHandlerMap)
+        .build();
   }
 
   private static JunctionTreeData buildDataForSolved(
-      BayesianNetworkData bayesianNetworkData, JunctionTreeData.JunctionTreeDataBuilder builder) {
-    JunctionTreeData jtd =
-        builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
-    bayesianNetworkData.setJunctionTreeData(jtd);
-    return jtd;
+      JunctionTreeData.JunctionTreeDataBuilder builder) {
+    return builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
   }
 
-  private static boolean satisfactoryDataExists(BayesianNetworkData bayesianNetworkData) {
+  private static boolean satisfactoryDataExists(InferenceEngine engine) {
+    BayesianNetworkData bayesianNetworkData = engine.getNetworkData();
     if (!bayesianNetworkData.isSolved()) return false;
+    if (Optional.ofNullable(engine.getJunctionTree()).isEmpty()) return false;
     // Constraint handlers are only used for solving the network
     // If it's a solved network, rebuilding the JTA may result in smaller Cliques (preferable)
-    return bayesianNetworkData.getJunctionTreeData().getConstraintHandlers().isEmpty();
+    return engine.getJunctionTree().getData().getConstraintHandlers().isEmpty();
   }
 
   private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintIndexerMap(

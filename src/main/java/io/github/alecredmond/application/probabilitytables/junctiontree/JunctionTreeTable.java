@@ -1,4 +1,4 @@
-package io.github.alecredmond.application.probabilitytables;
+package io.github.alecredmond.application.probabilitytables.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -7,6 +7,8 @@ import io.github.alecredmond.application.inference.junctiontree.Separator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import lombok.Getter;
 
 /**

@@ -4,21 +4,24 @@ import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.inference.junctiontree.Separator;
+import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
+import lombok.Getter;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Getter
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
 
-  public JunctionTreeAlgorithm(BayesianNetworkData networkData) {
-    this.data = JTAInitializer.build(networkData);
+  public JunctionTreeAlgorithm(InferenceEngine engine) {
+    this.data = JTAInitializer.build(engine);
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
     marginalizeTables();
   }

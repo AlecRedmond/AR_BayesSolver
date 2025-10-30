@@ -8,8 +8,8 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
@@ -24,9 +24,11 @@ class NetworkDataUtils {
     this.networkData = networkData;
   }
 
-  void buildNetworkData() {
+
+    void buildNetworkData() {
     if (networkData.isSolved()) return;
     orderNodes();
+    rebuildIdMaps();
     buildNetworkTablesMap();
     buildObservedTablesMap();
   }
@@ -40,12 +42,15 @@ class NetworkDataUtils {
     networkData.setObserved(new HashMap<>());
     networkData.setConstraints(new ArrayList<>());
     networkData.setSolved(false);
-    networkData.setJunctionTreeData(null);
   }
 
-  <T> void addNode(T nodeID) {
-    checkForExistingIDs(List.of(nodeID));
-    networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
+  void addNode(Node node) {
+    checkForExistingIDs(List.of(node.getNodeID()));
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    checkForExistingIDs(stateIDs);
+    networkData.getNodes().add(node);
+    networkData.getNodeIDsMap().put(node.getNodeID(), node);
+    addStatesToMap(node);
     networkData.setSolved(false);
   }
 
@@ -66,6 +71,17 @@ class NetworkDataUtils {
                   .map(s -> s + " ")
                   .collect(Collectors.joining())));
     }
+  }
+
+  private void addStatesToMap(Node node) {
+    node.getNodeStates()
+        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getStateID(), state));
+  }
+
+  <T> void addNode(T nodeID) {
+    checkForExistingIDs(List.of(nodeID));
+    networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
+    networkData.setSolved(false);
   }
 
   <T, E> void addNodeStates(T nodeID, Collection<E> nodeStateIDs) {
@@ -104,11 +120,6 @@ class NetworkDataUtils {
     }
     throw new ConstraintBuilderException(
         String.format("Duplicate state IDs found when building node %s", nodeID.toString()));
-  }
-
-  private void addStatesToMap(Node node) {
-    node.getNodeStates()
-        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getStateID(), state));
   }
 
   <T> void removeNode(T nodeID) {
@@ -170,15 +181,31 @@ class NetworkDataUtils {
         .collect(Collectors.toSet());
   }
 
-  <T, E> void addParents(T childID, Collection<E> parentIDs) {
-    parentIDs.forEach(pID -> addParent(childID, pID));
+  private void rebuildIdMaps() {
+    List<Node> nodes = networkData.getNodes();
+    networkData.setNodeIDsMap(createNodeIdMap(nodes));
+    networkData.setNodeStateIDsMap(createNodeStateIdMap(nodes));
   }
 
-  <T, E> void addParent(T childID, E parentID) {
-    Node parent = getNodeByID(parentID);
-    Node child = getNodeByID(childID);
+  private Map<Object, Node> createNodeIdMap(List<Node> nodes) {
+    return nodes.stream()
+        .map(n -> Map.entry(n.getNodeID(), n))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private Map<Object, NodeState> createNodeStateIdMap(List<Node> nodes) {
+    return nodes.stream()
+        .flatMap(n -> n.getNodeStates().stream())
+        .map(ns -> Map.entry(ns.getStateID(), ns))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  void addParents(Node child, Collection<Node> parents) {
+    parents.forEach(parent -> addParent(child, parent));
+  }
+
+  void addParent(Node child, Node parent) {
     checkValidRelationship(parent, child);
-    parent.addChild(child);
     child.addParent(parent);
     networkData.setSolved(false);
   }
@@ -215,8 +242,22 @@ class NetworkDataUtils {
     return false;
   }
 
+  <T, E> void addParents(T childID, Collection<E> parentIDs) {
+    parentIDs.forEach(pID -> addParent(childID, pID));
+  }
+
+  <T, E> void addParent(T childID, E parentID) {
+    Node parent = getNodeByID(parentID);
+    Node child = getNodeByID(childID);
+    addParent(child, parent);
+  }
+
   <T> void removeParents(T childID) {
     Node child = getNodeByID(childID);
+    removeParents(child);
+  }
+
+  void removeParents(Node child) {
     List<Node> parents = child.getParents();
     child.setParents(new ArrayList<>());
     parents.forEach(parent -> parent.getChildren().remove(child));
@@ -225,8 +266,11 @@ class NetworkDataUtils {
   <T, E> void removeParent(T childID, E parentID) {
     Node parent = getNodeByID(parentID);
     Node child = getNodeByID(childID);
+    removeParent(child, parent);
+  }
+
+  void removeParent(Node child, Node parent) {
     child.removeParent(parent);
-    parent.removeChild(child);
     networkData.setSolved(false);
   }
 

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -56,12 +56,17 @@ class BayesianNetworkTest {
       BayesianNetworkData data = net.getNetworkData();
       assertNotNull(net.getNode("A"));
       assertEquals(1, data.getNodeIDsMap().size());
+
+      net.addNode(new Node("B", List.of("B+", "B-")));
+      assertNotNull(net.getNode("B"));
+      assertEquals(2, data.getNodeIDsMap().size());
     }
 
     @Test
     void addNode_duplicateID_shouldThrowException() {
       net.addNode("A");
       assertThrows(IllegalArgumentException.class, () -> net.addNode("A"));
+      assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
     }
 
     @Test

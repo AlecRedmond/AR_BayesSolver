@@ -1,14 +1,15 @@
 package io.github.alecredmond.method.network;
 
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-
+import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.Collection;
 import java.util.List;
 
@@ -56,6 +57,16 @@ public interface BayesianNetwork {
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
    * (CPT) of the form P(N|Parents(N)).
    *
+   * @param node the node to be added to the network
+   * @throws BayesNetIDException if the nodeID is not unique
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork addNode(Node node);
+
+  /**
+   * Adds a node to the network. The node will be associated with a Conditional Probability Table
+   * (CPT) of the form P(N|Parents(N)).
+   *
    * @param nodeID the unique identifier for the node.
    * @param <T> the class of the node ID
    * @throws BayesNetIDException if the nodeID is not unique
@@ -77,6 +88,14 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   <T, E> BayesianNetwork addNode(T nodeID, Collection<E> nodeStateIDs);
+
+  /**
+   * Removes a node and all associated edges from the network.
+   *
+   * @param node the node to remove.
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork removeNode(Node node);
 
   /**
    * Removes a node and all associated edges from the network.
@@ -159,11 +178,33 @@ public interface BayesianNetwork {
   /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
    *
+   * @param child the child node.
+   * @param parents a collection of parent nodes.
+   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork addParents(Node child, Collection<Node> parents);
+
+  /**
+   * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
+   *
    * @param childID the identifier of the child node.
    * @param parentIDs a collection of identifiers for the parent nodes.
+   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
   <T, E> BayesianNetwork addParents(T childID, Collection<E> parentIDs);
+
+  /**
+   * Defines a parent-child relationship by adding a directed edge from a parent node to a child
+   * node.
+   *
+   * @param child the child node.
+   * @param parent the parent node
+   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork addParent(Node child, Node parent);
 
   /**
    * Defines a parent-child relationship by adding a directed edge from a parent node to a child
@@ -173,9 +214,19 @@ public interface BayesianNetwork {
    * @param parentID the identifier of the parent node.
    * @param <T> the class of the Child Node ID
    * @param <E> the class of the Parent Node ID
+   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
   <T, E> BayesianNetwork addParent(T childID, E parentID);
+
+  /**
+   * Removes a directed edge between a parent and a child node.
+   *
+   * @param child the child node.
+   * @param parent the node to remove.
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork removeParent(Node child, Node parent);
 
   /**
    * Removes a directed edge between a parent and a child node.
@@ -192,6 +243,15 @@ public interface BayesianNetwork {
    * Removes all parent relationships for a given child node, removing all incoming edges from the
    * child node.
    *
+   * @param child the child node whose parents will be removed.
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork removeParents(Node child);
+
+  /**
+   * Removes all parent relationships for a given child node, removing all incoming edges from the
+   * child node.
+   *
    * @param childID the identifier of the child node whose parents will be removed.
    * @param <T> the class of the Child Node ID
    * @return this instance for method chaining.
@@ -199,26 +259,38 @@ public interface BayesianNetwork {
   <T> BayesianNetwork removeParents(T childID);
 
   /**
-   * Adds a conditional probability constraint to a node's CPT. This defines P(event | conditions) =
-   * probability.
+   * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
+   * This constraint doesn't have to be within the scope of the network's structure, but each
+   * conditional constraint will add another virtual "edge" to the graph during the solving process.
+   * This may prevent the Junction Tree solver from decomposing the graph into cliques, potentially
+   * increasing the time complexity from its base of {@code O(2^Max(Parents/Node))} up to a maximum
+   * of {@code O(2^Nodes)}.
    *
    * @param eventStateID the state of the child node.
    * @param conditionStateIDs the combination of parent states.
    * @param probability the conditional probability value.
    * @param <T> the class of the event state ID
    * @param <E> the class of the condition state IDs
+   * @throws ConstraintBuilderException <br>
+   *     - if a state is not found within the data <br>
+   *     - if attempting to make a state conditional on another state from the same node <br>
+   *     - if probability p is outwith 0 <= p <= 1
    * @return this instance for method chaining.
    */
   <T, E> BayesianNetwork addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability);
 
   /**
-   * Adds a prior probability constraint for a root node (a node with no parents). This defines
-   * P(event) = probability.
+   * Adds a marginal probability constraint on the network, P(event) = probability. This can be
+   * either a prior probability on a node which has no parents, or a known marginal outcome on a
+   * child node.
    *
    * @param eventStateID the state of the root node.
    * @param probability the prior probability value.
    * @param <T> the class of the event state ID
+   * @throws ConstraintBuilderException <br>
+   *     - if probability p is outwith 0 <= p <= 1 <br>
+   *     - if the state is not found within the data.
    * @return this instance for method chaining.
    */
   <T> BayesianNetwork addConstraint(T eventStateID, double probability);

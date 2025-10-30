@@ -1,6 +1,6 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.Separator;
 import java.util.*;

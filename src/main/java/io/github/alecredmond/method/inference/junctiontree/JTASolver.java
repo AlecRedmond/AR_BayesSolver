@@ -1,8 +1,9 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
-import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.inference.InferenceEngineConfigs;
+import io.github.alecredmond.application.network.BayesianNetworkData;
+import io.github.alecredmond.method.inference.InferenceEngine;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,10 +12,12 @@ public class JTASolver {
 
   private JTASolver() {}
 
-  public static void solveNetwork(BayesianNetworkData data, InferenceEngineConfigs configs) {
+  public static void solveNetwork(InferenceEngine engine) {
+    BayesianNetworkData data = engine.getNetworkData();
+    InferenceEngineConfigs configs = engine.getConfigs();
     log.info("STARTING SOLVER");
     data.setSolved(false);
-    JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(data);
+    JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(engine);
     log.info("JUNCTION TREE BUILT");
 
     double lastError;

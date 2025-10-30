@@ -3,6 +3,8 @@ package io.github.alecredmond.application.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import java.util.*;
+
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import lombok.Getter;
 import lombok.Setter;
 

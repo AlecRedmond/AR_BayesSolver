@@ -1,7 +1,7 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import java.util.*;
 import java.util.stream.IntStream;

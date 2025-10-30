@@ -74,6 +74,7 @@ public class Node {
    */
   public void addParent(Node parent) {
     parents.add(parent);
+    parent.getChildren().add(this);
   }
 
   /**
@@ -83,24 +84,7 @@ public class Node {
    */
   public void removeParent(Node parent) {
     parents.remove(parent);
-  }
-
-  /**
-   * Adds a child to this Node's list of children.
-   *
-   * @param child The child {@link Node} to add.
-   */
-  public void addChild(Node child) {
-    children.add(child);
-  }
-
-  /**
-   * Removes a child from this Node's list of children.
-   *
-   * @param child The child {@link Node} to remove.
-   */
-  public void removeChild(Node child) {
-    children.remove(child);
+    parent.getChildren().remove(this);
   }
 
   /**

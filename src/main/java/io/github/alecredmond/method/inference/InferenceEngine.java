@@ -11,9 +11,12 @@ import io.github.alecredmond.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Getter
 public class InferenceEngine {
   private final BayesianNetworkData networkData;
   private final InferenceEngineConfigs configs;
@@ -121,8 +124,8 @@ public class InferenceEngine {
   }
 
   public void runSolver() {
-    JTASolver.solveNetwork(networkData, configs);
+    JTASolver.solveNetwork(this);
     networkData.setSolved(true);
-    junctionTree = new JunctionTreeAlgorithm(networkData);
+    junctionTree = new JunctionTreeAlgorithm(this);
   }
 }

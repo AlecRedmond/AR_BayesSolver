@@ -5,7 +5,6 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,9 +47,6 @@ public class BayesianNetworkData {
   /** A flag indicating whether the network has been solved by an inference algorithm. */
   protected boolean solved;
 
-  /** The data structure containing all components necessary for the Junction Tree Algorithm. */
-  protected JunctionTreeData junctionTreeData;
-
   /**
    * Default constructor that initializes all internal collections and sets default values. All
    * lists and maps are initialized as empty.
@@ -65,7 +61,6 @@ public class BayesianNetworkData {
     this.observed = new HashMap<>();
     this.constraints = new ArrayList<>();
     this.solved = false;
-    this.junctionTreeData = null;
   }
 
   /**
@@ -76,7 +71,7 @@ public class BayesianNetworkData {
    *
    * @param nodeID The ID of the node whose network table is requested.
    * @param <T> The class of the node ID.
-   * @return The {@link ProbabilityTable} for the specified node, or {@code null} if not found.
+   * @return The {@link ProbabilityTable} for the specified node.
    */
   public <T> ProbabilityTable getNetworkTable(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
@@ -88,7 +83,7 @@ public class BayesianNetworkData {
    *
    * @param nodeID The ID of the node whose network table is requested.
    * @param <T> The class of the node ID.
-   * @return The {@link ProbabilityTable} for the specified node, or {@code null} if not found.
+   * @return The {@link ProbabilityTable} for the specified node.
    */
   public <T> MarginalTable getObservedTable(T nodeID) {
     return observationMap.get(nodeIDsMap.get(nodeID));

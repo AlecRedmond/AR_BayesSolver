@@ -1,7 +1,7 @@
 package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

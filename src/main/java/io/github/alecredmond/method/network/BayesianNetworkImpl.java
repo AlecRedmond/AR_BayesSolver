@@ -1,15 +1,15 @@
 package io.github.alecredmond.method.network;
 
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.method.constraints.ConstraintBuilder;
-import io.github.alecredmond.method.printer.NetworkPrinter;
 import io.github.alecredmond.method.inference.InferenceEngine;
+import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.util.*;
 import lombok.Getter;
 
@@ -39,6 +39,12 @@ class BayesianNetworkImpl implements BayesianNetwork {
     this.printerConfigs = new PrinterConfigs();
   }
 
+  @Override
+  public BayesianNetwork addNode(Node node) {
+    utils.addNode(node);
+    return this;
+  }
+
   public <T> BayesianNetworkImpl addNode(T nodeID) {
     utils.addNode(nodeID);
     return this;
@@ -47,6 +53,13 @@ class BayesianNetworkImpl implements BayesianNetwork {
   public <T, E> BayesianNetworkImpl addNode(T nodeID, Collection<E> nodeStateIDs) {
     utils.addNode(nodeID, nodeStateIDs);
     return this;
+  }
+
+  @Override
+  public BayesianNetwork removeNode(Node node) {
+    if (Optional.ofNullable(node).isEmpty()) return this;
+    utils.removeNode(node.getNodeID());
+    return null;
   }
 
   public <T> BayesianNetworkImpl removeNode(T nodeID) {
@@ -97,8 +110,20 @@ class BayesianNetworkImpl implements BayesianNetwork {
     throw new IllegalArgumentException("No node with ID " + nodeStateID + " found in network");
   }
 
+  @Override
+  public BayesianNetwork addParents(Node child, Collection<Node> parents) {
+    utils.addParents(child, parents);
+    return this;
+  }
+
   public <T, E> BayesianNetworkImpl addParents(T childID, Collection<E> parentIDs) {
     utils.addParents(childID, parentIDs);
+    return this;
+  }
+
+  @Override
+  public BayesianNetwork addParent(Node child, Node parent) {
+    utils.addParent(child, parent);
     return this;
   }
 
@@ -107,8 +132,20 @@ class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
+  @Override
+  public BayesianNetwork removeParent(Node child, Node parent) {
+    utils.removeParent(child, parent);
+    return this;
+  }
+
   public <T, E> BayesianNetworkImpl removeParent(T childID, E parentID) {
     utils.removeParent(childID, parentID);
+    return this;
+  }
+
+  @Override
+  public BayesianNetwork removeParents(Node child) {
+    utils.removeParents(child);
     return this;
   }
 
@@ -175,7 +212,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-    public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
+  public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
     inferenceEngine.observeNetwork(utils.getStatesByID(observedNodeStateIDs));
     return this;
@@ -188,6 +225,11 @@ class BayesianNetworkImpl implements BayesianNetwork {
     }
     inferenceEngine.observeNetwork(List.of());
     return this;
+  }
+
+  public BayesianNetworkData getNetworkData() {
+    utils.buildNetworkData();
+    return networkData;
   }
 
   public <T, E> List<List<T>> generateSamples(
