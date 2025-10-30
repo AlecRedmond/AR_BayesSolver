@@ -17,8 +17,8 @@ AR_BayesSolver is a library that enables easy constructiton of Bayesian Networks
 - API for constructing Bayesian Network structures
 - Constraint-based marginal and conditional probability inputation
 - CPT estimation from a partially-constrained network using JTA/IPFP
-- Performs direct probabilistic inference using the JTA
-- Query for marginal and joint probabilities, given observed evidence.
+- Perform direct probabilistic inference to calculate posterior probabilities.
+- Query for marginal and joint probabilities, given posterior evidence.
 - Generate random samples using a Weighted Likelihood sampling algorithm.
 
 # Installation
