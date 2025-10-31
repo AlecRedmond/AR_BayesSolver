@@ -32,7 +32,7 @@ This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayes
 
 ### 1. Create a Network
 
-Most of the user's interaction with this library will be through the BayesianNetwork interface, which can be instantiated as follows:
+Most of the user's interaction with this library will be through the BayesianNetwork interface, where a new network can be instantiated as follows:
 
 ```Java
 BayesianNetwork network = BayesianNetwork.newNetwork("RAIN_SPRINKLER_WET_GRASS");
