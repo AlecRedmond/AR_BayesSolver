@@ -15,7 +15,7 @@ AR_BayesSolver is a library that enables easy constructiton of Bayesian Networks
 # Features
 
 - API for constructing Bayesian Network structures
-- Constraint-based marginal and conditional probability inputation
+- Imputation for marginal and conditional constraints, including constraints independent of the network structure.
 - CPT estimation from a partially-constrained network using JTA/IPFP
 - Perform direct probabilistic inference to query for marginal and joint probabilities.
 - Generate random samples using a Weighted Likelihood sampling algorithm.
@@ -26,7 +26,50 @@ AR_BayesSolver is a library that enables easy constructiton of Bayesian Networks
 
 # Quick Start 
 
-// TODO
+//TODO - ADD FIGURE 1
+
+This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network as seen in figure 1. It will walk through creating the network; adding nodes, defining parent/child relationships, and adding constraints from known evidence. After this, it will demonstrate how to perform inference on the network and obtain random samples.
+
+### 1. Create a Network
+
+Most of the user's interaction with the network will be through the BayesianNetwork interface, which can be instantiated as follows:
+
+```Java
+BayesianNetwork network = BayesianNetwork.newNetwork("RAIN_SPRINKLER_WET_GRASS");
+```
+
+### 2. Adding Nodes
+
+There are two ways to add nodes to the network, either by defining the Node and its states manually, or using the BayesianNetwork instance itself: 
+
+```Java 
+// Manual Creation 
+
+Node rain = new Node("RAIN",List.of("RAIN:TRUE","RAIN:FALSE"));
+network.addNode(rain);
+
+// Using BayesianNetwork
+
+network.addNode("SPRINKLER",List.of("SPRINKLER:TRUE","SPRINKLER:FALSE"))
+	   .addNode("WET_GRASS",List.of("WET_GRASS:TRUE","WET_GRASS:FALSE"));
+
+```
+
+**Note that all node IDs and node state IDs must be unique!**
+If you are defining your Nodes/NodeStates using strings in the manner shown here, it is recommended to pre-append each state with the name of the node.
+
+### 3. Defining the graph structure:
+
+To define the parent/child relationship, we can then call the ```.addParent()``` or ```.addParents()``` method, which will add a connecting node to the graph by using to the IDs of the child/parent node(s):
+
+```Java
+network.addParent("SPRINKLER","RAIN")
+       .addParents("WET_GRASS",List.of("RAIN","SPRINKLER"));
+```
+
+### 4. Adding Constraints
+
+//TODO
 
 # API
 
