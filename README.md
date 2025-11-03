@@ -26,9 +26,14 @@ AR_BayesSolver is a library that enables easy Bayesian Network constructiton and
 
 # Quick Start 
 
-//TODO - ADD FIGURE 1
-
-This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network as seen in figure 1. It will walk through creating the network; adding nodes, defining parent/child relationships, and adding constraints from known evidence. After this, it will demonstrate how to perform inference on the network and obtain random samples.
+<figure>
+	<img src="https://i.imgur.com/p7yt72o.png" width="512">
+	<figcaption>
+		<p><i>Fig. 1 - Simple Bayesian Network, <a href="https://commons.wikimedia.org/wiki/File:SimpleBayesNet.svg">src. Wikipedia</a></i></p>
+	</figcaption>
+</figure>
+<br>
+This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network as seen in Fig. 1. It will walk through creating the network; adding nodes, defining parent/child relationships, and adding constraints from known evidence. After this, it will demonstrate how to perform inference on the network and obtain random samples.
 
 ### 1. Create a Network
 
@@ -68,6 +73,30 @@ network.addParent("SPRINKLER","RAIN")
 ```
 
 ### 4. Adding Constraints
+
+Constraints are built using the ID of the Node and State, as with the graph structure. Additionally, constraints *do not have to be aligned* with the network structure; for example, a marginal constraint can be defined on a node with parents, or an ancestor node state can be conditional on a descendant state. For the sake of this demonstration we will simply copy half of the constraints from Fig.1:
+
+```Java
+network.addConstraint("RAIN:TRUE", 0.2)
+       .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+       .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
+       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
+       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
+       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
+       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
+```
+Marginal constraints take only the Node State ID and the probability for the input, while Conditional constraints take the *event* node state, a Collection of *condition* node states, and the probability.
+
+Note that due to the nature of IPFP, the complementary constraints (e.g. P(RAIN:FALSE = 0.8)) do not need to be defined. 
+
+### 5. Solving and Direct Inference
+
+The solver can be run using the method call:
+```Java
+network.solveNetwork();
+```
+Which will solve the network's probability tables such that they honour the given constraints. 
+From there, several inference mechanisms can be run:
 
 //TODO
 
