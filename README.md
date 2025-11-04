@@ -215,7 +215,7 @@ The user may wish to use the data they've generated in their own application. On
 
 ProbabilityTable wetGrassCPT = network.getNetworkTable("WET_GRASS");
 List<String> cptIDs = List.of("WET_GRASS:TRUE","SPRINKLER:FALSE","RAIN:TRUE");
-//The IDs must contain a collection of states from ALL nodes within the CPT
+//The IDs must contain a collection of states from all nodes referenced in P(Node|Parents(Node))
 double cptProb = wetGrassCPT.getProbability(cptIDs);
 // cptProb == 0.9
 
