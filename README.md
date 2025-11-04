@@ -169,7 +169,26 @@ P(WET_GRASS|WET_GRASS:TRUE)
 |           1.000|           0.000|
 -----------------------------------
 ```
+### 7. Generating Random Samples 
 
+The API provides the ability to generate random samples based on the current set of observations. This will generate a list of internal lists, where each of the internal lists contains one sampled node state from each node.   
+```Java
+int numberOfSamples = 10;
+List<List<String>> samples = network.generateSamples(numberOfSamples,String.class);
+```
+In this case, it would produce a selection of samples like so: 
+```
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:TRUE, SPRINKLER:FALSE, WET_GRASS:TRUE, 
+RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE, 
+RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE, 
+RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE, 
+RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE,
+```
 
 # API
 
