@@ -246,6 +246,12 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   @Override
+  public <T, E> List<List<T>> generateSamples(
+      Collection<E> includeNodeIDs, int numberOfSamples, Class<T> sampleClass) {
+    return generateSamples(List.of(), includeNodeIDs, numberOfSamples, sampleClass);
+  }
+
+  @Override
   public <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass) {
     return generateSamples(List.of(), List.of(), numberOfSamples, sampleClass);
   }

@@ -831,9 +831,9 @@ class BayesianNetworkTest {
           .observeNetwork(List.of("WET_GRASS:TRUE"))
           .printObserved();
 
-      net.observeMarginals();
+      //net.observeMarginals();
 
-      List<List<String>> list = net.generateSamples(100,String.class);
+      List<List<String>> list = net.generateSamples(10,String.class);
       for(List<String> samples : list){
           String string = samples.stream().map(s -> s + ", ").collect(Collectors.joining());
           System.out.println(string);

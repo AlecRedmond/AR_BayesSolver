@@ -420,6 +420,22 @@ public interface BayesianNetwork {
    * marginals if no observation has been made.
    *
    * @param numberOfSamples the total number of samples to generate.
+   * @param includeNodeIDs a collection of node IDs to include in the samples. If empty, all nodes
+   *     will be included.
+   * @param <T> class of NodeState IDs
+   * @param <E> class of the Node IDs
+   * @param sampleClass the class of the type T, used for type casting.
+   * @return a list of samples, where each sample is a list of node states.
+   */
+  <T, E> List<List<T>> generateSamples(
+      Collection<E> includeNodeIDs, int numberOfSamples, Class<T> sampleClass);
+
+  /**
+   * Generates random samples from the joint probability distribution defined by the network. Note
+   * that this method utilizes the most recent result observations on the network, or the base
+   * marginals if no observation has been made.
+   *
+   * @param numberOfSamples the total number of samples to generate.
    * @param <T> class of NodeState IDs
    * @param sampleClass the class of the type T, used for type casting.
    * @return a list of samples, where each sample is a list of node states.
