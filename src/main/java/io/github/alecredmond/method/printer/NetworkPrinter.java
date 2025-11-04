@@ -33,11 +33,13 @@ public class NetworkPrinter {
 
   public void printObserved() {
     List<String> outputLines = new ArrayList<>();
+
     outputLines.add("OBSERVED TABLES:\n");
-    networkData
-        .getObservationMap()
-        .values()
+
+    networkData.getNodes().stream()
+        .map(networkData.getObservationMap()::get)
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
+
     if (printerConfigs.isPrintToConsole()) {
       outputLines.forEach(System.out::println);
     } else {
@@ -48,10 +50,11 @@ public class NetworkPrinter {
   public void printNetwork() {
     List<String> outputLines = new ArrayList<>();
     outputLines.add("NETWORK TABLES:\n");
-    networkData
-        .getNetworkTablesMap()
-        .values()
+
+    networkData.getNodes().stream()
+        .map(networkData.getNetworkTablesMap()::get)
         .forEach(table -> outputLines.addAll(generateTableLines(table)));
+
     if (printerConfigs.isPrintToConsole()) {
       outputLines.forEach(System.out::println);
     } else {
@@ -85,8 +88,8 @@ public class NetworkPrinter {
         conditionColumnWidth);
   }
 
-  private void printToFile(List<String> lines, String type) {
-    String filePath = createOrRename(getFilePath(), type, 0);
+  private void printToFile(List<String> lines, String observedOrNetwork) {
+    String filePath = validateFilePath(getDefaultFilePath(), observedOrNetwork, 0);
     try {
       FileWriter fw = new FileWriter(filePath);
       PrintWriter pw = new PrintWriter(fw);
@@ -112,10 +115,10 @@ public class NetworkPrinter {
 
   private List<String> formatStateCombinations(
       List<Set<NodeState>> stateCombinations, boolean alignLeft) {
-    int maxStateNameLength = findLongestStateNameLength(stateCombinations);
+    int paddingWidth = findLongestStateNameLength(stateCombinations) + 1;
     return stateCombinations.stream()
         .filter(combination -> !combination.isEmpty())
-        .map(combination -> formatStateCombination(combination, maxStateNameLength, alignLeft))
+        .map(combination -> formatStateCombination(combination, paddingWidth, alignLeft))
         .toList();
   }
 
@@ -141,20 +144,24 @@ public class NetworkPrinter {
       List<Set<NodeState>> eventCombinations,
       List<Set<NodeState>> conditionCombinations,
       ProbabilityTable table) {
-    int rowCount = conditionCombinations.isEmpty() ? 1 : conditionCombinations.size();
+    boolean isMarginalTable = conditionCombinations.isEmpty();
+    int rowCount = isMarginalTable ? 1 : conditionCombinations.size();
     int columnCount = eventCombinations.size();
     String[][] cells = new String[rowCount][columnCount];
 
+    if (isMarginalTable) {
+      for (int column = 0; column < columnCount; column++) {
+        Set<NodeState> columnState = eventCombinations.get(column);
+        cells[0][column] = formatProbability(columnState, Set.of(), table);
+      }
+      return cells;
+    }
+
     for (int column = 0; column < columnCount; column++) {
-      if (rowCount == 1) {
-        cells[0][column] =
-            formatProbability(eventCombinations.get(column), Collections.emptySet(), table);
-      } else {
-        for (int row = 0; row < rowCount; row++) {
-          cells[row][column] =
-              formatProbability(
-                  eventCombinations.get(column), conditionCombinations.get(row), table);
-        }
+      for (int row = 0; row < rowCount; row++) {
+        Set<NodeState> columnState = eventCombinations.get(column);
+        Set<NodeState> rowState = conditionCombinations.get(row);
+        cells[row][column] = formatProbability(columnState, rowState, table);
       }
     }
     return cells;
@@ -179,7 +186,7 @@ public class NetworkPrinter {
     return tableLines;
   }
 
-  private String getFilePath() {
+  private String getDefaultFilePath() {
     String networkName = networkData.getNetworkName();
     String dateTime = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
     String directory = printerConfigs.getSaveDirectory();
@@ -191,13 +198,13 @@ public class NetworkPrinter {
     return String.format("%s%s_%s", directory, dateTime, networkName);
   }
 
-  private String createOrRename(String filePath, String type, int counter) {
-    String newFilePath = String.format("%s_%s_%d", filePath, type, counter);
+  private String validateFilePath(String filePath, String observedOrNetwork, int counter) {
+    String newFilePath = String.format("%s_%s_%d", filePath, observedOrNetwork, counter);
     File file = new File(newFilePath + ".txt");
     try {
       if (file.createNewFile()) {
         return newFilePath + ".txt";
-      } else return createOrRename(filePath, type, counter + 1);
+      } else return validateFilePath(filePath, observedOrNetwork, counter + 1);
 
     } catch (IOException e) {
       log.error("{} creating new file {}", e, filePath);
@@ -218,7 +225,6 @@ public class NetworkPrinter {
       Set<NodeState> states, int paddingWidth, boolean alignLeft) {
     return states.stream()
         .map(NodeState::toString)
-        .sorted()
         .map(
             state ->
                 alignLeft

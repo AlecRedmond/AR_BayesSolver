@@ -49,7 +49,7 @@ public class NodeUtils {
       List<Node> currentNodes,
       int index) {
     if (blockSize == 0) {
-      nodeSets.add(new HashSet<>(currentNodes));
+      nodeSets.add(new LinkedHashSet<>(currentNodes));
       return;
     }
     for (int i = index; i < toCombine.size(); i++) {
@@ -65,7 +65,7 @@ public class NodeUtils {
       int depth,
       List<NodeState> currentCombo) {
     if (depth == nodesList.size()) {
-      stateCombos.add(new HashSet<>(currentCombo));
+      stateCombos.add(new LinkedHashSet<>(currentCombo));
       return;
     }
 

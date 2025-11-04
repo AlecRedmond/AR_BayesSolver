@@ -3,9 +3,9 @@ package io.github.alecredmond.method.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.method.node.NodeUtils;
 import java.util.*;
@@ -58,14 +58,17 @@ public class TableBuilder {
   }
 
   private static Set<Node> joinSets(Set<Node> events, Set<Node> conditions) {
-    return Stream.concat(events.stream(), conditions.stream()).collect(Collectors.toSet());
+    return Stream.concat(conditions.stream(), events.stream())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private static Map<Set<NodeState>, Integer> buildIndexMap(Set<Node> nodes) {
     List<Set<NodeState>> keys = NodeUtils.generateStateCombinations(nodes);
     return IntStream.range(0, keys.size())
         .mapToObj(i -> Map.entry(keys.get(i), i))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
   }
 
   private static double[] buildProbTable(int size) {

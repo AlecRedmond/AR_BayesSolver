@@ -45,7 +45,7 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
   private Map.Entry<Set<NodeState>, Double> generateWeightedSample(
       Map<Node, ProbabilityTable> probTables, Map<Node, NodeState> observations, List<Node> nodes) {
     double weight = 1.0;
-    Map<Node, NodeState> sample = new HashMap<>();
+    Map<Node, NodeState> sample = new LinkedHashMap<>();
     for (Node node : nodes) {
       Map<NodeState, Double> probPerState =
           generateStateProbMap(node, probTables.get(node), observations, sample);
@@ -53,7 +53,7 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
       if (observations.containsKey(node)) weight *= probPerState.get(newState);
       sample.put(node, newState);
     }
-    return Map.entry(new HashSet<>(sample.values()), weight);
+    return Map.entry(new LinkedHashSet<>(sample.values()), weight);
   }
 
   private void updateSampleWeights(

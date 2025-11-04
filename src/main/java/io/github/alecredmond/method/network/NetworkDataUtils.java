@@ -24,12 +24,11 @@ class NetworkDataUtils {
     this.networkData = networkData;
   }
 
-
-    void buildNetworkData() {
+  void buildNetworkData() {
     if (networkData.isSolved()) return;
-    orderNodes();
+    Map<Node, Integer> layerMap = orderNodes();
     rebuildIdMaps();
-    buildNetworkTablesMap();
+    buildNetworkTablesMap(layerMap);
     buildObservedTablesMap();
   }
 
@@ -281,20 +280,28 @@ class NetworkDataUtils {
             node -> networkData.getObservationMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
-  private void buildNetworkTablesMap() {
+  private void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
     networkData
         .getNodes()
         .forEach(
             node -> {
               Set<Node> events = Set.of(node);
-              Set<Node> conditions = new HashSet<>(node.getParents());
+              Set<Node> conditions = orderConditions(node.getParents(), layerMap);
               ProbabilityTable table = buildNetworkTable(events, conditions);
               TableUtils.marginalizeTable(table);
               networkData.getNetworkTablesMap().put(node, table);
             });
   }
 
-  private void orderNodes() {
+  private Set<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
+    return parents.stream()
+        .map(node -> Map.entry(node, layerMap.get(node)))
+        .sorted(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private Map<Node, Integer> orderNodes() {
     Map<Node, Integer> layerMap = new HashMap<>();
     networkData.getNodes().forEach(node -> calculateNodeLayer(node, layerMap));
 
@@ -305,6 +312,7 @@ class NetworkDataUtils {
             .toList();
 
     networkData.setNodes(nodesOrdered);
+    return layerMap;
   }
 
   private int calculateNodeLayer(Node node, Map<Node, Integer> layerMap) {
