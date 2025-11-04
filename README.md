@@ -214,7 +214,6 @@ The user may wish to use the data they've generated in their own application. On
 //FOR A NODE'S CPT
 
 ProbabilityTable wetGrassCPT = network.getNetworkTable("WET_GRASS");
-//extracts the Network Table, or CPT
 List<String> cptIDs = List.of("WET_GRASS:TRUE","SPRINKLER:FALSE","RAIN:TRUE");
 //The IDs must contain a collection of states from ALL nodes within the CPT
 double cptProb = wetGrassCPT.getProbability(cptIDs);
@@ -228,8 +227,7 @@ double marginalProb = wetGrassObserved.getProbability("WET_GRASS:TRUE");
 // marginalProb == 1.0
 ```
 
-
-When using a 
+For further reading, please see the API documentation.
 
 # API
 
