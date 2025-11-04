@@ -89,16 +89,87 @@ Marginal constraints take only the Node State ID and the probability for the inp
 
 Note that due to the nature of IPFP, the complementary constraints (e.g. P(RAIN:FALSE = 0.8)) do not need to be defined. 
 
-### 5. Solving and Direct Inference
+### 5. Solving and Setting Evidence
 
 The solver can be run using the method call:
 ```Java
 network.solveNetwork();
 ```
 Which will solve the network's probability tables such that they honour the given constraints. 
-From there, several inference mechanisms can be run:
 
-//TODO
+Evidence can then be fixed as being "observed" in the network, e.g:
+```Java
+network.observeNetwork("RAIN:TRUE"); //Sets the inference engine to always observe "RAIN:TRUE" 
+```
+Further Inference calls will account for the current observations applied to the network. To clear observations, simply observe the marginals:
+```Java
+network.observeMarginals(); 
+```
+For now, we will set the former, with "RAIN:TRUE".
+
+### 6. Printing the CPTs and Marginals
+
+The API contains a means of printing the network and the results of the inference engine either to a .txt file or to the console. For this example, we will print to .txt files.
+The first thing we need to do is configure the printer using the PrinterConfigs class accessible from the network:
+```Java
+PrinterConfigs printerConfigs = network.getPrinterConfigs();
+printerConfigs.setProbDecimalPlaces(3);
+printerConfigs.setPrintToConsole(false);
+printerConfigs.setOpenFileOnCreation(true);
+```
+By default, the printer will save .txt files to the directory ```$user_home$/AR_Tools/bayes_solver/output/```
+```Java
+network.printNetwork()   //Prints Network Tables (the solved CPTs)
+       .printObserved(); //Prints the Marginal Tables for each node, conditional on the current observations 
+```
+This should automatically open two text files, which will look like this: 
+```
+NETWORK TABLES:
+
+P(RAIN)
+-----------------------
+| RAIN:TRUE|RAIN:FALSE|
+|     0.200|     0.800|
+-----------------------
+
+P(SPRINKLER|RAIN)
+--------------------------------------------
+|          | SPRINKLER:TRUE|SPRINKLER:FALSE|
+|RAIN:TRUE |          0.010|          0.990|
+|RAIN:FALSE|          0.400|          0.600|
+--------------------------------------------
+
+P(WET_GRASS|SPRINKLER,RAIN)
+-----------------------------------------------------------------
+|                               | WET_GRASS:TRUE|WET_GRASS:FALSE|
+|RAIN:TRUE      |SPRINKLER:TRUE |          0.990|          0.010|
+|RAIN:FALSE     |SPRINKLER:TRUE |          0.900|          0.100|
+|RAIN:TRUE      |SPRINKLER:FALSE|          0.900|          0.100|
+|RAIN:FALSE     |SPRINKLER:FALSE|          0.000|          1.000|
+-----------------------------------------------------------------
+```
+```
+OBSERVED TABLES:
+
+P(RAIN|WET_GRASS:TRUE)
+-----------------------
+| RAIN:TRUE|RAIN:FALSE|
+|     0.385|     0.615|
+-----------------------
+
+P(SPRINKLER|WET_GRASS:TRUE)
+---------------------------------
+| SPRINKLER:TRUE|SPRINKLER:FALSE|
+|          0.619|          0.381|
+---------------------------------
+
+P(WET_GRASS|WET_GRASS:TRUE)
+---------------------------------
+| WET_GRASS:TRUE|WET_GRASS:FALSE|
+|          1.000|          0.000|
+---------------------------------
+```
+
 
 # API
 
