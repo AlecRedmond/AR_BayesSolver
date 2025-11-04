@@ -189,6 +189,47 @@ RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE,
 RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE, 
 RAIN:FALSE, SPRINKLER:TRUE, WET_GRASS:TRUE,
 ```
+If the user needs only certain nodes to be included in the samples, e.g. only the values for the "RAIN" node, we can do the following:
+```Java
+List<String> includedNodeIDs = List.of("RAIN");
+List<List<String>> samples = network.generateSamples(includedNodeIDs,numberOfSamples,String.class);
+```
+Which would achieve:
+```
+RAIN:TRUE
+RAIN:TRUE 
+RAIN:TRUE 
+RAIN:TRUE 
+RAIN:TRUE 
+RAIN:TRUE 
+RAIN:FALSE 
+RAIN:FALSE 
+RAIN:FALSE 
+RAIN:FALSE 
+```
+
+### 8. Using ProbabilityTables from the network. 
+The user may wish to use the data they've generated in their own application. One way we can do this is by extracting an individual probability table (either a network CPT or an observed marginal table) from the network:
+```Java
+//FOR A NODE'S CPT
+
+ProbabilityTable wetGrassCPT = network.getNetworkTable("WET_GRASS");
+//extracts the Network Table, or CPT
+List<String> cptIDs = List.of("WET_GRASS:TRUE","SPRINKLER:FALSE","RAIN:TRUE");
+//The IDs must contain a collection of states from ALL nodes within the CPT
+double cptProb = wetGrassCPT.getProbability(cptIDs);
+// cptProb == 0.9
+
+//FOR AN NODE'S OBSERVED TABLE
+
+MarginalTable wetGrassObserved = network.getObservedTable("WET_GRASS");
+// For a marginal table, only a single state from the node needs to be specified
+double marginalProb = wetGrassObserved.getProbability("WET_GRASS:TRUE");
+// marginalProb == 1.0
+```
+
+
+When using a 
 
 # API
 
