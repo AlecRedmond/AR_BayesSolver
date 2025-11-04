@@ -10,30 +10,31 @@
 
 # Overview
 
-AR_BayesSolver is a library that enables easy Bayesian Network constructiton and inference without requiring the user to define the full Conditional Probability Tables (CPTs). Instead the user defines *constraints* on the network, either marginal ```(e.g P(RAIN=true) = 0.2)``` or conditional ```(e.g P(SPRINKLER=false | RAIN=true) = 0.95)```. Using a Junction Tree Algorithm (JTA) accelerated Iterative Proportional Fitting Procedure (IPFP), a "best-fit" probability distribution is calculated that conforms to the given constraints. This is best suited in situations where the user only has partial domain knowledge (i.e. does not have the complete CPT for every node).
+AR_BayesSolver is a library that enables easy Bayesian Network construction and inference without requiring the user to define the full Conditional Probability Tables (CPTs). Instead, the user defines *constraints* on the network, either marginal (e.g ```P(RAIN=true) = 0.2```) or conditional (e.g ```P(SPRINKLER=false | RAIN=true) = 0.95```). Using a Junction Tree Algorithm (JTA) accelerated Iterative Proportional Fitting Procedure (IPFP), a "best-fit" probability distribution is calculated that conforms to the given constraints. This is best suited in situations where the user only has partial domain knowledge (i.e. does not have the complete CPT for every node).
 
 # Features
 
-- API for constructing Bayesian Network structures
-- Imputation for marginal and conditional constraints, including constraints independent of the network structure.
-- CPT estimation from a partially-constrained network using JTA/IPFP
+- Simple API for constructing Bayesian Network structures.
+- Definition of marginal and conditional probability constraints.
+- Support for constraints that are independent of the network's parent/child structure.
+- CPT estimation from a partially-constrained network using JTA/IPFP algorithm.
 - Perform direct probabilistic inference to query for marginal and joint probabilities.
 - Generate random samples using a Weighted Likelihood sampling algorithm.
 
 # Installation
 
-// TODO
+- Planned release on Maven Central soon.
 
 # Quick Start 
 
 <figure>
-	<img src="https://i.imgur.com/p7yt72o.png" width="512">
+	<img src="https://i.imgur.com/p7yt72o.png" width="512" alt="Simple Bayesian Network diagram">
 	<figcaption>
 		<p><i>Fig. 1 - Simple Bayesian Network, <a href="https://commons.wikimedia.org/wiki/File:SimpleBayesNet.svg">src. Wikipedia</a></i></p>
 	</figcaption>
 </figure>
 <br>
-This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network as seen in Fig. 1. It will walk through creating the network; adding nodes, defining parent/child relationships, and adding constraints from known evidence. After this, it will demonstrate how to perform inference on the network and obtain random samples.
+This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network (Fig. 1). It will walk through creating the network; adding nodes, defining parent/child relationships, and adding constraints from known evidence. After this, it will demonstrate how to perform inference on the network and obtain random samples.
 
 ### 1. Create a Network
 
@@ -65,7 +66,7 @@ If you are defining your Nodes/NodeStates using strings in the manner shown here
 
 ### 3. Defining the graph structure:
 
-To define the parent/child relationship, we can then call the ```.addParent()``` or ```.addParents()``` method, which will add a connecting node to the graph by using to the IDs of the child/parent node(s):
+To define the parent/child relationship, we can then call the ```.addParent()``` or ```.addParents()``` method, which will add a connecting node to the graph by using the IDs of the child/parent node(s):
 
 ```Java
 network.addParent("SPRINKLER","RAIN")
@@ -74,7 +75,7 @@ network.addParent("SPRINKLER","RAIN")
 
 ### 4. Adding Constraints
 
-Constraints are built using the ID of the Node and State, as with the graph structure. Additionally, constraints *do not have to be aligned* with the network structure; for example, a marginal constraint can be defined on a node with parents, or an ancestor node state can be conditional on a descendant state. For the sake of this demonstration we will simply copy half of the constraints from Fig.1:
+Constraints are built using the ID of the Node and State, as with the graph structure. Additionally, **constraints do not have to be aligned with the network structure**; for example, a marginal constraint can be defined on a node with parents, or an ancestor node state can be conditional on a descendant state. For the sake of this demonstration we will simply copy half of the constraints from Fig.1:
 
 ```Java
 network.addConstraint("RAIN:TRUE", 0.2)
