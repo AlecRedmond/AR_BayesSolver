@@ -99,13 +99,13 @@ Which will solve the network's probability tables such that they honour the give
 
 Evidence can then be fixed as being "observed" in the network, e.g:
 ```Java
-network.observeNetwork("RAIN:TRUE"); //Sets the inference engine to always observe "RAIN:TRUE" 
+network.observeNetwork("WET_GRASS:TRUE"); //Sets the inference engine to always observe "WET_GRASS:TRUE" 
 ```
 Further Inference calls will account for the current observations applied to the network. To clear observations, simply observe the marginals:
 ```Java
 network.observeMarginals(); 
 ```
-For now, we will set the former, with "RAIN:TRUE".
+For now, we will set the former, with "WET_GRASS:TRUE".
 
 ### 6. Printing the CPTs and Marginals
 
