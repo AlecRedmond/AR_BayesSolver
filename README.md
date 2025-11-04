@@ -127,47 +127,47 @@ This should automatically open two text files, which will look like this:
 NETWORK TABLES:
 
 P(RAIN)
------------------------
-| RAIN:TRUE|RAIN:FALSE|
-|     0.200|     0.800|
------------------------
+-------------------------
+|  RAIN:TRUE| RAIN:FALSE|
+|      0.200|      0.800|
+-------------------------
 
 P(SPRINKLER|RAIN)
---------------------------------------------
-|          | SPRINKLER:TRUE|SPRINKLER:FALSE|
-|RAIN:TRUE |          0.010|          0.990|
-|RAIN:FALSE|          0.400|          0.600|
---------------------------------------------
+-----------------------------------------------
+|           |  SPRINKLER:TRUE| SPRINKLER:FALSE|
+|RAIN:TRUE  |           0.010|           0.990|
+|RAIN:FALSE |           0.400|           0.600|
+-----------------------------------------------
 
-P(WET_GRASS|SPRINKLER,RAIN)
------------------------------------------------------------------
-|                               | WET_GRASS:TRUE|WET_GRASS:FALSE|
-|RAIN:TRUE      |SPRINKLER:TRUE |          0.990|          0.010|
-|RAIN:FALSE     |SPRINKLER:TRUE |          0.900|          0.100|
-|RAIN:TRUE      |SPRINKLER:FALSE|          0.900|          0.100|
-|RAIN:FALSE     |SPRINKLER:FALSE|          0.000|          1.000|
------------------------------------------------------------------
+P(WET_GRASS|RAIN,SPRINKLER)
+---------------------------------------------------------------------
+|                                 |  WET_GRASS:TRUE| WET_GRASS:FALSE|
+|RAIN:TRUE       |SPRINKLER:TRUE  |           0.990|           0.010|
+|RAIN:TRUE       |SPRINKLER:FALSE |           0.900|           0.100|
+|RAIN:FALSE      |SPRINKLER:TRUE  |           0.900|           0.100|
+|RAIN:FALSE      |SPRINKLER:FALSE |           0.000|           1.000|
+---------------------------------------------------------------------
 ```
 ```
 OBSERVED TABLES:
 
 P(RAIN|WET_GRASS:TRUE)
------------------------
-| RAIN:TRUE|RAIN:FALSE|
-|     0.385|     0.615|
------------------------
+-------------------------
+|  RAIN:TRUE| RAIN:FALSE|
+|      0.385|      0.615|
+-------------------------
 
 P(SPRINKLER|WET_GRASS:TRUE)
----------------------------------
-| SPRINKLER:TRUE|SPRINKLER:FALSE|
-|          0.619|          0.381|
----------------------------------
+-----------------------------------
+|  SPRINKLER:TRUE| SPRINKLER:FALSE|
+|           0.619|           0.381|
+-----------------------------------
 
 P(WET_GRASS|WET_GRASS:TRUE)
----------------------------------
-| WET_GRASS:TRUE|WET_GRASS:FALSE|
-|          1.000|          0.000|
----------------------------------
+-----------------------------------
+|  WET_GRASS:TRUE| WET_GRASS:FALSE|
+|           1.000|           0.000|
+-----------------------------------
 ```
 
 
