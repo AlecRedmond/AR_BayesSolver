@@ -396,22 +396,35 @@ public interface BayesianNetwork {
 
   /**
    * Generates random samples from the joint probability distribution defined by the network. Note
-   * that this method utilizes the most recent result observations on the network, or the true
+   * that this method utilizes the most recent result observations on the network, or the base
    * marginals if no observation has been made.
    *
    * @param numberOfSamples the total number of samples to generate.
    * @param excludeNodeIDs a collection of node IDs to exclude from the samples.
-   * @param includeNodeIDs a collection of node IDs to include in the samples.
+   * @param includeNodeIDs a collection of node IDs to include in the samples. If empty, all nodes
+   *     will be included.
    * @param <T> class of NodeState IDs
    * @param <E> class of the Node IDs
-   * @param tClass the class of the type T, used for type casting.
+   * @param sampleClass the class of the type T, used for type casting.
    * @return a list of samples, where each sample is a list of node states.
    */
   <T, E> List<List<T>> generateSamples(
       Collection<E> excludeNodeIDs,
       Collection<E> includeNodeIDs,
       int numberOfSamples,
-      Class<T> tClass);
+      Class<T> sampleClass);
+
+  /**
+   * Generates random samples from the joint probability distribution defined by the network. Note
+   * that this method utilizes the most recent result observations on the network, or the base
+   * marginals if no observation has been made.
+   *
+   * @param numberOfSamples the total number of samples to generate.
+   * @param <T> class of NodeState IDs
+   * @param sampleClass the class of the type T, used for type casting.
+   * @return a list of samples, where each sample is a list of node states.
+   */
+  <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass);
 
   /**
    * Calculates the joint probability of a set of events occurring, conditional on the current

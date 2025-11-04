@@ -808,7 +808,8 @@ class BayesianNetworkTest {
 
       PrinterConfigs printerConfigs = net.getPrinterConfigs();
       printerConfigs.setProbDecimalPlaces(3);
-      printerConfigs.setPrintToConsole(true);
+      printerConfigs.setPrintToConsole(false);
+      printerConfigs.setOpenFileOnCreation(true);
 
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
@@ -819,9 +820,9 @@ class BayesianNetworkTest {
           .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
           .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
+          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
-          .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
           .solveNetwork()
           .observeMarginals()
           .printNetwork()

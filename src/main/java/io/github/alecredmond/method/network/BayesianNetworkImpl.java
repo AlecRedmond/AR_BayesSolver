@@ -236,13 +236,18 @@ class BayesianNetworkImpl implements BayesianNetwork {
       Collection<E> excludeNodeIDs,
       Collection<E> includeNodeIDs,
       int numberOfSamples,
-      Class<T> tClass) {
+      Class<T> sampleClass) {
     if (!networkData.isSolved()) solveNetwork();
     return inferenceEngine.generateSamples(
         utils.getNodesByID(excludeNodeIDs),
         utils.getNodesByID(includeNodeIDs),
         numberOfSamples,
-        tClass);
+        sampleClass);
+  }
+
+  @Override
+  public <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass) {
+    return generateSamples(List.of(), List.of(), numberOfSamples, sampleClass);
   }
 
   public <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs) {
