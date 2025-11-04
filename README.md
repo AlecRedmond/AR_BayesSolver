@@ -227,8 +227,6 @@ double marginalProb = wetGrassObserved.getProbability("WET_GRASS:TRUE");
 // marginalProb == 1.0
 ```
 
-For further reading, please see the API documentation.
-
 # API
 
 // TODO
