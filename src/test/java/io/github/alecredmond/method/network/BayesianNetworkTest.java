@@ -14,8 +14,6 @@ import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -831,13 +829,7 @@ class BayesianNetworkTest {
           .observeNetwork(List.of("WET_GRASS:TRUE"))
           .printObserved();
 
-      //net.observeMarginals();
-
-      List<List<String>> list = net.generateSamples(10,String.class);
-      for(List<String> samples : list){
-          String string = samples.stream().map(s -> s + ", ").collect(Collectors.joining());
-          System.out.println(string);
-      }
+      net.observeMarginals();
 
       int numOfSamples = 100_000;
 

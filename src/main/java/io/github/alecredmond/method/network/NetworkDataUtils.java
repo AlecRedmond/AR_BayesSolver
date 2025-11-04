@@ -47,7 +47,6 @@ class NetworkDataUtils {
     checkForExistingIDs(List.of(node.getNodeID()));
     List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
     checkForExistingIDs(stateIDs);
-    networkData.getNodes().add(node);
     networkData.getNodeIDsMap().put(node.getNodeID(), node);
     addStatesToMap(node);
     networkData.setSolved(false);
@@ -106,7 +105,6 @@ class NetworkDataUtils {
     dupesCheckList.add(nodeID);
     checkForExistingIDs(dupesCheckList);
     Node newNode = new Node(nodeID, nodeStateIDs);
-    networkData.getNodes().add(newNode);
     networkData.getNodeIDsMap().put(nodeID, newNode);
     addStatesToMap(newNode);
     networkData.setSolved(false);
@@ -126,6 +124,8 @@ class NetworkDataUtils {
       log.error("No node ID '{}' found!", nodeID);
       return;
     }
+    buildNetworkData();
+
     Node toRemove = getNodeByID(nodeID);
 
     networkData.getNetworkTablesMap().remove(toRemove);
@@ -133,9 +133,10 @@ class NetworkDataUtils {
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove);
 
-    List<Node> nodes = networkData.getNodes();
-    nodes.remove(toRemove);
-    nodes.forEach(
+    List<Node> newNodes = networkData.getNodes().stream().filter(n -> !n.equals(toRemove)).toList();
+    networkData.setNodes(newNodes);
+
+    newNodes.forEach(
         node -> {
           node.getParents().remove(toRemove);
           node.getChildren().remove(toRemove);
@@ -303,7 +304,7 @@ class NetworkDataUtils {
 
   private Map<Node, Integer> orderNodes() {
     Map<Node, Integer> layerMap = new HashMap<>();
-    networkData.getNodes().forEach(node -> calculateNodeLayer(node, layerMap));
+    networkData.getNodeIDsMap().values().forEach(node -> calculateNodeLayer(node, layerMap));
 
     List<Node> nodesOrdered =
         layerMap.entrySet().stream()
