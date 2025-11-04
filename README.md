@@ -92,7 +92,7 @@ network.addConstraint("RAIN:TRUE", 0.2)
 
 ### 5. Solving and Setting Evidence
 
-We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honors all given constraints.
+We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given constraints.
 ```Java
 network.solveNetwork();
 ```
