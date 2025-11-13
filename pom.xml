@@ -6,7 +6,7 @@
 
     <groupId>io.github.alecredmond</groupId>
     <artifactId>BayesSolver</artifactId>
-    <version>0.1.1-ALPHA</version>
+    <version>0.1.01-ALPHA</version>
 
     <properties>
         <java.version>21</java.version>
