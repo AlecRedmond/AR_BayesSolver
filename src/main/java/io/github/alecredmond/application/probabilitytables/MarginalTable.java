@@ -7,24 +7,11 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 
-/**
- * Represents the unconditional probability distribution for a single Node in the Bayesian Network.
- * Used in Nodes without parents or in network observations
- */
 @Getter
 public class MarginalTable extends ProbabilityTable {
-  /** The node in the network associated with the table */
+
   private final Node networkNode;
 
-  /**
-   * @param nodeStateIDMap a map which can obtain a NodeState from its ID
-   * @param nodeIDMap a map which can obtain a Node from its ID
-   * @param indexMap a map that links every set of Node States to its associated probability on the
-   *     array
-   * @param tableID The Identifier for the table
-   * @param probabilities a flat array of probability values
-   * @param networkNode the single node measured by the table
-   */
   public MarginalTable(
       Map<Set<NodeState>, Integer> indexMap,
       double[] probabilities,
@@ -44,13 +31,6 @@ public class MarginalTable extends ProbabilityTable {
     this.networkNode = networkNode;
   }
 
-  /**
-   * Finds the probability for a given Event NodeState ID.
-   *
-   * @param nodeStateID the ID of the marginal state to be observed
-   * @param <T> The Class of the NodeState IDs
-   * @return a probability value between 0 and 1.
-   */
   public <T> double getProbability(T nodeStateID) {
     return super.getProbability(Set.of(nodeStateID));
   }

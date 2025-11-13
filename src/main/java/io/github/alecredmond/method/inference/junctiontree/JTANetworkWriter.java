@@ -1,17 +1,16 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
-import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.inference.junctiontree.Separator;
+import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
-
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,10 +39,9 @@ class JTANetworkWriter {
   }
 
   /**
-   * When a clique table [e.g P(A,B,C)] is initialized and assigned network tables [e.g
-   * P(A)*P(B)*P(C|A,B)], this function fills the joint probabilities on the clique table
-   * accordingly and assigns a pointer from the clique table probability index to the associated
-   * indexes on each included network table
+   * When a clique table [e.g P(A,B,C)] is assigned network tables [e.g P(A)*P(B)*P(C|A,B)], this
+   * fills the joint probabilities and maps each clique's index to the relevant state's index on the
+   * network tables. This is used for summing up state probabilities during write-back.
    */
   private static void mapProbabilitiesAndIndexes(
       Clique clique, Set<ProbabilityTable> networkTables) {
@@ -66,7 +64,7 @@ class JTANetworkWriter {
     }
   }
 
-  /** Separators are initialized with all of their table values set to 1.0 */
+  
   static void setSeparatorsToUnity(JunctionTreeData data) {
     data.getSeparators().stream()
         .map(Separator::getTable)
@@ -92,8 +90,7 @@ class JTANetworkWriter {
         .getHandler();
   }
 
-  private static void writeToMarginalTable(
-      MarginalTable marginalTable, JTATableHandler handler) {
+  private static void writeToMarginalTable(MarginalTable marginalTable, JTATableHandler handler) {
     marginalTable
         .getKeySet()
         .forEach(key -> marginalTable.setProbability(key, handler.sumFromTable(key)));

@@ -275,6 +275,7 @@ class NetworkDataUtils {
   }
 
   private void buildObservedTablesMap() {
+    networkData.setObservationMap(new HashMap<>());
     networkData
         .getNodes()
         .forEach(
@@ -282,6 +283,7 @@ class NetworkDataUtils {
   }
 
   private void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
+    networkData.setNetworkTablesMap(new HashMap<>());
     networkData
         .getNodes()
         .forEach(
