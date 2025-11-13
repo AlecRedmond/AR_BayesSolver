@@ -227,8 +227,14 @@ class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetworkData getNetworkData() {
+  @Override
+  public BayesianNetwork buildNetworkData() {
     utils.buildNetworkData();
+    return this;
+  }
+
+  @Override
+  public BayesianNetworkData getNetworkData() {
     return networkData;
   }
 

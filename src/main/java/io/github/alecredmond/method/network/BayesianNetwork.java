@@ -388,6 +388,14 @@ public interface BayesianNetwork {
   BayesianNetwork observeMarginals();
 
   /**
+   * Builds the underlying data object containing all network information. Only runs if the network
+   * is not solved.
+   *
+   * @return this instance for method chaining.
+   */
+  BayesianNetwork buildNetworkData();
+
+  /**
    * Retrieves the underlying data object containing all network information.
    *
    * @return the raw data class associated with the Bayesian network.
