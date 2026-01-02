@@ -51,7 +51,7 @@ public class TableUtils {
         .sum();
   }
 
-  public static Set<NodeState> removeRedundantStates(
+  public static Set<NodeState> collectStatesPresentInTable(
       Collection<NodeState> currentStates, ProbabilityTable table) {
     Set<Node> tableNodes = table.getNodes();
     return currentStates.stream()

@@ -45,15 +45,17 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
   private Map.Entry<Set<NodeState>, Double> generateWeightedSample(
       Map<Node, ProbabilityTable> probTables, Map<Node, NodeState> observations, List<Node> nodes) {
     double weight = 1.0;
-    Map<Node, NodeState> sample = new LinkedHashMap<>();
+    Map<Node, NodeState> newSample = new LinkedHashMap<>();
+
     for (Node node : nodes) {
       Map<NodeState, Double> probPerState =
-          generateStateProbMap(node, probTables.get(node), observations, sample);
+          generateStateProbMap(node, probTables.get(node), observations, newSample);
       NodeState newState = WeightedRandom.nextRandom(probPerState);
       if (observations.containsKey(node)) weight *= probPerState.get(newState);
-      sample.put(node, newState);
+      newSample.put(node, newState);
     }
-    return Map.entry(new LinkedHashSet<>(sample.values()), weight);
+
+    return Map.entry(new LinkedHashSet<>(newSample.values()), weight);
   }
 
   private void updateSampleWeights(
@@ -90,7 +92,7 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
       Map<Node, NodeState> sample) {
     Map<NodeState, Double> stateMap = new HashMap<>();
     Set<NodeState> tableKey =
-        new HashSet<>(TableUtils.removeRedundantStates(sample.values(), table));
+        new HashSet<>(TableUtils.collectStatesPresentInTable(sample.values(), table));
 
     List<NodeState> validStates =
         observations.containsKey(node) ? List.of(observations.get(node)) : node.getNodeStates();

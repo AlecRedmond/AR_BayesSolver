@@ -53,7 +53,7 @@ class JTANetworkWriter {
       double jointProb = 1.0;
 
       for (ProbabilityTable table : networkTables) {
-        Set<NodeState> validRequest = TableUtils.removeRedundantStates(request, table);
+        Set<NodeState> validRequest = TableUtils.collectStatesPresentInTable(request, table);
         int networkIndexPointer = table.getIndex(validRequest);
         cliqueTable.getIndexPointerMap().get(table)[cliqueIndex] = networkIndexPointer;
         double tableProb = table.getProbabilities()[networkIndexPointer];
