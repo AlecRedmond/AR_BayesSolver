@@ -6,6 +6,7 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.node.NodeUtils;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,6 @@ public class TableUtils {
     Set<Node> tableNodes = table.getNodes();
     return currentStates.stream()
         .filter(ns -> tableNodes.contains(ns.getNode()))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(HashSet::new));
   }
 }

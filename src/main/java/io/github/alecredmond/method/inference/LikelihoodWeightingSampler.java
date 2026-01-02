@@ -91,8 +91,7 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
       Map<Node, NodeState> observations,
       Map<Node, NodeState> sample) {
     Map<NodeState, Double> stateMap = new HashMap<>();
-    Set<NodeState> tableKey =
-        new HashSet<>(TableUtils.collectStatesPresentInTable(sample.values(), table));
+    Set<NodeState> tableKey = TableUtils.collectStatesPresentInTable(sample.values(), table);
 
     List<NodeState> validStates =
         observations.containsKey(node) ? List.of(observations.get(node)) : node.getNodeStates();
