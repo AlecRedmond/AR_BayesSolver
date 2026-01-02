@@ -12,15 +12,15 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BayesianNetworkData {
-  protected String networkName;
-  protected List<Node> nodes;
-  protected Map<Object, Node> nodeIDsMap;
-  protected Map<Object, NodeState> nodeStateIDsMap;
-  protected Map<Node, ProbabilityTable> networkTablesMap;
-  protected Map<Node, MarginalTable> observationMap;
-  protected Map<Node, NodeState> observed;
-  protected List<ParameterConstraint> constraints;
-  protected boolean solved;
+  private String networkName;
+  private List<Node> nodes;
+  private Map<Object, Node> nodeIDsMap;
+  private Map<Object, NodeState> nodeStateIDsMap;
+  private Map<Node, ProbabilityTable> networkTablesMap;
+  private Map<Node, MarginalTable> observationMap;
+  private Map<Node, NodeState> observed;
+  private List<ParameterConstraint> constraints;
+  private boolean solved;
 
   public BayesianNetworkData() {
     this.networkName = "";
