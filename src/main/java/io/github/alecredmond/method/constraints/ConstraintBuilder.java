@@ -23,9 +23,12 @@ public class ConstraintBuilder {
       BayesianNetworkData data) {
     checkStatesExist(eventStateID, conditionStateIDs, data);
     checkProbabilityIsValid(probability);
+
     NodeState eventState = getNodeState(eventStateID, data);
     List<NodeState> conditionStates = getNodeStates(conditionStateIDs, data);
+
     checkNoConditionsInEventNode(eventState, conditionStates);
+
     if (conditionStates.isEmpty()) return new MarginalConstraint(eventState, probability);
     return new ConditionalConstraint(eventState, conditionStates, probability);
   }
