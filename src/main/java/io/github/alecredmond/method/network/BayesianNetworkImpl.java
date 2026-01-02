@@ -32,7 +32,6 @@ class BayesianNetworkImpl implements BayesianNetwork {
 
   BayesianNetworkImpl() {
     this.networkData = new BayesianNetworkData();
-    networkData.setNetworkName("UNNAMED_NETWORK");
     this.utils = new NetworkDataUtils(networkData);
     this.inferenceEngineConfigs = new InferenceEngineConfigs();
     this.inferenceEngine = new InferenceEngine(networkData, inferenceEngineConfigs);

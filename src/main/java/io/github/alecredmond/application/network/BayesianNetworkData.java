@@ -23,7 +23,7 @@ public class BayesianNetworkData {
   private boolean solved;
 
   public BayesianNetworkData() {
-    this.networkName = "";
+    this.networkName = "UNNAMED NETWORK";
     this.nodes = new ArrayList<>();
     this.nodeIDsMap = new HashMap<>();
     this.nodeStateIDsMap = new HashMap<>();
