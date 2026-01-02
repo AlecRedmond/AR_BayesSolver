@@ -23,13 +23,13 @@ class JTANetworkWriter {
     data.getAssociatedTables()
         .forEach(
             (clique, networkTables) -> {
-              initialiseIndexPointers(clique.getTable(), networkTables);
-              mapProbabilitiesAndIndexes(clique, networkTables);
+              initializePointerArrays(clique.getTable(), networkTables);
+              mapProbabilitiesAndPointers(clique, networkTables);
             });
     setSeparatorsToUnity(data);
   }
 
-  private static void initialiseIndexPointers(
+  private static void initializePointerArrays(
       JunctionTreeTable cliqueTable, Set<ProbabilityTable> networkTables) {
     networkTables.forEach(
         table ->
@@ -40,10 +40,12 @@ class JTANetworkWriter {
 
   /**
    * When a clique table [e.g P(A,B,C)] is assigned network tables [e.g P(A)*P(B)*P(C|A,B)], this
-   * fills the joint probabilities and maps each clique's index to the relevant state's index on the
-   * network tables. This is used for summing up state probabilities during write-back.
+   * fills in the product of the states in each network table [P(a,b,c)], while simultaneously
+   * storing the index from each array used [ P(A)[&a],P(B)[&b],P(C)[&c,a,b] ]. These act as
+   * pseudo-pointers which greatly increase the speed of writing the final values back to the
+   * network after solving.
    */
-  private static void mapProbabilitiesAndIndexes(
+  private static void mapProbabilitiesAndPointers(
       Clique clique, Set<ProbabilityTable> networkTables) {
     JunctionTreeTable cliqueTable = clique.getTable();
 
@@ -53,8 +55,8 @@ class JTANetworkWriter {
       double jointProb = 1.0;
 
       for (ProbabilityTable table : networkTables) {
-        Set<NodeState> validRequest = TableUtils.collectStatesPresentInTable(request, table);
-        int networkIndexPointer = table.getIndex(validRequest);
+        Set<NodeState> statesInTable = TableUtils.collectStatesPresentInTable(request, table);
+        int networkIndexPointer = table.getIndex(statesInTable);
         cliqueTable.getIndexPointerMap().get(table)[cliqueIndex] = networkIndexPointer;
         double tableProb = table.getProbabilities()[networkIndexPointer];
         jointProb = jointProb * tableProb;
@@ -64,7 +66,6 @@ class JTANetworkWriter {
     }
   }
 
-  
   static void setSeparatorsToUnity(JunctionTreeData data) {
     data.getSeparators().stream()
         .map(Separator::getTable)

@@ -80,7 +80,8 @@ class JTAInitializer {
     if (!bayesianNetworkData.isSolved()) return false;
     if (Optional.ofNullable(engine.getJunctionTree()).isEmpty()) return false;
     // Constraint handlers are only used for solving the network
-    // If it's a solved network, rebuilding the JTA may result in smaller Cliques (preferable)
+    // If it's a recently solved network (with handlers present) rebuilding the JTA may result in
+    // smaller Cliques and therefore faster inference
     return engine.getJunctionTree().getData().getConstraintHandlers().isEmpty();
   }
 
