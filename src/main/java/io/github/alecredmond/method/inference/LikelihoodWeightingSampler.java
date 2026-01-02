@@ -58,7 +58,7 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
 
   private void updateSampleWeights(
       Map.Entry<Set<NodeState>, Double> entry, Map<Set<NodeState>, Double> sampleWeights) {
-    if (!sampleWeights.containsKey(entry.getKey())) sampleWeights.put(entry.getKey(), 0.0);
+    sampleWeights.putIfAbsent(entry.getKey(), 0.0);
     Set<NodeState> key = entry.getKey();
     double toAdd = entry.getValue();
     sampleWeights.put(key, sampleWeights.get(key) + toAdd);
