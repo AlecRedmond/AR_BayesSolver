@@ -36,7 +36,7 @@ class BayesianNetworkTest {
       BayesianNetwork unnamedNet = BayesianNetwork.newNetwork();
       assertNotNull(unnamedNet);
       assertNotNull(unnamedNet.getNetworkData());
-      assertEquals("UNNAMED_NETWORK", unnamedNet.getNetworkData().getNetworkName());
+      assertEquals("UNNAMED NETWORK", unnamedNet.getNetworkData().getNetworkName());
     }
 
     @Test
