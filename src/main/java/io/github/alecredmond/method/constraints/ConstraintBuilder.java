@@ -25,7 +25,7 @@ public class ConstraintBuilder {
     checkProbabilityIsValid(probability);
     NodeState eventState = getNodeState(eventStateID, data);
     List<NodeState> conditionStates = getNodeStates(conditionStateIDs, data);
-    noConditionsInEventNode(eventState, conditionStates);
+    checkNoConditionsInEventNode(eventState, conditionStates);
     if (conditionStates.isEmpty()) return new MarginalConstraint(eventState, probability);
     return new ConditionalConstraint(eventState, conditionStates, probability);
   }
@@ -56,7 +56,7 @@ public class ConstraintBuilder {
     return conditionStateIDs.stream().map(sID -> data.getNodeStateIDsMap().get(sID)).toList();
   }
 
-  private static void noConditionsInEventNode(
+  private static void checkNoConditionsInEventNode(
       NodeState eventState, List<NodeState> conditionStates) {
     Node node = eventState.getNode();
     boolean conditionsInEventNode =
