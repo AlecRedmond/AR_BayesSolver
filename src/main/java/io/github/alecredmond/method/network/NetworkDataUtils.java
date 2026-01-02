@@ -216,27 +216,27 @@ class NetworkDataUtils {
       error = String.format("Attempted to parent %s with itself!", child);
       throw new NetworkStructureException(error);
     }
-    boolean ownAncestor = checkReachable(parent, child, Node::getParents);
+    boolean ownAncestor = checkForNetworkLoops(parent, child, Node::getParents);
     if (ownAncestor) {
       error = String.format("Attempted to parent %s with its own ancestor %s", parent, child);
       throw new NetworkStructureException(error);
     }
-    boolean ownDescendant = checkReachable(child, parent, Node::getChildren);
+    boolean ownDescendant = checkForNetworkLoops(child, parent, Node::getChildren);
     if (ownDescendant) {
       error = String.format("Attempted to parent %s with its own descendant %s", child, parent);
       throw new NetworkStructureException(error);
     }
   }
 
-  private boolean checkReachable(
-      Node traversed, Node toCompare, Function<Node, Collection<Node>> function) {
-    Set<Node> currentSet = new HashSet<>(function.apply(traversed));
+  private boolean checkForNetworkLoops(
+      Node startNode, Node loopConfirm, Function<Node, Collection<Node>> traversalFunction) {
+    Set<Node> currentSet = new HashSet<>(traversalFunction.apply(startNode));
     while (!currentSet.isEmpty()) {
-      if (currentSet.contains(toCompare)) {
+      if (currentSet.contains(loopConfirm)) {
         return true;
       }
       Set<Node> nextSet = new HashSet<>();
-      currentSet.forEach(node -> nextSet.addAll(function.apply(node)));
+      currentSet.forEach(node -> nextSet.addAll(traversalFunction.apply(node)));
       currentSet = nextSet;
     }
     return false;
