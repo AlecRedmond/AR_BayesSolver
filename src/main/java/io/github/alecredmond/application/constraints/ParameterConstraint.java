@@ -8,7 +8,6 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
 
-/** Abstract data class for Network Constraints. */
 @Getter
 public abstract class ParameterConstraint {
   protected final Set<NodeState> eventStates;
