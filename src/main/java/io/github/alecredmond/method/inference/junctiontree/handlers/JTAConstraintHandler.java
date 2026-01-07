@@ -36,7 +36,7 @@ public abstract class JTAConstraintHandler {
     double conditionProb = getConditionProb();
     double eventProb = JTATableHandler.getRatio(eventJointProb, conditionProb);
 
-    if (tableLockOccurred(expectedProb, eventProb)) {
+    if (tableLockOccurred(expectedProb, eventProb)) { //TODO - Hit Branch In Test Suite
       eventProb = preventTableLock();
       conditionProb = eventProb;
     }
@@ -58,7 +58,7 @@ public abstract class JTAConstraintHandler {
     return expectedProb != 0.0 && eventProb == 0.0;
   }
 
-  protected double preventTableLock() {
+  protected double preventTableLock() { //TODO - Hit Branch In Test Suite
     double[] probs = jtaTableHandler.getProbabilities();
     double newProb = 0.0;
     for (int index : constraintIndexes) {

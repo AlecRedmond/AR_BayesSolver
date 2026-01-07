@@ -2,16 +2,16 @@ package io.github.alecredmond.method.inference;
 
 import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
 
+import io.github.alecredmond.application.inference.InferenceEngineConfigs;
+import io.github.alecredmond.application.inference.SampleGeneratorType;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
-import io.github.alecredmond.application.inference.SampleGeneratorType;
+import io.github.alecredmond.method.inference.junctiontree.JTAInitializer;
 import io.github.alecredmond.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,11 +58,11 @@ public class InferenceEngine {
     Map<Node, NodeState> currentObservations = networkData.getObserved();
     Map<Node, NodeState> newObservations = convertToMap(newEvidence);
     newObservations.putAll(currentObservations);
-    if (currentObservations.equals(newObservations)) return 1.0;
+    if (currentObservations.equals(newObservations)) return 1.0; //TODO - Hit Branch In Test Suite
 
-    if (junctionTree.isMarginalized()) junctionTree.observeNetwork(currentObservations);
+    if (junctionTree.isMarginalized()) junctionTree.observeNetwork(currentObservations); //TODO - Hit Branch In Test Suite
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
-    if (jointProbWithCurrentEvidence == 0) return 0;
+    if (jointProbWithCurrentEvidence == 0) return 0; //TODO - Hit Branch In Test Suite
 
     junctionTree.observeNetwork(newObservations);
     double jointProbWithExtraEvidence = junctionTree.getProbabilityOfEvidence();
@@ -84,7 +84,7 @@ public class InferenceEngine {
       return true;
     }
 
-    if (newEvidence.size() != evidenceStates.size()) return true;
+    if (newEvidence.size() != evidenceStates.size()) return true; //TODO - Hit Branch In Test Suite
 
     return networkData.getObserved().entrySet().stream()
         .anyMatch(observedEntry -> sameKeyDifferentValue(observedEntry, newEvidence));
@@ -104,7 +104,7 @@ public class InferenceEngine {
     Node n = observedEntry.getKey();
     NodeState s = observedEntry.getValue();
     if (newEvents.containsKey(n)) {
-      return !newEvents.get(n).equals(s);
+      return !newEvents.get(n).equals(s); //TODO - Hit Branch In Test Suite
     }
     return false;
   }
@@ -116,7 +116,7 @@ public class InferenceEngine {
   }
 
   public void observeNetwork(Collection<NodeState> observed) {
-    if (!networkData.isSolved()) runSolver();
+    if (!networkData.isSolved()) runSolver(); //TODO - Hit Branch In Test Suite
     Map<Node, NodeState> observedMap = convertToMap(observed);
     junctionTree.observeNetwork(observedMap);
     junctionTree.marginalizeTables();
@@ -126,6 +126,7 @@ public class InferenceEngine {
   public void runSolver() {
     JTASolver.solveNetwork(this);
     networkData.setSolved(true);
-    junctionTree = new JunctionTreeAlgorithm(this);
+    junctionTree =
+        new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
   }
 }

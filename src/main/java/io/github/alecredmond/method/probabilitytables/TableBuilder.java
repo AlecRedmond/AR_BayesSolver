@@ -20,11 +20,11 @@ public class TableBuilder {
 
   public static ProbabilityTable buildNetworkTable(Set<Node> events, Set<Node> conditions) {
     if (events.isEmpty())
-      throw new TableBuilderException("attempted to build a table with no events!");
+      throw new TableBuilderException("attempted to build a table with no events!"); //TODO - Hit Branch In Test Suite
     if (!conditions.isEmpty()) return buildConditionalTable(events, conditions);
     if (events.size() == 1) return buildMarginalTable(events);
     throw new TableBuilderException(
-        "Could not build a marginal or conditional table from request!");
+        "Could not build a marginal or conditional table from request!"); //TODO - Hit Branch In Test Suite
   }
 
   private static ProbabilityTable buildConditionalTable(Set<Node> events, Set<Node> conditions) {

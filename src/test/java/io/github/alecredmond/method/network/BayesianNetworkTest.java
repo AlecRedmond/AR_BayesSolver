@@ -580,7 +580,6 @@ class BayesianNetworkTest {
 
     @BeforeEach
     void buildNetwork() {
-      // Using the Rain/Sprinkler example as a base for queries
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))

@@ -7,7 +7,6 @@ import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
-import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
 import java.util.*;
@@ -18,13 +17,13 @@ import lombok.Getter;
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
 
-  public JunctionTreeAlgorithm(InferenceEngine engine) {
-    this.data = JTAInitializer.build(engine);
+  public JunctionTreeAlgorithm(JunctionTreeData data) {
+    this.data = data;
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
     marginalizeTables();
   }
 
-  public void marginalizeTables() {
+    public void marginalizeTables() {
     data.getCliqueSet().stream().map(Clique::getHandler).forEach(JTATableHandler::marginalize);
     data.setMarginalized(true);
   }

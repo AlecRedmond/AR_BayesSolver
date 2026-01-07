@@ -33,7 +33,7 @@ public class TableUtils {
         .forEach(
             conditionKey -> {
               double probOfCondition = jointProbOfKey(table, conditionKey);
-              if (probOfCondition == 0) return;
+              if (probOfCondition == 0) return; //TODO - Hit Branch In Test Suite
               double normalizationFactor = 1 / probOfCondition;
               table.getKeySet().stream()
                   .filter(key -> key.containsAll(conditionKey))

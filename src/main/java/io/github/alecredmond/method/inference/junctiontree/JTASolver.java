@@ -17,7 +17,8 @@ public class JTASolver {
     InferenceEngineConfigs configs = engine.getConfigs();
     log.info("STARTING SOLVER");
     data.setSolved(false);
-    JunctionTreeAlgorithm jta = new JunctionTreeAlgorithm(engine);
+    JunctionTreeAlgorithm jta =
+        new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(data));
     log.info("JUNCTION TREE BUILT");
 
     double lastError;

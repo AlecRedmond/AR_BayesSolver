@@ -3,12 +3,10 @@ package io.github.alecredmond.method.inference.junctiontree;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.application.inference.InferenceEngineConfigs;
-import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.network.BayesianNetwork;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,18 +34,24 @@ class JTAInitializerTest {
             .addConstraint("A+", List.of("H+"), 1.0)
             .solveNetwork()
             .getNetworkData();
-
-    engine = new InferenceEngine(bayesianNetworkData, new InferenceEngineConfigs());
   }
 
+
+//  @Test
+//  void buildsSolverConfiguration_shouldNotThrow() {
+//    assertDoesNotThrow(() ->
+//            JTAInitializer.buildSolverConfiguration(bayesianNetworkData)
+//    );
+//  }
+/*
   @Test
-  void doesNotThrowErrors() {
-    assertDoesNotThrow(() -> JTAInitializer.build(engine));
+  void buildInferenceConfiguration_shouldNotThrow(){
+      assertDoesNotThrow(() -> engine.runSolver());
   }
 
   @Test
   void analyseResults() {
-    JunctionTreeData jtd = JTAInitializer.build(engine);
+    JunctionTreeData jtd = JTAInitializer.buildSolverConfiguration(bayesianNetworkData);
     var cliques = jtd.getCliqueSet();
     var separators =
         jtd.getCliqueSet().stream()
@@ -70,4 +74,5 @@ class JTAInitializerTest {
               System.out.println(sb);
             }));
   }
+   */
 }

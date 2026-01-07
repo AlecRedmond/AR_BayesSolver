@@ -10,7 +10,6 @@ import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
-import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
@@ -21,42 +20,14 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class JTAInitializer {
+public class JTAInitializer {
 
   private JTAInitializer() {}
 
-  static JunctionTreeData build(InferenceEngine engine) {
-    if (satisfactoryDataExists(engine)) return engine.getJunctionTree().getData();
+  public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
+    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
+    JunctionTreeData.JunctionTreeDataBuilder builder = build(bayesianNetworkData, cliqueSet);
 
-    BayesianNetworkData bayesNetData = engine.getNetworkData();
-
-    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesNetData);
-    Set<Separator> separators = buildSeparators(cliqueSet);
-    Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
-    Map<Clique, Set<ProbabilityTable>> associatedTables =
-        buildAssociatedTablesMap(cliqueSet, bayesNetData);
-    List<JunctionTreeTable> junctionTreeTables = buildTreeTablesList(cliqueSet, separators);
-
-    log.info("CLIQUES BUILT");
-
-    JunctionTreeData.JunctionTreeDataBuilder builder =
-        JunctionTreeData.builder()
-            .bayesianNetworkData(bayesNetData)
-            .cliqueSet(cliqueSet)
-            .separators(separators)
-            .leafCliques(leafCliques)
-            .associatedTables(associatedTables)
-            .junctionTreeTables(junctionTreeTables);
-
-    return bayesNetData.isSolved()
-        ? buildDataForSolved(builder)
-        : buildDataForUnsolved(bayesNetData, cliqueSet, builder);
-  }
-
-  private static JunctionTreeData buildDataForUnsolved(
-      BayesianNetworkData bayesianNetworkData,
-      Set<Clique> cliqueSet,
-      JunctionTreeData.JunctionTreeDataBuilder builder) {
     Map<ParameterConstraint, Clique> cliqueForConstraint =
         findCliquesForConstraints(cliqueSet, bayesianNetworkData);
     Map<ParameterConstraint, JTAConstraintHandler> constraintHandlerMap =
@@ -70,19 +41,46 @@ class JTAInitializer {
         .build();
   }
 
-  private static JunctionTreeData buildDataForSolved(
-      JunctionTreeData.JunctionTreeDataBuilder builder) {
-    return builder.cliqueForConstraint(new HashMap<>()).constraintHandlers(new HashMap<>()).build();
+  public static JunctionTreeData buildInferenceConfiguration(
+      BayesianNetworkData bayesianNetworkData) {
+    return build(bayesianNetworkData, JTACliqueBuilder.buildCliques(bayesianNetworkData))
+        .cliqueForConstraint(new HashMap<>())
+        .constraintHandlers(new HashMap<>())
+        .build();
   }
 
-  private static boolean satisfactoryDataExists(InferenceEngine engine) {
-    BayesianNetworkData bayesianNetworkData = engine.getNetworkData();
-    if (!bayesianNetworkData.isSolved()) return false;
-    if (Optional.ofNullable(engine.getJunctionTree()).isEmpty()) return false;
-    // Constraint handlers are only used for solving the network
-    // If it's a recently solved network (with handlers present) rebuilding the JTA may result in
-    // smaller Cliques and therefore faster inference
-    return engine.getJunctionTree().getData().getConstraintHandlers().isEmpty();
+  private static JunctionTreeData.JunctionTreeDataBuilder build(
+      BayesianNetworkData bayesNetData, Set<Clique> cliqueSet) {
+    Set<Separator> separators = buildSeparators(cliqueSet);
+    Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
+    Map<Clique, Set<ProbabilityTable>> associatedTables =
+        buildAssociatedTablesMap(cliqueSet, bayesNetData);
+    List<JunctionTreeTable> junctionTreeTables = buildTreeTablesList(cliqueSet, separators);
+
+    log.info("CLIQUES BUILT");
+
+    return JunctionTreeData.builder()
+        .bayesianNetworkData(bayesNetData)
+        .cliqueSet(cliqueSet)
+        .separators(separators)
+        .leafCliques(leafCliques)
+        .associatedTables(associatedTables)
+        .junctionTreeTables(junctionTreeTables);
+  }
+
+  private static Map<ParameterConstraint, Clique> findCliquesForConstraints(
+      Set<Clique> cliques, BayesianNetworkData data) {
+    Map<ParameterConstraint, Clique> cfc = new HashMap<>();
+    for (ParameterConstraint constraint : data.getConstraints()) {
+      Clique bestClique =
+          cliques.stream()
+              .filter(clique -> clique.getNodes().containsAll(constraint.getAllNodes()))
+              .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
+              .orElseThrow();
+
+      cfc.put(constraint, bestClique);
+    }
+    return cfc;
   }
 
   private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintIndexerMap(
@@ -100,21 +98,6 @@ class JTAInitializer {
       return new JTAConstraintHandlerConditional(jtaTableHandler, cc);
     }
     throw new IllegalStateException("Unexpected value: " + constraint);
-  }
-
-  private static Map<ParameterConstraint, Clique> findCliquesForConstraints(
-      Set<Clique> cliques, BayesianNetworkData data) {
-    Map<ParameterConstraint, Clique> cfc = new HashMap<>();
-    for (ParameterConstraint constraint : data.getConstraints()) {
-      Clique bestClique =
-          cliques.stream()
-              .filter(clique -> clique.getNodes().containsAll(constraint.getAllNodes()))
-              .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
-              .orElseThrow();
-
-      cfc.put(constraint, bestClique);
-    }
-    return cfc;
   }
 
   private static List<JunctionTreeTable> buildTreeTablesList(
