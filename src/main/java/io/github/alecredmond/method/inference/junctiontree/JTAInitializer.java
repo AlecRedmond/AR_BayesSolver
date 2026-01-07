@@ -25,6 +25,8 @@ public class JTAInitializer {
   private JTAInitializer() {}
 
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
+    JunctionTreeData data = new JunctionTreeData();
+    buildCommon(data, bayesianNetworkData);
     Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
     JunctionTreeData.JunctionTreeDataBuilder builder = build(bayesianNetworkData, cliqueSet);
 
@@ -47,6 +49,11 @@ public class JTAInitializer {
         .cliqueForConstraint(new HashMap<>())
         .constraintHandlers(new HashMap<>())
         .build();
+  }
+
+  private static void buildCommon(
+      JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
+
   }
 
   private static JunctionTreeData.JunctionTreeDataBuilder build(

@@ -12,22 +12,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class JunctionTreeData {
 
-  private final BayesianNetworkData bayesianNetworkData;
-  private final Set<Clique> cliqueSet;
-  private final Set<Separator> separators;
-  private final Set<Clique> leafCliques;
-  private final Map<Clique, Set<ProbabilityTable>> associatedTables;
-  private final List<JunctionTreeTable> junctionTreeTables;
-  private final Map<ParameterConstraint, Clique> cliqueForConstraint;
-  private final Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
-  @Setter private boolean marginalized;
+  private BayesianNetworkData bayesianNetworkData;
+  private Set<Clique> cliqueSet;
+  private Set<Separator> separators;
+  private Set<Clique> leafCliques;
+  private Map<Clique, Set<ProbabilityTable>> associatedTables;
+  private List<JunctionTreeTable> junctionTreeTables;
+  private Map<ParameterConstraint, Clique> cliqueForConstraint;
+  private Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
+  private boolean marginalized;
 
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();
