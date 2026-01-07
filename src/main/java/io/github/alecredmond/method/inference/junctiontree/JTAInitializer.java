@@ -27,70 +27,54 @@ public class JTAInitializer {
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData data = new JunctionTreeData();
     buildCommon(data, bayesianNetworkData);
-    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
-    JunctionTreeData.JunctionTreeDataBuilder builder = build(bayesianNetworkData, cliqueSet);
-
-    Map<ParameterConstraint, Clique> cliqueForConstraint =
-        findCliquesForConstraints(cliqueSet, bayesianNetworkData);
-    Map<ParameterConstraint, JTAConstraintHandler> constraintHandlerMap =
-        buildConstraintIndexerMap(bayesianNetworkData, cliqueForConstraint);
-
-    log.info("CONSTRAINT INDEXERS BUILT");
-
-    return builder
-        .cliqueForConstraint(cliqueForConstraint)
-        .constraintHandlers(constraintHandlerMap)
-        .build();
+    data.setConstraintCliqueMap(buildCliqueConstraintMap(data.getCliqueSet(), bayesianNetworkData));
+    data.setConstraintHandlers(
+        buildConstraintHandlers(bayesianNetworkData, data.getConstraintCliqueMap()));
+    log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
+    return data;
   }
 
   public static JunctionTreeData buildInferenceConfiguration(
       BayesianNetworkData bayesianNetworkData) {
-    return build(bayesianNetworkData, JTACliqueBuilder.buildCliques(bayesianNetworkData))
-        .cliqueForConstraint(new HashMap<>())
-        .constraintHandlers(new HashMap<>())
-        .build();
+    JunctionTreeData data = new JunctionTreeData();
+    buildCommon(data, bayesianNetworkData);
+    data.setConstraintCliqueMap(new HashMap<>());
+    data.setConstraintHandlers(new HashMap<>());
+    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+    return data;
   }
 
   private static void buildCommon(
       JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
-
-  }
-
-  private static JunctionTreeData.JunctionTreeDataBuilder build(
-      BayesianNetworkData bayesNetData, Set<Clique> cliqueSet) {
+    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
     Set<Separator> separators = buildSeparators(cliqueSet);
-    Set<Clique> leafCliques = buildLeafCliques(cliqueSet);
-    Map<Clique, Set<ProbabilityTable>> associatedTables =
-        buildAssociatedTablesMap(cliqueSet, bayesNetData);
-    List<JunctionTreeTable> junctionTreeTables = buildTreeTablesList(cliqueSet, separators);
 
-    log.info("CLIQUES BUILT");
-
-    return JunctionTreeData.builder()
-        .bayesianNetworkData(bayesNetData)
-        .cliqueSet(cliqueSet)
-        .separators(separators)
-        .leafCliques(leafCliques)
-        .associatedTables(associatedTables)
-        .junctionTreeTables(junctionTreeTables);
+    junctionTreeData.setCliqueSet(cliqueSet);
+    junctionTreeData.setSeparators(separators);
+    junctionTreeData.setLeafCliques(buildLeafCliques(cliqueSet));
+    junctionTreeData.setAssociatedTables(buildAssociatedTablesMap(cliqueSet, bayesianNetworkData));
+    junctionTreeData.setJunctionTreeTables(buildTreeTablesList(cliqueSet, separators));
   }
 
-  private static Map<ParameterConstraint, Clique> findCliquesForConstraints(
+  private static Map<ParameterConstraint, Clique> buildCliqueConstraintMap(
       Set<Clique> cliques, BayesianNetworkData data) {
-    Map<ParameterConstraint, Clique> cfc = new HashMap<>();
-    for (ParameterConstraint constraint : data.getConstraints()) {
-      Clique bestClique =
-          cliques.stream()
-              .filter(clique -> clique.getNodes().containsAll(constraint.getAllNodes()))
-              .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
-              .orElseThrow();
-
-      cfc.put(constraint, bestClique);
-    }
-    return cfc;
+    return data.getConstraints().stream()
+        .map(
+            constraint ->
+                Map.entry(
+                    constraint,
+                    findSmallestCliqueContainingAllNodes(cliques, constraint.getAllNodes())))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintIndexerMap(
+  private static Clique findSmallestCliqueContainingAllNodes(Set<Clique> cliques, Set<Node> nodes) {
+    return cliques.stream()
+        .filter(clique -> clique.getNodes().containsAll(nodes))
+        .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
+        .orElseThrow();
+  }
+
+  private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintHandlers(
       BayesianNetworkData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
     return data.getConstraints().stream()
         .map(c -> Map.entry(c, buildConstraintHandler(c, constraintCliqueMap.get(c).getHandler())))

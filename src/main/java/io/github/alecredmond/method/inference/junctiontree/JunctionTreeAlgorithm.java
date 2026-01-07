@@ -64,7 +64,7 @@ public class JunctionTreeAlgorithm {
   }
 
   double adjustAndReturnError(ParameterConstraint constraint) {
-    Clique clique = data.getCliqueForConstraint().get(constraint);
+    Clique clique = data.getConstraintCliqueMap().get(constraint);
     distributeAndCollectMessages(clique, new HashSet<>());
 
     double error = data.getConstraintHandlers().get(constraint).adjustAndReturnError();
