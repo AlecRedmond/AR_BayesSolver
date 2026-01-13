@@ -146,8 +146,7 @@ public class JTAInitializer {
       if (containsLoop) break;
     }
     if (containsLoop) return;
-    Separator s = addSeparatorForNodes(cliqueA, cliqueB);
-    separators.add(s);
+    separators.add(buildCliqueSeparator(cliqueA, cliqueB));
   }
 
   private static List<List<Clique>> getSortedPairs(List<Clique> cliques) {
@@ -174,7 +173,7 @@ public class JTAInitializer {
     return sharedNodesPerPair;
   }
 
-  private static Separator addSeparatorForNodes(Clique cliqueA, Clique cliqueB) {
+  private static Separator buildCliqueSeparator(Clique cliqueA, Clique cliqueB) {
     Set<Node> common = JTACliqueBuilder.intersectionOf(cliqueA.getNodes(), cliqueB.getNodes());
     Separator separator =
         new Separator(cliqueA, cliqueB, common, TableBuilder.buildJunctionTreeTable(common));
