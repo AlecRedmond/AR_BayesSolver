@@ -27,7 +27,8 @@ public class JTAInitializer {
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData data = new JunctionTreeData();
     buildCommon(data, bayesianNetworkData);
-    data.setConstraintCliqueMap(buildCliqueConstraintMap(data.getCliqueSet(), bayesianNetworkData));
+    data.setConstraintCliqueMap(
+        buildCliqueToConstraintAssociations(data.getCliqueSet(), bayesianNetworkData));
     data.setConstraintHandlers(
         buildConstraintHandlers(bayesianNetworkData, data.getConstraintCliqueMap()));
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
@@ -52,11 +53,12 @@ public class JTAInitializer {
     junctionTreeData.setCliqueSet(cliqueSet);
     junctionTreeData.setSeparators(separators);
     junctionTreeData.setLeafCliques(buildLeafCliques(cliqueSet));
-    junctionTreeData.setAssociatedTables(buildAssociatedTablesMap(cliqueSet, bayesianNetworkData));
-    junctionTreeData.setJunctionTreeTables(buildTreeTablesList(cliqueSet, separators));
+    junctionTreeData.setAssociatedTables(
+        buildCliqueToCPTAssociations(cliqueSet, bayesianNetworkData));
+    junctionTreeData.setJunctionTreeTables(listJTATablesInSizeAscOrder(cliqueSet, separators));
   }
 
-  private static Map<ParameterConstraint, Clique> buildCliqueConstraintMap(
+  private static Map<ParameterConstraint, Clique> buildCliqueToConstraintAssociations(
       Set<Clique> cliques, BayesianNetworkData data) {
     return data.getConstraints().stream()
         .map(
@@ -91,7 +93,7 @@ public class JTAInitializer {
     throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
-  private static List<JunctionTreeTable> buildTreeTablesList(
+  private static List<JunctionTreeTable> listJTATablesInSizeAscOrder(
       Set<Clique> cliques, Set<Separator> separators) {
     List<JunctionTreeTable> allTables = new ArrayList<>();
     cliques.stream().map(Clique::getTable).forEach(allTables::add);
@@ -101,7 +103,7 @@ public class JTAInitializer {
         .toList();
   }
 
-  private static Map<Clique, Set<ProbabilityTable>> buildAssociatedTablesMap(
+  private static Map<Clique, Set<ProbabilityTable>> buildCliqueToCPTAssociations(
       Set<Clique> cliques, BayesianNetworkData data) {
     Map<Clique, Set<ProbabilityTable>> associated =
         cliques.stream()
