@@ -25,24 +25,24 @@ public class JTAInitializer {
   private JTAInitializer() {}
 
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
-    JunctionTreeData data = new JunctionTreeData();
-    buildCommon(data, bayesianNetworkData);
-    data.setConstraintCliqueMap(
-        buildCliqueToConstraintAssociations(data.getCliqueSet(), bayesianNetworkData));
-    data.setConstraintHandlers(
-        buildConstraintHandlers(bayesianNetworkData, data.getConstraintCliqueMap()));
+    JunctionTreeData junctionTreeData = new JunctionTreeData();
+    buildCommon(junctionTreeData, bayesianNetworkData);
+    junctionTreeData.setConstraintCliqueMap(
+        buildCliqueToConstraintAssociations(junctionTreeData.getCliqueSet(), bayesianNetworkData));
+    junctionTreeData.setConstraintHandlers(
+        buildConstraintHandlers(bayesianNetworkData, junctionTreeData.getConstraintCliqueMap()));
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
-    return data;
+    return junctionTreeData;
   }
 
   public static JunctionTreeData buildInferenceConfiguration(
       BayesianNetworkData bayesianNetworkData) {
-    JunctionTreeData data = new JunctionTreeData();
-    buildCommon(data, bayesianNetworkData);
-    data.setConstraintCliqueMap(new HashMap<>());
-    data.setConstraintHandlers(new HashMap<>());
+    JunctionTreeData junctionTreeData = new JunctionTreeData();
+    buildCommon(junctionTreeData, bayesianNetworkData);
+    junctionTreeData.setConstraintCliqueMap(new HashMap<>());
+    junctionTreeData.setConstraintHandlers(new HashMap<>());
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
-    return data;
+    return junctionTreeData;
   }
 
   private static void buildCommon(
@@ -50,6 +50,7 @@ public class JTAInitializer {
     Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
     Set<Separator> separators = buildSeparators(cliqueSet);
 
+    junctionTreeData.setBayesianNetworkData(bayesianNetworkData);
     junctionTreeData.setCliqueSet(cliqueSet);
     junctionTreeData.setSeparators(separators);
     junctionTreeData.setLeafCliques(buildLeafCliques(cliqueSet));
