@@ -19,83 +19,69 @@ public class ProbabilityVectorUtils {
   }
 
   public double sumProbabilitiesWithStates(Map<Node, NodeState> request) {
-    double[] probability = vector.getProbability();
+    double[] probability = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
     consumeFromRequest(request, (key, index) -> adder.add(probability[index]));
     return adder.doubleValue();
   }
 
-  public void consumeFromRequest(
-      Map<Node, NodeState> request, BiConsumer<int[], Integer> keyIndexConsumer) {
+  private void consumeFromRequest(
+      Map<Node, NodeState> request, BiConsumer<int[], Integer> iterativeConsumer) {
     int keyLength = vector.getNodes().length;
-    int[] key = new int[keyLength];
-    boolean[] indexLocked = new boolean[keyLength];
-    buildLockedValueArrays(request, key, indexLocked);
-    incrementAndExecute(key, indexLocked, keyIndexConsumer);
-  }
-
-  private void buildLockedValueArrays(
-      Map<Node, NodeState> request, int[] lockedValues, boolean[] indexLocked) {
-    Arrays.fill(lockedValues, 0);
-    Arrays.fill(indexLocked, false);
+    int[] tumblerKey = new int[keyLength];
+    boolean[] positionLocked = new boolean[keyLength];
     request.forEach(
         (node, state) -> {
           int nodeIndex = vector.getNodeIndexMap().get(node);
           int stateValue = vector.getStateValueMap().get(state);
-          lockedValues[nodeIndex] = stateValue;
-          indexLocked[nodeIndex] = true;
+          tumblerKey[nodeIndex] = stateValue;
+          positionLocked[nodeIndex] = true;
         });
+    iterateAllKeysAndApply(tumblerKey, positionLocked, iterativeConsumer);
   }
 
-  private void incrementAndExecute(
-      int[] key, boolean[] indexLocked, BiConsumer<int[], Integer> keyIndexConsumer) {
-    int[] multiplier = vector.getMultiplier();
-    int keyLength = key.length;
-    int currentIndex = keyToIndex(key, multiplier);
+  private void iterateAllKeysAndApply(
+      int[] tumblerKey, boolean[] positionLocked, BiConsumer<int[], Integer> iterativeConsumer) {
+    int[] stepMultiplier = vector.getStepMultiplier();
 
-    List<Integer> positionsToIterate =
-        IntStream.range(0, keyLength).filter(i -> !indexLocked[i]).boxed().toList();
+    int currentIndex =
+        IntStream.range(0, tumblerKey.length).map(i -> tumblerKey[i] * stepMultiplier[i]).sum();
 
-    if (positionsToIterate.isEmpty()) {
-      keyIndexConsumer.accept(key, currentIndex);
+    List<Integer> movablePositions =
+        IntStream.range(0, tumblerKey.length).filter(i -> !positionLocked[i]).boxed().toList();
+
+    if (movablePositions.isEmpty()) {
+      iterativeConsumer.accept(tumblerKey, currentIndex);
       return;
     }
 
-    int fastestIteratingPos = positionsToIterate.getLast();
-    int baseStride = multiplier[fastestIteratingPos];
+    int fastestIteratingPos = movablePositions.getLast();
+    int baseStride = stepMultiplier[fastestIteratingPos];
 
-    int[] cardinality = vector.getCardinality();
+    int[] numberOfStates = vector.getNumberOfStates();
 
-    int[] skipStrides = new int[keyLength];
-    IntStream.range(0, keyLength)
-        .filter(i -> indexLocked[i])
-        .forEach(i -> skipStrides[i] = (cardinality[i] - 1) * multiplier[i]); // TODO - CHECK
+    int[] lockedValueStrides = new int[tumblerKey.length];
+    IntStream.range(0, tumblerKey.length)
+        .filter(i -> positionLocked[i])
+        .forEach(i -> lockedValueStrides[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
 
     boolean overflow = false;
     while (!overflow) {
-      keyIndexConsumer.accept(key, currentIndex);
+      iterativeConsumer.accept(tumblerKey, currentIndex);
       overflow = true;
       currentIndex += baseStride;
       for (int position = fastestIteratingPos; position >= 0; position--) {
-        if (indexLocked[position]) {
-          currentIndex += skipStrides[position];
+        if (positionLocked[position]) {
+          currentIndex += lockedValueStrides[position];
           continue;
         }
-        key[position] = (key[position] + 1) % cardinality[position];
-        overflow = key[position] == 0;
+        tumblerKey[position] = (tumblerKey[position] + 1) % numberOfStates[position];
+        overflow = tumblerKey[position] == 0;
         if (!overflow) {
           break;
         }
       }
     }
-  }
-
-  private int keyToIndex(int[] key, int[] multiplier) {
-    int sum = 0;
-    for (int i = 0; i < key.length; i++) {
-      sum += key[i] * multiplier[i];
-    }
-    return sum;
   }
 
   public List<Integer> collectIndexesWithStates(Map<Node, NodeState> request) {
@@ -117,5 +103,34 @@ public class ProbabilityVectorUtils {
                     .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     return combos;
+  }
+
+  public void marginalizeVector(Set<Node> conditions) {
+    int keyLength = vector.getNodes().length;
+    int[] key = new int[keyLength];
+
+    boolean[] conditionLocks = new boolean[keyLength];
+    boolean[] eventLocks = new boolean[keyLength];
+
+    conditions.forEach(condition -> conditionLocks[vector.getNodeIndexMap().get(condition)] = true);
+    IntStream.range(0, eventLocks.length).forEach(i -> eventLocks[i] = !conditionLocks[i]);
+
+    double[] probs = vector.getProbabilities();
+
+    iterateAllKeysAndApply(
+        key,
+        eventLocks,
+        (outerKey, outerIndex) -> {
+          DoubleAdder adder = new DoubleAdder();
+          iterateAllKeysAndApply(
+              outerKey, conditionLocks, (innerKey, innerIndex) -> adder.add(probs[innerIndex]));
+          double sum = adder.sum();
+          if (sum == 0) return;
+          double ratio = 1 / sum;
+          iterateAllKeysAndApply(
+              outerKey,
+              conditionLocks,
+              (innerKey, innerIndex) -> probs[innerIndex] = ratio * probs[innerIndex]);
+        });
   }
 }

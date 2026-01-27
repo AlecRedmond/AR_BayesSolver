@@ -24,7 +24,7 @@ class ProbabilityVectorUtilsTest {
     nodes.add(wetGrass);
     vector = new ProbabilityVectorBuilder().build(nodes);
 
-    double[] probs = vector.getProbability();
+    double[] probs = vector.getProbabilities();
 
     probs[0] = 1.00; // 0 R+ S+ W+ = 1.00
     probs[1] = 0.00; // 1 R+ S+ W- = 0.00
@@ -77,8 +77,23 @@ class ProbabilityVectorUtilsTest {
     assertTrue(collectedIndexes.containsAll(expectedIndexes));
   }
 
-    @Test
-    void generateStateCombinations() {
+  @Test
+  void generateStateCombinations() {}
 
+  @Test
+  void marginalizeVector() {
+    double[] probs = vector.getProbabilities();
+    double[] expectedProbs = Arrays.copyOf(probs, probs.length);
+    for (int i = 0; i < probs.length; i++) {
+      probs[i] = 0.5 * probs[i];
     }
+
+    Node rain = vector.getNodes()[0];
+    Node sprinkler = vector.getNodes()[1];
+    test.marginalizeVector(Set.of(rain, sprinkler));
+
+    for (int i = 0; i < probs.length; i++) {
+      assertEquals(expectedProbs[i], probs[i], 1e-6);
+    }
+  }
 }
