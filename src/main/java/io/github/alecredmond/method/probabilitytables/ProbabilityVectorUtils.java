@@ -6,6 +6,7 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Pro
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
 
@@ -18,18 +19,19 @@ public class ProbabilityVectorUtils {
   }
 
   public double sumProbabilitiesWithStates(Map<Node, NodeState> request) {
-    int keyLength = vector.getNodes().length;
-    int[] lockedValues = new int[keyLength];
-    boolean[] indexLocked = new boolean[keyLength];
-    buildLockedValueArrays(request, lockedValues, indexLocked);
-
     double[] probability = vector.getProbability();
     DoubleAdder adder = new DoubleAdder();
-    BiConsumer<int[], Integer> keyConsumer = (key, index) -> adder.add(probability[index]);
-
-    incrementAndExecute(lockedValues, indexLocked, keyConsumer);
-
+    consumeFromRequest(request, (key, index) -> adder.add(probability[index]));
     return adder.doubleValue();
+  }
+
+  public void consumeFromRequest(
+      Map<Node, NodeState> request, BiConsumer<int[], Integer> keyIndexConsumer) {
+    int keyLength = vector.getNodes().length;
+    int[] key = new int[keyLength];
+    boolean[] indexLocked = new boolean[keyLength];
+    buildLockedValueArrays(request, key, indexLocked);
+    incrementAndExecute(key, indexLocked, keyIndexConsumer);
   }
 
   private void buildLockedValueArrays(
@@ -97,46 +99,22 @@ public class ProbabilityVectorUtils {
   }
 
   public List<Integer> collectIndexesWithStates(Map<Node, NodeState> request) {
-    int keyLength = vector.getNodes().length;
-    int[] lockedValues = new int[keyLength];
-    boolean[] indexLocked = new boolean[keyLength];
-    buildLockedValueArrays(request, lockedValues, indexLocked);
-
     List<Integer> indexes = new ArrayList<>();
-    BiConsumer<int[], Integer> keyConsumer = (key, index) -> indexes.add(index);
-
-    incrementAndExecute(lockedValues, indexLocked, keyConsumer);
-
+    consumeFromRequest(request, (key, index) -> indexes.add(index));
     return indexes;
   }
 
-  public void consumeFromRequest(
-      Map<Node, NodeState> request, BiConsumer<int[], Integer> keyIndexConsumer) {
-    int keyLength = vector.getNodes().length;
-    int[] key = new int[keyLength];
-    boolean[] indexLocked = new boolean[keyLength];
-    buildLockedValueArrays(request, key, indexLocked);
-    incrementAndExecute(key, indexLocked, keyIndexConsumer);
-  }
-
   public List<Set<NodeState>> generateStateCombinations(Map<Node, NodeState> lockedStates) {
-    int keyLength = vector.getNodes().length;
-    int[] lockedValues = new int[keyLength];
-    boolean[] indexLocked = new boolean[keyLength];
-    buildLockedValueArrays(lockedStates, lockedValues, indexLocked);
-
     List<Set<NodeState>> combos = new ArrayList<>();
     Node[] nodes = vector.getNodes();
-    BiConsumer<int[], Integer> keyConsumer =
-        (key, index) -> {
-          Set<NodeState> states = new LinkedHashSet<>();
-          for (int i = 0; i < key.length; i++) {
-            states.add(nodes[i].getNodeStates().get(key[i]));
-          }
-          combos.add(states);
-        };
 
-    incrementAndExecute(lockedValues, indexLocked, keyConsumer);
+    consumeFromRequest(
+        lockedStates,
+        (key, index) ->
+            combos.add(
+                IntStream.range(0, key.length)
+                    .mapToObj(i -> nodes[i].getNodeStates().get(key[i]))
+                    .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     return combos;
   }
