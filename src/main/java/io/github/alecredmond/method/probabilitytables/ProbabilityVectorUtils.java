@@ -5,7 +5,7 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
-import java.util.function.BiConsumer;
+import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
@@ -26,7 +26,7 @@ public class ProbabilityVectorUtils {
   }
 
   private void consumeFromRequest(
-      Map<Node, NodeState> request, BiConsumer<int[], Integer> iterativeConsumer) {
+      Map<Node, NodeState> request, ObjIntConsumer<int[]> iterativeConsumer) {
     int keyLength = vector.getNodes().length;
     int[] tumblerKey = new int[keyLength];
     boolean[] positionLocked = new boolean[keyLength];
@@ -41,7 +41,7 @@ public class ProbabilityVectorUtils {
   }
 
   private void iterateAllKeysAndApply(
-      int[] tumblerKey, boolean[] positionLocked, BiConsumer<int[], Integer> iterativeConsumer) {
+      int[] tumblerKey, boolean[] positionLocked, ObjIntConsumer<int[]> iterativeConsumer) {
     int[] stepMultiplier = vector.getStepMultiplier();
 
     int currentIndex =
@@ -91,8 +91,19 @@ public class ProbabilityVectorUtils {
   }
 
   public List<Set<NodeState>> generateStateCombinations(Map<Node, NodeState> lockedStates) {
+    Set<Node> allNodes = Arrays.stream(vector.getNodes()).collect(Collectors.toSet());
+    return generateStateCombinations(lockedStates, allNodes);
+  }
+
+  public List<Set<NodeState>> generateStateCombinations(
+      Map<Node, NodeState> lockedStates, Set<Node> includedNodes) {
     List<Set<NodeState>> combos = new ArrayList<>();
     Node[] nodes = vector.getNodes();
+
+    // Lock excluded nodes to their first state for faster iteration
+    Arrays.stream(nodes)
+        .filter(n -> !includedNodes.contains(n))
+        .forEach(n -> lockedStates.put(n, n.getNodeStates().getFirst()));
 
     consumeFromRequest(
         lockedStates,
@@ -100,6 +111,7 @@ public class ProbabilityVectorUtils {
             combos.add(
                 IntStream.range(0, key.length)
                     .mapToObj(i -> nodes[i].getNodeStates().get(key[i]))
+                    .filter(state -> includedNodes.contains(state.getNode()))
                     .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     return combos;

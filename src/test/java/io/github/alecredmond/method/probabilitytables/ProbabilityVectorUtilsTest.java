@@ -78,7 +78,14 @@ class ProbabilityVectorUtilsTest {
   }
 
   @Test
-  void generateStateCombinations() {}
+  void generateStateCombinations() {
+    List<Set<NodeState>> combos = test.generateStateCombinations(new HashMap<>());
+    combos.forEach(
+        stateSet -> {
+          stateSet.forEach(state -> System.out.printf("%s ", state.getStateID()));
+          System.out.print("\n");
+        });
+  }
 
   @Test
   void marginalizeVector() {
