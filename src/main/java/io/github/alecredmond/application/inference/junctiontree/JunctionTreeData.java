@@ -6,7 +6,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.util.List;
 import java.util.Map;

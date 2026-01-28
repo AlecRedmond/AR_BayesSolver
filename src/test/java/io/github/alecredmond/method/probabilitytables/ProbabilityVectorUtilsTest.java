@@ -79,7 +79,7 @@ class ProbabilityVectorUtilsTest {
 
   @Test
   void generateStateCombinations() {
-    List<Set<NodeState>> combos = test.generateStateCombinations(new HashMap<>());
+    Set<Set<NodeState>> combos = test.generateStateCombinations(new HashMap<>());
     combos.forEach(
         stateSet -> {
           stateSet.forEach(state -> System.out.printf("%s ", state.getStateID()));

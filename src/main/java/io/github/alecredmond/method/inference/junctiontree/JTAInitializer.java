@@ -9,7 +9,7 @@ import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;

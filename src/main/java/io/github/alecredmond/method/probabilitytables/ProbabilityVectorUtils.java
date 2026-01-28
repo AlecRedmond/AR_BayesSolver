@@ -5,14 +5,17 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.function.BiPredicate;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class ProbabilityVectorUtils {
-  private final ProbabilityVector vector;
+  private ProbabilityVector vector;
 
   public ProbabilityVectorUtils(ProbabilityVector vector) {
     this.vector = vector;
@@ -25,11 +28,17 @@ public class ProbabilityVectorUtils {
     return adder.doubleValue();
   }
 
-  private void consumeFromRequest(
+  public void consumeFromRequest(
       Map<Node, NodeState> request, ObjIntConsumer<int[]> iterativeConsumer) {
     int keyLength = vector.getNodes().length;
     int[] tumblerKey = new int[keyLength];
     boolean[] positionLocked = new boolean[keyLength];
+    buildKeyFromRequest(request, tumblerKey, positionLocked);
+    iterateAllKeysAndApply(tumblerKey, positionLocked, iterativeConsumer);
+  }
+
+  private void buildKeyFromRequest(
+      Map<Node, NodeState> request, int[] tumblerKey, boolean[] positionLocked) {
     request.forEach(
         (node, state) -> {
           int nodeIndex = vector.getNodeIndexMap().get(node);
@@ -37,7 +46,6 @@ public class ProbabilityVectorUtils {
           tumblerKey[nodeIndex] = stateValue;
           positionLocked[nodeIndex] = true;
         });
-    iterateAllKeysAndApply(tumblerKey, positionLocked, iterativeConsumer);
   }
 
   private void iterateAllKeysAndApply(
@@ -90,23 +98,24 @@ public class ProbabilityVectorUtils {
     return indexes;
   }
 
-  public List<Set<NodeState>> generateStateCombinations(Map<Node, NodeState> lockedStates) {
+  public Set<Set<NodeState>> generateStateCombinations(Map<Node, NodeState> lockedStates) {
     Set<Node> allNodes = Arrays.stream(vector.getNodes()).collect(Collectors.toSet());
     return generateStateCombinations(lockedStates, allNodes);
   }
 
-  public List<Set<NodeState>> generateStateCombinations(
+  public Set<Set<NodeState>> generateStateCombinations(
       Map<Node, NodeState> lockedStates, Set<Node> includedNodes) {
-    List<Set<NodeState>> combos = new ArrayList<>();
+    Set<Set<NodeState>> combos = new LinkedHashSet<>();
     Node[] nodes = vector.getNodes();
 
     // Lock excluded nodes to their first state for faster iteration
+    Map<Node, NodeState> request = new HashMap<>(lockedStates);
     Arrays.stream(nodes)
         .filter(n -> !includedNodes.contains(n))
-        .forEach(n -> lockedStates.put(n, n.getNodeStates().getFirst()));
+        .forEach(n -> request.put(n, n.getNodeStates().getFirst()));
 
     consumeFromRequest(
-        lockedStates,
+        request,
         (key, index) ->
             combos.add(
                 IntStream.range(0, key.length)
@@ -144,5 +153,46 @@ public class ProbabilityVectorUtils {
               conditionLocks,
               (innerKey, innerIndex) -> probs[innerIndex] = ratio * probs[innerIndex]);
         });
+  }
+
+  public void adjustToRatio(
+      Map<Node, NodeState> request, double ratioIfRequest, double ratioElsewhere) {
+    int keyLength = vector.getNodes().length;
+    int[] requestKey = new int[keyLength];
+    boolean[] positionLocked = new boolean[keyLength];
+    buildKeyFromRequest(request, requestKey, positionLocked);
+
+    List<Integer> requestLockedPositions =
+        IntStream.range(0, keyLength).filter(i -> positionLocked[i]).boxed().toList();
+
+    double[] probabilities = vector.getProbabilities();
+
+    ObjIntConsumer<int[]> consumer =
+        branchedConsumer(
+            (key, index) -> {
+              for (Integer position : requestLockedPositions) {
+                if (key[position] != requestKey[position]) {
+                  return false;
+                }
+              }
+              return true;
+            },
+            (key, index) -> probabilities[index] = probabilities[index] * ratioIfRequest,
+            (key, index) -> probabilities[index] = probabilities[index] * ratioElsewhere);
+
+    consumeFromRequest(new HashMap<>(), consumer);
+  }
+
+  private ObjIntConsumer<int[]> branchedConsumer(
+      BiPredicate<int[], Integer> predicate,
+      ObjIntConsumer<int[]> trueBranch,
+      ObjIntConsumer<int[]> falseBranch) {
+    return (key, index) -> {
+      if (predicate.test(key, index)) {
+        trueBranch.accept(key, index);
+      } else {
+        falseBranch.accept(key, index);
+      }
+    };
   }
 }

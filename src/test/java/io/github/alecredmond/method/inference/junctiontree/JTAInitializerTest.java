@@ -56,7 +56,7 @@ class JTAInitializerTest {
     var separators =
         jtd.getCliqueSet().stream()
             .flatMap(clique -> clique.getSeparators().stream())
-            .collect(Collectors.toSet());
+            .convertToMap(Collectors.toSet());
     int numLeafs = jtd.getLeafCliques().size();
     int numCliques = cliques.size();
     int numSeparators = separators.size();

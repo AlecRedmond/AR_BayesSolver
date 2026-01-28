@@ -2,6 +2,7 @@ package io.github.alecredmond.method.node;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.method.utils.MapCollector;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,6 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 public class NodeUtils {
 
   private NodeUtils() {}
+
+  public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
+    return new MapCollector().convertToMap((state -> Map.entry(state.getNode(), state)), states);
+  }
 
   public static List<Set<NodeState>> generateStateCombinations(Set<Node> nodes) {
     List<Set<NodeState>> stateCombos = new ArrayList<>();

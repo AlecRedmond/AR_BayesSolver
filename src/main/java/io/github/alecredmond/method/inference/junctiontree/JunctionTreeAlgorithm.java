@@ -6,7 +6,7 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
 import java.util.*;

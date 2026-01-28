@@ -2,6 +2,8 @@ package io.github.alecredmond.application.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.method.probabilitytables.ProbabilityVectorUtils;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -13,8 +15,8 @@ public class MarginalTable extends ProbabilityTable {
   private final Node networkNode;
 
   public MarginalTable(
-      Map<Set<NodeState>, Integer> indexMap,
-      double[] probabilities,
+      ProbabilityVector vector,
+      ProbabilityVectorUtils utils,
       String tableID,
       Node networkNode,
       Map<Object, NodeState> nodeStateIDMap,
@@ -22,8 +24,8 @@ public class MarginalTable extends ProbabilityTable {
     super(
         nodeStateIDMap,
         nodeIDMap,
-        indexMap,
-        probabilities,
+        vector,
+        utils,
         tableID,
         Set.of(networkNode),
         Set.of(networkNode),

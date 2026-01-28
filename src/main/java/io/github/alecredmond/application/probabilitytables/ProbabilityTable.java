@@ -2,6 +2,9 @@ package io.github.alecredmond.application.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.method.node.NodeUtils;
+import io.github.alecredmond.method.probabilitytables.ProbabilityVectorUtils;
 import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,30 +13,32 @@ import lombok.Setter;
 public abstract class ProbabilityTable {
   protected final Map<Object, NodeState> nodeStateIDMap;
   protected final Map<Object, Node> nodeIDMap;
-  protected final Map<Set<NodeState>, Integer> indexMap;
-  protected final double[] probabilities;
+  protected final ProbabilityVector vector;
+  protected final ProbabilityVectorUtils utils;
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
   @Setter protected Object tableID;
+  protected Set<Set<NodeState>> keySet;
 
   protected <T> ProbabilityTable(
       Map<Object, NodeState> nodeStateIDMap,
       Map<Object, Node> nodeIDMap,
-      Map<Set<NodeState>, Integer> indexMap,
-      double[] probabilities,
+      ProbabilityVector vector,
+      ProbabilityVectorUtils utils,
       T tableID,
       Set<Node> nodes,
       Set<Node> events,
       Set<Node> conditions) {
     this.nodeStateIDMap = nodeStateIDMap;
     this.nodeIDMap = nodeIDMap;
-    this.indexMap = indexMap;
-    this.probabilities = probabilities;
+    this.vector = vector;
+    this.utils = utils;
     this.tableID = tableID;
     this.nodes = nodes;
     this.events = events;
     this.conditions = conditions;
+    this.keySet = utils.generateStateCombinations(new HashMap<>());
   }
 
   public <T> NodeState getNodeState(T nodeStateID) {
@@ -41,7 +46,7 @@ public abstract class ProbabilityTable {
   }
 
   public <T> Node getNode(T nodeID) {
-    return nodeIDMap.get(nodeID); //TODO - Hit Branch In Test Suite
+    return nodeIDMap.get(nodeID); // TODO - Hit Branch In Test Suite
   }
 
   public <T> double getProbability(Collection<T> stateIDs) {
@@ -49,8 +54,14 @@ public abstract class ProbabilityTable {
   }
 
   public double getProbability(Set<NodeState> key) {
-    double probability = probabilities[indexMap.get(key)];
-    if (Double.isNaN(probability)) throw new IllegalArgumentException("map returned NaN");
+    Map<Node, NodeState> request = getRequestMap(key);
+
+    double probability = utils.sumProbabilitiesWithStates(request);
+
+    if (Double.isNaN(probability)) {
+      throw new IllegalArgumentException("map returned NaN");
+    }
+
     return probability;
   }
 
@@ -67,19 +78,25 @@ public abstract class ProbabilityTable {
     return set;
   }
 
-  public Set<Set<NodeState>> getKeySet() {
-    return indexMap.keySet();
+  private Map<Node, NodeState> getRequestMap(Set<NodeState> key) {
+    Map<Node, NodeState> request = NodeUtils.generateRequest(key);
+
+    if (!request.keySet().equals(nodes)) {
+      throw new IllegalArgumentException(
+          String.format("the Request to table %s did not match the keyset", tableID));
+    }
+    return request;
   }
 
   public void setProbability(Set<NodeState> key, double probability) {
-    if (!indexMap.containsKey(key)) {
-      throw new IllegalArgumentException(String.format("Illegal set request to table %s", tableID));
+    if (Double.isNaN(probability)) {
+      throw new IllegalArgumentException(
+          String.format("Tried to add NaN to probability table %s", tableID));
     }
-    if (Double.isNaN(probability)) throw new IllegalArgumentException("tried to add NaN");
-    probabilities[indexMap.get(key)] = probability;
+    vector.getProbabilities()[getIndex(key)] = probability;
   }
 
   public int getIndex(Set<NodeState> key) {
-    return indexMap.get(key);
+    return utils.collectIndexesWithStates(getRequestMap(key)).getFirst();
   }
 }
