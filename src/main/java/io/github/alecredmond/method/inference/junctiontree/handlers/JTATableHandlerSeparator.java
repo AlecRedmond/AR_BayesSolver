@@ -96,9 +96,9 @@ public class JTATableHandlerSeparator extends JTATableHandler {
       List<Set<Integer>> sumFinderTo) {
     double[] probabilities = getProbabilities();
     for (int i = 0; i < probabilities.length; i++) {
-      double sumFrom = indexerFrom.sumFromTableIndexes(sumFinderFrom.get(i));
+      double sumFrom = indexerFrom.sumProbabilities(sumFinderFrom.get(i));
       probabilities[i] = sumFrom;
-      double sumTo = indexerTo.sumFromTableIndexes(sumFinderTo.get(i));
+      double sumTo = indexerTo.sumProbabilities(sumFinderTo.get(i));
 
       if (Math.abs(sumFrom - sumTo) <= 1e-9) continue;
 

@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.probabilitytables;
+package io.github.alecredmond.method.probabilitytables.probabilityvector;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -9,9 +9,9 @@ import java.util.stream.IntStream;
 import lombok.Getter;
 
 @Getter
-public class ProbabilityVectorBuilder {
+public class ProbabilityVectorFactory {
 
-  public ProbabilityVectorBuilder() {}
+  public ProbabilityVectorFactory() {}
 
   public ProbabilityVector build(Set<Node> nodeSet) {
     Node[] nodes = nodeSet.toArray(new Node[0]);
@@ -19,6 +19,7 @@ public class ProbabilityVectorBuilder {
     int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
     int[] multiplier = buildMultiplierArray(cardinality, rank);
     double[] probability = new double[rank];
+    Arrays.fill(probability, 1.0);
     Map<Node, Integer> nodeIndexMap = buildNodeIndexMap(nodes);
     Map<NodeState, Integer> stateValueMap = buildStateValueMap(nodes);
 

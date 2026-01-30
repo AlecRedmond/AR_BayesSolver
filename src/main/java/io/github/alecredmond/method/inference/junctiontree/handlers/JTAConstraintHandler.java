@@ -2,6 +2,8 @@ package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import java.util.*;
+
+import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -9,9 +11,8 @@ public abstract class JTAConstraintHandler {
   protected static final double TABLE_LOCK_EPSILON = 1E-9;
   protected final JTATableHandler jtaTableHandler;
   protected final ParameterConstraint constraint;
-  protected List<Integer> constraintIndexes;
-  protected List<Integer> conditionIndexes;
-  protected List<Integer> complementIndexes;
+  protected VectorCombinationKey constraintKey;
+  protected VectorCombinationKey conditionKey;
 
   protected JTAConstraintHandler(JTATableHandler jtaTableHandler, ParameterConstraint constraint) {
     this.jtaTableHandler = jtaTableHandler;
@@ -49,7 +50,7 @@ public abstract class JTAConstraintHandler {
   }
 
   protected double getEventJointProb() {
-    return jtaTableHandler.sumFromTableIndexes(constraintIndexes);
+    return jtaTableHandler.sumProbabilities(constraintKey);
   }
 
   protected abstract double getConditionProb();
@@ -69,7 +70,7 @@ public abstract class JTAConstraintHandler {
   }
 
   protected double getComplementProb(double conditionProb) {
-    return jtaTableHandler.sumFromTableIndexes(complementIndexes) / conditionProb;
+    return jtaTableHandler.sumProbabilities(complementIndexes) / conditionProb;
   }
 
   protected void adjustTable(double ratio, double compRatio) {

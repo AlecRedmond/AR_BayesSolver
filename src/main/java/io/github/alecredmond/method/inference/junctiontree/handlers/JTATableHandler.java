@@ -1,13 +1,10 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
-import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.method.node.NodeUtils;
-import io.github.alecredmond.method.probabilitytables.ProbabilityVectorUtils;
 import java.util.*;
-import java.util.stream.IntStream;
+
+import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import lombok.Getter;
 
 @Getter
@@ -23,33 +20,23 @@ public class JTATableHandler {
     table.setObserved(isObserved);
     table.getObservedStates().clear();
     table.getObservedStates().addAll(evidenceInTable);
-    ProbabilityVector correctVector = isObserved ? table.getObservedVector() : table.getVector();
-    table.getUtils().setVector(correctVector);
 
     if (!isObserved) {
       return;
     }
 
-    Map<Node, NodeState> requestMap = NodeUtils.generateRequest(evidenceInTable);
-
-    ProbabilityVectorUtils utils = table.getUtils();
-    double[] probabilities = table.getVector().getProbabilities();
+    double[] probabilities = table.getUnobservedVector().getProbabilities();
     double[] observed = table.getObservedVector().getProbabilities();
 
     Arrays.fill(observed, 0.0);
-    // getIndexes(evidenceInTable).forEach(index -> observed[index] = probabilities[index]);
+    table
+        .getUtils()
+        .collectIndexesWithStates(evidenceInTable)
+        .forEach(index -> observed[index] = probabilities[index]);
   }
 
   public void marginalize() {
-    double[] probs = getProbabilities();
-    double sum = Arrays.stream(probs).sum();
-    if (sum == 0 || sum == 1.0) return;
-    double ratio = 1 / sum;
-    IntStream.range(0, probs.length).forEach(i -> probs[i] = probs[i] * ratio);
-  }
-
-  public double[] getProbabilities() {
-    return table.isObserved() ? table.getObservedProbabilities() : table.getProbabilities();
+    table.getUtils().marginalizeTable();
   }
 
   public void adjustByRatio(Set<Integer> integers, double ratio) {
@@ -57,17 +44,16 @@ public class JTATableHandler {
     integers.forEach(i -> probs[i] = probs[i] * ratio);
   }
 
-  public double sumFromTable(Set<NodeState> states) {
-    return sumFromTableIndexes(getIndexes(states));
+  public double[] getProbabilities() {
+    return table.isObserved() ? table.getObservedProbabilities() : table.getProbabilities();
   }
 
-  public double sumFromTableIndexes(Collection<Integer> indexes) {
-    double[] probabilities = getProbabilities();
-    double prob = 0.0;
-    for (int index : indexes) {
-      prob += probabilities[index];
-    }
-    return prob;
+  public double sumFromTable(Set<NodeState> states) {
+    return sumProbabilities(getIndexes(states));
+  }
+
+  public double sumProbabilities(VectorCombinationKey combinationKey) {
+    return table.getUtils().sumProbabilities(combinationKey)
   }
 
   public Set<Integer> getIndexes(Set<NodeState> key) {

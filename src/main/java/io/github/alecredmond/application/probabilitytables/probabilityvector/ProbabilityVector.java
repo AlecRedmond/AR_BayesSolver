@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 public class ProbabilityVector {
-  private final Node[] nodes;
+  private final Node[] nodeArray;
   private final int[] numberOfStates;
   private final int[] stepMultiplier;
   private final double[] probabilities;
@@ -16,13 +16,13 @@ public class ProbabilityVector {
   private final Map<NodeState, Integer> stateValueMap;
 
   public ProbabilityVector(
-      Node[] nodes,
+      Node[] nodeArray,
       int[] numberOfStates,
       int[] stepMultiplier,
       double[] probabilities,
       Map<Node, Integer> nodeIndexMap,
       Map<NodeState, Integer> stateValueMap) {
-    this.nodes = nodes;
+    this.nodeArray = nodeArray;
     this.numberOfStates = numberOfStates;
     this.stepMultiplier = stepMultiplier;
     this.probabilities = probabilities;

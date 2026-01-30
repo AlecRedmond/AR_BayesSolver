@@ -36,6 +36,6 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
 
   @Override
   protected double getConditionProb() {
-    return jtaTableHandler.sumFromTableIndexes(conditionIndexes);
+    return jtaTableHandler.sumProbabilities(conditionIndexes);
   }
 }

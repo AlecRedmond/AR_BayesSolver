@@ -3,7 +3,7 @@ package io.github.alecredmond.application.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.method.probabilitytables.ProbabilityVectorUtils;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +16,6 @@ public class MarginalTable extends ProbabilityTable {
 
   public MarginalTable(
       ProbabilityVector vector,
-      ProbabilityVectorUtils utils,
       String tableID,
       Node networkNode,
       Map<Object, NodeState> nodeStateIDMap,
@@ -25,7 +24,6 @@ public class MarginalTable extends ProbabilityTable {
         nodeStateIDMap,
         nodeIDMap,
         vector,
-        utils,
         tableID,
         Set.of(networkNode),
         Set.of(networkNode),
@@ -34,6 +32,6 @@ public class MarginalTable extends ProbabilityTable {
   }
 
   public <T> double getProbability(T nodeStateID) {
-    return super.getProbability(Set.of(nodeStateID));
+    return super.getProbabilityFromIDs(Set.of(nodeStateID));
   }
 }

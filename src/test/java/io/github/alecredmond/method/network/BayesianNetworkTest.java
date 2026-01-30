@@ -612,7 +612,7 @@ class BayesianNetworkTest {
       net.observeMarginals();
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertEquals(
-          0.8, rainTable.getProbability(List.of(rainTable.getNodeState("RAIN:FALSE"))), 1E-9);
+          0.8, rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:FALSE"))), 1E-9);
     }
 
     @Test
@@ -621,7 +621,7 @@ class BayesianNetworkTest {
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
       assertEquals(
-          0.2, rainTable.getProbability(List.of(rainTable.getNodeState("RAIN:TRUE"))), 1E-9);
+          0.2, rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:TRUE"))), 1E-9);
     }
 
     @Test

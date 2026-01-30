@@ -6,11 +6,14 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import java.util.*;
+
+import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
+import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ProbabilityVectorUtilsTest {
-  ProbabilityVectorUtils test;
+class ProbabilityVectorIteratorTest {
+  ProbabilityVectorIterator test;
   ProbabilityVector vector;
 
   @BeforeEach
@@ -22,7 +25,7 @@ class ProbabilityVectorUtilsTest {
     nodes.add(rain);
     nodes.add(sprinkler);
     nodes.add(wetGrass);
-    vector = new ProbabilityVectorBuilder().build(nodes);
+    vector = new ProbabilityVectorFactory().build(nodes);
 
     double[] probs = vector.getProbabilities();
 
@@ -35,14 +38,14 @@ class ProbabilityVectorUtilsTest {
     probs[6] = 0.15; // 6 R- S- W+ = 0.15
     probs[7] = 0.85; // 7 R- S- W- = 0.85
 
-    test = new ProbabilityVectorUtils(vector);
+    test = new ProbabilityVectorIterator(vector);
   }
 
   @Test
   void sumProbabilitiesWithStates() {
     Map<Node, NodeState> request = new HashMap<>();
-    NodeState rainTrue = vector.getNodes()[0].getNodeStates().getFirst();
-    NodeState sprinklerTrue = vector.getNodes()[1].getNodeStates().getFirst();
+    NodeState rainTrue = vector.getNodeArray()[0].getNodeStates().getFirst();
+    NodeState sprinklerTrue = vector.getNodeArray()[1].getNodeStates().getFirst();
     request.put(rainTrue.getNode(), rainTrue);
     request.put(sprinklerTrue.getNode(), sprinklerTrue);
 
@@ -60,8 +63,8 @@ class ProbabilityVectorUtilsTest {
   @Test
   void collectIndexesWithStates() {
     Map<Node, NodeState> request = new HashMap<>();
-    NodeState rainTrue = vector.getNodes()[0].getNodeStates().getFirst();
-    NodeState sprinklerTrue = vector.getNodes()[1].getNodeStates().getFirst();
+    NodeState rainTrue = vector.getNodeArray()[0].getNodeStates().getFirst();
+    NodeState sprinklerTrue = vector.getNodeArray()[1].getNodeStates().getFirst();
     request.put(rainTrue.getNode(), rainTrue);
     request.put(sprinklerTrue.getNode(), sprinklerTrue);
 
@@ -95,8 +98,8 @@ class ProbabilityVectorUtilsTest {
       probs[i] = 0.5 * probs[i];
     }
 
-    Node rain = vector.getNodes()[0];
-    Node sprinkler = vector.getNodes()[1];
+    Node rain = vector.getNodeArray()[0];
+    Node sprinkler = vector.getNodeArray()[1];
     test.marginalizeVector(Set.of(rain, sprinkler));
 
     for (int i = 0; i < probs.length; i++) {
