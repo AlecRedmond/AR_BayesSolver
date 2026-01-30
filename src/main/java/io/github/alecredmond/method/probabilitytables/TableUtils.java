@@ -24,12 +24,18 @@ public class TableUtils {
   }
 
   public double sumProbabilities(Collection<NodeState> request) {
-    double[] probability = table.getVector().getProbabilities();
+    VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, request);
+    return sumProbabilities(key);
+  }
+
+  public double sumProbabilities(VectorCombinationKey comboKey) {
+    ProbabilityVector vector = table.getVector();
+    double[] probability = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
-    iterator.iterateKeyCombos(request, table, (key, index) -> adder.add(probability[index]));
+    iterator.iterateKeyCombos(vector, comboKey, (key, index) -> adder.add(probability[index]));
     double sum = adder.sum();
     if (Double.isNaN(sum)) {
-      throwQueryError("matched probabilities summing to NaN", request);
+      throwQueryError("matched probabilities summing to NaN", comboKey.getRequest().values());
     }
     return sum;
   }

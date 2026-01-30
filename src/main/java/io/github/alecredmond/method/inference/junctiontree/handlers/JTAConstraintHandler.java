@@ -1,81 +1,37 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
-import java.util.*;
-
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class JTAConstraintHandler {
-  protected static final double TABLE_LOCK_EPSILON = 1E-9;
-  protected final JTATableHandler jtaTableHandler;
+  protected final JTATableHandler tableHandler;
   protected final ParameterConstraint constraint;
-  protected VectorCombinationKey constraintKey;
+  protected final ProbabilityVectorIterator iterator;
+  protected VectorCombinationKey eventKey;
   protected VectorCombinationKey conditionKey;
 
-  protected JTAConstraintHandler(JTATableHandler jtaTableHandler, ParameterConstraint constraint) {
-    this.jtaTableHandler = jtaTableHandler;
+  protected JTAConstraintHandler(JTATableHandler tableHandler, ParameterConstraint constraint) {
+    this.tableHandler = tableHandler;
     this.constraint = constraint;
-    Set<Integer> conditionIndexSet = getConditionIndexSet();
-    this.conditionIndexes = conditionIndexSet.stream().toList();
-    Set<Integer> constraintIndexSet = getConstraintIndexeSet(conditionIndexSet);
-    this.complementIndexes = getComplementIndexList(constraintIndexSet, conditionIndexSet);
-    this.constraintIndexes = constraintIndexSet.stream().toList();
+    this.iterator = new ProbabilityVectorIterator();
   }
-
-  protected abstract Set<Integer> getConditionIndexSet();
-
-  protected abstract Set<Integer> getConstraintIndexeSet(Set<Integer> conditionIndexSet);
-
-  protected abstract List<Integer> getComplementIndexList(
-      Set<Integer> constraintIndexSet, Set<Integer> conditionIndexSet);
 
   public double adjustAndReturnError() {
     double expectedProb = constraint.getProbability();
-    double eventJointProb = getEventJointProb();
-    double conditionProb = getConditionProb();
-    double eventProb = JTATableHandler.getRatio(eventJointProb, conditionProb);
+    double actualProb = calculateEventProbability();
 
-    if (tableLockOccurred(expectedProb, eventProb)) { //TODO - Hit Branch In Test Suite
-      eventProb = preventTableLock();
-      conditionProb = eventProb;
-    }
-
-    double ratio = JTATableHandler.getRatio(expectedProb, eventProb);
-    double complementSum = getComplementProb(conditionProb);
-    double compRatio = JTATableHandler.getRatio((1 - expectedProb), complementSum);
-    adjustTable(ratio, compRatio);
-    return Math.pow(eventProb - expectedProb, 2);
+    double adjustmentRatio = getRatio(expectedProb, actualProb);
+    double compRatio = getRatio((1 - expectedProb), (1 - actualProb));
+    tableHandler.adjustToRatio(eventKey, conditionKey, adjustmentRatio, compRatio);
+    return Math.pow(actualProb - expectedProb, 2);
   }
 
-  protected double getEventJointProb() {
-    return jtaTableHandler.sumProbabilities(constraintKey);
-  }
+  protected abstract double calculateEventProbability();
 
-  protected abstract double getConditionProb();
-
-  private boolean tableLockOccurred(double expectedProb, double eventProb) {
-    return expectedProb != 0.0 && eventProb == 0.0;
-  }
-
-  protected double preventTableLock() { //TODO - Hit Branch In Test Suite
-    double[] probs = jtaTableHandler.getProbabilities();
-    double newProb = 0.0;
-    for (int index : constraintIndexes) {
-      probs[index] = TABLE_LOCK_EPSILON;
-      newProb += TABLE_LOCK_EPSILON;
-    }
-    return newProb;
-  }
-
-  protected double getComplementProb(double conditionProb) {
-    return jtaTableHandler.sumProbabilities(complementIndexes) / conditionProb;
-  }
-
-  protected void adjustTable(double ratio, double compRatio) {
-    double[] probs = jtaTableHandler.getProbabilities();
-    constraintIndexes.forEach(i -> probs[i] = probs[i] * ratio);
-    complementIndexes.forEach(i -> probs[i] = probs[i] * compRatio);
+  protected double getRatio(double targetProb, double actualProb) {
+    return actualProb == 0 ? 0.0 : targetProb / actualProb;
   }
 }
