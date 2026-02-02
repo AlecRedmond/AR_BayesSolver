@@ -9,6 +9,11 @@ public class JTAMessagePasser {
     this.write = write;
   }
 
+  public void setToUnityAndRun() {
+    write.setDestinationToUnity();
+    run();
+  }
+
   public void run() {
     read.start();
     write.start();

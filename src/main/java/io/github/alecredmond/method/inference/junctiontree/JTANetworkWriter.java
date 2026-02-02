@@ -4,11 +4,9 @@ import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -19,85 +17,41 @@ class JTANetworkWriter {
   private JTANetworkWriter() {}
 
   static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
-    data.getAssociatedTables()
+    data.getCliqueSet()
         .forEach(
-            (clique, networkTables) -> {
-              initializePointerArrays(clique.getTable(), networkTables);
-              mapProbabilitiesAndPointers(clique, networkTables);
+            clique -> {
+              setProbabilitiesToUnity(clique);
+              clique.getInitializeFrom().forEach(JTAMessagePasser::run);
             });
-    setSeparatorsToUnity(data);
   }
 
-  private static void initializePointerArrays(
-      JunctionTreeTable cliqueTable, Set<ProbabilityTable> networkTables) {
-    networkTables.forEach(
-        table ->
-            cliqueTable
-                .getIndexPointerMap()
-                .put(table, new Integer[cliqueTable.getProbabilities().length]));
+  private static void setProbabilitiesToUnity(Clique clique) {
+    Arrays.fill(clique.getTable().getVector().getProbabilities(), 1.0);
   }
 
-  /**
-   * When a clique table [e.g P(A,B,C)] is assigned network tables [e.g P(A)*P(B)*P(C|A,B)], this
-   * fills in the product of the states in each network table [P(a,b,c)], while simultaneously
-   * storing the index from each array used [ P(A)[&a],P(B)[&b],P(C)[&c,a,b] ]. These act as
-   * pseudo-pointers which greatly increase the speed of writing the final values back to the
-   * network after solving.
-   */
-  private static void mapProbabilitiesAndPointers(
-      Clique clique, Set<ProbabilityTable> networkTables) {
-    JunctionTreeTable cliqueTable = clique.getTable();
+  static void writeObservations(JunctionTreeData data) {
+    log.info("WRITING OBSERVATIONS...");
 
-    for (Set<NodeState> request : cliqueTable.getKeySet()) {
-      int cliqueIndex = cliqueTable.getIndex(request);
-
-      double jointProb = 1.0;
-
-      for (ProbabilityTable table : networkTables) {
-        Set<NodeState> statesInTable = TableUtils.collectStatesPresentInTable(request, table);
-        int networkIndexPointer = table.getIndex(statesInTable);
-        cliqueTable.getIndexPointerMap().get(table)[cliqueIndex] = networkIndexPointer;
-        double tableProb = table.getProbabilities()[networkIndexPointer];
-        jointProb = jointProb * tableProb;
-      }
-
-      cliqueTable.getProbabilities()[cliqueIndex] = jointProb;
-    }
-  }
-
-  static void setSeparatorsToUnity(JunctionTreeData data) {
-    data.getSeparators().stream()
-        .map(Separator::getTable)
-        .forEach(table -> Arrays.fill(table.getProbabilities(), 1.0));
-  }
-
-  static void writeToObservations(JunctionTreeData data) {
     data.getBayesianNetworkData().setObserved(data.getObserved());
-    for (Node node : data.getNodes()) {
-      JTATableHandler handler = getHandlerForSmallestRelevantClique(data, node);
-      MarginalTable observedTable = data.getObservationMap().get(node);
-      writeToMarginalTable(observedTable, handler);
-      updateTableName(node, observedTable, data.getObserved().values());
-    }
+
+    data.getCliqueSet().stream()
+        .map(Clique::getObservationWriteMap)
+        .flatMap(map -> map.entrySet().stream())
+        .map(Map.Entry::getValue)
+        .forEach(JTAMessagePasser::setToUnityAndRun);
+
+    data.getBayesianNetworkData().getObservationMap().values().stream()
+        .map(ProbabilityTable::getUtils)
+        .forEach(TableUtils::marginalizeTable);
+
+    data.getNodes().forEach(node -> updateTableName(node, data));
+
+    log.info("...OBSERVATIONS WRITTEN!");
   }
 
-  private static JTATableHandler getHandlerForSmallestRelevantClique(
-      JunctionTreeData data, Node node) {
-    return data.getCliqueSet().stream()
-        .filter(clique -> clique.getNodes().contains(node))
-        .min(Comparator.comparingInt(table -> table.getNodes().size()))
-        .orElseThrow()
-        .getHandler();
-  }
-
-  private static void writeToMarginalTable(MarginalTable marginalTable, JTATableHandler handler) {
-    marginalTable
-        .getKeySet()
-        .forEach(key -> marginalTable.setProbability(key, handler.sumFromTable(key)));
-  }
-
-  private static void updateTableName(
-      Node node, MarginalTable observedTable, Collection<NodeState> states) {
+  private static void updateTableName(Node node, JunctionTreeData data) {
+    MarginalTable observedTable = data.getObservationMap().get(node);
+    Collection<NodeState> states = data.getObserved().values();
     StringBuilder sb = new StringBuilder("P(").append(node.getNodeID().toString());
     if (!states.isEmpty()) {
       sb.append("|");
@@ -110,24 +64,16 @@ class JTANetworkWriter {
 
   static void writeToNetwork(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
-    data.getAssociatedTables()
-        .forEach(
-            ((clique, netTables) ->
-                netTables.forEach(nt -> writeNetworkTable(clique.getTable(), nt))));
+
+    data.getCliqueSet().stream()
+        .flatMap(c -> c.getNetworkWriteMap().entrySet().stream())
+        .map(Map.Entry::getValue)
+        .forEach(JTAMessagePasser::setToUnityAndRun);
+
+    data.getBayesianNetworkData().getNetworkTablesMap().values().stream()
+        .map(ProbabilityTable::getUtils)
+        .forEach(TableUtils::marginalizeTable);
+
     log.info("NETWORK TABLES WRITTEN");
-  }
-
-  static void writeNetworkTable(JunctionTreeTable cliqueTable, ProbabilityTable networkTable) {
-    double[] networkProbs = networkTable.getProbabilities();
-    Arrays.fill(networkProbs, 0.0);
-    double[] cliqueProbs = cliqueTable.getProbabilities();
-    Integer[] indexPointers = cliqueTable.getIndexPointerMap().get(networkTable);
-
-    for (int cliqueIndex = 0; cliqueIndex < cliqueProbs.length; cliqueIndex++) {
-      int networkProbIndex = indexPointers[cliqueIndex];
-      networkProbs[networkProbIndex] = networkProbs[networkProbIndex] + cliqueProbs[cliqueIndex];
-    }
-
-    if (networkTable instanceof ConditionalTable) TableUtils.marginalizeTable(networkTable);
   }
 }

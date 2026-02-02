@@ -16,7 +16,6 @@ public class JTATableHandler {
   protected final JunctionTreeTable table;
   protected final ProbabilityVectorIterator iterator;
 
-
   public JTATableHandler(JunctionTreeTable table) {
     this.table = table;
     this.iterator = new ProbabilityVectorIterator();
@@ -65,20 +64,12 @@ public class JTATableHandler {
         .allMatch(i -> positionCycler[i] == evidencePositions[i]);
   }
 
-  public double sumProbabilities(VectorCombinationKey comboKey) {
-    return table.getUtils().sumProbabilities(comboKey);
-  }
-
   public void marginalize() {
     table.getUtils().marginalizeTable();
   }
 
   public ProbabilityVector getVector() {
     return table.getVector();
-  }
-
-  protected double getRatio(double targetProb, double actualProb) {
-    return actualProb == 0 ? 0.0 : targetProb / actualProb;
   }
 
   protected void adjustToRatio(

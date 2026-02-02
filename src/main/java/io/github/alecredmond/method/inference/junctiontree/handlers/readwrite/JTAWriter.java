@@ -1,9 +1,9 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
+import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
 
 public class JTAWriter extends Thread {
@@ -44,5 +44,9 @@ public class JTAWriter extends Thread {
                 vector, key, innerLock, (k, i) -> probabilities[i] = ratio * probabilities[i]);
           });
     }
+  }
+
+  public void setDestinationToUnity() {
+    Arrays.fill(vector.getProbabilities(), 1.0);
   }
 }

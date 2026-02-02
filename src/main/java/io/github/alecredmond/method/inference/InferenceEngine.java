@@ -60,7 +60,6 @@ public class InferenceEngine {
     newObservations.putAll(currentObservations);
     if (currentObservations.equals(newObservations)) return 1.0; //TODO - Hit Branch In Test Suite
 
-    if (junctionTree.isMarginalized()) junctionTree.observeNetwork(currentObservations); //TODO - Hit Branch In Test Suite
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
     if (jointProbWithCurrentEvidence == 0) return 0; //TODO - Hit Branch In Test Suite
 
@@ -119,7 +118,6 @@ public class InferenceEngine {
     if (!networkData.isSolved()) runSolver(); //TODO - Hit Branch In Test Suite
     Map<Node, NodeState> observedMap = convertToMap(observed);
     junctionTree.observeNetwork(observedMap);
-    junctionTree.marginalizeTables();
     junctionTree.writeObservations();
   }
 

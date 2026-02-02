@@ -31,9 +31,10 @@ public class Clique {
     this.observationWriteMap = new HashMap<>();
   }
 
-  public Set<JTAMessagePasser> getSeparators() {
-    return new HashSet<>(separatorMap.values());
+  public JTAMessagePasser getSeparator(Clique clique) {
+    return separatorMap.get(clique);
   }
+
 
   @Override
   public String toString() {

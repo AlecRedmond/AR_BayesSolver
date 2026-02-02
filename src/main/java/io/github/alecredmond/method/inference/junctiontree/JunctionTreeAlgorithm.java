@@ -6,8 +6,7 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -19,47 +18,29 @@ public class JunctionTreeAlgorithm {
   public JunctionTreeAlgorithm(JunctionTreeData data) {
     this.data = data;
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
-    marginalizeTables();
-  }
-
-    public void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getHandler).forEach(JTATableHandler::marginalize);
-    data.setMarginalized(true);
+    observeNetwork(new HashMap<>());
   }
 
   public void writeObservations() {
-    JTANetworkWriter.writeToObservations(data);
+    JTANetworkWriter.writeObservations(data);
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
     if (data.getNodes().isEmpty()) return;
-    JTANetworkWriter.setSeparatorsToUnity(data);
     setEvidence(observed);
     Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
     distributeAndCollectMessages(clique, new HashSet<>());
-    data.setMarginalized(false);
+    writeObservations();
   }
 
   public void writeTablesToNetwork() {
     JTANetworkWriter.writeToNetwork(data);
   }
 
-  /**
-   * Sums the values from the smallest table in the JTA. If the JTA has been marginalized, this will
-   * re-run inference.
-   */
   public double getProbabilityOfEvidence() {
-    boolean resetMarginalisation = data.isMarginalized();
-    if (resetMarginalisation) observeNetwork(data.getObserved());
     JunctionTreeTable smallestTable = data.getJunctionTreeTables().getFirst();
-    double[] probabilityArray = smallestTable.getCorrectProbabilities();
-    double jointProb = Arrays.stream(probabilityArray).sum();
-    if (resetMarginalisation) marginalizeTables();
-    return jointProb;
-  }
-
-  public boolean isMarginalized() {
-    return data.isMarginalized();
+    double[] probabilityArray = smallestTable.getVector().getProbabilities();
+    return Arrays.stream(probabilityArray).sum();
   }
 
   double adjustAndReturnError(ParameterConstraint constraint) {
@@ -77,6 +58,7 @@ public class JunctionTreeAlgorithm {
 
   private void setEvidence(Map<Node, NodeState> evidence) {
     data.setObserved(evidence);
+
     for (Clique clique : data.getCliqueSet()) {
       Set<NodeState> evidenceInTable =
           clique.getNodes().stream()
@@ -94,16 +76,16 @@ public class JunctionTreeAlgorithm {
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
-              JTATableHandlerSeparator sth = separator.getHandler();
-              sth.passMessageFrom(currentClique);
+              separator.run();
               distributeAndCollectMessages(nextClique, cliqueChain);
-              sth.passMessageFrom(nextClique);
+              nextClique.getSeparator(currentClique).run();
             });
 
     cliqueChain.remove(currentClique);
   }
 
-  private Map<Clique, Separator> getNextSeparators(Clique currentClique, Set<Clique> cliqueChain) {
+  private Map<Clique, JTAMessagePasser> getNextSeparators(
+      Clique currentClique, Set<Clique> cliqueChain) {
     return currentClique.getSeparatorMap().entrySet().stream()
         .filter(entry -> !cliqueChain.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

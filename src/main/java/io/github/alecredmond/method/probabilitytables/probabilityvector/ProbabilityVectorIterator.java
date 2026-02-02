@@ -5,7 +5,6 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import java.util.*;
-import java.util.function.BiPredicate;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
 import lombok.Getter;
@@ -75,47 +74,5 @@ public class ProbabilityVectorIterator {
         }
       }
     }
-  }
-
-  public void adjustToRatio(
-      ProbabilityVector vector,
-      VectorCombinationKey comboKey,
-      double ratioIfRequest,
-      double ratioElsewhere) {
-    int[] requestKey = comboKey.getTumblerKey();
-    boolean[] positionLocked = comboKey.getInnerLock();
-
-    List<Integer> requestLockedPositions =
-        IntStream.range(0, requestKey.length).filter(i -> positionLocked[i]).boxed().toList();
-
-    double[] probabilities = vector.getProbabilities();
-
-    ObjIntConsumer<int[]> consumer =
-        branchedConsumer(
-            (key, index) -> {
-              for (Integer position : requestLockedPositions) {
-                if (key[position] != requestKey[position]) {
-                  return false;
-                }
-              }
-              return true;
-            },
-            (key, index) -> probabilities[index] = probabilities[index] * ratioIfRequest,
-            (key, index) -> probabilities[index] = probabilities[index] * ratioElsewhere);
-
-    iterateKeyCombos(vector, comboKey, consumer);
-  }
-
-  private ObjIntConsumer<int[]> branchedConsumer(
-      BiPredicate<int[], Integer> predicate,
-      ObjIntConsumer<int[]> trueBranch,
-      ObjIntConsumer<int[]> falseBranch) {
-    return (key, index) -> {
-      if (predicate.test(key, index)) {
-        trueBranch.accept(key, index);
-      } else {
-        falseBranch.accept(key, index);
-      }
-    };
   }
 }
