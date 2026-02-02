@@ -10,8 +10,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class VectorCombinationKey {
-  private Map<Node, NodeState> request;
-  private int[] tumblerKey;
-  private boolean[] positionLocked;
-  private boolean[] invertedLock;
+  protected Map<Node, NodeState> request;
+  protected int[] tumblerKey;
+  protected boolean[] innerLock;
+  protected boolean[] outerLock;
 }

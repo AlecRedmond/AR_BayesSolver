@@ -16,6 +16,7 @@ public class JTATableHandler {
   protected final JunctionTreeTable table;
   protected final ProbabilityVectorIterator iterator;
 
+
   public JTATableHandler(JunctionTreeTable table) {
     this.table = table;
     this.iterator = new ProbabilityVectorIterator();
@@ -36,9 +37,9 @@ public class JTATableHandler {
     VectorCombinationKey observedKey =
         new VectorCombinationKeyFactory().buildKey(table, evidenceInTable);
 
-    boolean[] evidenceLock = observedKey.getPositionLocked();
+    boolean[] evidenceLock = observedKey.getInnerLock();
     int[] evidencePositions = observedKey.getTumblerKey();
-    boolean[] nonEvidenceLock = observedKey.getInvertedLock();
+    boolean[] nonEvidenceLock = observedKey.getOuterLock();
     int[] positionKey = new int[nonEvidenceLock.length];
 
     ProbabilityVector vector = table.getVector();
@@ -100,8 +101,8 @@ public class JTATableHandler {
       ObjIntConsumer<int[]> ifNotEvent) {
     int[] eventPosition = eventKey.getTumblerKey();
     int[] conditionPosition = conditionKey.getTumblerKey();
-    boolean[] conditionLock = conditionKey.getPositionLocked();
-    boolean[] eventLock = eventKey.getPositionLocked();
+    boolean[] conditionLock = conditionKey.getInnerLock();
+    boolean[] eventLock = eventKey.getInnerLock();
     ProbabilityVector vector = table.getVector();
 
     iterator.iterateKeyCombos(

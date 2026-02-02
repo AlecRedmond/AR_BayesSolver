@@ -46,14 +46,18 @@ public class VectorCombinationKeyFactory {
 
   public VectorCombinationKey buildMarginalisationKey(ProbabilityTable table) {
     Set<Node> conditions = table.getConditions();
+    return buildReadWriteKey(table, conditions);
+  }
+
+  public VectorCombinationKey buildReadWriteKey(ProbabilityTable table, Set<Node> sharedNodes) {
     ProbabilityVector vector = table.getVector();
     int keyLength = vector.getNodeArray().length;
     int[] tumblerKey = new int[keyLength];
-    boolean[] conditionLocks = new boolean[keyLength];
-    boolean[] eventLocks = new boolean[keyLength];
+    boolean[] innerLocks = new boolean[keyLength];
+    boolean[] outerLocks = new boolean[keyLength];
 
-    conditions.forEach(condition -> conditionLocks[vector.getNodeIndexMap().get(condition)] = true);
-    IntStream.range(0, eventLocks.length).forEach(i -> eventLocks[i] = !conditionLocks[i]);
-    return new VectorCombinationKey(null, tumblerKey, conditionLocks, eventLocks);
+    sharedNodes.forEach(node -> innerLocks[vector.getNodeIndexMap().get(node)] = true);
+    IntStream.range(0, outerLocks.length).forEach(i -> outerLocks[i] = !innerLocks[i]);
+    return new VectorCombinationKey(null, tumblerKey, innerLocks, outerLocks);
   }
 }

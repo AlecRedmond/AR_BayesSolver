@@ -80,8 +80,8 @@ public class TableUtils {
     ProbabilityVector vector = table.getVector();
 
     int[] tumblerKey = marginalisationKey.getTumblerKey();
-    boolean[] lockConditions = marginalisationKey.getPositionLocked();
-    boolean[] lockEvents = marginalisationKey.getInvertedLock();
+    boolean[] lockConditions = marginalisationKey.getInnerLock();
+    boolean[] lockEvents = marginalisationKey.getOuterLock();
 
     double[] probs = vector.getProbabilities();
 

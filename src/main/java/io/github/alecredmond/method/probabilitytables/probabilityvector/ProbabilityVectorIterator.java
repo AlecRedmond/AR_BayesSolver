@@ -27,7 +27,7 @@ public class ProbabilityVectorIterator {
 
   public void iterateKeyCombos(
       ProbabilityVector vector, VectorCombinationKey key, ObjIntConsumer<int[]> iterativeConsumer) {
-    iterateKeyCombos(vector, key.getTumblerKey(), key.getPositionLocked(), iterativeConsumer);
+    iterateKeyCombos(vector, key.getTumblerKey(), key.getInnerLock(), iterativeConsumer);
   }
 
   public void iterateKeyCombos(
@@ -83,7 +83,7 @@ public class ProbabilityVectorIterator {
       double ratioIfRequest,
       double ratioElsewhere) {
     int[] requestKey = comboKey.getTumblerKey();
-    boolean[] positionLocked = comboKey.getPositionLocked();
+    boolean[] positionLocked = comboKey.getInnerLock();
 
     List<Integer> requestLockedPositions =
         IntStream.range(0, requestKey.length).filter(i -> positionLocked[i]).boxed().toList();
