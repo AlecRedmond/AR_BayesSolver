@@ -1,9 +1,10 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,16 +14,19 @@ class JTACliqueBuilder {
 
   private JTACliqueBuilder() {}
 
-  static Set<Clique> buildCliques(BayesianNetworkData data) {
-    Map<Node, Set<Node>> edgeGraph = initializeGraph(data);
-    moralizeGraph(edgeGraph, data);
-    triangulateGraph(edgeGraph, data);
+  static void buildCliques(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
+    moralizeGraph(edgeGraph, bnd);
+    triangulateGraph(edgeGraph, bnd);
 
     Set<Set<Node>> maximalCliques = findMaximalCliques(edgeGraph);
 
-    return maximalCliques.stream()
-        .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes)))
-        .collect(Collectors.toSet());
+    Set<Clique> set =
+        maximalCliques.stream()
+            .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes)))
+            .collect(Collectors.toSet());
+
+    jtd.setCliqueSet(set);
   }
 
   static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {

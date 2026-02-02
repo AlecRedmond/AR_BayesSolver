@@ -3,7 +3,6 @@ package io.github.alecredmond.method.inference.junctiontree;
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;

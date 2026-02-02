@@ -1,5 +1,6 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
+import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
@@ -10,6 +11,10 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class JTAMessagePasserFactory {
+
+  public JTAMessagePasser build(Clique read, Clique write) {
+    return build(read.getTable(), write.getTable());
+  }
 
   public JTAMessagePasser build(ProbabilityTable readTable, ProbabilityTable writeTable) {
     Set<Node> sharedNodes = findSharedNodes(readTable, writeTable);

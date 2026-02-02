@@ -2,11 +2,11 @@ package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
+import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,16 +16,22 @@ public class Clique {
   private Set<Node> nodes;
   private JunctionTreeTable table;
   private JTATableHandler handler;
-  private Map<Clique, Separator> separatorMap;
+  private Map<Clique, JTAMessagePasser> separatorMap;
+  private List<JTAMessagePasser> initializeFrom;
+  private Map<ProbabilityTable, JTAMessagePasser> networkWriteMap;
+  private Map<MarginalTable, JTAMessagePasser> observationWriteMap;
 
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
     this.table = table;
     this.handler = new JTATableHandler(table);
     this.separatorMap = new HashMap<>();
+    this.initializeFrom = new ArrayList<>();
+    this.networkWriteMap = new HashMap<>();
+    this.observationWriteMap = new HashMap<>();
   }
 
-  public Set<Separator> getSeparators() {
+  public Set<JTAMessagePasser> getSeparators() {
     return new HashSet<>(separatorMap.values());
   }
 

@@ -5,32 +5,30 @@ import io.github.alecredmond.application.constraints.MarginalConstraint;
 import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasserFactory;
+import io.github.alecredmond.method.utils.MapCollector;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTAInitializer {
+  private static final MapCollector COLLECTOR = new MapCollector();
 
   private JTAInitializer() {}
 
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
-    buildCommon(junctionTreeData, bayesianNetworkData);
-    junctionTreeData.setConstraintCliqueMap(
-        buildCliqueToConstraintAssociations(junctionTreeData.getCliqueSet(), bayesianNetworkData));
-    junctionTreeData.setConstraintHandlers(
-        buildConstraintHandlers(bayesianNetworkData, junctionTreeData.getConstraintCliqueMap()));
+    buildCommon(junctionTreeData, bayesianNetworkData, true);
+    buildConstraintCliqueMap(junctionTreeData, bayesianNetworkData);
+    buildConstraintHandlers(junctionTreeData, bayesianNetworkData);
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
     return junctionTreeData;
   }
@@ -38,7 +36,7 @@ public class JTAInitializer {
   public static JunctionTreeData buildInferenceConfiguration(
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
-    buildCommon(junctionTreeData, bayesianNetworkData);
+    buildCommon(junctionTreeData, bayesianNetworkData, false);
     junctionTreeData.setConstraintCliqueMap(new HashMap<>());
     junctionTreeData.setConstraintHandlers(new HashMap<>());
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
@@ -46,42 +44,134 @@ public class JTAInitializer {
   }
 
   private static void buildCommon(
-      JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
-    Set<Clique> cliqueSet = JTACliqueBuilder.buildCliques(bayesianNetworkData);
-    Set<Separator> separators = buildSeparators(cliqueSet);
-
+      JunctionTreeData junctionTreeData,
+      BayesianNetworkData bayesianNetworkData,
+      boolean writeBackToCPTs) {
     junctionTreeData.setBayesianNetworkData(bayesianNetworkData);
-    junctionTreeData.setCliqueSet(cliqueSet);
-    junctionTreeData.setSeparators(separators);
-    junctionTreeData.setLeafCliques(buildLeafCliques(cliqueSet));
-    junctionTreeData.setAssociatedTables(
-        buildCliqueToCPTAssociations(cliqueSet, bayesianNetworkData));
-    junctionTreeData.setJunctionTreeTables(listJTATablesInSizeAscOrder(cliqueSet, separators));
+    JTACliqueBuilder.buildCliques(junctionTreeData, bayesianNetworkData);
+    setJunctionTreeTablesList(junctionTreeData);
+    buildInternalMessagePassers(junctionTreeData);
+    buildExternalMessagePassers(junctionTreeData, bayesianNetworkData, writeBackToCPTs);
   }
 
-  private static Map<ParameterConstraint, Clique> buildCliqueToConstraintAssociations(
-      Set<Clique> cliques, BayesianNetworkData data) {
-    return data.getConstraints().stream()
-        .map(
-            constraint ->
-                Map.entry(
-                    constraint,
-                    findSmallestCliqueContainingAllNodes(cliques, constraint.getAllNodes())))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  private static void buildConstraintCliqueMap(
+      JunctionTreeData junctionTreeData, BayesianNetworkData networkData) {
+    junctionTreeData.setConstraintCliqueMap(
+        COLLECTOR.convertToMap(
+            constraint -> findSmallestClique(constraint, junctionTreeData.getCliqueSet()),
+            networkData.getConstraints()));
   }
 
-  private static Clique findSmallestCliqueContainingAllNodes(Set<Clique> cliques, Set<Node> nodes) {
+  private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    jtd.setConstraintHandlers(
+        COLLECTOR.convertToMap(
+            constraint -> getConstraintHandlerEntry(constraint, jtd.getConstraintCliqueMap()),
+            bnd.getConstraints()));
+  }
+
+  private static void setJunctionTreeTablesList(JunctionTreeData jtd) {
+    jtd.setJunctionTreeTables(
+        jtd.getCliqueSet().stream()
+            .map(Clique::getTable)
+            .sorted(Comparator.comparing(table -> table.getNodes().size()))
+            .toList());
+  }
+
+  private static void buildInternalMessagePassers(JunctionTreeData junctionTreeData) {
+    Set<Clique> cliques = new HashSet<>(junctionTreeData.getCliqueSet());
+    Clique smallest =
+        cliques.stream().min(Comparator.comparing(c -> c.getNodes().size())).orElseThrow();
+    cliques.remove(smallest);
+    Set<Clique> joined = new HashSet<>(Set.of(smallest));
+    junctionTreeData.setLeafCliques(new HashSet<>());
+    recursivelyJoinCliques(
+        smallest, cliques, joined, new JTAMessagePasserFactory(), junctionTreeData);
+  }
+
+  private static void buildExternalMessagePassers(
+      JunctionTreeData jtd, BayesianNetworkData data, boolean writeBackToCPTs) {
+    Set<Clique> cliques = jtd.getCliqueSet();
+
+    JTAMessagePasserFactory factory = new JTAMessagePasserFactory();
+
+    for (Node node : data.getNodes()) {
+      ProbabilityTable networkTable = data.getNetworkTablesMap().get(node);
+      MarginalTable observedTable = data.getObservationMap().get(node);
+
+      Clique bestNetworkClique = getContainsScope(cliques, networkTable.getNodes());
+      Clique bestObservationClique = getContainsScope(cliques, observedTable.getNodes());
+
+      bestNetworkClique
+          .getInitializeFrom()
+          .add(factory.build(networkTable, bestNetworkClique.getTable()));
+
+      bestObservationClique
+          .getObservationWriteMap()
+          .put(observedTable, factory.build(bestObservationClique.getTable(), observedTable));
+
+      if (writeBackToCPTs) {
+        bestNetworkClique
+            .getNetworkWriteMap()
+            .put(networkTable, factory.build(bestNetworkClique.getTable(), networkTable));
+      }
+    }
+  }
+
+  private static Map.Entry<ParameterConstraint, Clique> findSmallestClique(
+      ParameterConstraint constraint, Set<Clique> cliques) {
+    Clique smallestClique = getContainsScope(cliques, constraint.getAllNodes());
+    return Map.entry(constraint, smallestClique);
+  }
+
+  private static Map.Entry<ParameterConstraint, JTAConstraintHandler> getConstraintHandlerEntry(
+      ParameterConstraint constraint, Map<ParameterConstraint, Clique> constraintCliqueMap) {
+    return Map.entry(
+        constraint,
+        buildConstraintHandler(constraint, constraintCliqueMap.get(constraint).getHandler()));
+  }
+
+  private static void recursivelyJoinCliques(
+      Clique current,
+      Set<Clique> available,
+      Set<Clique> joined,
+      JTAMessagePasserFactory factory,
+      JunctionTreeData junctionTreeData) {
+
+    List<Clique> orderedCandidates =
+        available.stream()
+            .map(clique -> commonNodes(clique, current))
+            .filter(connectionSize -> connectionSize.getValue() > 0)
+            .sorted(Map.Entry.<Clique, Integer>comparingByValue().reversed())
+            .map(Map.Entry::getKey)
+            .toList();
+
+    if (orderedCandidates.isEmpty()) {
+      available.remove(current);
+      return;
+    }
+
+    orderedCandidates.forEach(
+        nextClique -> {
+          if (joined.contains(nextClique)) {
+            return;
+          }
+          current.getSeparatorMap().put(nextClique, factory.build(current, nextClique));
+          nextClique.getSeparatorMap().put(current, factory.build(nextClique, current));
+          available.remove(nextClique);
+          joined.add(nextClique);
+          recursivelyJoinCliques(nextClique, available, joined, factory, junctionTreeData);
+        });
+
+    if (current.getSeparatorMap().size() == 1) {
+      junctionTreeData.getLeafCliques().add(current);
+    }
+  }
+
+  private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
     return cliques.stream()
-        .filter(clique -> clique.getNodes().containsAll(nodes))
-        .min(Comparator.comparingInt(clique -> clique.getNodes().size()))
+        .filter(c -> c.getNodes().containsAll(nodesInScope))
+        .min(Comparator.comparing(clique -> clique.getNodes().size()))
         .orElseThrow();
-  }
-
-  private static Map<ParameterConstraint, JTAConstraintHandler> buildConstraintHandlers(
-      BayesianNetworkData data, Map<ParameterConstraint, Clique> constraintCliqueMap) {
-    return data.getConstraints().stream()
-        .map(c -> Map.entry(c, buildConstraintHandler(c, constraintCliqueMap.get(c).getHandler())))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static JTAConstraintHandler buildConstraintHandler(
@@ -94,131 +184,9 @@ public class JTAInitializer {
     throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
-  private static List<JunctionTreeTable> listJTATablesInSizeAscOrder(
-      Set<Clique> cliques, Set<Separator> separators) {
-    List<JunctionTreeTable> allTables = new ArrayList<>();
-    cliques.stream().map(Clique::getTable).forEach(allTables::add);
-    separators.stream().map(Separator::getTable).forEach(allTables::add);
-    return allTables.stream()
-        .sorted(Comparator.comparingInt(table -> table.getProbabilities().length))
-        .toList();
-  }
-
-  private static Map<Clique, Set<ProbabilityTable>> buildCliqueToCPTAssociations(
-      Set<Clique> cliques, BayesianNetworkData data) {
-    Map<Clique, Set<ProbabilityTable>> associated =
-        cliques.stream()
-            .map(c -> Map.entry(c, new HashSet<ProbabilityTable>()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    for (ProbabilityTable table : data.getNetworkTablesMap().values()) {
-      Set<Node> tableNodes = table.getNodes();
-      Clique containsScope =
-          cliques.stream()
-              .filter(c -> c.getNodes().containsAll(tableNodes))
-              .findAny()
-              .orElseThrow();
-      associated.get(containsScope).add(table);
-    }
-
-    return associated;
-  }
-
-  private static Set<Separator> buildSeparators(Set<Clique> cliquesSet) {
-    List<Clique> cliqueList = new ArrayList<>(cliquesSet);
-
-    List<List<Clique>> sortedPairs = getSortedPairs(cliqueList);
-
-    int separatorsNeeded = cliqueList.size() - 1;
-    List<Separator> separators = new ArrayList<>();
-
-    sortedPairs.forEach(pair -> joinBestPairs(pair, separators, separatorsNeeded));
-
-    return new HashSet<>(separators);
-  }
-
-  private static void joinBestPairs(
-      List<Clique> pair, List<Separator> separators, int separatorsNeeded) {
-    if (separators.size() == separatorsNeeded) return;
-    Clique cliqueA = pair.getFirst();
-    Clique cliqueB = pair.getLast();
-
-    boolean containsLoop = false;
-    for (Clique clique : cliqueA.getSeparatorMap().keySet()) {
-      containsLoop = checkForLoops(clique, Set.of(), new HashSet<>());
-      if (containsLoop) break;
-    }
-    if (containsLoop) return;
-    separators.add(buildCliqueSeparator(cliqueA, cliqueB));
-  }
-
-  private static List<List<Clique>> getSortedPairs(List<Clique> cliques) {
-    return getSharedNodesPerPair(cliques).entrySet().stream()
-        .sorted(Map.Entry.<List<Clique>, Integer>comparingByValue().reversed())
-        .map(Map.Entry::getKey)
-        .toList();
-  }
-
-  private static Map<List<Clique>, Integer> getSharedNodesPerPair(List<Clique> cliques) {
-    Map<List<Clique>, Integer> sharedNodesPerPair = new HashMap<>();
-    for (int i = 0; i < cliques.size(); i++) {
-      for (int j = i + 1; j < cliques.size(); j++) {
-        Clique cliqueA = cliques.get(i);
-        Clique cliqueB = cliques.get(j);
-        int commonNodes =
-            cliqueA.getNodes().stream()
-                .filter(cliqueB.getNodes()::contains)
-                .collect(Collectors.toSet())
-                .size();
-        sharedNodesPerPair.put(List.of(cliqueA, cliqueB), commonNodes);
-      }
-    }
-    return sharedNodesPerPair;
-  }
-
-  private static Separator buildCliqueSeparator(Clique cliqueA, Clique cliqueB) {
-    Set<Node> common = JTACliqueBuilder.intersectionOf(cliqueA.getNodes(), cliqueB.getNodes());
-    Separator separator =
-        new Separator(cliqueA, cliqueB, common, TableBuilder.buildJunctionTreeTable(common));
-
-    cliqueA.getSeparatorMap().put(cliqueB, separator);
-    cliqueB.getSeparatorMap().put(cliqueA, separator);
-    return separator;
-  }
-
-  private static boolean checkForLoops(
-      Clique clique, Set<Clique> lastClique, Set<Clique> currentChain) {
-    currentChain.add(clique);
-
-    Set<Clique> connectedCliques =
-        clique.getSeparatorMap().keySet().stream()
-            .filter(c -> !lastClique.contains(c))
-            .collect(Collectors.toSet());
-
-    if (connectedCliques.isEmpty()) {
-      currentChain.remove(clique);
-      return false;
-    }
-
-    boolean loopFound = connectedCliques.stream().anyMatch(currentChain::contains);
-
-    if (loopFound) {
-      currentChain.remove(clique);
-      return true;
-    }
-
-    for (Clique connectedClique : connectedCliques) {
-      loopFound = checkForLoops(connectedClique, Set.of(clique), currentChain);
-      if (loopFound) break;
-    }
-
-    currentChain.remove(clique);
-    return loopFound;
-  }
-
-  private static Set<Clique> buildLeafCliques(Set<Clique> cliques) {
-    return cliques.stream()
-        .filter(clique -> clique.getSeparators().size() <= 1)
-        .collect(Collectors.toSet());
+  private static Map.Entry<Clique, Integer> commonNodes(Clique clique, Clique current) {
+    Set<Node> cliqueNodes = new HashSet<>(clique.getNodes());
+    cliqueNodes.retainAll(current.getNodes());
+    return Map.entry(clique, cliqueNodes.size());
   }
 }
