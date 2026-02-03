@@ -6,7 +6,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ class JTANetworkWriter {
         .forEach(
             clique -> {
               setProbabilitiesToUnity(clique);
-              clique.getInitializeFrom().forEach(JTAMessagePasser::run);
+              clique.getInitializeFrom().forEach(JTATransferWriter::run);
             });
   }
 
@@ -35,10 +35,9 @@ class JTANetworkWriter {
     data.getBayesianNetworkData().setObserved(data.getObserved());
 
     data.getCliqueSet().stream()
-        .map(Clique::getObservationWriteMap)
-        .flatMap(map -> map.entrySet().stream())
-        .map(Map.Entry::getValue)
-        .forEach(JTAMessagePasser::setToUnityAndRun);
+        .map(Clique::getCorrectObservedWriter)
+        .flatMap(Collection::stream)
+        .forEach(JTATransferWriter::run);
 
     data.getBayesianNetworkData().getObservationMap().values().stream()
         .map(ProbabilityTable::getUtils)
@@ -66,9 +65,8 @@ class JTANetworkWriter {
     log.info("WRITING TO NETWORK");
 
     data.getCliqueSet().stream()
-        .flatMap(c -> c.getNetworkWriteMap().entrySet().stream())
-        .map(Map.Entry::getValue)
-        .forEach(JTAMessagePasser::setToUnityAndRun);
+        .flatMap(c -> c.getNetworkWriters().stream())
+        .forEach(JTATransferWriter::setToUnityAndRun);
 
     data.getBayesianNetworkData().getNetworkTablesMap().values().stream()
         .map(ProbabilityTable::getUtils)

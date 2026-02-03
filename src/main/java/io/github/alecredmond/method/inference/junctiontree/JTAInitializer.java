@@ -7,13 +7,14 @@ import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasserFactory;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriterFactory;
 import io.github.alecredmond.method.utils.MapCollector;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -95,14 +96,14 @@ public class JTAInitializer {
     Set<Clique> joined = new HashSet<>(Set.of(smallest));
     junctionTreeData.setLeafCliques(new HashSet<>());
     recursivelyJoinCliques(
-        smallest, cliques, joined, new JTAMessagePasserFactory(), junctionTreeData);
+        smallest, cliques, joined, new JTATransferWriterFactory(), junctionTreeData);
   }
 
   private static void buildExternalMessagePassers(
       JunctionTreeData jtd, BayesianNetworkData data, boolean writeBackToCPTs) {
     Set<Clique> cliques = jtd.getCliqueSet();
 
-    JTAMessagePasserFactory factory = new JTAMessagePasserFactory();
+    JTATransferWriterFactory factory = new JTATransferWriterFactory();
 
     for (Node node : data.getNodes()) {
       ProbabilityTable networkTable = data.getNetworkTablesMap().get(node);
@@ -111,21 +112,34 @@ public class JTAInitializer {
       Clique bestNetworkClique = getContainsScope(cliques, networkTable.getNodes());
       Clique bestObservationClique = getContainsScope(cliques, observedTable.getNodes());
 
+      JunctionTreeTable cliqueTable = bestObservationClique.getTable();
+
       bestNetworkClique
           .getInitializeFrom()
           .add(factory.buildCopyInWriter(networkTable, bestNetworkClique.getTable()));
 
       bestObservationClique
-          .getObservationWriteMap()
-          .put(
-              observedTable,
-              factory.buildRatioWriter(bestObservationClique.getTable(), observedTable));
+          .getObservedWriters()
+          .add(
+              factory.buildCopyInWriter(
+                  cliqueTable.getNodes(),
+                  observedTable.getNodes(),
+                  cliqueTable.getObservedVector(),
+                  observedTable.getVector()));
+
+      bestObservationClique
+          .getUnObservedWriters()
+          .add(
+              factory.buildCopyInWriter(
+                  cliqueTable.getNodes(),
+                  observedTable.getNodes(),
+                  cliqueTable.getUnobservedVector(),
+                  observedTable.getVector()));
 
       if (writeBackToCPTs) {
         bestNetworkClique
-            .getNetworkWriteMap()
-            .put(
-                networkTable, factory.buildRatioWriter(bestNetworkClique.getTable(), networkTable));
+            .getNetworkWriters()
+            .add(factory.buildCopyInWriter(bestNetworkClique.getTable(), networkTable));
       }
     }
   }
@@ -147,7 +161,7 @@ public class JTAInitializer {
       Clique current,
       Set<Clique> available,
       Set<Clique> joined,
-      JTAMessagePasserFactory factory,
+      JTATransferWriterFactory factory,
       JunctionTreeData junctionTreeData) {
 
     List<Clique> orderedCandidates =

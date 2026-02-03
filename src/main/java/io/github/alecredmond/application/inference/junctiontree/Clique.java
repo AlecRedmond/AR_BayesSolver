@@ -2,10 +2,8 @@ package io.github.alecredmond.application.inference.junctiontree;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
 import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,10 +14,11 @@ public class Clique {
   private Set<Node> nodes;
   private JunctionTreeTable table;
   private JTATableHandler handler;
-  private Map<Clique, JTAMessagePasser> separatorMap;
-  private List<JTAMessagePasser> initializeFrom;
-  private Map<ProbabilityTable, JTAMessagePasser> networkWriteMap;
-  private Map<MarginalTable, JTAMessagePasser> observationWriteMap;
+  private Map<Clique, JTATransferWriter> separatorMap;
+  private List<JTATransferWriter> initializeFrom;
+  private List<JTATransferWriter> networkWriters;
+  private List<JTATransferWriter> observedWriters;
+  private List<JTATransferWriter> unObservedWriters;
 
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
@@ -27,14 +26,18 @@ public class Clique {
     this.handler = new JTATableHandler(table);
     this.separatorMap = new HashMap<>();
     this.initializeFrom = new ArrayList<>();
-    this.networkWriteMap = new HashMap<>();
-    this.observationWriteMap = new HashMap<>();
+    this.networkWriters = new ArrayList<>();
+    this.observedWriters = new ArrayList<>();
+    this.unObservedWriters = new ArrayList<>();
   }
 
-  public JTAMessagePasser getSeparator(Clique clique) {
+  public JTATransferWriter getSeparator(Clique clique) {
     return separatorMap.get(clique);
   }
 
+  public List<JTATransferWriter> getCorrectObservedWriter() {
+    return table.isObserved() ? observedWriters : unObservedWriters;
+  }
 
   @Override
   public String toString() {

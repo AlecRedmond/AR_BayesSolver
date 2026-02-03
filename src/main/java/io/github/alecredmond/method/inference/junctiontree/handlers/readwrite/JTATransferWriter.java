@@ -1,12 +1,15 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
-public class JTAMessagePasser {
+public class JTATransferWriter {
   private final JTAReader read;
-  private final JTAWriter write;
+  private final JTAWriterMessagePass write;
+  private final JTAReadWriteSynchronizer synchronizer;
 
-  public JTAMessagePasser(JTAReader read, JTAWriter write) {
+  public JTATransferWriter(
+      JTAReader read, JTAWriterMessagePass write, JTAReadWriteSynchronizer synchronizer) {
     this.read = read;
     this.write = write;
+    this.synchronizer = synchronizer;
   }
 
   public void setToUnityAndRun() {
@@ -15,6 +18,7 @@ public class JTAMessagePasser {
   }
 
   public void run() {
+    synchronizer.reset();
     new Thread(read).start();
     new Thread(write).start();
   }

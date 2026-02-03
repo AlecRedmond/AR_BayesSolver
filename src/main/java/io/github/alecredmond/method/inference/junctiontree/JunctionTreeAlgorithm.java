@@ -6,7 +6,7 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,7 +91,7 @@ public class JunctionTreeAlgorithm {
     cliqueChain.remove(currentClique);
   }
 
-  private Map<Clique, JTAMessagePasser> getNextSeparators(
+  private Map<Clique, JTATransferWriter> getNextSeparators(
       Clique currentClique, Set<Clique> cliqueChain) {
     return currentClique.getSeparatorMap().entrySet().stream()
         .filter(entry -> !cliqueChain.contains(entry.getKey()))

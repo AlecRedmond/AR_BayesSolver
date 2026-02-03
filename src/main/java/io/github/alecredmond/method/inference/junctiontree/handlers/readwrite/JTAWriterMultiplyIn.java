@@ -2,11 +2,10 @@ package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
-import java.util.concurrent.atomic.DoubleAdder;
 
-public class JTACopyInWriter extends JTAWriter {
+public class JTAWriterMultiplyIn extends JTAWriterMessagePass {
 
-  public JTACopyInWriter(
+  public JTAWriterMultiplyIn(
       JTAReadWriteSynchronizer synchronizer,
       ProbabilityVector vector,
       VectorCombinationKey writeKey) {

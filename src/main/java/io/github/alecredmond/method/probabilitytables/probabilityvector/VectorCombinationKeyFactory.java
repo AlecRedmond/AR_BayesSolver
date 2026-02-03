@@ -51,6 +51,10 @@ public class VectorCombinationKeyFactory {
 
   public VectorCombinationKey buildReadWriteKey(ProbabilityTable table, Set<Node> sharedNodes) {
     ProbabilityVector vector = table.getVector();
+    return buildReadWriteKey(vector, sharedNodes);
+  }
+
+  public VectorCombinationKey buildReadWriteKey(ProbabilityVector vector, Set<Node> sharedNodes) {
     int keyLength = vector.getNodeArray().length;
     int[] tumblerKey = new int[keyLength];
     boolean[] innerLocks = new boolean[keyLength];

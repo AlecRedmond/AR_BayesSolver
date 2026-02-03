@@ -9,6 +9,11 @@ public class JTAReadWriteSynchronizer {
     this.writeEnable = true;
   }
 
+  public synchronized void reset() {
+    this.sum = 0.0;
+    this.writeEnable = true;
+  }
+
   public synchronized double getSum() {
     while (writeEnable) {
       try {

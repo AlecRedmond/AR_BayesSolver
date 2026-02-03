@@ -16,19 +16,19 @@ public class ProbabilityVectorFactory {
 
   public ProbabilityVectorFactory() {}
 
-  public ProbabilityVector build(List<Node> nodeSet) {
-    Node[] nodes = nodeSet.toArray(new Node[0]);
-    int[] cardinality = buildCardinalityArray(nodes);
-    cardinalitySanityCheck(cardinality, nodes);
+  public ProbabilityVector build(List<Node> nodes) {
+    Node[] nodesArray = nodes.toArray(new Node[0]);
+    int[] cardinality = buildCardinalityArray(nodesArray);
+    cardinalitySanityCheck(cardinality, nodesArray);
     int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
     int[] multiplier = buildMultiplierArray(cardinality, rank);
     double[] probability = new double[rank];
     Arrays.fill(probability, 1.0);
-    Map<Node, Integer> nodeIndexMap = buildNodeIndexMap(nodes);
-    Map<NodeState, Integer> stateValueMap = buildStateValueMap(nodes);
+    Map<Node, Integer> nodeIndexMap = buildNodeIndexMap(nodesArray);
+    Map<NodeState, Integer> stateValueMap = buildStateValueMap(nodesArray);
 
     return new ProbabilityVector(
-        nodes, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
+        nodesArray, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
   }
 
   private int[] buildCardinalityArray(Node[] nodes) {

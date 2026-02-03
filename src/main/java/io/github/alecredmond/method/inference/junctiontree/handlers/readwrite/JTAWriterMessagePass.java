@@ -6,13 +6,13 @@ import io.github.alecredmond.method.probabilitytables.probabilityvector.Probabil
 import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
 
-public class JTAWriter implements Runnable {
+public class JTAWriterMessagePass implements Runnable {
   protected final JTAReadWriteSynchronizer synchronizer;
   protected final ProbabilityVector vector;
   protected final VectorCombinationKey writeKey;
   protected final ProbabilityVectorIterator iterator;
 
-  public JTAWriter(
+  public JTAWriterMessagePass(
       JTAReadWriteSynchronizer synchronizer,
       ProbabilityVector vector,
       VectorCombinationKey writeKey) {
