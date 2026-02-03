@@ -9,9 +9,11 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -612,7 +614,9 @@ class BayesianNetworkTest {
       net.observeMarginals();
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertEquals(
-          0.8, rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:FALSE"))), 1E-9);
+          0.8,
+          rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:FALSE"))),
+          1E-9);
     }
 
     @Test
@@ -823,10 +827,19 @@ class BayesianNetworkTest {
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
           .solveNetwork()
-          .observeMarginals()
           .printNetwork()
           .observeNetwork(List.of("WET_GRASS:TRUE"))
           .printObserved();
+
+      net.getNetworkData().getNetworkTablesMap().values().stream()
+          .map(ProbabilityTable::getVector)
+          .map(ProbabilityVector::getNodeArray)
+          .forEach(
+              nodes -> {
+                StringBuilder sb = new StringBuilder();
+                Arrays.stream(nodes).forEach(node -> sb.append(node.getNodeID()).append(" "));
+                System.out.println(sb);
+              });
 
       net.observeMarginals();
 

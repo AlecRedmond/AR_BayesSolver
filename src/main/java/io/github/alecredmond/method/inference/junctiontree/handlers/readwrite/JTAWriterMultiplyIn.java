@@ -3,7 +3,7 @@ package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 
-public class JTAWriterMultiplyIn extends JTAWriterMessagePass {
+public class JTAWriterMultiplyIn extends JTAWriter {
 
   public JTAWriterMultiplyIn(
       JTAReadWriteSynchronizer synchronizer,

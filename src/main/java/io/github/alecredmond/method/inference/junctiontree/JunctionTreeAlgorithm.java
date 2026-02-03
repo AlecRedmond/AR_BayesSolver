@@ -6,8 +6,8 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -19,8 +19,6 @@ public class JunctionTreeAlgorithm {
   public JunctionTreeAlgorithm(JunctionTreeData data) {
     this.data = data;
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
-    observeNetwork(new HashMap<>());
-    writeObservations();
   }
 
   public void writeObservations() {
@@ -45,9 +43,7 @@ public class JunctionTreeAlgorithm {
   }
 
   public void marginalizeTables() {
-    data.getCliqueSet().stream()
-        .map(clique -> clique.getTable().getUtils())
-        .forEach(TableUtils::marginalizeTable);
+    data.getCliqueSet().stream().map(Clique::getTable).forEach(ProbabilityTable::marginalizeTable);
   }
 
   double adjustAndReturnError(ParameterConstraint constraint) {

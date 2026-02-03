@@ -18,7 +18,6 @@ public class Clique {
   private List<JTATransferWriter> initializeFrom;
   private List<JTATransferWriter> networkWriters;
   private List<JTATransferWriter> observedWriters;
-  private List<JTATransferWriter> unObservedWriters;
 
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
@@ -28,18 +27,13 @@ public class Clique {
     this.initializeFrom = new ArrayList<>();
     this.networkWriters = new ArrayList<>();
     this.observedWriters = new ArrayList<>();
-    this.unObservedWriters = new ArrayList<>();
   }
 
   public JTATransferWriter getSeparator(Clique clique) {
     return separatorMap.get(clique);
   }
 
-  public List<JTATransferWriter> getCorrectObservedWriter() {
-    return table.isObserved() ? observedWriters : unObservedWriters;
-  }
-
-  @Override
+    @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Clique : ");
     nodes.forEach(node -> sb.append(node.toString()).append(" "));

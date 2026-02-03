@@ -10,7 +10,6 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,8 +36,7 @@ class NetworkDataUtils {
     Stream.concat(
             networkData.getNetworkTablesMap().values().stream(),
             networkData.getObservationMap().values().stream())
-        .map(ProbabilityTable::getUtils)
-        .forEach(TableUtils::marginalizeTable);
+        .forEach(ProbabilityTable::marginalizeTable);
   }
 
   void resetAllNodeData() {
@@ -299,7 +297,7 @@ class NetworkDataUtils {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
               ProbabilityTable table = buildNetworkTable(events, conditions);
-              table.getUtils().marginalizeTable();
+              table.marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

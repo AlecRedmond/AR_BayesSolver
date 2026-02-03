@@ -34,4 +34,9 @@ public class MarginalTable extends ProbabilityTable {
   public <T> double getProbability(T nodeStateID) {
     return super.getProbabilityFromIDs(Set.of(nodeStateID));
   }
+
+    @Override
+    public void marginalizeTable() {
+      utils.marginalizeJointTable();
+    }
 }

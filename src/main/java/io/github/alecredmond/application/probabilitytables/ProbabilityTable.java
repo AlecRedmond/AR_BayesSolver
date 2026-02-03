@@ -54,6 +54,8 @@ public abstract class ProbabilityTable {
     return utils.sumProbabilities(request);
   }
 
+  public abstract void marginalizeTable();
+
   public void setProbability(Set<NodeState> request, double probability) {
     utils.confirmAllNodesQueried(request);
     utils.setProbability(request,probability);

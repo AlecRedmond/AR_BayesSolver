@@ -94,7 +94,7 @@ public class TableBuilder {
       Set<Node> events, BayesianNetworkData bnd) {
     List<Node> orderedEvents = bnd.getNodes().stream().filter(events::contains).toList();
     ProbabilityVector vector = new ProbabilityVectorFactory().build(orderedEvents);
-    ProbabilityVector observedVector = new ProbabilityVectorFactory().build(orderedEvents);
+    ProbabilityVector backupVector = new ProbabilityVectorFactory().build(orderedEvents);
     Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
     Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
     Map<Object, Node> nodeIDMap = buildNodeIDMap(events);
@@ -102,7 +102,7 @@ public class TableBuilder {
         buildTableName(orderedEvents, new HashSet<>()),
         vector,
         new LinkedHashSet<>(orderedEvents),
-        observedVector,
+        backupVector,
         equivalentIndexes,
         nodeStateIDMap,
         nodeIDMap);

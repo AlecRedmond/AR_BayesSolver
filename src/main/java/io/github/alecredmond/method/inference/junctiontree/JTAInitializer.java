@@ -96,7 +96,7 @@ public class JTAInitializer {
     Set<Clique> joined = new HashSet<>(Set.of(smallest));
     junctionTreeData.setLeafCliques(new HashSet<>());
     recursivelyJoinCliques(
-        smallest, cliques, joined, new JTATransferWriterFactory(), junctionTreeData);
+        smallest, cliques, joined, new JTATransferWriterFactory());
   }
 
   private static void buildExternalMessagePassers(
@@ -124,16 +124,7 @@ public class JTAInitializer {
               factory.buildCopyInWriter(
                   cliqueTable.getNodes(),
                   observedTable.getNodes(),
-                  cliqueTable.getObservedVector(),
-                  observedTable.getVector()));
-
-      bestObservationClique
-          .getUnObservedWriters()
-          .add(
-              factory.buildCopyInWriter(
-                  cliqueTable.getNodes(),
-                  observedTable.getNodes(),
-                  cliqueTable.getUnobservedVector(),
+                  cliqueTable.getVector(),
                   observedTable.getVector()));
 
       if (writeBackToCPTs) {
@@ -161,8 +152,7 @@ public class JTAInitializer {
       Clique current,
       Set<Clique> available,
       Set<Clique> joined,
-      JTATransferWriterFactory factory,
-      JunctionTreeData junctionTreeData) {
+      JTATransferWriterFactory factory) {
 
     List<Clique> orderedCandidates =
         available.stream()
@@ -186,7 +176,7 @@ public class JTAInitializer {
           nextClique.getSeparatorMap().put(current, factory.build(nextClique, current));
           available.remove(nextClique);
           joined.add(nextClique);
-          recursivelyJoinCliques(nextClique, available, joined, factory, junctionTreeData);
+          recursivelyJoinCliques(nextClique, available, joined, factory);
         });
   }
 

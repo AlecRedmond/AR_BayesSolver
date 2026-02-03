@@ -27,7 +27,7 @@ public class JTATransferWriterFactory {
 
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
-    JTAWriterMessagePass writer = new JTAWriterMessagePass(synchronizer, writeTable.getVector(), writeKey);
+    JTAWriter writer = new JTAWriterMessagePass(synchronizer, writeTable.getVector(), writeKey);
     return new JTATransferWriter(reader, writer,synchronizer);
   }
 
@@ -50,7 +50,7 @@ public class JTATransferWriterFactory {
 
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readVector, readKey);
-    JTAWriterMessagePass writer = new JTAWriterMultiplyIn(synchronizer, writeVector, writeKey);
+    JTAWriter writer = new JTAWriterMultiplyIn(synchronizer, writeVector, writeKey);
     return new JTATransferWriter(reader, writer,synchronizer);
   }
 
@@ -64,7 +64,7 @@ public class JTATransferWriterFactory {
 
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
-    JTAWriterMessagePass writer = new JTAWriterMultiplyIn(synchronizer, writeTable.getVector(), writeKey);
+    JTAWriter writer = new JTAWriterMultiplyIn(synchronizer, writeTable.getVector(), writeKey);
     return new JTATransferWriter(reader, writer,synchronizer);
   }
 }

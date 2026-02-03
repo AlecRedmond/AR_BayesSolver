@@ -30,8 +30,8 @@ public class JTATableHandler {
       return;
     }
 
-    double[] probabilities = table.getUnobservedVector().getProbabilities();
-    double[] observed = table.getObservedVector().getProbabilities();
+    double[] backup = table.getBackupVector().getProbabilities();
+    double[] observed = table.getVector().getProbabilities();
 
     VectorCombinationKey observedKey =
         new VectorCombinationKeyFactory().buildKey(table, evidenceInTable);
@@ -51,7 +51,7 @@ public class JTATableHandler {
           boolean isEvidence = checkIsEvidence(outerKey, evidencePositions, evidenceLock);
           ObjIntConsumer<int[]> consumer =
               isEvidence
-                  ? ((key, index) -> observed[index] = probabilities[index])
+                  ? ((key, index) -> observed[index] = backup[index])
                   : ((key, index) -> observed[index] = 0.0);
           iterator.iterateKeyCombos(vector, positionKey, evidenceLock, consumer);
         });

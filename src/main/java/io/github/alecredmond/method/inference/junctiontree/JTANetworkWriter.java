@@ -2,13 +2,14 @@ package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,10 +24,23 @@ class JTANetworkWriter {
               setProbabilitiesToUnity(clique);
               clique.getInitializeFrom().forEach(JTATransferWriter::run);
             });
+    backupUnobservedData(data);
   }
 
   private static void setProbabilitiesToUnity(Clique clique) {
     Arrays.fill(clique.getTable().getVector().getProbabilities(), 1.0);
+  }
+
+  private static void backupUnobservedData(JunctionTreeData data) {
+    data.getCliqueSet().stream()
+        .map(Clique::getTable)
+        .forEach(
+            jtt -> {
+              jtt.marginalizeTable();
+              double[] solvedProbabilities = jtt.getVector().getProbabilities();
+              double[] backup = jtt.getBackupVector().getProbabilities();
+              System.arraycopy(solvedProbabilities, 0, backup, 0, backup.length);
+            });
   }
 
   static void writeObservations(JunctionTreeData data) {
@@ -35,13 +49,14 @@ class JTANetworkWriter {
     data.getBayesianNetworkData().setObserved(data.getObserved());
 
     data.getCliqueSet().stream()
-        .map(Clique::getCorrectObservedWriter)
+        .map(Clique::getObservedWriters)
         .flatMap(Collection::stream)
-        .forEach(JTATransferWriter::run);
+        .forEach(JTATransferWriter::setToUnityAndRun);
 
-    data.getBayesianNetworkData().getObservationMap().values().stream()
-        .map(ProbabilityTable::getUtils)
-        .forEach(TableUtils::marginalizeTable);
+    data.getBayesianNetworkData()
+        .getObservationMap()
+        .values()
+        .forEach(ProbabilityTable::marginalizeTable);
 
     data.getNodes().forEach(node -> updateTableName(node, data));
 
@@ -64,13 +79,17 @@ class JTANetworkWriter {
   static void writeToNetwork(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
 
-    data.getCliqueSet().stream()
-        .flatMap(c -> c.getNetworkWriters().stream())
+    BayesianNetworkData bnd = data.getBayesianNetworkData();
+    Set<Clique> cliques = data.getCliqueSet();
+
+    Stream.concat(
+            cliques.stream().flatMap(c -> c.getNetworkWriters().stream()),
+            cliques.stream().flatMap(c -> c.getObservedWriters().stream()))
         .forEach(JTATransferWriter::setToUnityAndRun);
 
-    data.getBayesianNetworkData().getNetworkTablesMap().values().stream()
-        .map(ProbabilityTable::getUtils)
-        .forEach(TableUtils::marginalizeTable);
+    Stream.concat(
+            bnd.getNetworkTablesMap().values().stream(), bnd.getObservationMap().values().stream())
+        .forEach(ProbabilityTable::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");
   }

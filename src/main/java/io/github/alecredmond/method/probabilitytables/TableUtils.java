@@ -47,6 +47,14 @@ public class TableUtils {
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
   }
 
+  public void marginalizeJointTable() {
+    double[] probabilities = table.getVector().getProbabilities();
+    double tableSum = Arrays.stream(probabilities).sum();
+    double ratio = tableSum == 0.0 ? 0.0 : 1 / tableSum;
+    IntStream.range(0, probabilities.length)
+        .forEach(i -> probabilities[i] = ratio * probabilities[i]);
+  }
+
   public List<Set<NodeState>> generateStateCombinations(Set<Node> nodes) {
     return generateStateCombinations(new ArrayList<>(), nodes);
   }
@@ -79,10 +87,10 @@ public class TableUtils {
     return combos;
   }
 
-  public void marginalizeTable() {
+  public void marginalizeConditionalTable() {
     ProbabilityVector vector = table.getVector();
 
-    int[] tumblerKey = marginalisationKey.getTumblerKey();
+    int[] tumblerKey = marginalisationKey.getTumblerKey().clone();
     boolean[] lockConditions = marginalisationKey.getInnerLock();
     boolean[] lockEvents = marginalisationKey.getOuterLock();
 
