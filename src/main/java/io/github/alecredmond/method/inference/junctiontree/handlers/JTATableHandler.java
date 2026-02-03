@@ -26,12 +26,13 @@ public class JTATableHandler {
     table.getObservedStates().clear();
     table.getObservedStates().addAll(evidenceInTable);
 
-    if (!isObserved) {
-      return;
-    }
-
     double[] backup = table.getBackupVector().getProbabilities();
     double[] observed = table.getVector().getProbabilities();
+
+    if (!isObserved) {
+      System.arraycopy(backup, 0, observed, 0, backup.length);
+      return;
+    }
 
     VectorCombinationKey observedKey =
         new VectorCombinationKeyFactory().buildKey(table, evidenceInTable);
