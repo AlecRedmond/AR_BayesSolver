@@ -19,7 +19,7 @@ public class JTAReadWriteSynchronizer {
     }
     double copy = this.sum;
     this.writeEnable = true;
-    notify();
+    notifyAll();
     return copy;
   }
 
@@ -33,6 +33,6 @@ public class JTAReadWriteSynchronizer {
     }
     this.sum = sum;
     this.writeEnable = false;
-    notify();
+    notifyAll();
   }
 }

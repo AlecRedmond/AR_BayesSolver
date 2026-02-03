@@ -10,9 +10,11 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,11 +26,19 @@ class NetworkDataUtils {
   }
 
   void buildNetworkData() {
-    if (networkData.isSolved()) return;
     Map<Node, Integer> layerMap = orderNodes();
     rebuildIdMaps();
     buildNetworkTablesMap(layerMap);
     buildObservedTablesMap();
+    marginalizeAllTables();
+  }
+
+  private void marginalizeAllTables() {
+    Stream.concat(
+            networkData.getNetworkTablesMap().values().stream(),
+            networkData.getObservationMap().values().stream())
+        .map(ProbabilityTable::getUtils)
+        .forEach(TableUtils::marginalizeTable);
   }
 
   void resetAllNodeData() {
@@ -123,7 +133,6 @@ class NetworkDataUtils {
       log.error("No node ID '{}' found!", nodeID);
       return;
     }
-    buildNetworkData();
 
     Node toRemove = getNodeByID(nodeID);
 
@@ -132,7 +141,7 @@ class NetworkDataUtils {
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove);
 
-    List<Node> newNodes = networkData.getNodes().stream().filter(n -> !n.equals(toRemove)).toList();
+    List<Node> newNodes = networkData.getNodeIDsMap().values().stream().toList();
     networkData.setNodes(newNodes);
 
     newNodes.forEach(
@@ -287,20 +296,20 @@ class NetworkDataUtils {
         .getNodes()
         .forEach(
             node -> {
-              Set<Node> events = Set.of(node);
-              Set<Node> conditions = orderConditions(node.getParents(), layerMap);
+              List<Node> events = List.of(node);
+              List<Node> conditions = orderConditions(node.getParents(), layerMap);
               ProbabilityTable table = buildNetworkTable(events, conditions);
               table.getUtils().marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }
 
-  private Set<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
+  private List<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
     return parents.stream()
         .map(node -> Map.entry(node, layerMap.get(node)))
         .sorted(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .toList();
   }
 
   private Map<Node, Integer> orderNodes() {

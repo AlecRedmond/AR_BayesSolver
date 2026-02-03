@@ -6,11 +6,11 @@ import io.github.alecredmond.method.probabilitytables.probabilityvector.Probabil
 import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
 
-public class JTAWriter extends Thread {
-  private final JTAReadWriteSynchronizer synchronizer;
-  private final ProbabilityVector vector;
-  private final VectorCombinationKey writeKey;
-  private final ProbabilityVectorIterator iterator;
+public class JTAWriter implements Runnable {
+  protected final JTAReadWriteSynchronizer synchronizer;
+  protected final ProbabilityVector vector;
+  protected final VectorCombinationKey writeKey;
+  protected final ProbabilityVectorIterator iterator;
 
   public JTAWriter(
       JTAReadWriteSynchronizer synchronizer,
@@ -29,12 +29,13 @@ public class JTAWriter extends Thread {
     boolean[] innerLock = writeKey.getInnerLock();
     double[] probabilities = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
-    synchronized (this.synchronizer) {
-      iterator.iterateKeyCombos(
-          vector,
-          tumblerKey,
-          outerLock,
-          (key, index) -> {
+
+    iterator.iterateKeyCombos(
+        vector,
+        tumblerKey,
+        outerLock,
+        (key, index) -> {
+          synchronized (this.synchronizer) {
             iterator.iterateKeyCombos(
                 vector, key, innerLock, (k, i) -> adder.add(probabilities[i]));
             double sum = adder.sumThenReset();
@@ -42,8 +43,8 @@ public class JTAWriter extends Thread {
             double ratio = sum == 0.0 ? 0.0 : expected / sum;
             iterator.iterateKeyCombos(
                 vector, key, innerLock, (k, i) -> probabilities[i] = ratio * probabilities[i]);
-          });
-    }
+          }
+        });
   }
 
   public void setDestinationToUnity() {

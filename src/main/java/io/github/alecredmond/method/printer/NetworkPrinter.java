@@ -63,9 +63,9 @@ public class NetworkPrinter {
   }
 
   private List<String> generateTableLines(ProbabilityTable table) {
-    List<Set<NodeState>> eventCombinations = NodeUtils.generateStateCombinations(table.getEvents());
+    List<Set<NodeState>> eventCombinations = table.getUtils().generateStateCombinations(table.getEvents());
     List<Set<NodeState>> conditionCombinations =
-        NodeUtils.generateStateCombinations(table.getConditions());
+            table.getUtils().generateStateCombinations(table.getConditions());
 
     List<String> eventHeaders = formatStateCombinations(eventCombinations, true);
     List<String> conditionLabels = formatStateCombinations(conditionCombinations, false);

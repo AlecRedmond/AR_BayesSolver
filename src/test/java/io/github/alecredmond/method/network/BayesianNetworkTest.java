@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = false; // Set to false when performing a maven buildRatioWriter
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 

@@ -15,7 +15,7 @@ public class JTAMessagePasser {
   }
 
   public void run() {
-    read.start();
-    write.start();
+    new Thread(read).start();
+    new Thread(write).start();
   }
 }

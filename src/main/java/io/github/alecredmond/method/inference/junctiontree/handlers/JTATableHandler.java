@@ -64,46 +64,7 @@ public class JTATableHandler {
         .allMatch(i -> positionCycler[i] == evidencePositions[i]);
   }
 
-  public void marginalize() {
-    table.getUtils().marginalizeTable();
-  }
-
   public ProbabilityVector getVector() {
     return table.getVector();
-  }
-
-  protected void adjustToRatio(
-      VectorCombinationKey eventKey,
-      VectorCombinationKey conditionKey,
-      double ratioIfEvent,
-      double ratioOtherwise) {
-    double[] probabilities = table.getVector().getProbabilities();
-    iterateOverConditions(
-        eventKey,
-        conditionKey,
-        (key, index) -> probabilities[index] = ratioIfEvent * probabilities[index],
-        (key, index) -> probabilities[index] = ratioOtherwise * probabilities[index]);
-  }
-
-  protected void iterateOverConditions(
-      VectorCombinationKey eventKey,
-      VectorCombinationKey conditionKey,
-      ObjIntConsumer<int[]> ifIsEvent,
-      ObjIntConsumer<int[]> ifNotEvent) {
-    int[] eventPosition = eventKey.getTumblerKey();
-    int[] conditionPosition = conditionKey.getTumblerKey();
-    boolean[] conditionLock = conditionKey.getInnerLock();
-    boolean[] eventLock = eventKey.getInnerLock();
-    ProbabilityVector vector = table.getVector();
-
-    iterator.iterateKeyCombos(
-        vector,
-        conditionPosition,
-        conditionLock,
-        (outerKey, outerIndex) -> {
-          boolean isEvent = checkIsEvidence(outerKey, eventPosition, eventLock);
-          ObjIntConsumer<int[]> consumer = isEvent ? ifIsEvent : ifNotEvent;
-          iterator.iterateKeyCombos(vector, outerKey, eventLock, consumer);
-        });
   }
 }

@@ -19,6 +19,7 @@ public class JTASolver {
     data.setSolved(false);
     JunctionTreeAlgorithm jta =
         new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(data));
+    jta.marginalizeTables();
     log.info("JUNCTION TREE BUILT");
 
     double lastError;

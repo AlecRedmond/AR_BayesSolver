@@ -193,6 +193,9 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   public BayesianNetworkImpl solveNetwork() {
+    if (networkData.isSolved()) {
+      return this;
+    }
     utils.buildNetworkData();
     inferenceEngine.runSolver();
     observeMarginals();

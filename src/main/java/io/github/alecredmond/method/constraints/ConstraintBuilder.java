@@ -43,10 +43,10 @@ public class ConstraintBuilder {
   private static void checkProbabilityIsValid(double probability) {
     if (probability < 0) {
       throw new ConstraintBuilderException(
-          "Attempted to build a constraint with probability < 0");
+          "Attempted to buildRatioWriter a constraint with probability < 0");
     } else if (probability > 1) {
       throw new ConstraintBuilderException(
-          "Attempted to build a constraint with probability > 1");
+          "Attempted to buildRatioWriter a constraint with probability > 1");
     }
   }
 

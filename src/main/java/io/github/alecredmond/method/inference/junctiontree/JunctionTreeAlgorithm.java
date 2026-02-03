@@ -7,6 +7,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasser;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class JunctionTreeAlgorithm {
     this.data = data;
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
     observeNetwork(new HashMap<>());
+    writeObservations();
   }
 
   public void writeObservations() {
@@ -30,7 +32,6 @@ public class JunctionTreeAlgorithm {
     setEvidence(observed);
     Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
     distributeAndCollectMessages(clique, new HashSet<>());
-    writeObservations();
   }
 
   public void writeTablesToNetwork() {
@@ -41,6 +42,12 @@ public class JunctionTreeAlgorithm {
     JunctionTreeTable smallestTable = data.getJunctionTreeTables().getFirst();
     double[] probabilityArray = smallestTable.getVector().getProbabilities();
     return Arrays.stream(probabilityArray).sum();
+  }
+
+  public void marginalizeTables() {
+    data.getCliqueSet().stream()
+        .map(clique -> clique.getTable().getUtils())
+        .forEach(TableUtils::marginalizeTable);
   }
 
   double adjustAndReturnError(ParameterConstraint constraint) {

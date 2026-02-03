@@ -19,7 +19,7 @@ public class VectorCombinationKeyFactory {
   public VectorCombinationKey buildKey(ProbabilityTable table, Collection<NodeState> request) {
     Map<Node, NodeState> requestMap = NodeUtils.generateRequest(request);
 
-    if (!requestMap.keySet().equals(table.getNodes())) {
+    if (!table.getNodes().containsAll(requestMap.keySet())) {
       throw new IllegalArgumentException(
           String.format("the Request to table %s did not match the keyset", table.getTableID()));
     }

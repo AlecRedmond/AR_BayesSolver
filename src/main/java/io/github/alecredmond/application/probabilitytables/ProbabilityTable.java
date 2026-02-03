@@ -18,7 +18,6 @@ public abstract class ProbabilityTable {
   protected final Set<Node> conditions;
   protected final TableUtils utils;
   @Setter protected Object tableID;
-  protected Set<Set<NodeState>> keySet;
 
   protected <T> ProbabilityTable(
       Map<Object, NodeState> nodeStateIDMap,
@@ -36,7 +35,6 @@ public abstract class ProbabilityTable {
     this.events = events;
     this.conditions = conditions;
     this.utils = new TableUtils(this);
-    this.keySet = utils.generateStateCombinations(new ArrayList<>());
   }
 
   public <T> NodeState getNodeState(T nodeStateID) {

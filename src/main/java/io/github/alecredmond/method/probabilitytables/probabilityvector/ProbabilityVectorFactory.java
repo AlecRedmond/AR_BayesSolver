@@ -3,19 +3,23 @@ package io.github.alecredmond.method.probabilitytables.probabilityvector;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class ProbabilityVectorFactory {
 
   public ProbabilityVectorFactory() {}
 
-  public ProbabilityVector build(Set<Node> nodeSet) {
+  public ProbabilityVector build(List<Node> nodeSet) {
     Node[] nodes = nodeSet.toArray(new Node[0]);
     int[] cardinality = buildCardinalityArray(nodes);
+    cardinalitySanityCheck(cardinality, nodes);
     int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
     int[] multiplier = buildMultiplierArray(cardinality, rank);
     double[] probability = new double[rank];
@@ -31,6 +35,25 @@ public class ProbabilityVectorFactory {
     int[] cardinality = new int[nodes.length];
     IntStream.range(0, nodes.length).forEach(i -> cardinality[i] = nodes[i].getNodeStates().size());
     return cardinality;
+  }
+
+  private void cardinalitySanityCheck(int[] cardinality, Node[] nodes) {
+    List<Node> zeroCardinality =
+        IntStream.range(0, cardinality.length)
+            .filter(i -> cardinality[i] == 0)
+            .mapToObj(i -> nodes[i])
+            .toList();
+
+    if (zeroCardinality.isEmpty()) {
+      return;
+    }
+    String invalidNodes =
+        zeroCardinality.stream()
+            .map(node -> node.getNodeID() + " ")
+            .collect(Collectors.joining("", "[", "]"));
+
+    throw new ProbabilityVectorFactoryException(
+        "Attempted to buildRatioWriter a ProbabilityVector with stateless nodes: %s".formatted(invalidNodes));
   }
 
   private int[] buildMultiplierArray(int[] cardinality, int rank) {

@@ -47,13 +47,16 @@ public class TableUtils {
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
   }
 
-  public Set<Set<NodeState>> generateStateCombinations(Collection<NodeState> lockedStates) {
-    return generateStateCombinations(lockedStates, table.getNodes());
+  public List<Set<NodeState>> generateStateCombinations(Set<Node> nodes) {
+    return generateStateCombinations(new ArrayList<>(), nodes);
   }
 
-  public Set<Set<NodeState>> generateStateCombinations(
+  private List<Set<NodeState>> generateStateCombinations(
       Collection<NodeState> lockedStates, Set<Node> includedNodes) {
-    Set<Set<NodeState>> combos = new LinkedHashSet<>();
+    if (includedNodes.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<Set<NodeState>> combos = new ArrayList<>();
     Node[] nodes = table.getVector().getNodeArray();
 
     List<NodeState> states = new ArrayList<>(lockedStates);

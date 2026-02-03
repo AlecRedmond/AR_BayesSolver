@@ -13,10 +13,11 @@ import lombok.NoArgsConstructor;
 public class JTAMessagePasserFactory {
 
   public JTAMessagePasser build(Clique read, Clique write) {
-    return build(read.getTable(), write.getTable());
+    return buildRatioWriter(read.getTable(), write.getTable());
   }
 
-  public JTAMessagePasser build(ProbabilityTable readTable, ProbabilityTable writeTable) {
+  public JTAMessagePasser buildRatioWriter(
+      ProbabilityTable readTable, ProbabilityTable writeTable) {
     Set<Node> sharedNodes = findSharedNodes(readTable, writeTable);
 
     VectorCombinationKeyFactory keyFactory = new VectorCombinationKeyFactory();
@@ -33,5 +34,19 @@ public class JTAMessagePasserFactory {
     return tableA.getNodes().stream()
         .filter(tableB.getNodes()::contains)
         .collect(Collectors.toSet());
+  }
+
+  public JTAMessagePasser buildCopyInWriter(
+      ProbabilityTable readTable, ProbabilityTable writeTable) {
+    Set<Node> sharedNodes = findSharedNodes(readTable, writeTable);
+
+    VectorCombinationKeyFactory keyFactory = new VectorCombinationKeyFactory();
+    VectorCombinationKey readKey = keyFactory.buildReadWriteKey(readTable, sharedNodes);
+    VectorCombinationKey writeKey = keyFactory.buildReadWriteKey(writeTable, sharedNodes);
+
+    JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
+    JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
+    JTAWriter writer = new JTACopyInWriter(synchronizer, writeTable.getVector(), writeKey);
+    return new JTAMessagePasser(reader, writer);
   }
 }

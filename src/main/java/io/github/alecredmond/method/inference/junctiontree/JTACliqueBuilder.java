@@ -23,7 +23,7 @@ class JTACliqueBuilder {
 
     Set<Clique> set =
         maximalCliques.stream()
-            .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes)))
+            .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes,jtd.getBayesianNetworkData())))
             .collect(Collectors.toSet());
 
     jtd.setCliqueSet(set);

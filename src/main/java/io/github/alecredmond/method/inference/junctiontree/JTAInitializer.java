@@ -16,6 +16,7 @@ import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHand
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTAMessagePasserFactory;
 import io.github.alecredmond.method.utils.MapCollector;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -52,6 +53,15 @@ public class JTAInitializer {
     setJunctionTreeTablesList(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData, writeBackToCPTs);
+    buildLeafCliques(junctionTreeData);
+  }
+
+  private static void buildLeafCliques(JunctionTreeData junctionTreeData) {
+    Set<Clique> leafCliques =
+        junctionTreeData.getCliqueSet().stream()
+            .filter(c -> c.getSeparatorMap().size() <= 1)
+            .collect(Collectors.toSet());
+    junctionTreeData.setLeafCliques(leafCliques);
   }
 
   private static void buildConstraintCliqueMap(
@@ -103,16 +113,19 @@ public class JTAInitializer {
 
       bestNetworkClique
           .getInitializeFrom()
-          .add(factory.build(networkTable, bestNetworkClique.getTable()));
+          .add(factory.buildCopyInWriter(networkTable, bestNetworkClique.getTable()));
 
       bestObservationClique
           .getObservationWriteMap()
-          .put(observedTable, factory.build(bestObservationClique.getTable(), observedTable));
+          .put(
+              observedTable,
+              factory.buildRatioWriter(bestObservationClique.getTable(), observedTable));
 
       if (writeBackToCPTs) {
         bestNetworkClique
             .getNetworkWriteMap()
-            .put(networkTable, factory.build(bestNetworkClique.getTable(), networkTable));
+            .put(
+                networkTable, factory.buildRatioWriter(bestNetworkClique.getTable(), networkTable));
       }
     }
   }
@@ -161,10 +174,6 @@ public class JTAInitializer {
           joined.add(nextClique);
           recursivelyJoinCliques(nextClique, available, joined, factory, junctionTreeData);
         });
-
-    if (current.getSeparatorMap().size() == 1) {
-      junctionTreeData.getLeafCliques().add(current);
-    }
   }
 
   private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {

@@ -18,7 +18,7 @@ public class InferenceEngineConfigs {
 
   public InferenceEngineConfigs() {
     solverCyclesLimit = 1_000;
-    solverTimeLimitSeconds = 60;
+    solverTimeLimitSeconds = 600;
     solverLogIntervalSeconds = 1;
     solverConvergeThreshold = 1e-9;
     sampleGenerator = LIKELIHOOD_WEIGHTING_SAMPLER;

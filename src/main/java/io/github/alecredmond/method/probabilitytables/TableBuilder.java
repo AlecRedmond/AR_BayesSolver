@@ -1,5 +1,6 @@
 package io.github.alecredmond.method.probabilitytables;
 
+import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ConditionalTable;
@@ -17,20 +18,22 @@ public class TableBuilder {
 
   private TableBuilder() {}
 
-  public static ProbabilityTable buildNetworkTable(Set<Node> events, Set<Node> conditions) {
+  public static ProbabilityTable buildNetworkTable(List<Node> events, List<Node> conditions) {
     if (events.isEmpty())
       throw new TableBuilderException(
-          "attempted to build a table with no events!"); // TODO - Hit Branch In Test Suite
+          "attempted to buildRatioWriter a table with no events!"); // TODO - Hit Branch In Test Suite
     if (!conditions.isEmpty()) return buildConditionalTable(events, conditions);
-    if (events.size() == 1) return buildMarginalTable(events);
+    if (events.size() == 1) return buildMarginalTable(new HashSet<>(events));
     throw new TableBuilderException(
-        "Could not build a marginal or conditional table from request!"); // TODO - Hit Branch In
+        "Could not buildRatioWriter a marginal or conditional table from request!"); // TODO - Hit Branch In
     // Test Suite
   }
 
-  private static ProbabilityTable buildConditionalTable(Set<Node> events, Set<Node> conditions) {
-    Set<Node> nodes = joinSets(events, conditions);
-    ProbabilityVector vector = new ProbabilityVectorFactory().build(nodes);
+  private static ProbabilityTable buildConditionalTable(List<Node> events, List<Node> conditions) {
+    List<Node> nodesList = joinEventsAndConditions(events, conditions);
+    Set<Node> nodes = new LinkedHashSet<>(nodesList);
+
+    ProbabilityVector vector = new ProbabilityVectorFactory().build(nodesList);
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
     Map<Object, Node> nodeIDMap = buildNodeIDMap(nodes);
     Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(nodes);
@@ -38,8 +41,8 @@ public class TableBuilder {
         buildTableName(events, conditions),
         vector,
         nodes,
-        events,
-        conditions,
+        new LinkedHashSet<>(events),
+        new LinkedHashSet<>(conditions),
         eventNode,
         nodeIDMap,
         nodeStateIDMap);
@@ -48,15 +51,14 @@ public class TableBuilder {
   public static MarginalTable buildMarginalTable(Set<Node> events) {
     Node eventNode = events.stream().findAny().orElseThrow();
     String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
-    ProbabilityVector vector = new ProbabilityVectorFactory().build(events);
+    ProbabilityVector vector = new ProbabilityVectorFactory().build(new ArrayList<>(events));
     Map<Object, Node> nodeIDMap = buildNodeIDMap(List.of(eventNode));
     Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(List.of(eventNode));
     return new MarginalTable(vector, tableName, eventNode, nodeStateIDMap, nodeIDMap);
   }
 
-  private static Set<Node> joinSets(Set<Node> events, Set<Node> conditions) {
-    return Stream.concat(conditions.stream(), events.stream())
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+  private static List<Node> joinEventsAndConditions(List<Node> events, List<Node> conditions) {
+    return Stream.concat(conditions.stream(), events.stream()).toList();
   }
 
   private static Map<Object, Node> buildNodeIDMap(Collection<Node> nodes) {
@@ -73,7 +75,7 @@ public class TableBuilder {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static String buildTableName(Set<Node> events, Set<Node> conditions) {
+  private static String buildTableName(Collection<Node> events, Collection<Node> conditions) {
     StringBuilder sb = new StringBuilder("P(");
     for (Node event : events) {
       sb.append(event.getNodeID().toString()).append(",");
@@ -88,16 +90,18 @@ public class TableBuilder {
     return sb.append(")").toString();
   }
 
-  public static JunctionTreeTable buildJunctionTreeTable(Set<Node> events) {
-    ProbabilityVector vector = new ProbabilityVectorFactory().build(events);
-    ProbabilityVector observedVector = new ProbabilityVectorFactory().build(events);
+  public static JunctionTreeTable buildJunctionTreeTable(
+      Set<Node> events, BayesianNetworkData bnd) {
+    List<Node> orderedEvents = bnd.getNodes().stream().filter(events::contains).toList();
+    ProbabilityVector vector = new ProbabilityVectorFactory().build(orderedEvents);
+    ProbabilityVector observedVector = new ProbabilityVectorFactory().build(orderedEvents);
     Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
     Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
     Map<Object, Node> nodeIDMap = buildNodeIDMap(events);
     return new JunctionTreeTable(
-        buildTableName(events, new HashSet<>()),
+        buildTableName(orderedEvents, new HashSet<>()),
         vector,
-        events,
+        new LinkedHashSet<>(orderedEvents),
         observedVector,
         equivalentIndexes,
         nodeStateIDMap,
