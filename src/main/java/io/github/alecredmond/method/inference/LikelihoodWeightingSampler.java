@@ -4,9 +4,9 @@ import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import io.github.alecredmond.method.utils.WeightedRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,12 +25,14 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
       Set<Node> includedNodes,
       int numberOfSamples) {
     Map<Set<NodeState>, Double> totalSampleWeights = new HashMap<>();
-    Map<Node, ProbabilityTable> probTables = data.getNetworkTablesMap();
     List<Node> nodes = data.getNodes();
+    Map<Node, Map<Set<NodeState>, Double>> probabilityMaps =
+        createProbabilityMaps(data.getNetworkTablesMap());
+    Map<Node, Set<Node>> tableNodes = createTableNodes(data.getNetworkTablesMap());
 
     for (int i = 0; i < numberOfSamples; i++) {
       Map.Entry<Set<NodeState>, Double> weightedSample =
-          generateWeightedSample(probTables, observations, nodes);
+          generateWeightedSample(probabilityMaps, observations, nodes, tableNodes);
       Set<NodeState> sample = weightedSample.getKey();
       double weight = weightedSample.getValue();
       totalSampleWeights.putIfAbsent(sample, 0.0);
@@ -40,19 +42,40 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
     return distributeSamples(totalSampleWeights, numberOfSamples, excludedNodes, includedNodes);
   }
 
+  private Map<Node, Map<Set<NodeState>, Double>> createProbabilityMaps(
+      Map<Node, ProbabilityTable> probTables) {
+    Map<Node, Map<Set<NodeState>, Double>> pMap = new HashMap<>();
+    for (Node node : probTables.keySet()) {
+      ProbabilityTable table = probTables.get(node);
+      Map<Set<NodeState>, Double> tableMap = table.getUtils().generateProbabilityMap();
+      pMap.put(node, tableMap);
+    }
+    return pMap;
+  }
+
+  private Map<Node, Set<Node>> createTableNodes(Map<Node, ProbabilityTable> networkTablesMap) {
+    Map<Node, Set<Node>> tableNodes = new HashMap<>();
+    networkTablesMap.forEach((node, table) -> tableNodes.put(node, table.getNodes()));
+    return tableNodes;
+  }
+
   /**
    * Performs a random walk down the chain to obtain a new set. If the walk is constrained by being
    * forced to choose the node in the evidence, the weight of the final sample is decreased
    * proportional to the likelihood of the forced path.
    */
   private Map.Entry<Set<NodeState>, Double> generateWeightedSample(
-      Map<Node, ProbabilityTable> probTables, Map<Node, NodeState> observations, List<Node> nodes) {
+      Map<Node, Map<Set<NodeState>, Double>> probTables,
+      Map<Node, NodeState> observations,
+      List<Node> nodes,
+      Map<Node, Set<Node>> tableNodes) {
     double weight = 1.0;
     Map<Node, NodeState> newSample = new LinkedHashMap<>();
 
     for (Node node : nodes) {
       Map<NodeState, Double> probOfNexState =
-          generateProbOfNextStateMap(node, probTables.get(node), observations, newSample);
+          generateProbOfNextStateMap(
+              node, tableNodes.get(node), probTables.get(node), observations, newSample);
       NodeState newState = WeightedRandom.nextRandom(probOfNexState);
       if (observations.containsKey(node)) weight *= probOfNexState.get(newState);
       newSample.put(node, newState);
@@ -82,18 +105,24 @@ class LikelihoodWeightingSampler<T> extends Sampler<T> {
 
   private Map<NodeState, Double> generateProbOfNextStateMap(
       Node node,
-      ProbabilityTable table,
+      Set<Node> tableNodes,
+      Map<Set<NodeState>, Double> probMap,
       Map<Node, NodeState> observations,
       Map<Node, NodeState> sample) {
     Map<NodeState, Double> stateMap = new HashMap<>();
-    Set<NodeState> tableConditions = TableUtils.collectStatesPresentInTable(sample.values(), table);
+
+    Set<NodeState> tableConditions =
+        sample.entrySet().stream()
+            .filter(e -> tableNodes.contains(e.getKey()))
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toCollection(HashSet::new));
 
     List<NodeState> validStates =
         observations.containsKey(node) ? List.of(observations.get(node)) : node.getNodeStates();
 
     for (NodeState state : validStates) {
       tableConditions.add(state);
-      double prob = table.getProbability(tableConditions);
+      double prob = probMap.get(tableConditions);
       stateMap.put(state, prob);
       tableConditions.remove(state);
     }

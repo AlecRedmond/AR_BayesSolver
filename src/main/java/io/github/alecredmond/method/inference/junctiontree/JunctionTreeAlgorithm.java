@@ -1,6 +1,5 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
-import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.node.Node;
@@ -46,17 +45,8 @@ public class JunctionTreeAlgorithm {
     data.getCliqueSet().stream().map(Clique::getTable).forEach(ProbabilityTable::marginalizeTable);
   }
 
-  double adjustAndReturnError(ParameterConstraint constraint) {
-    Clique clique = data.getConstraintCliqueMap().get(constraint);
+  void distributeAndCollectMessages(Clique clique) {
     distributeAndCollectMessages(clique, new HashSet<>());
-
-    double error = data.getConstraintHandlers().get(constraint).adjustAndReturnError();
-
-    if (error != 0) {
-      distributeAndCollectMessages(clique, new HashSet<>());
-    }
-
-    return error;
   }
 
   private void setEvidence(Map<Node, NodeState> evidence) {
@@ -79,9 +69,10 @@ public class JunctionTreeAlgorithm {
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
+              JTATransferWriter backSeparator = nextClique.getSeparator(currentClique);
               separator.run();
               distributeAndCollectMessages(nextClique, cliqueChain);
-              nextClique.getSeparator(currentClique).run();
+              backSeparator.run();
             });
 
     cliqueChain.remove(currentClique);

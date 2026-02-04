@@ -22,7 +22,7 @@ public class JunctionTreeData {
   private Set<Clique> cliqueSet;
   private Set<Clique> leafCliques;
   private List<JunctionTreeTable> junctionTreeTables;
-  private Map<ParameterConstraint, Clique> constraintCliqueMap;
+  private Map<Clique,List<ParameterConstraint>> cliqueConstraintsMap;
   private Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
   private boolean marginalized;
 

@@ -23,9 +23,16 @@ public class TableUtils {
     this.marginalisationKey = new VectorCombinationKeyFactory().buildMarginalisationKey(table);
   }
 
-  public double sumProbabilities(Collection<NodeState> request) {
-    VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, request);
-    return sumProbabilities(key);
+  public double getProbability(Collection<NodeState> states) {
+    ProbabilityVector vector = table.getVector();
+    int[] stepMultiplier = vector.getStepMultiplier();
+    int index = 0;
+    for (NodeState state : states) {
+      int stateValue = vector.getStateValueMap().get(state);
+      int nodeIndex = vector.getNodeIndexMap().get(state.getNode());
+      index += stepMultiplier[nodeIndex] * stateValue;
+    }
+    return vector.getProbabilities()[index];
   }
 
   public double sumProbabilities(VectorCombinationKey comboKey) {
@@ -45,6 +52,25 @@ public class TableUtils {
     request.forEach(ns -> requestString.append(ns.getStateID()).append(" "));
     throw new IllegalArgumentException(
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
+  }
+
+  public Map<Set<NodeState>, Double> generateProbabilityMap() {
+    VectorCombinationKey fullIterationKey =
+        new VectorCombinationKeyFactory().buildReadWriteKey(table, Set.of());
+    ProbabilityVector vector = table.getVector();
+    double[] probabilities = vector.getProbabilities();
+    Map<Set<NodeState>, Double> probabilityMap = new HashMap<>();
+    iterator.iterateKeyCombos(
+        table.getVector(),
+        fullIterationKey,
+        (key, index) -> probabilityMap.put(getStatesFromKey(vector, key), probabilities[index]));
+    return probabilityMap;
+  }
+
+  private Set<NodeState> getStatesFromKey(ProbabilityVector vector, int[] key) {
+    return IntStream.range(0, key.length)
+        .mapToObj(i -> vector.getNodeArray()[i].getNodeStates().get(key[i]))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public void marginalizeJointTable() {
@@ -68,11 +94,8 @@ public class TableUtils {
     Node[] nodes = table.getVector().getNodeArray();
 
     List<NodeState> states = new ArrayList<>(lockedStates);
-    // Lock excluded nodes to their first state for faster iteration
-    Arrays.stream(nodes)
-        .filter(n -> !includedNodes.contains(n))
-        .map(n -> n.getNodeStates().getFirst())
-        .forEach(states::add);
+
+    lockExcludedNodes(includedNodes, nodes, states);
 
     iterator.iterateKeyCombos(
         states,
@@ -85,6 +108,14 @@ public class TableUtils {
                     .collect(Collectors.toCollection(LinkedHashSet::new))));
 
     return combos;
+  }
+
+  private static void lockExcludedNodes(
+      Set<Node> includedNodes, Node[] nodes, List<NodeState> states) {
+    Arrays.stream(nodes)
+        .filter(n -> !includedNodes.contains(n))
+        .map(n -> n.getNodeStates().getFirst())
+        .forEach(states::add);
   }
 
   public void marginalizeConditionalTable() {
@@ -129,7 +160,7 @@ public class TableUtils {
 
   public void confirmAllNodesQueried(Collection<NodeState> request) {
     Set<Node> nodeSet = new HashSet<>(table.getNodes());
-    boolean duplicateNodes = false;
+    boolean duplicateNodes;
     for (NodeState state : request) {
       duplicateNodes = !nodeSet.remove(state.getNode());
       if (duplicateNodes) {
@@ -140,20 +171,5 @@ public class TableUtils {
     if (!allNodesQueried) {
       throwQueryError("did not query all nodes", request);
     }
-  }
-
-  public void setProbability(Set<NodeState> request, double probability) {
-    if (Double.isNaN(probability)) {
-      throwQueryError("tried to set a probability to NaN", request);
-    }
-    ProbabilityVector vector = table.getVector();
-    int index = collectIndexesWithStates(request).getFirst();
-    vector.getProbabilities()[index] = probability;
-  }
-
-  public List<Integer> collectIndexesWithStates(Collection<NodeState> request) {
-    List<Integer> indexes = new ArrayList<>();
-    iterator.iterateKeyCombos(request, table, (key, index) -> indexes.add(index));
-    return indexes;
   }
 }

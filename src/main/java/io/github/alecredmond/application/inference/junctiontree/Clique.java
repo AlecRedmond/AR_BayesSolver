@@ -9,9 +9,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(exclude = {"separatorMap"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Clique {
-  private Set<Node> nodes;
+  @EqualsAndHashCode.Include private Set<Node> nodes;
   private JunctionTreeTable table;
   private JTATableHandler handler;
   private Map<Clique, JTATransferWriter> separatorMap;
@@ -33,7 +33,7 @@ public class Clique {
     return separatorMap.get(clique);
   }
 
-    @Override
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Clique : ");
     nodes.forEach(node -> sb.append(node.toString()).append(" "));

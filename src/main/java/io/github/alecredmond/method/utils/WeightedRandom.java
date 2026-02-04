@@ -3,6 +3,8 @@ package io.github.alecredmond.method.utils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 import lombok.Getter;
 
 
@@ -47,8 +49,7 @@ public class WeightedRandom<T> {
     return null;
   }
 
-
-  public static <R, E extends Number> R nextRandom(Map<R, E> weights) {
+  public static synchronized <R, E extends Number> R nextRandom(Map<R, E> weights) {
     if (weights.isEmpty()) {
       throw new IllegalArgumentException("nextRandom received an empty weights map!");
     }

@@ -30,7 +30,7 @@ public class JTAInitializer {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     buildCommon(junctionTreeData, bayesianNetworkData, true);
     buildConstraintCliqueMap(junctionTreeData, bayesianNetworkData);
-    buildConstraintHandlers(junctionTreeData, bayesianNetworkData);
+    buildConstraintHandlers(junctionTreeData);
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
     return junctionTreeData;
   }
@@ -39,7 +39,7 @@ public class JTAInitializer {
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     buildCommon(junctionTreeData, bayesianNetworkData, false);
-    junctionTreeData.setConstraintCliqueMap(new HashMap<>());
+    junctionTreeData.setCliqueConstraintsMap(new HashMap<>());
     junctionTreeData.setConstraintHandlers(new HashMap<>());
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
     return junctionTreeData;
@@ -65,19 +65,32 @@ public class JTAInitializer {
     junctionTreeData.setLeafCliques(leafCliques);
   }
 
-  private static void buildConstraintCliqueMap(
-      JunctionTreeData junctionTreeData, BayesianNetworkData networkData) {
-    junctionTreeData.setConstraintCliqueMap(
-        COLLECTOR.convertToMap(
-            constraint -> findSmallestClique(constraint, junctionTreeData.getCliqueSet()),
-            networkData.getConstraints()));
+  private static void buildConstraintCliqueMap(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    Set<Clique> cliques = jtd.getCliqueSet();
+    Map<Clique, List<ParameterConstraint>> map =
+        COLLECTOR.convertToMap(clique -> Map.entry(clique, new ArrayList<>()), cliques);
+
+    bnd.getConstraints()
+        .forEach(
+            constraint -> {
+              Clique containsScope = getContainsScope(cliques, constraint.getAllNodes());
+              map.get(containsScope).add(constraint);
+            });
+
+    jtd.setCliqueConstraintsMap(map);
   }
 
-  private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    jtd.setConstraintHandlers(
-        COLLECTOR.convertToMap(
-            constraint -> getConstraintHandlerEntry(constraint, jtd.getConstraintCliqueMap()),
-            bnd.getConstraints()));
+  private static void buildConstraintHandlers(JunctionTreeData jtd) {
+    Map<ParameterConstraint, JTAConstraintHandler> map = new HashMap<>();
+    jtd.getCliqueConstraintsMap()
+        .forEach(
+            ((clique, constraintList) ->
+                constraintList.forEach(
+                    constraint ->
+                        map.put(
+                            constraint, buildConstraintHandler(constraint, clique.getHandler())))));
+
+    jtd.setConstraintHandlers(map);
   }
 
   private static void setJunctionTreeTablesList(JunctionTreeData jtd) {
@@ -95,8 +108,7 @@ public class JTAInitializer {
     cliques.remove(smallest);
     Set<Clique> joined = new HashSet<>(Set.of(smallest));
     junctionTreeData.setLeafCliques(new HashSet<>());
-    recursivelyJoinCliques(
-        smallest, cliques, joined, new JTATransferWriterFactory());
+    recursivelyJoinCliques(smallest, cliques, joined, new JTATransferWriterFactory());
   }
 
   private static void buildExternalMessagePassers(
@@ -135,24 +147,25 @@ public class JTAInitializer {
     }
   }
 
-  private static Map.Entry<ParameterConstraint, Clique> findSmallestClique(
-      ParameterConstraint constraint, Set<Clique> cliques) {
-    Clique smallestClique = getContainsScope(cliques, constraint.getAllNodes());
-    return Map.entry(constraint, smallestClique);
+    private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
+    return cliques.stream()
+        .filter(c -> c.getNodes().containsAll(nodesInScope))
+        .min(Comparator.comparing(clique -> clique.getNodes().size()))
+        .orElseThrow();
   }
 
-  private static Map.Entry<ParameterConstraint, JTAConstraintHandler> getConstraintHandlerEntry(
-      ParameterConstraint constraint, Map<ParameterConstraint, Clique> constraintCliqueMap) {
-    return Map.entry(
-        constraint,
-        buildConstraintHandler(constraint, constraintCliqueMap.get(constraint).getHandler()));
+    private static JTAConstraintHandler buildConstraintHandler(
+      ParameterConstraint constraint, JTATableHandler jtaTableHandler) {
+    if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
+      return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
+    } else if (constraint instanceof ConditionalConstraint cc) {
+      return new JTAConstraintHandlerConditional(jtaTableHandler, cc);
+    }
+    throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
   private static void recursivelyJoinCliques(
-      Clique current,
-      Set<Clique> available,
-      Set<Clique> joined,
-      JTATransferWriterFactory factory) {
+      Clique current, Set<Clique> available, Set<Clique> joined, JTATransferWriterFactory factory) {
 
     List<Clique> orderedCandidates =
         available.stream()
@@ -178,23 +191,6 @@ public class JTAInitializer {
           joined.add(nextClique);
           recursivelyJoinCliques(nextClique, available, joined, factory);
         });
-  }
-
-  private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
-    return cliques.stream()
-        .filter(c -> c.getNodes().containsAll(nodesInScope))
-        .min(Comparator.comparing(clique -> clique.getNodes().size()))
-        .orElseThrow();
-  }
-
-  private static JTAConstraintHandler buildConstraintHandler(
-      ParameterConstraint constraint, JTATableHandler jtaTableHandler) {
-    if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
-      return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
-    } else if (constraint instanceof ConditionalConstraint cc) {
-      return new JTAConstraintHandlerConditional(jtaTableHandler, cc);
-    }
-    throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
   private static Map.Entry<Clique, Integer> commonNodes(Clique clique, Clique current) {

@@ -1,10 +1,13 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
-import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.inference.InferenceEngineConfigs;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.method.inference.InferenceEngine;
+import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -13,14 +16,14 @@ public class JTASolver {
   private JTASolver() {}
 
   public static void solveNetwork(InferenceEngine engine) {
-    BayesianNetworkData data = engine.getNetworkData();
+    BayesianNetworkData networkData = engine.getNetworkData();
     InferenceEngineConfigs configs = engine.getConfigs();
+    Instant start = Instant.now();
     log.info("STARTING SOLVER");
-    data.setSolved(false);
+    networkData.setSolved(false);
     JunctionTreeAlgorithm jta =
-        new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(data));
+        new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(networkData));
     jta.marginalizeTables();
-    log.info("JUNCTION TREE BUILT");
 
     double lastError;
     double error = Double.MAX_VALUE;
@@ -30,6 +33,10 @@ public class JTASolver {
     long nextLogTime = now + configs.getSolverLogIntervalSeconds();
     long endTime = now + configs.getSolverTimeLimitSeconds();
 
+    Clique[] cliqueArray = jta.getData().getCliqueSet().toArray(new Clique[0]);
+    List<JTAConstraintHandler> constraintHandlers =
+        jta.getData().getConstraintHandlers().values().stream().toList();
+
     for (int cycle = 0; cycle < configs.getSolverCyclesLimit(); cycle++) {
       if (checkEndCycles(cycle, converge, endTime, configs)) {
         logCycleComplete(configs, cycle - 1, converge, error, nextLogTime, true, true);
@@ -37,13 +44,16 @@ public class JTASolver {
       }
 
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, data);
+      error = runSolverCycleAndReturnError(jta, cycle, cliqueArray, constraintHandlers);
       converge = Math.abs(error - lastError);
 
       nextLogTime = logCycleComplete(configs, cycle, converge, error, nextLogTime, false, false);
     }
 
     jta.writeTablesToNetwork();
+    Instant end = Instant.now();
+    long msDuration = end.toEpochMilli() - start.toEpochMilli();
+    log.info("Solver completed in {} ms", msDuration);
   }
 
   private static boolean checkEndCycles(
@@ -70,12 +80,18 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, BayesianNetworkData data) {
-    double cycleError = 0.0;
-    for (ParameterConstraint constraint : data.getConstraints()) {
-      cycleError += jta.adjustAndReturnError(constraint);
-    }
-    return cycleError;
+      JunctionTreeAlgorithm jta,
+      int cycle,
+      Clique[] cliqueArray,
+      List<JTAConstraintHandler> constraintHandlers) {
+    DoubleAdder cycleError = new DoubleAdder();
+
+    constraintHandlers.forEach(handler -> cycleError.add(handler.adjustAndReturnError()));
+
+    Clique distributeFrom = cliqueArray[cycle % cliqueArray.length];
+    jta.distributeAndCollectMessages(distributeFrom);
+
+    return cycleError.sum();
   }
 
   private static boolean checkSkipLog(long now, long nextLogTime, boolean solverRunComplete) {

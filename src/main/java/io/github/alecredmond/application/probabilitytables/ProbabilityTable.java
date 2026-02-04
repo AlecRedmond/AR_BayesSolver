@@ -49,20 +49,10 @@ public abstract class ProbabilityTable {
     return getProbability(stateIDs.stream().map(nodeStateIDMap::get).toList());
   }
 
-  public double getProbability(Collection<NodeState> request) {
+  public synchronized double getProbability(Collection<NodeState> request) {
     utils.confirmAllNodesQueried(request);
-    return utils.sumProbabilities(request);
+    return utils.getProbability(request);
   }
 
   public abstract void marginalizeTable();
-
-  public void setProbability(Set<NodeState> request, double probability) {
-    utils.confirmAllNodesQueried(request);
-    utils.setProbability(request,probability);
-  }
-
-  public int getIndex(Set<NodeState> request) {
-    utils.confirmAllNodesQueried(request);
-    return utils.collectIndexesWithStates(request).getFirst();
-  }
 }

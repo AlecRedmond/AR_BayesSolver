@@ -3,8 +3,9 @@ module BayesSolver {
   requires static lombok;
   requires org.slf4j;
   requires java.desktop;
+    requires java.sql;
 
-  exports io.github.alecredmond.application.constraints;
+    exports io.github.alecredmond.application.constraints;
   exports io.github.alecredmond.application.inference;
   exports io.github.alecredmond.application.network;
   exports io.github.alecredmond.application.node;
