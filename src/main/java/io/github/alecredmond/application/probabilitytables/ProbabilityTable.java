@@ -49,7 +49,7 @@ public abstract class ProbabilityTable {
     return getProbability(stateIDs.stream().map(nodeStateIDMap::get).toList());
   }
 
-  public synchronized double getProbability(Collection<NodeState> request) {
+  public double getProbability(Collection<NodeState> request) {
     utils.confirmAllNodesQueried(request);
     return utils.getProbability(request);
   }

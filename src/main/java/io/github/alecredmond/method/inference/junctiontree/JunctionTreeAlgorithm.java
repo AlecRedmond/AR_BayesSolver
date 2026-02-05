@@ -26,9 +26,13 @@ public class JunctionTreeAlgorithm {
 
   public void observeNetwork(Map<Node, NodeState> observed) {
     if (data.getNodes().isEmpty()) return;
+    Clique bestClique = cliqueWithLargestOverlap(observed);
     setEvidence(observed);
-    Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
-    distributeAndCollectMessages(clique, new HashSet<>());
+    distributeAndCollectMessages(bestClique, new HashSet<>());
+  }
+
+  public void marginalizeTables() {
+    data.getCliqueSet().stream().map(Clique::getTable).forEach(ProbabilityTable::marginalizeTable);
   }
 
   public void writeTablesToNetwork() {
@@ -41,12 +45,16 @@ public class JunctionTreeAlgorithm {
     return Arrays.stream(probabilityArray).sum();
   }
 
-  public void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getTable).forEach(ProbabilityTable::marginalizeTable);
-  }
-
-  void distributeAndCollectMessages(Clique clique) {
-    distributeAndCollectMessages(clique, new HashSet<>());
+  private Clique cliqueWithLargestOverlap(Map<Node, NodeState> observed) {
+    return data.getCliqueSet().stream()
+        .max(
+            Comparator.comparingInt(
+                c -> {
+                  Set<Node> temp = new HashSet<>(c.getNodes());
+                  temp.retainAll(observed.keySet());
+                  return temp.size();
+                }))
+        .orElseThrow();
   }
 
   private void setEvidence(Map<Node, NodeState> evidence) {
@@ -61,6 +69,10 @@ public class JunctionTreeAlgorithm {
 
       clique.getHandler().setObserved(evidenceInTable, !evidenceInTable.isEmpty());
     }
+  }
+
+  void distributeAndCollectMessages(Clique clique) {
+    distributeAndCollectMessages(clique, new HashSet<>());
   }
 
   private void distributeAndCollectMessages(Clique currentClique, Set<Clique> cliqueChain) {

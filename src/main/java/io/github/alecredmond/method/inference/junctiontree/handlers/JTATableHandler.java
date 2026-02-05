@@ -7,8 +7,7 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Vec
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
-import java.util.function.ObjIntConsumer;
-import java.util.stream.IntStream;
+
 import lombok.Getter;
 
 @Getter
@@ -34,38 +33,18 @@ public class JTATableHandler {
       return;
     }
 
+    Arrays.fill(observed, 0.0);
+
     VectorCombinationKey observedKey =
         new VectorCombinationKeyFactory().buildKey(table, evidenceInTable);
-
-    boolean[] evidenceLock = observedKey.getInnerLock();
-    int[] evidencePositions = observedKey.getTumblerKey();
-    boolean[] nonEvidenceLock = observedKey.getOuterLock();
-    int[] positionKey = new int[nonEvidenceLock.length];
 
     ProbabilityVector vector = table.getVector();
 
     iterator.iterateKeyCombos(
-        vector,
-        positionKey,
-        nonEvidenceLock,
-        (outerKey, outerIndex) -> {
-          boolean isEvidence = checkIsEvidence(outerKey, evidencePositions, evidenceLock);
-          ObjIntConsumer<int[]> consumer =
-              isEvidence
-                  ? ((key, index) -> observed[index] = backup[index])
-                  : ((key, index) -> observed[index] = 0.0);
-          iterator.iterateKeyCombos(vector, positionKey, evidenceLock, consumer);
-        });
+        vector, observedKey, (k, i) -> observed[i] = backup[i]);
   }
 
-  public boolean checkIsEvidence(
-      int[] positionCycler, int[] evidencePositions, boolean[] evidenceLock) {
-    return IntStream.range(0, positionCycler.length)
-        .filter(i -> evidenceLock[i])
-        .allMatch(i -> positionCycler[i] == evidencePositions[i]);
-  }
-
-  public ProbabilityVector getVector() {
+    public ProbabilityVector getVector() {
     return table.getVector();
   }
 }

@@ -54,25 +54,6 @@ public class TableUtils {
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
   }
 
-  public Map<Set<NodeState>, Double> generateProbabilityMap() {
-    VectorCombinationKey fullIterationKey =
-        new VectorCombinationKeyFactory().buildReadWriteKey(table, Set.of());
-    ProbabilityVector vector = table.getVector();
-    double[] probabilities = vector.getProbabilities();
-    Map<Set<NodeState>, Double> probabilityMap = new HashMap<>();
-    iterator.iterateKeyCombos(
-        table.getVector(),
-        fullIterationKey,
-        (key, index) -> probabilityMap.put(getStatesFromKey(vector, key), probabilities[index]));
-    return probabilityMap;
-  }
-
-  private Set<NodeState> getStatesFromKey(ProbabilityVector vector, int[] key) {
-    return IntStream.range(0, key.length)
-        .mapToObj(i -> vector.getNodeArray()[i].getNodeStates().get(key[i]))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
-  }
-
   public void marginalizeJointTable() {
     double[] probabilities = table.getVector().getProbabilities();
     double tableSum = Arrays.stream(probabilities).sum();
@@ -148,14 +129,6 @@ public class TableUtils {
               lockConditions,
               (eventKey, eventIndex) -> probs[eventIndex] = ratio * probs[eventIndex]);
         });
-  }
-
-  public static Set<NodeState> collectStatesPresentInTable(
-      Collection<NodeState> currentStates, ProbabilityTable table) {
-    Set<Node> tableNodes = table.getNodes();
-    return currentStates.stream()
-        .filter(ns -> tableNodes.contains(ns.getNode()))
-        .collect(Collectors.toCollection(HashSet::new));
   }
 
   public void confirmAllNodesQueried(Collection<NodeState> request) {

@@ -12,10 +12,9 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+
+import java.util.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -1081,7 +1080,7 @@ class BayesianNetworkTest {
 
                   // Wealth|Race,DISTRICT_TYPE
                   .addConstraint(
-                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.25)
+                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT:CAPITAL_CITY"), 0.25)
                   .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
                   .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
                   .addConstraint(
@@ -1188,12 +1187,14 @@ class BayesianNetworkTest {
                   .addConstraint("WEALTH:ULTRA", List.of("RACE:GOBLIN"), 0.0005)
                   .addConstraint("WEALTH:HIGH", List.of("RACE:GOBLIN"), 0.008)
                   .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
+                  .addConstraint("VOTE:CPK", List.of("RACE:ANK", "AGE:YOUNG_ADULT"), 0.1874)
                   .solveNetwork()
                   .observeMarginals()
-                  .printObserved()
-                  .observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
-                  .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
                   .printObserved());
+
+      net.observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
+          .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
+          .printObserved();
 
       net.getPrinterConfigs().setPrintToConsole(true);
       net.printNetwork();
@@ -1204,5 +1205,6 @@ class BayesianNetworkTest {
 
       generateSamples(net, numOfSamples, includedNode, testState);
     }
+
   }
 }

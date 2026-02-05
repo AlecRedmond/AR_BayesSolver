@@ -4,6 +4,7 @@ module BayesSolver {
   requires org.slf4j;
   requires java.desktop;
     requires java.sql;
+    requires java.rmi;
 
     exports io.github.alecredmond.application.constraints;
   exports io.github.alecredmond.application.inference;

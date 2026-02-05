@@ -7,18 +7,17 @@ import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTASolver {
 
-  private JTASolver() {}
+    private JTASolver() {}
 
   public static void solveNetwork(InferenceEngine engine) {
     BayesianNetworkData networkData = engine.getNetworkData();
     InferenceEngineConfigs configs = engine.getConfigs();
-    Instant start = Instant.now();
+      Instant start = Instant.now();
     log.info("STARTING SOLVER");
     networkData.setSolved(false);
     JunctionTreeAlgorithm jta =
@@ -84,14 +83,15 @@ public class JTASolver {
       int cycle,
       Clique[] cliqueArray,
       List<JTAConstraintHandler> constraintHandlers) {
-    DoubleAdder cycleError = new DoubleAdder();
-
-    constraintHandlers.forEach(handler -> cycleError.add(handler.adjustAndReturnError()));
+    double error = 0.0;
+    for (JTAConstraintHandler handler : constraintHandlers) {
+      error += handler.adjustAndReturnError();
+    }
 
     Clique distributeFrom = cliqueArray[cycle % cliqueArray.length];
     jta.distributeAndCollectMessages(distributeFrom);
 
-    return cycleError.sum();
+    return error;
   }
 
   private static boolean checkSkipLog(long now, long nextLogTime, boolean solverRunComplete) {

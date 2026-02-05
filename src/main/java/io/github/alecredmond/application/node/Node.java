@@ -7,9 +7,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(exclude = {"parents"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Node {
-  private final Object nodeID;
+  @EqualsAndHashCode.Include private final Object nodeID;
   private List<NodeState> nodeStates;
   private List<Node> parents;
   private List<Node> children;
