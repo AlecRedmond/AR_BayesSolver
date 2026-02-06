@@ -13,12 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JTATransferWriterFactory {
 
-  public JTATransferWriter build(Clique read, Clique write) {
-    return buildRatioWriter(read.getTable(), write.getTable());
-  }
-
-  public JTATransferWriter buildRatioWriter(
-      ProbabilityTable readTable, ProbabilityTable writeTable) {
+  public JTATransferWriter buildMessagePassWriter(Clique read, Clique write) {
+    ProbabilityTable readTable = read.getTable();
+    ProbabilityTable writeTable = write.getTable();
     Set<Node> sharedNodes = findSharedNodes(readTable.getNodes(), writeTable.getNodes());
 
     VectorCombinationKeyFactory keyFactory = new VectorCombinationKeyFactory();
@@ -28,16 +25,20 @@ public class JTATransferWriterFactory {
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
     JTAWriter writer = new JTAWriterMessagePass(synchronizer, writeTable.getVector(), writeKey);
-    return new JTATransferWriter(reader, writer,synchronizer);
+    return new JTATransferWriter(reader, writer, synchronizer);
   }
 
   private Set<Node> findSharedNodes(Set<Node> readTableNodes, Set<Node> writeTableNodes) {
-    return readTableNodes.stream()
-        .filter(writeTableNodes::contains)
-        .collect(Collectors.toSet());
+    return readTableNodes.stream().filter(writeTableNodes::contains).collect(Collectors.toSet());
   }
 
-  public JTATransferWriter buildCopyInWriter(
+  public JTATransferWriter buildMultiplyInWriter(
+      ProbabilityTable readTable, ProbabilityTable writeTable) {
+    return buildMultiplyInWriter(
+        readTable.getNodes(), writeTable.getNodes(), readTable.getVector(), writeTable.getVector());
+  }
+
+  public JTATransferWriter buildMultiplyInWriter(
       Set<Node> readTableNodes,
       Set<Node> writeTableNodes,
       ProbabilityVector readVector,
@@ -51,20 +52,6 @@ public class JTATransferWriterFactory {
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readVector, readKey);
     JTAWriter writer = new JTAWriterMultiplyIn(synchronizer, writeVector, writeKey);
-    return new JTATransferWriter(reader, writer,synchronizer);
-  }
-
-  public JTATransferWriter buildCopyInWriter(
-      ProbabilityTable readTable, ProbabilityTable writeTable) {
-    Set<Node> sharedNodes = findSharedNodes(readTable.getNodes(), writeTable.getNodes());
-
-    VectorCombinationKeyFactory keyFactory = new VectorCombinationKeyFactory();
-    VectorCombinationKey readKey = keyFactory.buildReadWriteKey(readTable, sharedNodes);
-    VectorCombinationKey writeKey = keyFactory.buildReadWriteKey(writeTable, sharedNodes);
-
-    JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
-    JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
-    JTAWriter writer = new JTAWriterMultiplyIn(synchronizer, writeTable.getVector(), writeKey);
-    return new JTATransferWriter(reader, writer,synchronizer);
+    return new JTATransferWriter(reader, writer, synchronizer);
   }
 }

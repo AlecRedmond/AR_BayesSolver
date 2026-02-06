@@ -1,56 +1,46 @@
 package io.github.alecredmond.application.node;
 
-import java.util.ArrayList;
+import io.github.alecredmond.method.node.NodeUtils;
 import java.util.Collection;
 import java.util.List;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Node {
-  @EqualsAndHashCode.Include private final Object nodeID;
-  private List<NodeState> nodeStates;
-  private List<Node> parents;
-  private List<Node> children;
+public interface Node {
 
-  public <T, E> Node(T nodeID, Collection<E> stateIDs) {
-    this.nodeID = nodeID;
-    this.parents = new ArrayList<>();
-    this.children = new ArrayList<>();
-    this.nodeStates = new ArrayList<>();
-    stateIDs.forEach(this::addState);
+  static <T, E> Node build(T nodeID, Collection<E> stateIDs) {
+    return new NodeDefault(nodeID, stateIDs);
   }
 
-  public <T> NodeState addState(T stateID) {
-    NodeState newState = new NodeState(stateID, this);
-    nodeStates.add(newState);
-    return newState;
+  static <T> Node build(T nodeID) {
+    return new NodeDefault(nodeID);
   }
 
-  public <T> Node(T nodeID) {
-    this.nodeID = nodeID;
-    this.parents = new ArrayList<>();
-    this.children = new ArrayList<>();
-    this.nodeStates = new ArrayList<>();
+  default <T> NodeState addState(T stateID) {
+    return NodeUtils.addNodeState(this, stateID);
   }
 
-  public void addParent(Node parent) {
-    parents.add(parent);
-    parent.getChildren().add(this);
+  default void addParent(Node parent) {
+    NodeUtils.addParent(this, parent);
   }
 
-  public void removeParent(Node parent) {
-    parents.remove(parent);
-    parent.getChildren().remove(this);
+  <T> T getId();
+
+  default void removeParent(Node parent) {
+    NodeUtils.removeParent(this, parent);
   }
 
-  public <E> void removeState(E stateID) {
-    nodeStates.removeIf(state -> state.getStateID().equals(stateID));
+  List<Node> getParents();
+
+  void setParents(List<Node> parents);
+
+  List<Node> getChildren();
+
+  void setChildren(List<Node> children);
+
+  default <E> void removeState(E stateID) {
+    NodeUtils.removeState(this, stateID);
   }
 
-  @Override
-  public String toString() {
-    return nodeID.toString();
-  }
+  List<NodeState> getNodeStates();
+
+  void setNodeStates(List<NodeState> states);
 }

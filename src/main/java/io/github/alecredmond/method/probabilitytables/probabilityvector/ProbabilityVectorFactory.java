@@ -49,11 +49,11 @@ public class ProbabilityVectorFactory {
     }
     String invalidNodes =
         zeroCardinality.stream()
-            .map(node -> node.getNodeID() + " ")
+            .map(node -> node.getId() + " ")
             .collect(Collectors.joining("", "[", "]"));
 
     throw new ProbabilityVectorFactoryException(
-        "Attempted to buildRatioWriter a ProbabilityVector with stateless nodes: %s".formatted(invalidNodes));
+        "Attempted to build a ProbabilityVector with stateless nodes: %s".formatted(invalidNodes));
   }
 
   private int[] buildMultiplierArray(int[] cardinality, int rank) {

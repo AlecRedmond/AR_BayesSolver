@@ -4,13 +4,12 @@ import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 abstract class Sampler<T> {
-    protected static final Random RANDOM = new Random();
+  protected static final Random RANDOM = new Random();
 
   public abstract List<List<T>> generateSamples(
-          BayesianNetworkData data,
+      BayesianNetworkData data,
       Map<Node, NodeState> observations,
       Set<Node> excludedNodes,
       Set<Node> includedNodes,
@@ -21,21 +20,21 @@ abstract class Sampler<T> {
     return states.stream()
         .filter(ns -> !excludedNodes.contains(ns.getNode()))
         .filter(ns -> includedNodes.contains(ns.getNode()))
-        .map(NodeState::getStateID)
+        .map(NodeState::getId)
         .map(tClass::cast)
         .toList();
   }
 
   protected <R, E extends Number> R nextRandom(Map<R, E> weights) {
-      if (weights.isEmpty()) {
-          throw new IllegalArgumentException("nextRandom received an empty weights map!");
-      }
-      double totalWeight = weights.values().stream().mapToDouble(Number::doubleValue).sum();
-      double randomValue = RANDOM.nextDouble() * totalWeight;
-      for (Map.Entry<R, E> entry : weights.entrySet()) {
-          randomValue -= entry.getValue().doubleValue();
-          if (randomValue <= 0.0) return entry.getKey();
-      }
-      return null;
+    if (weights.isEmpty()) {
+      throw new IllegalArgumentException("nextRandom received an empty weights map!");
+    }
+    double totalWeight = weights.values().stream().mapToDouble(Number::doubleValue).sum();
+    double randomValue = RANDOM.nextDouble() * totalWeight;
+    for (Map.Entry<R, E> entry : weights.entrySet()) {
+      randomValue -= entry.getValue().doubleValue();
+      if (randomValue <= 0.0) return entry.getKey();
+    }
+    return null;
   }
 }

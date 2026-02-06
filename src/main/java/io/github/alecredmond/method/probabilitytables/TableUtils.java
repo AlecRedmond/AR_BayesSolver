@@ -49,7 +49,7 @@ public class TableUtils {
 
   private void throwQueryError(String endMessage, Collection<NodeState> request) {
     StringBuilder requestString = new StringBuilder();
-    request.forEach(ns -> requestString.append(ns.getStateID()).append(" "));
+    request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
     throw new IllegalArgumentException(
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
   }

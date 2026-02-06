@@ -12,16 +12,14 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
-
 import java.util.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = true; // Set to false when performing a maven buildRatioWriter
+  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -58,7 +56,7 @@ class BayesianNetworkTest {
       assertNotNull(net.getNode("A"));
       assertEquals(1, data.getNodeIDsMap().size());
 
-      net.addNode(new Node("B", List.of("B+", "B-")));
+      net.addNode(Node.build("B", List.of("B+", "B-")));
       assertNotNull(net.getNode("B"));
       assertEquals(2, data.getNodeIDsMap().size());
     }
@@ -67,7 +65,7 @@ class BayesianNetworkTest {
     void addNode_duplicateID_shouldThrowException() {
       net.addNode("A");
       assertThrows(IllegalArgumentException.class, () -> net.addNode("A"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
+      assertThrows(IllegalArgumentException.class, () -> net.addNode(Node.build("A")));
     }
 
     @Test
@@ -612,10 +610,7 @@ class BayesianNetworkTest {
       assertDoesNotThrow(() -> net.solveNetwork());
       net.observeMarginals();
       MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertEquals(
-          0.8,
-          rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:FALSE"))),
-          1E-9);
+      assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
     }
 
     @Test
@@ -623,8 +618,7 @@ class BayesianNetworkTest {
       assertDoesNotThrow(() -> net.observeMarginals());
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(
-          0.2, rainTable.getProbabilityFromIDs(List.of(rainTable.getNodeState("RAIN:TRUE"))), 1E-9);
+      assertEquals(0.2, rainTable.getProbabilityFromIDs(List.of("RAIN:TRUE")), 1E-9);
     }
 
     @Test
@@ -836,7 +830,8 @@ class BayesianNetworkTest {
           .forEach(
               nodes -> {
                 StringBuilder sb = new StringBuilder();
-                Arrays.stream(nodes).forEach(node -> sb.append(node.getNodeID()).append(" "));
+                Arrays.stream(nodes)
+                    .forEach(node -> sb.append(node.getId().toString()).append(" "));
                 System.out.println(sb);
               });
 
@@ -1126,6 +1121,11 @@ class BayesianNetworkTest {
                           "RACE:ELF", "WEALTH:MIDDLE", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:SUBURBAN"),
                       0.41)
                   // NON-LOCAL CONDITIONALS
+                  // Never-will-votes
+                  .addConstraint("VOTE:CPK", List.of("OUTLOOK:CONSERVATIVE"), 0.01)
+                  .addConstraint("VOTE:CPK", List.of("OUTLOOK:REACTIONARY"), 0.01)
+                  .addConstraint("VOTE:UNF", List.of("OUTLOOK:PROGRESSIVE"), 0.01)
+                  .addConstraint("VOTE:UNF", List.of("OUTLOOK:REVOLUTIONARY"), 0.01)
                   // VOTE | DISTRICT, OUTLOOK
                   .addConstraint(
                       "VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:CAPITAL_CITY"), 0.8)
@@ -1154,7 +1154,7 @@ class BayesianNetworkTest {
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:MINING_OUTPOST"), 0.15)
                   // OTHERS
                   .addConstraint("VOTE:NONE", List.of("AGE:CHILD"), 1.0)
-                  .addConstraint("OUTLOOK:APATHY", List.of("VOTE:NONE"), 0.75)
+                  .addConstraint("VOTE:NONE", List.of("OUTLOOK:APATHY"), 1.0)
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:MARGINAL"), 0.44)
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:ULTRA"), 0.02)
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:HIGH"), 0.05)
@@ -1187,14 +1187,15 @@ class BayesianNetworkTest {
                   .addConstraint("WEALTH:ULTRA", List.of("RACE:GOBLIN"), 0.0005)
                   .addConstraint("WEALTH:HIGH", List.of("RACE:GOBLIN"), 0.008)
                   .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
-                  .addConstraint("VOTE:CPK", List.of("RACE:ANK", "AGE:YOUNG_ADULT"), 0.1874)
+                  .addConstraint("VOTE:CPK", List.of("RACE:ANK", "AGE:YOUNG_ADULT"), 0.22)
                   .solveNetwork()
                   .observeMarginals()
                   .printObserved());
 
-      net.observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
-          .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
-          .printObserved();
+      net.observeNetwork(List.of("VOTE:CPK")).printObserved();
+      net.observeNetwork(List.of("VOTE:UNF")).printObserved();
+
+      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT")).printObserved();
 
       net.getPrinterConfigs().setPrintToConsole(true);
       net.printNetwork();
@@ -1205,6 +1206,5 @@ class BayesianNetworkTest {
 
       generateSamples(net, numOfSamples, includedNode, testState);
     }
-
   }
 }

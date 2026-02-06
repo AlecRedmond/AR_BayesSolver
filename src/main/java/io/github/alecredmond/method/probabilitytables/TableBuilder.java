@@ -21,11 +21,11 @@ public class TableBuilder {
   public static ProbabilityTable buildNetworkTable(List<Node> events, List<Node> conditions) {
     if (events.isEmpty())
       throw new TableBuilderException(
-          "attempted to buildRatioWriter a table with no events!"); // TODO - Hit Branch In Test Suite
+          "attempted to build a table with no events!"); // TODO - Hit Branch In Test Suite
     if (!conditions.isEmpty()) return buildConditionalTable(events, conditions);
     if (events.size() == 1) return buildMarginalTable(new HashSet<>(events));
     throw new TableBuilderException(
-        "Could not buildRatioWriter a marginal or conditional table from request!"); // TODO - Hit Branch In
+        "Could not build a marginal or conditional table from request!"); // TODO - Hit Branch In
     // Test Suite
   }
 
@@ -63,7 +63,7 @@ public class TableBuilder {
 
   private static Map<Object, Node> buildNodeIDMap(Collection<Node> nodes) {
     return nodes.stream()
-        .map(n -> Map.entry(n.getNodeID(), n))
+        .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
@@ -71,20 +71,20 @@ public class TableBuilder {
     return nodes.stream()
         .map(Node::getNodeStates)
         .flatMap(Collection::stream)
-        .map(ns -> Map.entry(ns.getStateID(), ns))
+        .map(ns -> Map.entry(ns.getId(), ns))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static String buildTableName(Collection<Node> events, Collection<Node> conditions) {
     StringBuilder sb = new StringBuilder("P(");
     for (Node event : events) {
-      sb.append(event.getNodeID().toString()).append(",");
+      sb.append(event.getId().toString()).append(",");
     }
     sb.deleteCharAt(sb.length() - 1);
     if (conditions.isEmpty()) return sb.append(")").toString();
     sb.append("|");
     for (Node condition : conditions) {
-      sb.append(condition.getNodeID().toString()).append(",");
+      sb.append(condition.getId().toString()).append(",");
     }
     sb.deleteCharAt(sb.length() - 1);
     return sb.append(")").toString();

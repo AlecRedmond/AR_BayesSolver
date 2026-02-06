@@ -51,16 +51,17 @@ class NetworkDataUtils {
   }
 
   void addNode(Node node) {
-    checkForExistingIDs(List.of(node.getNodeID()));
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    Object id = node.getId();
+    checkForExistingIDs(List.of(id));
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     checkForExistingIDs(stateIDs);
-    networkData.getNodeIDsMap().put(node.getNodeID(), node);
+    networkData.getNodeIDsMap().put(node.getId(), node);
     addStatesToMap(node);
     networkData.setSolved(false);
   }
 
   private <T> void checkForExistingIDs(Collection<T> ids) {
-    List<Object> dupes = new ArrayList<>();
+    List<T> dupes = new ArrayList<>();
     for (T id : ids) {
       if (networkData.getNodeIDsMap().containsKey(id)
           || networkData.getNodeStateIDsMap().containsKey(id)) {
@@ -71,21 +72,18 @@ class NetworkDataUtils {
       throw new BayesNetIDException(
           String.format(
               "Error, found duplicate id(s)! : %s",
-              dupes.stream()
-                  .map(Object::toString)
-                  .map(s -> s + " ")
-                  .collect(Collectors.joining())));
+              dupes.stream().map(T::toString).map(s -> s + " ").collect(Collectors.joining())));
     }
   }
 
   private void addStatesToMap(Node node) {
     node.getNodeStates()
-        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getStateID(), state));
+        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getId(), state));
   }
 
   <T> void addNode(T nodeID) {
     checkForExistingIDs(List.of(nodeID));
-    networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
+    networkData.getNodeIDsMap().put(nodeID, Node.build(nodeID));
     networkData.setSolved(false);
   }
 
@@ -111,7 +109,7 @@ class NetworkDataUtils {
     checkNoDuplicateStateIDs(nodeID, dupesCheckList);
     dupesCheckList.add(nodeID);
     checkForExistingIDs(dupesCheckList);
-    Node newNode = new Node(nodeID, nodeStateIDs);
+    Node newNode = Node.build(nodeID, nodeStateIDs);
     networkData.getNodeIDsMap().put(nodeID, newNode);
     addStatesToMap(newNode);
     networkData.setSolved(false);
@@ -154,13 +152,13 @@ class NetworkDataUtils {
   private void removeStatesFromMap(Node toRemove) {
     toRemove
         .getNodeStates()
-        .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getStateID()));
+        .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getId()));
   }
 
   <T> void removeNodeStates(T nodeID) {
     if (nodeDoesNotExist(nodeID)) return;
     Node node = getNodeByID(nodeID);
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     node.setNodeStates(new ArrayList<>());
     stateIDs.forEach(networkData.getNodeStateIDsMap()::remove);
   }
@@ -195,14 +193,14 @@ class NetworkDataUtils {
 
   private Map<Object, Node> createNodeIdMap(List<Node> nodes) {
     return nodes.stream()
-        .map(n -> Map.entry(n.getNodeID(), n))
+        .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private Map<Object, NodeState> createNodeStateIdMap(List<Node> nodes) {
     return nodes.stream()
         .flatMap(n -> n.getNodeStates().stream())
-        .map(ns -> Map.entry(ns.getStateID(), ns))
+        .map(ns -> Map.entry(ns.getId(), ns))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 

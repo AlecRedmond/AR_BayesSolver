@@ -23,7 +23,6 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
             .buildKey(tableHandler.getTable(), constraint.getConditionStates());
 
     lockAllNonEventNodes(key);
-
     return key;
   }
 

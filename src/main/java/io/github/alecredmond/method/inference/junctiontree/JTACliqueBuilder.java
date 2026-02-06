@@ -23,7 +23,11 @@ class JTACliqueBuilder {
 
     Set<Clique> set =
         maximalCliques.stream()
-            .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes,jtd.getBayesianNetworkData())))
+            .map(
+                nodes ->
+                    new Clique(
+                        nodes,
+                        TableBuilder.buildJunctionTreeTable(nodes, jtd.getBayesianNetworkData())))
             .collect(Collectors.toSet());
 
     jtd.setCliqueSet(set);
@@ -114,7 +118,9 @@ class JTACliqueBuilder {
   }
 
   /**
-   * The Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a graph.
+   * I have used the Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a
+   * graph. Further explanation of this algorithm can be found <a
+   * href="https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm#With_pivoting">here.</a>
    *
    * @param currentNodes (R) The set of nodes in the clique currently being built.
    * @param candidateNodes (P) The set of candidate nodes that can be added to extend the clique.

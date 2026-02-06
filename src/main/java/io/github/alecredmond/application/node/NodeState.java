@@ -1,21 +1,11 @@
 package io.github.alecredmond.application.node;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
-@Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class NodeState {
-  @EqualsAndHashCode.Include private final Object stateID;
-  private final Node node;
-
-  public <T> NodeState(T stateID, Node node) {
-    this.stateID = stateID;
-    this.node = node;
+public interface NodeState {
+  static <T> NodeState build(T stateID, Node node) {
+    return new NodeStateDefault(stateID, node);
   }
 
-  @Override
-  public String toString() {
-    return stateID.toString();
-  }
+  <T> T getId();
+
+  Node getNode();
 }

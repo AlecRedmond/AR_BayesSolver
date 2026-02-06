@@ -57,7 +57,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
   @Override
   public BayesianNetwork removeNode(Node node) {
     if (Optional.ofNullable(node).isEmpty()) return this;
-    utils.removeNode(node.getNodeID());
+    utils.removeNode(node.getId());
     return null;
   }
 
@@ -198,7 +198,6 @@ class BayesianNetworkImpl implements BayesianNetwork {
     }
     utils.buildNetworkData();
     inferenceEngine.runSolver();
-    observeMarginals();
     return this;
   }
 

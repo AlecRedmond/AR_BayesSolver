@@ -66,10 +66,10 @@ class JTANetworkWriter {
   private static void updateTableName(Node node, JunctionTreeData data) {
     MarginalTable observedTable = data.getObservationMap().get(node);
     Collection<NodeState> states = data.getObserved().values();
-    StringBuilder sb = new StringBuilder("P(").append(node.getNodeID().toString());
+    StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
     if (!states.isEmpty()) {
       sb.append("|");
-      states.forEach(observed -> sb.append(observed.getStateID().toString()).append(","));
+      states.forEach(observed -> sb.append(observed.getId().toString()).append(","));
       sb.deleteCharAt(sb.length() - 1);
     }
     sb.append(")");

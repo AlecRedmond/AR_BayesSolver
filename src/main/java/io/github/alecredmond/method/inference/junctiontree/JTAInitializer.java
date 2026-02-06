@@ -82,6 +82,7 @@ public class JTAInitializer {
 
   private static void buildConstraintHandlers(JunctionTreeData jtd) {
     Map<ParameterConstraint, JTAConstraintHandler> map = new HashMap<>();
+
     jtd.getCliqueConstraintsMap()
         .forEach(
             ((clique, constraintList) ->
@@ -128,12 +129,12 @@ public class JTAInitializer {
 
       bestNetworkClique
           .getInitializeFrom()
-          .add(factory.buildCopyInWriter(networkTable, bestNetworkClique.getTable()));
+          .add(factory.buildMultiplyInWriter(networkTable, bestNetworkClique.getTable()));
 
       bestObservationClique
           .getObservedWriters()
           .add(
-              factory.buildCopyInWriter(
+              factory.buildMultiplyInWriter(
                   cliqueTable.getNodes(),
                   observedTable.getNodes(),
                   cliqueTable.getVector(),
@@ -142,19 +143,19 @@ public class JTAInitializer {
       if (writeBackToCPTs) {
         bestNetworkClique
             .getNetworkWriters()
-            .add(factory.buildCopyInWriter(bestNetworkClique.getTable(), networkTable));
+            .add(factory.buildMultiplyInWriter(bestNetworkClique.getTable(), networkTable));
       }
     }
   }
 
-    private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
+  private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
     return cliques.stream()
         .filter(c -> c.getNodes().containsAll(nodesInScope))
         .min(Comparator.comparing(clique -> clique.getNodes().size()))
         .orElseThrow();
   }
 
-    private static JTAConstraintHandler buildConstraintHandler(
+  private static JTAConstraintHandler buildConstraintHandler(
       ParameterConstraint constraint, JTATableHandler jtaTableHandler) {
     if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
       return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
@@ -185,8 +186,12 @@ public class JTAInitializer {
           if (joined.contains(nextClique)) {
             return;
           }
-          current.getSeparatorMap().put(nextClique, factory.build(current, nextClique));
-          nextClique.getSeparatorMap().put(current, factory.build(nextClique, current));
+          current
+              .getSeparatorMap()
+              .put(nextClique, factory.buildMessagePassWriter(current, nextClique));
+          nextClique
+              .getSeparatorMap()
+              .put(current, factory.buildMessagePassWriter(nextClique, current));
           available.remove(nextClique);
           joined.add(nextClique);
           recursivelyJoinCliques(nextClique, available, joined, factory);

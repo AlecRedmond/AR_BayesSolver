@@ -3,7 +3,6 @@ package io.github.alecredmond.application.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,8 +34,8 @@ public class MarginalTable extends ProbabilityTable {
     return super.getProbabilityFromIDs(Set.of(nodeStateID));
   }
 
-    @Override
-    public void marginalizeTable() {
-      utils.marginalizeJointTable();
-    }
+  @Override
+  public void marginalizeTable() {
+    utils.marginalizeJointTable();
+  }
 }

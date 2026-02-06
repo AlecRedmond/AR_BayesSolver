@@ -58,10 +58,10 @@ public class InferenceEngine {
     Map<Node, NodeState> currentObservations = networkData.getObserved();
     Map<Node, NodeState> newObservations = convertToMap(newEvidence);
     newObservations.putAll(currentObservations);
-    if (currentObservations.equals(newObservations)) return 1.0; //TODO - Hit Branch In Test Suite
+    if (currentObservations.equals(newObservations)) return 1.0; // TODO - Hit Branch In Test Suite
 
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
-    if (jointProbWithCurrentEvidence == 0) return 0; //TODO - Hit Branch In Test Suite
+    if (jointProbWithCurrentEvidence == 0) return 0; // TODO - Hit Branch In Test Suite
 
     junctionTree.observeNetwork(newObservations);
     double jointProbWithExtraEvidence = junctionTree.getProbabilityOfEvidence();
@@ -83,7 +83,7 @@ public class InferenceEngine {
       return true;
     }
 
-    if (newEvidence.size() != evidenceStates.size()) return true; //TODO - Hit Branch In Test Suite
+    if (newEvidence.size() != evidenceStates.size()) return true; // TODO - Hit Branch In Test Suite
 
     return networkData.getObserved().entrySet().stream()
         .anyMatch(observedEntry -> sameKeyDifferentValue(observedEntry, newEvidence));
@@ -103,7 +103,7 @@ public class InferenceEngine {
     Node n = observedEntry.getKey();
     NodeState s = observedEntry.getValue();
     if (newEvents.containsKey(n)) {
-      return !newEvents.get(n).equals(s); //TODO - Hit Branch In Test Suite
+      return !newEvents.get(n).equals(s); // TODO - Hit Branch In Test Suite
     }
     return false;
   }
@@ -114,17 +114,23 @@ public class InferenceEngine {
     }
   }
 
-  public void observeNetwork(Collection<NodeState> observed) {
-    if (!networkData.isSolved()) runSolver(); //TODO - Hit Branch In Test Suite
-    Map<Node, NodeState> observedMap = convertToMap(observed);
-    junctionTree.observeNetwork(observedMap);
-    junctionTree.writeObservations();
-  }
-
   public void runSolver() {
+    if (networkData.getNodeIDsMap().isEmpty()) {
+      return;
+    }
     JTASolver.solveNetwork(this);
     networkData.setSolved(true);
     junctionTree =
         new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
+    observeNetwork(new HashSet<>());
+  }
+
+  public void observeNetwork(Collection<NodeState> observed) {
+    if (!networkData.isSolved()) {
+      return;
+    }
+    Map<Node, NodeState> observedMap = convertToMap(observed);
+    junctionTree.observeNetwork(observedMap);
+    junctionTree.writeObservations();
   }
 }

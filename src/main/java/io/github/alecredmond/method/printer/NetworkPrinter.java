@@ -5,7 +5,6 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.method.node.NodeUtils;
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -63,9 +62,10 @@ public class NetworkPrinter {
   }
 
   private List<String> generateTableLines(ProbabilityTable table) {
-    List<Set<NodeState>> eventCombinations = table.getUtils().generateStateCombinations(table.getEvents());
+    List<Set<NodeState>> eventCombinations =
+        table.getUtils().generateStateCombinations(table.getEvents());
     List<Set<NodeState>> conditionCombinations =
-            table.getUtils().generateStateCombinations(table.getConditions());
+        table.getUtils().generateStateCombinations(table.getConditions());
 
     List<String> eventHeaders = formatStateCombinations(eventCombinations, true);
     List<String> conditionLabels = formatStateCombinations(conditionCombinations, false);

@@ -37,14 +37,6 @@ public abstract class ProbabilityTable {
     this.utils = new TableUtils(this);
   }
 
-  public <T> NodeState getNodeState(T nodeStateID) {
-    return nodeStateIDMap.get(nodeStateID);
-  }
-
-  public <T> Node getNode(T nodeID) {
-    return nodeIDMap.get(nodeID); // TODO - Hit Branch In Test Suite
-  }
-
   public <T> double getProbabilityFromIDs(Collection<T> stateIDs) {
     return getProbability(stateIDs.stream().map(nodeStateIDMap::get).toList());
   }
