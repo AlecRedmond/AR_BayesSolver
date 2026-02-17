@@ -1,9 +1,5 @@
 package io.github.alecredmond.method.inference;
 
-import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
-
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
-import io.github.alecredmond.application.inference.SampleGeneratorType;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -19,12 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class InferenceEngine {
   private final BayesianNetworkData networkData;
-  private final InferenceEngineConfigs configs;
   private JunctionTreeAlgorithm junctionTree;
 
-  public InferenceEngine(BayesianNetworkData networkData, InferenceEngineConfigs configs) {
+  public InferenceEngine(BayesianNetworkData networkData) {
     this.networkData = networkData;
-    this.configs = configs;
     this.junctionTree = null;
   }
 
@@ -44,11 +38,8 @@ public class InferenceEngine {
   }
 
   private <T> Sampler<T> getSampler(Class<T> tClass) {
-    SampleGeneratorType type = Objects.requireNonNull(configs.getSampleGenerator());
-    if (type == LIKELIHOOD_WEIGHTING_SAMPLER) {
-      return new LikelihoodWeightingSampler<>(tClass);
-    }
-    throw new IllegalStateException("Unexpected value: " + type);
+    // Currently only Likelihood Weighting Sampler is used, this may change in the future
+    return new LikelihoodWeightingSampler<>(tClass);
   }
 
   public double getProbabilityFromCurrentObservations(Set<NodeState> newEvidence) {

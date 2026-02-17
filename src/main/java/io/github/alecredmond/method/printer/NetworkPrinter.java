@@ -25,9 +25,9 @@ public class NetworkPrinter {
   private final BayesianNetworkData networkData;
   private final PrinterConfigs printerConfigs;
 
-  public NetworkPrinter(BayesianNetworkData networkData, PrinterConfigs printerConfigs) {
+  public NetworkPrinter(BayesianNetworkData networkData) {
     this.networkData = networkData;
-    this.printerConfigs = printerConfigs;
+    this.printerConfigs = new PrinterConfigs();
   }
 
   public void printObserved() {

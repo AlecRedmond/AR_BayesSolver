@@ -1,12 +1,9 @@
 package io.github.alecredmond.method.network;
 
-import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
@@ -19,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -423,158 +420,6 @@ class BayesianNetworkTest {
   }
 
   @Nested
-  class SolverConfigTests {
-    @Test
-    void solverCyclesLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverCyclesLimit(500));
-    }
-
-    @Test
-    void solverCyclesLimit_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverCyclesLimit(0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverCyclesLimit(-100));
-    }
-
-    @Test
-    void solverTimeLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverTimeLimit(30));
-    }
-
-    @Test
-    void solverTimeLimit_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverTimeLimit(0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverTimeLimit(-10));
-    }
-
-    @Test
-    void logIntervalSeconds_shouldSucceed() {
-      assertDoesNotThrow(() -> net.logIntervalSeconds(5));
-    }
-
-    @Test
-    void logIntervalSeconds_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.logIntervalSeconds(0));
-      assertThrows(IllegalArgumentException.class, () -> net.logIntervalSeconds(-1));
-    }
-
-    @Test
-    void solverConvergeThreshold_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverConvergeThreshold(1E-6));
-    }
-
-    @Test
-    void solverConvergeThreshold_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverConvergeThreshold(0.0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverConvergeThreshold(-0.1));
-    }
-  }
-
-  @Nested
-  class PrinterConfigTests {
-    @Test
-    void printerSettings_shouldNotThrow() {
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(() -> configs.setSaveDirectory("./output"));
-      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(true));
-      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(false));
-      assertDoesNotThrow(() -> configs.setPrintToConsole(true));
-      assertDoesNotThrow(() -> configs.setPrintToConsole(false));
-      assertDoesNotThrow(() -> configs.setProbDecimalPlaces(4));
-    }
-
-    @Test
-    void printerProbDecimalPlaces_invalid_shouldThrowException() {
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertThrows(IllegalArgumentException.class, () -> configs.setProbDecimalPlaces(-1));
-    }
-
-    @Test
-    void printNetwork_beforeSolve_shouldImplicitlySolve() {
-      net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(
-          () -> {
-            configs.setPrintToConsole(true);
-            net.printNetwork();
-          });
-    }
-
-    @Test
-    void printObserved_beforeObserve_shouldImplicitlySolveAndObserveMarginals() {
-      net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(
-          () -> {
-            configs.setPrintToConsole(true);
-            net.printObserved();
-          });
-    }
-  }
-
-  @Nested
-  class InferenceEngineConfigTests {
-    InferenceEngineConfigs configs;
-
-    @BeforeEach
-    void initializeConfigs() {
-      configs = net.getInferenceEngineConfigs();
-    }
-
-    @Test
-    void changeSamplerType_shouldSucceed() {
-      assertDoesNotThrow(() -> configs.setSampleGenerator(LIKELIHOOD_WEIGHTING_SAMPLER));
-    }
-
-    @Test
-    void changeSolverCyclesLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(1000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(10_000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(100_000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(Integer.MAX_VALUE));
-    }
-
-    @Test
-    void changeSolverCyclesToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverCyclesLimit(i));
-      }
-    }
-
-    @Test
-    void changeSolverConvergeThreshold_shouldSucceed() {
-      List<Double> valid = List.of(1E-3, 1E-5, 1E-9, 1E-256, Double.MAX_VALUE);
-      for (double d : valid) {
-        assertDoesNotThrow(() -> configs.setSolverConvergeThreshold(d));
-      }
-    }
-
-    @Test
-    void changeSolverConvergeInvalid_shouldThrowException() {
-      List<Double> invalid = List.of(-1E-3, 0.0, -15.0);
-      for (double d : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverConvergeThreshold(d));
-      }
-    }
-
-    @Test
-    void changeLogIntervalToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverLogIntervalSeconds(i));
-      }
-    }
-
-    @Test
-    void changeTimeLimitToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverTimeLimitSeconds(i));
-      }
-    }
-  }
-
-  @Nested
   class InferenceAndQueryTests {
 
     @BeforeEach
@@ -802,11 +647,6 @@ class BayesianNetworkTest {
     void testSolves_RainSprinkler() {
       net = BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS");
 
-      PrinterConfigs printerConfigs = net.getPrinterConfigs();
-      printerConfigs.setProbDecimalPlaces(3);
-      printerConfigs.setPrintToConsole(false);
-      printerConfigs.setOpenFileOnCreation(true);
-
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
@@ -893,7 +733,6 @@ class BayesianNetworkTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-      net.getPrinterConfigs().setPrintToConsole(true);
 
       assertDoesNotThrow(
           () ->
@@ -932,8 +771,6 @@ class BayesianNetworkTest {
     void testFantasyGraph_ComplexNetwork() {
       if (!debugSolveLengthyTests) return;
       net = BayesianNetwork.newNetwork("FANTASY_ELECTION");
-
-      net.getPrinterConfigs().setPrintToConsole(true);
 
       assertDoesNotThrow(
           () ->
@@ -1197,7 +1034,6 @@ class BayesianNetworkTest {
 
       net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT")).printObserved();
 
-      net.getPrinterConfigs().setPrintToConsole(true);
       net.printNetwork();
 
       int numOfSamples = 100_000;
