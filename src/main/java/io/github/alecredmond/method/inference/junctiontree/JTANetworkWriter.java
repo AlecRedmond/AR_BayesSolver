@@ -18,12 +18,10 @@ class JTANetworkWriter {
   private JTANetworkWriter() {}
 
   static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
-    data.getCliqueSet()
-        .forEach(
-            clique -> {
-              setProbabilitiesToUnity(clique);
-              clique.getInitializeFrom().forEach(JTATransferWriter::run);
-            });
+    for (Clique clique : data.getCliques()) {
+      setProbabilitiesToUnity(clique);
+      clique.getInitializeFrom().forEach(JTATransferWriter::run);
+    }
     backupUnobservedData(data);
   }
 
@@ -32,7 +30,7 @@ class JTANetworkWriter {
   }
 
   private static void backupUnobservedData(JunctionTreeData data) {
-    data.getCliqueSet().stream()
+    Arrays.stream(data.getCliques())
         .map(Clique::getTable)
         .forEach(
             jtt -> {
@@ -48,7 +46,7 @@ class JTANetworkWriter {
 
     data.getBayesianNetworkData().setObserved(data.getObserved());
 
-    data.getCliqueSet().stream()
+    Arrays.stream(data.getCliques())
         .map(Clique::getObservedWriters)
         .flatMap(Collection::stream)
         .forEach(JTATransferWriter::setToUnityAndRun);
@@ -80,11 +78,10 @@ class JTANetworkWriter {
     log.info("WRITING TO NETWORK");
 
     BayesianNetworkData bnd = data.getBayesianNetworkData();
-    Set<Clique> cliques = data.getCliqueSet();
 
     Stream.concat(
-            cliques.stream().flatMap(c -> c.getNetworkWriters().stream()),
-            cliques.stream().flatMap(c -> c.getObservedWriters().stream()))
+            Arrays.stream(data.getCliques()).flatMap(c -> c.getNetworkWriters().stream()),
+            Arrays.stream(data.getCliques()).flatMap(c -> c.getObservedWriters().stream()))
         .forEach(JTATransferWriter::setToUnityAndRun);
 
     Stream.concat(

@@ -21,16 +21,16 @@ class JTACliqueBuilder {
 
     Set<Set<Node>> maximalCliques = findMaximalCliques(edgeGraph);
 
-    Set<Clique> set =
+    Clique[] cliques =
         maximalCliques.stream()
             .map(
                 nodes ->
                     new Clique(
                         nodes,
                         TableBuilder.buildJunctionTreeTable(nodes, jtd.getBayesianNetworkData())))
-            .collect(Collectors.toSet());
+            .toArray(Clique[]::new);
 
-    jtd.setCliqueSet(set);
+    jtd.setCliques(cliques);
   }
 
   static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {

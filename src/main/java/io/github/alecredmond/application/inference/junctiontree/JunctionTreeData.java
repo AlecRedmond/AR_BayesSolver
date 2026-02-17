@@ -9,7 +9,6 @@ import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,12 +18,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JunctionTreeData {
   private BayesianNetworkData bayesianNetworkData;
-  private Set<Clique> cliqueSet;
-  private Set<Clique> leafCliques;
+  private Clique[] cliques;
   private List<JunctionTreeTable> junctionTreeTables;
-  private Map<Clique,List<ParameterConstraint>> cliqueConstraintsMap;
-  private Map<ParameterConstraint, JTAConstraintHandler> constraintHandlers;
-  private boolean marginalized;
+  private List<JTAConstraintHandler> constraintHandlers;
 
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();

@@ -32,7 +32,9 @@ public class JunctionTreeAlgorithm {
   }
 
   public void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getTable).forEach(ProbabilityTable::marginalizeTable);
+    Arrays.stream(data.getCliques())
+        .map(Clique::getTable)
+        .forEach(ProbabilityTable::marginalizeTable);
   }
 
   public void writeTablesToNetwork() {
@@ -46,7 +48,7 @@ public class JunctionTreeAlgorithm {
   }
 
   private Clique cliqueWithLargestOverlap(Map<Node, NodeState> observed) {
-    return data.getCliqueSet().stream()
+    return Arrays.stream(data.getCliques())
         .max(
             Comparator.comparingInt(
                 c -> {
@@ -60,7 +62,7 @@ public class JunctionTreeAlgorithm {
   private void setEvidence(Map<Node, NodeState> evidence) {
     data.setObserved(evidence);
 
-    for (Clique clique : data.getCliqueSet()) {
+    for (Clique clique : data.getCliques()) {
       Set<NodeState> evidenceInTable =
           clique.getNodes().stream()
               .filter(evidence::containsKey)

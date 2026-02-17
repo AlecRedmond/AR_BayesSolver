@@ -15,22 +15,19 @@ import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstrain
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriterFactory;
-import io.github.alecredmond.method.utils.MapCollector;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTAInitializer {
-  private static final MapCollector COLLECTOR = new MapCollector();
 
   private JTAInitializer() {}
 
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     buildCommon(junctionTreeData, bayesianNetworkData, true);
-    buildConstraintCliqueMap(junctionTreeData, bayesianNetworkData);
-    buildConstraintHandlers(junctionTreeData);
+    buildConstraintHandlers(junctionTreeData, bayesianNetworkData);
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
     return junctionTreeData;
   }
@@ -39,8 +36,7 @@ public class JTAInitializer {
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     buildCommon(junctionTreeData, bayesianNetworkData, false);
-    junctionTreeData.setCliqueConstraintsMap(new HashMap<>());
-    junctionTreeData.setConstraintHandlers(new HashMap<>());
+    junctionTreeData.setConstraintHandlers(new ArrayList<>());
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
     return junctionTreeData;
   }
@@ -54,73 +50,43 @@ public class JTAInitializer {
     setJunctionTreeTablesList(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData, writeBackToCPTs);
-    buildLeafCliques(junctionTreeData);
   }
 
-  private static void buildLeafCliques(JunctionTreeData junctionTreeData) {
-    Set<Clique> leafCliques =
-        junctionTreeData.getCliqueSet().stream()
-            .filter(c -> c.getSeparatorMap().size() <= 1)
-            .collect(Collectors.toSet());
-    junctionTreeData.setLeafCliques(leafCliques);
-  }
-
-  private static void buildConstraintCliqueMap(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    Set<Clique> cliques = jtd.getCliqueSet();
-    Map<Clique, List<ParameterConstraint>> map =
-        COLLECTOR.convertToMap(clique -> Map.entry(clique, new ArrayList<>()), cliques);
-
-    bnd.getConstraints()
-        .forEach(
-            constraint -> {
-              Clique containsScope = getContainsScope(cliques, constraint.getAllNodes());
-              map.get(containsScope).add(constraint);
-            });
-
-    jtd.setCliqueConstraintsMap(map);
-  }
-
-  private static void buildConstraintHandlers(JunctionTreeData jtd) {
-    Map<ParameterConstraint, JTAConstraintHandler> map = new HashMap<>();
-
-    jtd.getCliqueConstraintsMap()
-        .forEach(
-            ((clique, constraintList) ->
-                constraintList.forEach(
-                    constraint ->
-                        map.put(
-                            constraint, buildConstraintHandler(constraint, clique.getHandler())))));
-
-    jtd.setConstraintHandlers(map);
+  private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    List<JTAConstraintHandler> list =
+        bnd.getConstraints().stream()
+            .map(constraint -> buildConstraintHandler(constraint, jtd))
+            .toList();
+    jtd.setConstraintHandlers(list);
   }
 
   private static void setJunctionTreeTablesList(JunctionTreeData jtd) {
     jtd.setJunctionTreeTables(
-        jtd.getCliqueSet().stream()
+        Arrays.stream(jtd.getCliques())
             .map(Clique::getTable)
             .sorted(Comparator.comparing(table -> table.getNodes().size()))
             .toList());
   }
 
-  private static void buildInternalMessagePassers(JunctionTreeData junctionTreeData) {
-    Set<Clique> cliques = new HashSet<>(junctionTreeData.getCliqueSet());
+  private static void buildInternalMessagePassers(JunctionTreeData jtd) {
+    Set<Clique> cliques =
+        Arrays.stream(jtd.getCliques()).collect(Collectors.toCollection(HashSet::new));
     Clique smallest =
         cliques.stream().min(Comparator.comparing(c -> c.getNodes().size())).orElseThrow();
     cliques.remove(smallest);
     Set<Clique> joined = new HashSet<>(Set.of(smallest));
-    junctionTreeData.setLeafCliques(new HashSet<>());
     recursivelyJoinCliques(smallest, cliques, joined, new JTATransferWriterFactory());
   }
 
   private static void buildExternalMessagePassers(
-      JunctionTreeData jtd, BayesianNetworkData data, boolean writeBackToCPTs) {
-    Set<Clique> cliques = jtd.getCliqueSet();
+      JunctionTreeData jtd, BayesianNetworkData bnd, boolean writeBackToCPTs) {
+    Clique[] cliques = jtd.getCliques();
 
     JTATransferWriterFactory factory = new JTATransferWriterFactory();
 
-    for (Node node : data.getNodes()) {
-      ProbabilityTable networkTable = data.getNetworkTablesMap().get(node);
-      MarginalTable observedTable = data.getObservationMap().get(node);
+    for (Node node : bnd.getNodes()) {
+      ProbabilityTable networkTable = bnd.getNetworkTablesMap().get(node);
+      MarginalTable observedTable = bnd.getObservationMap().get(node);
 
       Clique bestNetworkClique = getContainsScope(cliques, networkTable.getNodes());
       Clique bestObservationClique = getContainsScope(cliques, observedTable.getNodes());
@@ -148,15 +114,18 @@ public class JTAInitializer {
     }
   }
 
-  private static Clique getContainsScope(Set<Clique> cliques, Set<Node> nodesInScope) {
-    return cliques.stream()
+  private static Clique getContainsScope(Clique[] cliques, Set<Node> nodesInScope) {
+    return Arrays.stream(cliques)
         .filter(c -> c.getNodes().containsAll(nodesInScope))
         .min(Comparator.comparing(clique -> clique.getNodes().size()))
         .orElseThrow();
   }
 
   private static JTAConstraintHandler buildConstraintHandler(
-      ParameterConstraint constraint, JTATableHandler jtaTableHandler) {
+      ParameterConstraint constraint, JunctionTreeData jtd) {
+    JTATableHandler jtaTableHandler =
+        getContainsScope(jtd.getCliques(), constraint.getAllNodes()).getHandler();
+
     if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
       return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
     } else if (constraint instanceof ConditionalConstraint cc) {

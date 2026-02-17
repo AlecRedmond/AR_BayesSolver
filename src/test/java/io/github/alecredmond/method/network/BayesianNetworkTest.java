@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -429,14 +429,13 @@ class BayesianNetworkTest {
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
           .addParent("SPRINKLER", "RAIN")
           .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-          .addConstraint("RAIN:TRUE", 0.2) // P(R) = 0.2
-          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01) // P(S|R) = 0.01
-          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4) // P(S|~R) = 0.4
+          .addConstraint("RAIN:TRUE", 0.2)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9);
-      // Missing constraints will be auto-completed by solver (e.g., P(RAIN:FALSE) = 0.8)
     }
 
     @Test
@@ -469,26 +468,20 @@ class BayesianNetworkTest {
     @Test
     void observeNetwork_shouldUpdateProbabilities() {
       net.solveNetwork().observeMarginals();
-      // P(RAIN:TRUE) is 0.2 initially
       assertEquals(0.2, net.getObservedTable("RAIN").getProbability("RAIN:TRUE"), 1E-6);
-
-      // Observe WET_GRASS:TRUE
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      // P(RAIN:TRUE | WET_GRASS:TRUE) should be different (and higher)
-      // This is the "explaining away" problem
       double pRainGivenWet = net.getObservedTable("RAIN").getProbability("RAIN:TRUE");
       assertTrue(pRainGivenWet > 0.2);
       // Exact value P(R|W) = P(W|R)P(R)/P(W)
       // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
       // P(W|~R) = P(W|~R,S)P(S|~R) + P(W|~R,~S)P(~S|~R) = 0.9*0.4 + 0.0*0.6 = 0.36
       // P(W) = P(W|R)P(R) + P(W|~R)P(~R) = 0.9009*0.2 + 0.36*0.8 = 0.18018 + 0.288 = 0.46818
-      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485...
+      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485
       assertEquals(0.384852, pRainGivenWet, 1E-6);
     }
 
     @Test
     void observeNetwork_withConflictingEvidence_shouldThrowException() {
-      // Observing RAIN:TRUE and RAIN:FALSE
       assertThrows(Exception.class, () -> net.observeNetwork(List.of("RAIN:TRUE", "RAIN:FALSE")));
     }
 
@@ -514,11 +507,11 @@ class BayesianNetworkTest {
       net.solveNetwork();
       ProbabilityTable rainTable = net.getNetworkTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(1, rainTable.getNodes().size()); // Just RAIN
+      assertEquals(1, rainTable.getNodes().size());
 
       ProbabilityTable grassTable = net.getNetworkTable("WET_GRASS");
       assertNotNull(grassTable);
-      assertEquals(3, grassTable.getNodes().size()); // WET_GRASS, RAIN, SPRINKLER
+      assertEquals(3, grassTable.getNodes().size());
     }
 
     @Test
@@ -553,10 +546,8 @@ class BayesianNetworkTest {
     @Test
     void getObservedTable_beforeObserve_shouldReturnMarginals() {
       net.solveNetwork();
-      // No observe...() call
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      // Should be equal to the prior P(RAIN:TRUE)
       assertEquals(0.2, rainTable.getProbability("RAIN:TRUE"), 1E-6);
     }
 
@@ -606,7 +597,7 @@ class BayesianNetworkTest {
       List<List<String>> samples = net.generateSamples(null, List.of("RAIN"), 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
-        assertEquals(1, sample.size()); // Only one node state
+        assertEquals(1, sample.size());
         assertTrue(sample.getFirst().equals("RAIN:TRUE") || sample.getFirst().equals("RAIN:FALSE"));
       }
     }
@@ -617,7 +608,7 @@ class BayesianNetworkTest {
       List<List<String>> samples = net.generateSamples(List.of("RAIN"), null, 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
-        assertEquals(2, sample.size()); // SPRINKLER and WET_GRASS
+        assertEquals(2, sample.size());
         for (String state : sample) {
           assertFalse(state.startsWith("RAIN:"));
         }
@@ -761,7 +752,7 @@ class BayesianNetworkTest {
                       .addConstraint("G-", List.of("E+"), 0.50)
                       .addConstraint("H+", List.of("E+"), 0.43)
                       .addConstraint("H-", List.of("E-"), 0.18)
-                      .addConstraint("A+", List.of("H+"), 0.25) // Non-local constraint
+                      .addConstraint("A+", List.of("H+"), 0.25)
                       .solveNetwork()
                       .observeMarginals()
                       .printObserved());
