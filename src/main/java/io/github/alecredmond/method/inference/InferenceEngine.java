@@ -49,10 +49,10 @@ public class InferenceEngine {
     Map<Node, NodeState> currentObservations = networkData.getObserved();
     Map<Node, NodeState> newObservations = convertToMap(newEvidence);
     newObservations.putAll(currentObservations);
-    if (currentObservations.equals(newObservations)) return 1.0; // TODO - Hit Branch In Test Suite
+    if (currentObservations.equals(newObservations)) return 1.0;
 
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
-    if (jointProbWithCurrentEvidence == 0) return 0; // TODO - Hit Branch In Test Suite
+    if (jointProbWithCurrentEvidence == 0) return 0;
 
     junctionTree.observeNetwork(newObservations);
     double jointProbWithExtraEvidence = junctionTree.getProbabilityOfEvidence();
@@ -70,11 +70,11 @@ public class InferenceEngine {
               .map(state -> Map.entry(state.getNode(), state))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     } catch (IllegalStateException e) {
-      // Duplicate keys detected
+      // Duplicate keys detected, i.e. multiple states with same node
       return true;
     }
 
-    if (newEvidence.size() != evidenceStates.size()) return true; // TODO - Hit Branch In Test Suite
+    if (newEvidence.size() != evidenceStates.size()) return true;
 
     return networkData.getObserved().entrySet().stream()
         .anyMatch(observedEntry -> sameKeyDifferentValue(observedEntry, newEvidence));
@@ -94,7 +94,7 @@ public class InferenceEngine {
     Node n = observedEntry.getKey();
     NodeState s = observedEntry.getValue();
     if (newEvents.containsKey(n)) {
-      return !newEvents.get(n).equals(s); // TODO - Hit Branch In Test Suite
+      return !newEvents.get(n).equals(s);
     }
     return false;
   }

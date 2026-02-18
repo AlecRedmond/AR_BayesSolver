@@ -2,7 +2,7 @@ package io.github.alecredmond.method.node;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.method.utils.MapCollector;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -16,7 +16,9 @@ public class NodeUtils {
   private NodeUtils() {}
 
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
-    return new MapCollector().convertToMap((state -> Map.entry(state.getNode(), state)), states);
+      return states.stream()
+          .map((state -> Map.entry(state.getNode(), state)))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public static Set<NodeState> combineStates(
