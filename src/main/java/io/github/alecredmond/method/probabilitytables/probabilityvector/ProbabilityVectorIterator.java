@@ -22,53 +22,82 @@ public class ProbabilityVectorIterator {
 
   public void iterateKeyCombos(
       ProbabilityVector vector, VectorCombinationKey key, ObjIntConsumer<int[]> iterativeConsumer) {
-    iterateKeyCombos(vector, key.getTumblerKey(), key.getInnerLock(), iterativeConsumer);
+    iterateKeyCombos(vector, key.getStateKey(), key.getInnerLock(), iterativeConsumer);
   }
 
+  /**
+   * This is a method where both the State Key (representing a combination of NodeStates by their
+   * indexes in their parent Node's state list) and the index (the position in the vector's probability
+   * array of the combination) can be iterated through and processed sequentially with a BiConsumer,
+   * while locking specific NodeState values in place.
+   *
+   * <p>It achieves this by advancing the tumbler key like an odometer, starting from the fastest
+   * unlocked position and carrying left for every overflow encountered. An overflow that carries to
+   * the leftmost position represents an overflow/reset of the tumbler key and therefore the end of
+   * the iterator cycle.
+   *
+   * <p>Simultaneously the index is incremented by the size of the base stride (1 if the fastest
+   * moving position (fp) is the rightmost, stepMultiplier[fp] otherwise). When an overflow leads
+   * into a locked position (lp), the index is increased by
+   *
+   * <p><code>
+   * (numberOfStates[lp] - 1) * nodeMultiplier[lp])</code>
+   *
+   * <p>which represents a stride over the other states in the position.
+   */
   public void iterateKeyCombos(
       ProbabilityVector vector,
-      int[] tumblerKey,
+      int[] stateKey,
       boolean[] positionLocked,
       ObjIntConsumer<int[]> iterativeConsumer) {
     int[] stepMultiplier = vector.getStepMultiplier();
+    int[] unlockedPositions = findUnlockedPositions(stateKey, positionLocked);
+    int currentIndex = computeStartIndex(stateKey, stepMultiplier);
 
-    int currentIndex =
-        IntStream.range(0, tumblerKey.length).map(i -> tumblerKey[i] * stepMultiplier[i]).sum();
-
-    List<Integer> movablePositions =
-        IntStream.range(0, tumblerKey.length).filter(i -> !positionLocked[i]).boxed().toList();
-
-    if (movablePositions.isEmpty()) {
-      iterativeConsumer.accept(tumblerKey, currentIndex);
+    if (unlockedPositions.length == 0) {
+      iterativeConsumer.accept(stateKey, currentIndex);
       return;
     }
 
-    int fastestIteratingPos = movablePositions.getLast();
-    int baseStride = stepMultiplier[fastestIteratingPos];
-
+    int fastestPosition = unlockedPositions[unlockedPositions.length - 1];
+    int baseStride = stepMultiplier[fastestPosition];
     int[] numberOfStates = vector.getNumberOfStates();
-
-    int[] lockedValueStrides = new int[tumblerKey.length];
-    IntStream.range(0, tumblerKey.length)
-        .filter(i -> positionLocked[i])
-        .forEach(i -> lockedValueStrides[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
+    int[] lockedPositionIndexCorrections =
+        computeIndexCorrections(positionLocked, numberOfStates, stepMultiplier);
 
     boolean overflow = false;
     while (!overflow) {
-      iterativeConsumer.accept(tumblerKey, currentIndex);
+      iterativeConsumer.accept(stateKey, currentIndex);
       overflow = true;
       currentIndex += baseStride;
-      for (int position = fastestIteratingPos; position >= 0; position--) {
+      for (int position = fastestPosition; position >= 0; position--) {
         if (positionLocked[position]) {
-          currentIndex += lockedValueStrides[position];
+          currentIndex += lockedPositionIndexCorrections[position];
           continue;
         }
-        tumblerKey[position] = (tumblerKey[position] + 1) % numberOfStates[position];
-        overflow = tumblerKey[position] == 0;
+        stateKey[position] = (stateKey[position] + 1) % numberOfStates[position];
+        overflow = stateKey[position] == 0;
         if (!overflow) {
           break;
         }
       }
     }
+  }
+
+  private int[] findUnlockedPositions(int[] tumblerKey, boolean[] positionLocked) {
+    return IntStream.range(0, tumblerKey.length).filter(i -> !positionLocked[i]).toArray();
+  }
+
+  private int computeStartIndex(int[] tumblerKey, int[] stepMultiplier) {
+    return IntStream.range(0, tumblerKey.length).map(i -> tumblerKey[i] * stepMultiplier[i]).sum();
+  }
+
+  private int[] computeIndexCorrections(
+      boolean[] positionLocked, int[] numberOfStates, int[] stepMultiplier) {
+    int[] corrections = new int[positionLocked.length];
+    IntStream.range(0, positionLocked.length)
+        .filter(i -> positionLocked[i])
+        .forEach(i -> corrections[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
+    return corrections;
   }
 }

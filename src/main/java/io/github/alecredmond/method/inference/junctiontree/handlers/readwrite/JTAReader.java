@@ -23,7 +23,7 @@ public class JTAReader implements Runnable {
 
   @Override
   public void run() {
-    int[] tumblerKey = readKey.getTumblerKey();
+    int[] tumblerKey = readKey.getStateKey();
     boolean[] outerLock = readKey.getOuterLock();
     boolean[] innerLock = readKey.getInnerLock();
     DoubleAdder adder = new DoubleAdder();

@@ -102,7 +102,7 @@ public class TableUtils {
   public void marginalizeConditionalTable() {
     ProbabilityVector vector = table.getVector();
 
-    int[] tumblerKey = marginalisationKey.getTumblerKey().clone();
+    int[] tumblerKey = marginalisationKey.getStateKey().clone();
     boolean[] lockConditions = marginalisationKey.getInnerLock();
     boolean[] lockEvents = marginalisationKey.getOuterLock();
 

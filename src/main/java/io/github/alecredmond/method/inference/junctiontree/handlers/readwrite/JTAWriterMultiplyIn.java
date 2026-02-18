@@ -14,7 +14,7 @@ public class JTAWriterMultiplyIn extends JTAWriter {
 
   @Override
   public void run() {
-    int[] tumblerKey = writeKey.getTumblerKey();
+    int[] tumblerKey = writeKey.getStateKey();
     boolean[] outerLock = writeKey.getOuterLock();
     boolean[] innerLock = writeKey.getInnerLock();
     double[] probabilities = vector.getProbabilities();

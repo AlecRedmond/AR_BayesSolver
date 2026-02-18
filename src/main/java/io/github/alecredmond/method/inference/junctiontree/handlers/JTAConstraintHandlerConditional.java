@@ -68,8 +68,8 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
       VectorCombinationKey conditionKey,
       ObjIntConsumer<int[]> ifIsEvent,
       ObjIntConsumer<int[]> ifNotEvent) {
-    int[] eventPosition = eventKey.getTumblerKey();
-    int[] conditionPosition = conditionKey.getTumblerKey();
+    int[] eventPosition = eventKey.getStateKey();
+    int[] conditionPosition = conditionKey.getStateKey();
     boolean[] conditionLock = conditionKey.getInnerLock();
     boolean[] eventLock = eventKey.getInnerLock();
     ProbabilityVector vector = tableHandler.getVector();

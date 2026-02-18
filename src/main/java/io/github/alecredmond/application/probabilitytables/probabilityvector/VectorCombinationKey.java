@@ -10,7 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class VectorCombinationKey {
   protected Map<Node, NodeState> request;
-  protected int[] tumblerKey;
+  protected int[] stateKey;
   protected boolean[] innerLock;
   protected boolean[] outerLock;
 }

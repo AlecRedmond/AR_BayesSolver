@@ -16,7 +16,7 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
       JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
     this.utils = tableHandler.getTable().getUtils();
-    this.positionKey = new int[eventKey.getTumblerKey().length];
+    this.positionKey = new int[eventKey.getStateKey().length];
   }
 
   @Override
@@ -43,7 +43,7 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
 
   private void iterateOverConditions(
       ObjIntConsumer<int[]> ifIsEvent, ObjIntConsumer<int[]> ifNotEvent) {
-    int[] eventPosition = eventKey.getTumblerKey();
+    int[] eventPosition = eventKey.getStateKey();
     boolean[] innerLock = eventKey.getInnerLock();
     boolean[] outerLock = eventKey.getOuterLock();
     ProbabilityVector vector = tableHandler.getVector();
