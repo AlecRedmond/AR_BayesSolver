@@ -7,14 +7,12 @@ import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Getter
 @Slf4j
+@NoArgsConstructor
 public class ProbabilityVectorFactory {
-
-  public ProbabilityVectorFactory() {}
 
   public ProbabilityVector build(List<Node> nodes) {
     Node[] nodesArray = nodes.toArray(new Node[0]);

@@ -7,12 +7,8 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Vec
 import java.util.*;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
 @NoArgsConstructor
 public class ProbabilityVectorIterator {
 

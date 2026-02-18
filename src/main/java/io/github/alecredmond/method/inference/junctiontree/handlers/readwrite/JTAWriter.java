@@ -11,7 +11,7 @@ public abstract class JTAWriter implements Runnable {
   protected final VectorCombinationKey writeKey;
   protected final ProbabilityVectorIterator iterator;
 
-    protected JTAWriter(
+  protected JTAWriter(
       JTAReadWriteSynchronizer synchronizer,
       ProbabilityVector vector,
       VectorCombinationKey writeKey) {

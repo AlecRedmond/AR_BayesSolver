@@ -7,7 +7,6 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Vec
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
-
 import lombok.Getter;
 
 @Getter
@@ -40,11 +39,10 @@ public class JTATableHandler {
 
     ProbabilityVector vector = table.getVector();
 
-    iterator.iterateKeyCombos(
-        vector, observedKey, (k, i) -> observed[i] = backup[i]);
+    iterator.iterateKeyCombos(vector, observedKey, (k, i) -> observed[i] = backup[i]);
   }
 
-    public ProbabilityVector getVector() {
+  public ProbabilityVector getVector() {
     return table.getVector();
   }
 }
