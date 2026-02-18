@@ -27,9 +27,9 @@ public class ProbabilityVectorIterator {
 
   /**
    * This is a method where both the State Key (representing a combination of NodeStates by their
-   * indexes in their parent Node's state list) and the index (the position in the vector's probability
-   * array of the combination) can be iterated through and processed sequentially with a BiConsumer,
-   * while locking specific NodeState values in place.
+   * indexes in their parent Node's state list) and the index (the position in the vector's
+   * probability array of the combination) can be iterated through and processed sequentially with a
+   * BiConsumer, while locking specific NodeState values in place.
    *
    * <p>It achieves this by advancing the tumbler key like an odometer, starting from the fastest
    * unlocked position and carrying left for every overflow encountered. An overflow that carries to
@@ -51,15 +51,14 @@ public class ProbabilityVectorIterator {
       boolean[] positionLocked,
       ObjIntConsumer<int[]> iterativeConsumer) {
     int[] stepMultiplier = vector.getStepMultiplier();
-    int[] unlockedPositions = findUnlockedPositions(stateKey, positionLocked);
+    int fastestPosition = findFastestPosition(positionLocked);
     int currentIndex = computeStartIndex(stateKey, stepMultiplier);
 
-    if (unlockedPositions.length == 0) {
+    if (fastestPosition < 0) {
       iterativeConsumer.accept(stateKey, currentIndex);
       return;
     }
 
-    int fastestPosition = unlockedPositions[unlockedPositions.length - 1];
     int baseStride = stepMultiplier[fastestPosition];
     int[] numberOfStates = vector.getNumberOfStates();
     int[] lockedPositionIndexCorrections =
@@ -68,7 +67,6 @@ public class ProbabilityVectorIterator {
     boolean overflow = false;
     while (!overflow) {
       iterativeConsumer.accept(stateKey, currentIndex);
-      overflow = true;
       currentIndex += baseStride;
       for (int position = fastestPosition; position >= 0; position--) {
         if (positionLocked[position]) {
@@ -84,12 +82,19 @@ public class ProbabilityVectorIterator {
     }
   }
 
-  private int[] findUnlockedPositions(int[] tumblerKey, boolean[] positionLocked) {
-    return IntStream.range(0, tumblerKey.length).filter(i -> !positionLocked[i]).toArray();
+  private int findFastestPosition(boolean[] positionLocked) {
+    int fastestPosition = -1;
+    for (int i = positionLocked.length - 1; i >= 0; i--) {
+      if (!positionLocked[i]) {
+        fastestPosition = i;
+        break;
+      }
+    }
+    return fastestPosition;
   }
 
-  private int computeStartIndex(int[] tumblerKey, int[] stepMultiplier) {
-    return IntStream.range(0, tumblerKey.length).map(i -> tumblerKey[i] * stepMultiplier[i]).sum();
+  private int computeStartIndex(int[] stateKey, int[] stepMultiplier) {
+    return IntStream.range(0, stateKey.length).map(i -> stateKey[i] * stepMultiplier[i]).sum();
   }
 
   private int[] computeIndexCorrections(
