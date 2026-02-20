@@ -1,8 +1,12 @@
 package io.github.alecredmond.method.printer;
 
+import static io.github.alecredmond.application.printer.PrinterConfigs.*;
+
 import io.github.alecredmond.application.network.BayesianNetworkData;
+import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
+import io.github.alecredmond.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import java.awt.*;
@@ -17,75 +21,71 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NetworkPrinter {
   private final BayesianNetworkData networkData;
-  private final PrinterConfigs printerConfigs;
+  private final PrinterConfigs configs;
 
   public NetworkPrinter(BayesianNetworkData networkData) {
     this.networkData = networkData;
-    this.printerConfigs = new PrinterConfigs();
+    this.configs = new PrinterConfigs();
+  }
+
+  public <T extends ProbabilityTable> void printTables(
+      Map<Node, T> associatedMap, String tableType) {
+    List<String> outputLines = new ArrayList<>(List.of(tableType, ""));
+
+    networkData.getNodes().stream()
+        .map(associatedMap::get)
+        .forEach(table -> outputLines.addAll(generateTableLines(table)));
+
+    if (configs.isPrintToConsole()) {
+      outputLines.forEach(System.out::println);
+    }
+    if (configs.isPrintToTextFile()) {
+      printToFile(outputLines, tableType);
+    }
   }
 
   public void printObserved() {
-    List<String> outputLines = new ArrayList<>();
-
-    outputLines.add("OBSERVED TABLES:\n");
-
-    networkData.getNodes().stream()
-        .map(networkData.getObservationMap()::get)
-        .forEach(table -> outputLines.addAll(generateTableLines(table)));
-
-    if (printerConfigs.isPrintToConsole()) {
-      outputLines.forEach(System.out::println);
-    } else {
-      printToFile(outputLines, "observed");
-    }
+    printTables(networkData.getObservationMap(), configs.getObservedFileTitle());
   }
 
   public void printNetwork() {
-    List<String> outputLines = new ArrayList<>();
-    outputLines.add("NETWORK TABLES:\n");
-
-    networkData.getNodes().stream()
-        .map(networkData.getNetworkTablesMap()::get)
-        .forEach(table -> outputLines.addAll(generateTableLines(table)));
-
-    if (printerConfigs.isPrintToConsole()) {
-      outputLines.forEach(System.out::println);
-    } else {
-      printToFile(outputLines, "network");
-    }
+    printTables(networkData.getNetworkTablesMap(), configs.getNetworkFileTitle());
   }
 
   private List<String> generateTableLines(ProbabilityTable table) {
-    List<Set<NodeState>> eventCombinations =
-        table.getUtils().generateStateCombinations(table.getEvents());
-    List<Set<NodeState>> conditionCombinations =
-        table.getUtils().generateStateCombinations(table.getConditions());
+    List<List<NodeState>> eventCombinations =
+        table.getUtils().generateStateCombinations(table.getEvents(), ArrayList::new);
+    List<List<NodeState>> conditionCombinations =
+        table.getUtils().generateStateCombinations(table.getConditions(), ArrayList::new);
 
-    List<String> eventHeaders = formatStateCombinations(eventCombinations, true);
-    List<String> conditionLabels = formatStateCombinations(conditionCombinations, false);
+    List<String> eventHeaders = formatStateCombinations(eventCombinations, EVENT_COLUMN);
+    List<String> conditionLabels = formatStateCombinations(conditionCombinations, CONDITION_COLUMN);
 
-    int eventColumnWidth = calculateColumnWidth(eventHeaders, table, true);
-    int conditionColumnWidth = calculateColumnWidth(conditionLabels, table, false);
+    int eventColumnWidth = calculateColumnWidth(eventHeaders, table, EVENT_COLUMN);
+    int conditionColumnWidth = calculateColumnWidth(conditionLabels, table, CONDITION_COLUMN);
 
-    String horizontalBorder =
-        createHorizontalBorder(eventHeaders.size(), eventColumnWidth, conditionColumnWidth);
     String[][] probabilityCells =
         populateProbabilityCells(eventCombinations, conditionCombinations, table);
 
-    return buildTableOutput(
-        table.getTableID().toString(),
-        horizontalBorder,
-        eventHeaders,
-        conditionLabels,
-        probabilityCells,
-        eventColumnWidth,
-        conditionColumnWidth);
+    String tableTitle = table.getTableID().toString();
+    String border = createBorder(eventHeaders.size(), eventColumnWidth, conditionColumnWidth);
+    String headerRow = buildHeaderRow(eventHeaders, eventColumnWidth, conditionColumnWidth);
+    List<String> dataRows =
+        buildDataRows(conditionLabels, probabilityCells, eventColumnWidth, conditionColumnWidth);
+
+    List<String> tableLines = new ArrayList<>();
+    tableLines.add(tableTitle);
+    tableLines.add(border);
+    tableLines.add(headerRow);
+    tableLines.addAll(dataRows);
+    tableLines.add(border);
+    tableLines.add("");
+    return tableLines;
   }
 
   private void printToFile(List<String> lines, String observedOrNetwork) {
@@ -100,7 +100,7 @@ public class NetworkPrinter {
       log.error("{} attempting to write to {}", e, filePath);
       return;
     }
-    if (printerConfigs.isOpenFileOnCreation()) openCreatedFile(filePath);
+    if (configs.isOpenFileOnCreation()) openCreatedFile(filePath);
   }
 
   private void openCreatedFile(String filePath) {
@@ -114,7 +114,7 @@ public class NetworkPrinter {
   }
 
   private List<String> formatStateCombinations(
-      List<Set<NodeState>> stateCombinations, boolean alignLeft) {
+      List<List<NodeState>> stateCombinations, boolean alignLeft) {
     int paddingWidth = findLongestStateNameLength(stateCombinations) + 1;
     return stateCombinations.stream()
         .filter(combination -> !combination.isEmpty())
@@ -124,72 +124,70 @@ public class NetworkPrinter {
 
   private int calculateColumnWidth(
       List<String> columnContent, ProbabilityTable table, boolean isEventColumn) {
-    if (!isEventColumn && table instanceof MarginalTable) return 0;
-    int contentWidth = columnContent.stream().mapToInt(String::length).max().orElse(0);
-    return Math.max(contentWidth, printerConfigs.getProbDecimalPlaces() + 2);
+    if (!isEventColumn && table instanceof MarginalTable) {
+      return 0;
+    }
+    int characterWidth = columnContent.stream().mapToInt(String::length).max().orElse(0);
+    return Math.max(characterWidth, configs.getProbabilityCharLength());
   }
 
-  private String createHorizontalBorder(
-      int eventCount, int eventColumnWidth, int conditionColumnWidth) {
+  private String createBorder(int eventCount, int eventColumnWidth, int conditionColumnWidth) {
     StringBuilder border = new StringBuilder();
-    appendDashes(border, conditionColumnWidth);
-    for (int i = 0; i < eventCount; i++) {
-      appendDashes(border, eventColumnWidth);
+    int numberOfDashes = conditionColumnWidth + eventCount * eventColumnWidth;
+    border.append("-".repeat(Math.max(0, numberOfDashes + 1)));
+    if (conditionColumnWidth != 0) {
+      border.append("-");
     }
-    if (conditionColumnWidth != 0) border.append("-");
     return border.toString();
   }
 
   private String[][] populateProbabilityCells(
-      List<Set<NodeState>> eventCombinations,
-      List<Set<NodeState>> conditionCombinations,
+      List<List<NodeState>> eventCombinations,
+      List<List<NodeState>> conditionCombinations,
       ProbabilityTable table) {
-    boolean isMarginalTable = conditionCombinations.isEmpty();
-    int rowCount = isMarginalTable ? 1 : conditionCombinations.size();
+    switch (table) {
+      case MarginalTable mt -> {
+        return populateCellsMarginal(eventCombinations, mt);
+      }
+      case ConditionalTable ct -> {
+        return populateCellsConditional(eventCombinations, conditionCombinations, ct);
+      }
+      default -> throw new IllegalStateException("Unexpected value: " + table);
+    }
+  }
+
+  private String[][] populateCellsConditional(
+      List<List<NodeState>> eventCombinations,
+      List<List<NodeState>> conditionCombinations,
+      ConditionalTable table) {
+    int rowCount = conditionCombinations.size();
     int columnCount = eventCombinations.size();
     String[][] cells = new String[rowCount][columnCount];
-
-    if (isMarginalTable) {
-      for (int column = 0; column < columnCount; column++) {
-        Set<NodeState> columnState = eventCombinations.get(column);
-        cells[0][column] = formatProbability(columnState, Set.of(), table);
-      }
-      return cells;
-    }
-
     for (int column = 0; column < columnCount; column++) {
       for (int row = 0; row < rowCount; row++) {
-        Set<NodeState> columnState = eventCombinations.get(column);
-        Set<NodeState> rowState = conditionCombinations.get(row);
-        cells[row][column] = formatProbability(columnState, rowState, table);
+        List<NodeState> eventState = eventCombinations.get(column);
+        List<NodeState> conditionStates = conditionCombinations.get(row);
+        cells[row][column] = getProbabilityAsString(eventState, conditionStates, table);
       }
     }
     return cells;
   }
 
-  private List<String> buildTableOutput(
-      String tableTitle,
-      String horizontalBorder,
-      List<String> eventHeaders,
-      List<String> conditionLabels,
-      String[][] probabilityCells,
-      int eventColumnWidth,
-      int conditionColumnWidth) {
-    List<String> tableLines = new ArrayList<>();
-    tableLines.add(tableTitle);
-    tableLines.add(horizontalBorder);
-    tableLines.add(buildHeaderRow(eventHeaders, eventColumnWidth, conditionColumnWidth));
-    tableLines.addAll(
-        buildDataRows(conditionLabels, probabilityCells, eventColumnWidth, conditionColumnWidth));
-    tableLines.add(horizontalBorder);
-    tableLines.add("");
-    return tableLines;
+  private String[][] populateCellsMarginal(
+      List<List<NodeState>> eventCombinations, MarginalTable table) {
+    int columnCount = eventCombinations.size();
+    String[][] cells = new String[1][columnCount];
+    for (int column = 0; column < columnCount; column++) {
+      List<NodeState> eventState = eventCombinations.get(column);
+      cells[0][column] = getProbabilityAsString(eventState, List.of(), table);
+    }
+    return cells;
   }
 
   private String getDefaultFilePath() {
     String networkName = networkData.getNetworkName();
     String dateTime = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-    String directory = printerConfigs.getSaveDirectory();
+    String directory = configs.getSaveDirectory();
     try {
       Files.createDirectories(Paths.get(directory));
     } catch (IOException e) {
@@ -212,7 +210,7 @@ public class NetworkPrinter {
     return "";
   }
 
-  private int findLongestStateNameLength(List<Set<NodeState>> stateCombinations) {
+  private int findLongestStateNameLength(List<List<NodeState>> stateCombinations) {
     return stateCombinations.stream()
         .flatMap(Collection::stream)
         .map(NodeState::toString)
@@ -222,26 +220,23 @@ public class NetworkPrinter {
   }
 
   private String formatStateCombination(
-      Set<NodeState> states, int paddingWidth, boolean alignLeft) {
+      List<NodeState> states, int paddingWidth, boolean alignLeft) {
     return states.stream()
         .map(NodeState::toString)
         .map(
             state ->
                 alignLeft
-                    ? padStringLeft(state, paddingWidth)
-                    : padStringRight(state, paddingWidth))
+                    ? padString(state, paddingWidth, LEFT_PAD_FORMAT)
+                    : padString(state, paddingWidth, RIGHT_PAD_FORMAT))
         .collect(Collectors.joining("|"));
   }
 
-  private void appendDashes(StringBuilder builder, int dashCount) {
-    builder.append("-".repeat(Math.max(0, dashCount + 1)));
-  }
-
-  private String formatProbability(
-      Set<NodeState> events, Set<NodeState> conditions, ProbabilityTable table) {
-    Set<NodeState> probabilityKey = createProbabilityKey(events, conditions);
+  private String getProbabilityAsString(
+      List<NodeState> events, List<NodeState> conditions, ProbabilityTable table) {
+    List<NodeState> probabilityKey = new ArrayList<>(events);
+    probabilityKey.addAll(conditions);
     double probability = table.getProbability(probabilityKey);
-    return String.format(getProbabilityFormatString(), probability);
+    return String.format(configs.getProbabilityFormatter(), probability);
   }
 
   private String buildHeaderRow(
@@ -251,7 +246,7 @@ public class NetworkPrinter {
       headerRow.append(" ".repeat(conditionColumnWidth)).append("|");
     }
     for (String header : eventHeaders) {
-      headerRow.append(padStringLeft(header, eventColumnWidth)).append("|");
+      headerRow.append(padString(header, eventColumnWidth, LEFT_PAD_FORMAT)).append("|");
     }
     return headerRow.toString();
   }
@@ -267,32 +262,21 @@ public class NetworkPrinter {
     for (int row = 0; row < rowCount; row++) {
       StringBuilder dataRow = new StringBuilder("|");
       if (!conditionLabels.isEmpty()) {
-        dataRow.append(padStringRight(conditionLabels.get(row), conditionColumnWidth)).append("|");
+        dataRow
+            .append(padString(conditionLabels.get(row), conditionColumnWidth, RIGHT_PAD_FORMAT))
+            .append("|");
       }
       for (int column = 0; column < probabilityCells[row].length; column++) {
-        dataRow.append(padStringLeft(probabilityCells[row][column], eventColumnWidth)).append("|");
+        dataRow
+            .append(padString(probabilityCells[row][column], eventColumnWidth, LEFT_PAD_FORMAT))
+            .append("|");
       }
       dataRows.add(dataRow.toString());
     }
     return dataRows;
   }
 
-  private String padStringLeft(String text, int totalWidth) {
-    return String.format("%%%ds".formatted(totalWidth), text);
-  }
-
-  private String padStringRight(String text, int totalWidth) {
-    return String.format("%%-%ds".formatted(totalWidth), text);
-  }
-
-  private Set<NodeState> createProbabilityKey(Set<NodeState> events, Set<NodeState> conditions) {
-    return conditions.isEmpty()
-        ? events
-        : Stream.concat(events.stream(), conditions.stream()).collect(Collectors.toSet());
-  }
-
-  private String getProbabilityFormatString() {
-    int precision = printerConfigs.getProbDecimalPlaces();
-    return "%." + precision + "f";
+  private String padString(String text, int width, String formatting) {
+    return String.format(formatting.formatted(width), text);
   }
 }

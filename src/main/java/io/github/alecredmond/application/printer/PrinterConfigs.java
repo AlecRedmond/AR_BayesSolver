@@ -7,10 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class PrinterConfigs {
+  public static final String LEFT_PAD_FORMAT = "%%%ds";
+  public static final String RIGHT_PAD_FORMAT = "%%-%ds";
+  public static final boolean EVENT_COLUMN = true;
+  public static final boolean CONDITION_COLUMN = false;
   private String saveDirectory;
-  private boolean openFileOnCreation;
   private boolean printToConsole;
+  private boolean printToTextFile;
+  private String observedFileTitle;
+  private String networkFileTitle;
+  private boolean openFileOnCreation;
   private int probDecimalPlaces;
+  private int probabilityCharLength;
+  private String probabilityFormatter;
 
   public PrinterConfigs() {
     PropertiesLoader loader = new PropertiesLoader();
@@ -18,6 +27,11 @@ public class PrinterConfigs {
     setOpenFileOnCreation(loader.loadBoolean("app.printer.openFileOnCreation"));
     setPrintToConsole(loader.loadBoolean("app.printer.printToConsole"));
     setProbDecimalPlaces(loader.loadInt("app.printer.probDecimalPlaces"));
+    setPrintToTextFile(loader.loadBoolean("app.printer.printToTextFile"));
+    setObservedFileTitle(loader.loadString("app.printer.observedFileTitle"));
+    setNetworkFileTitle(loader.loadString("app.printer.networkFileTitle"));
+    probabilityCharLength = probDecimalPlaces + 2; // Two extra places for "0." or "1."
+    probabilityFormatter = "%." + probDecimalPlaces + "f";
   }
 
   public void setProbDecimalPlaces(int probDecimalPlaces) {
