@@ -52,7 +52,7 @@ public class NodeUtils {
   }
 
   public static <T> NodeState addNodeState(Node node, T stateID) {
-    NodeState state = NodeState.build(stateID, node);
+    NodeState state = new NodeState(stateID, node);
     addToList(node.getNodeStates(), state, node::setNodeStates);
     return state;
   }

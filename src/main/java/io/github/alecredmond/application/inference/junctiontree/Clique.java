@@ -11,8 +11,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Clique {
-  @EqualsAndHashCode.Include private Set<Node> nodes;
-  private JunctionTreeTable table;
+  @EqualsAndHashCode.Include private final Set<Node> nodes;
+  private final JunctionTreeTable table;
   private JTATableHandler handler;
   private Map<Clique, JTATransferWriter> separatorMap;
   private List<JTATransferWriter> initializeFrom;

@@ -83,7 +83,7 @@ class NetworkDataUtils {
 
   <T> void addNode(T nodeID) {
     checkForExistingIDs(List.of(nodeID));
-    networkData.getNodeIDsMap().put(nodeID, Node.build(nodeID));
+    networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
     networkData.setSolved(false);
   }
 
@@ -109,7 +109,7 @@ class NetworkDataUtils {
     checkNoDuplicateStateIDs(nodeID, dupesCheckList);
     dupesCheckList.add(nodeID);
     checkForExistingIDs(dupesCheckList);
-    Node newNode = Node.build(nodeID, nodeStateIDs);
+    Node newNode = new Node(nodeID, nodeStateIDs);
     networkData.getNodeIDsMap().put(nodeID, newNode);
     addStatesToMap(newNode);
     networkData.setSolved(false);
