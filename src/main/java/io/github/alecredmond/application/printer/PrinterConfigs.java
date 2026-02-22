@@ -20,7 +20,7 @@ public class PrinterConfigs {
     setProbDecimalPlaces(loader.loadInt("app.printer.probDecimalPlaces"));
   }
 
-  public void setProbDecimalPlaces(int probDecimalPlaces) {
+  private void setProbDecimalPlaces(int probDecimalPlaces) {
     if (probDecimalPlaces < 0) {
       throw new IllegalArgumentException("Printer decimal places must not be negative!");
     }

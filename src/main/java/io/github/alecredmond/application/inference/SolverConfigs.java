@@ -24,22 +24,22 @@ public class SolverConfigs {
     setLogSolverProgress(loader.loadBoolean("app.solver.logSolverProgress"));
   }
 
-  public void setCyclesLimit(int cyclesLimit) {
+  private void setCyclesLimit(int cyclesLimit) {
     assureGreaterThanZero("Solver Cycles Limit", cyclesLimit);
     this.cyclesLimit = cyclesLimit;
   }
 
-  public void setTimeLimitSeconds(int timeLimitSeconds) {
+  private void setTimeLimitSeconds(int timeLimitSeconds) {
     assureGreaterThanZero("Time Limit", timeLimitSeconds);
     this.timeLimitSeconds = timeLimitSeconds;
   }
 
-  public void setLogIntervalSeconds(int logIntervalSeconds) {
+  private void setLogIntervalSeconds(int logIntervalSeconds) {
     assureGreaterThanZero("Solver Log Interval", logIntervalSeconds);
     this.logIntervalSeconds = logIntervalSeconds;
   }
 
-  public void setConvergeThreshold(double convergeThreshold) {
+  private void setConvergeThreshold(double convergeThreshold) {
     assureGreaterThanZero("Solver Converge Threshold", convergeThreshold);
     this.convergeThreshold = convergeThreshold;
   }
