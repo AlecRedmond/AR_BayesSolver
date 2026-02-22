@@ -1,5 +1,8 @@
 package io.github.alecredmond.method.network;
 
+import io.github.alecredmond.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -292,6 +295,43 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   <T> BayesianNetwork addConstraint(T eventStateID, double probability);
+
+  /**
+   * Adds a probability constraint to the network This constraint doesn't have to be within the
+   * scope of the network's structure, but each conditional constraint will add another virtual
+   * "edge" to the graph during the solving process. This may prevent the Junction Tree solver from
+   * decomposing the graph into cliques, potentially increasing the time complexity from its base of
+   * {@code O(2^Max(Parents/Node))} up to a maximum of {@code O(2^Nodes)}.
+   *
+   * @param parameterConstraint a constraint object such as {@link MarginalConstraint} or {@link
+   *     ConditionalConstraint}
+   * @return this instance for chaining
+   */
+  BayesianNetwork addConstraint(ParameterConstraint parameterConstraint);
+
+  /**
+   * Adds a collection probability constraints to the network.
+   *
+   * @param constraints a collection of constraint objects such as {@link MarginalConstraint} or
+   *     {@link ConditionalConstraint}
+   * @return this instance for chaining
+   */
+  BayesianNetwork addConstraints(Collection<ParameterConstraint> constraints);
+
+  // TODO - JAVADOC
+  <T> MarginalConstraint getConstraint(T eventStateId);
+
+  // TODO - JAVADOC
+  <T, E> ConditionalConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
+
+  // TODO - JAVADOC
+  boolean removeConstraint(ParameterConstraint parameterConstraint);
+
+  // TODO - JAVADOC
+  <T> boolean removeConstraint(T eventStateId);
+
+  // TODO - JAVADOC
+  <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds);
 
   /**
    * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other
