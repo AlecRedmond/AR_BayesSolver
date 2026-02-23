@@ -1,37 +1,61 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
+import java.util.Arrays;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.function.ObjIntConsumer;
 
 public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
+  private final TableUtils utils;
+  private final int[] positionKey;
 
-  public JTAConstraintHandlerMarginal(JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
+  public JTAConstraintHandlerMarginal(
+      JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
+    this.utils = tableHandler.getTable().getUtils();
+    this.positionKey = new int[eventKey.getStateKey().length];
   }
 
   @Override
-  protected Set<Integer> getConditionIndexSet() {
-    return Set.of();
+  protected VectorCombinationKey buildConditionKey() {
+    return null;
   }
 
   @Override
-  protected Set<Integer> getConstraintIndexeSet(Set<Integer> conditionIndexSet) {
-    return jtaTableHandler.getIndexes(constraint.getAllStates());
+  protected void calculateProbability(
+      DoubleAdder eventJointProb, DoubleAdder complementJointProb, DoubleAdder conditionJointProb) {
+    eventJointProb.add(utils.sumProbabilities(eventKey));
+    complementJointProb.add(
+        Arrays.stream(tableHandler.getVector().getProbabilities()).sum() - eventJointProb.sum());
+    conditionJointProb.add(1.0);
   }
 
   @Override
-  protected List<Integer> getComplementIndexList(
-      Set<Integer> constraintIndexSet, Set<Integer> conditionIndexSet) {
-    return IntStream.range(0, jtaTableHandler.getProbabilities().length)
-        .filter(i -> !constraintIndexSet.contains(i))
-        .boxed()
-        .toList();
+  protected void adjustToRatio(double ratioIfEvent, double ratioOtherwise) {
+    double[] probabilities = tableHandler.getVector().getProbabilities();
+    iterateOverConditions(
+        (key, index) -> probabilities[index] = ratioIfEvent * probabilities[index],
+        (key, index) -> probabilities[index] = ratioOtherwise * probabilities[index]);
   }
 
-  @Override
-  protected double getConditionProb() {
-    return 1.0;
+  private void iterateOverConditions(
+      ObjIntConsumer<int[]> ifIsEvent, ObjIntConsumer<int[]> ifNotEvent) {
+    int[] eventPosition = eventKey.getStateKey();
+    boolean[] innerLock = eventKey.getInnerLock();
+    boolean[] outerLock = eventKey.getOuterLock();
+    ProbabilityVector vector = tableHandler.getVector();
+
+    iterator.iterateKeyCombos(
+        vector,
+        positionKey,
+        outerLock,
+        (outerKey, outerIndex) -> {
+          boolean isEvent = checkIsEvidence(outerKey, eventPosition, innerLock);
+          ObjIntConsumer<int[]> consumer = isEvent ? ifIsEvent : ifNotEvent;
+          iterator.iterateKeyCombos(vector, outerKey, innerLock, consumer);
+        });
   }
 }

@@ -1,10 +1,8 @@
 package io.github.alecredmond.method.network;
 
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.constraints.ConstraintBuilder;
@@ -16,26 +14,20 @@ import lombok.Getter;
 @Getter
 class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
-  private final InferenceEngineConfigs inferenceEngineConfigs;
   private final NetworkDataUtils utils;
   private final InferenceEngine inferenceEngine;
-  private final PrinterConfigs printerConfigs;
 
   BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName(networkName);
     this.utils = new NetworkDataUtils(networkData);
-    this.inferenceEngineConfigs = new InferenceEngineConfigs();
-    this.inferenceEngine = new InferenceEngine(networkData, inferenceEngineConfigs);
-    this.printerConfigs = new PrinterConfigs();
+    this.inferenceEngine = new InferenceEngine(networkData);
   }
 
   BayesianNetworkImpl() {
     this.networkData = new BayesianNetworkData();
     this.utils = new NetworkDataUtils(networkData);
-    this.inferenceEngineConfigs = new InferenceEngineConfigs();
-    this.inferenceEngine = new InferenceEngine(networkData, inferenceEngineConfigs);
-    this.printerConfigs = new PrinterConfigs();
+    this.inferenceEngine = new InferenceEngine(networkData);
   }
 
   @Override
@@ -57,7 +49,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
   @Override
   public BayesianNetwork removeNode(Node node) {
     if (Optional.ofNullable(node).isEmpty()) return this;
-    utils.removeNode(node.getNodeID());
+    utils.removeNode(node.getId());
     return null;
   }
 
@@ -172,42 +164,24 @@ class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetworkImpl solverCyclesLimit(int cyclesLimit) {
-    inferenceEngineConfigs.setSolverCyclesLimit(cyclesLimit);
-    return this;
-  }
-
-  public BayesianNetworkImpl solverTimeLimit(int timeLimitSeconds) {
-    inferenceEngineConfigs.setSolverTimeLimitSeconds(timeLimitSeconds);
-    return this;
-  }
-
-  public BayesianNetworkImpl logIntervalSeconds(int seconds) {
-    inferenceEngineConfigs.setSolverLogIntervalSeconds(seconds);
-    return this;
-  }
-
-  public BayesianNetworkImpl solverConvergeThreshold(double threshold) {
-    inferenceEngineConfigs.setSolverConvergeThreshold(threshold);
-    return this;
-  }
-
   public BayesianNetworkImpl solveNetwork() {
+    if (networkData.isSolved()) {
+      return this;
+    }
     utils.buildNetworkData();
     inferenceEngine.runSolver();
-    observeMarginals();
     return this;
   }
 
   public BayesianNetworkImpl printObserved() {
     if (!networkData.isSolved()) solveNetwork();
-    new NetworkPrinter(networkData, printerConfigs).printObserved();
+    new NetworkPrinter(networkData).printObserved();
     return this;
   }
 
   public BayesianNetworkImpl printNetwork() {
     if (!networkData.isSolved()) solveNetwork();
-    new NetworkPrinter(networkData, printerConfigs).printNetwork();
+    new NetworkPrinter(networkData).printNetwork();
     return this;
   }
 

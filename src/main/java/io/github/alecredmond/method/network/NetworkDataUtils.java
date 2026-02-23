@@ -10,10 +10,10 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,11 +25,18 @@ class NetworkDataUtils {
   }
 
   void buildNetworkData() {
-    if (networkData.isSolved()) return;
     Map<Node, Integer> layerMap = orderNodes();
     rebuildIdMaps();
     buildNetworkTablesMap(layerMap);
     buildObservedTablesMap();
+    marginalizeAllTables();
+  }
+
+  private void marginalizeAllTables() {
+    Stream.concat(
+            networkData.getNetworkTablesMap().values().stream(),
+            networkData.getObservationMap().values().stream())
+        .forEach(ProbabilityTable::marginalizeTable);
   }
 
   void resetAllNodeData() {
@@ -44,16 +51,17 @@ class NetworkDataUtils {
   }
 
   void addNode(Node node) {
-    checkForExistingIDs(List.of(node.getNodeID()));
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    Object id = node.getId();
+    checkForExistingIDs(List.of(id));
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     checkForExistingIDs(stateIDs);
-    networkData.getNodeIDsMap().put(node.getNodeID(), node);
+    networkData.getNodeIDsMap().put(node.getId(), node);
     addStatesToMap(node);
     networkData.setSolved(false);
   }
 
   private <T> void checkForExistingIDs(Collection<T> ids) {
-    List<Object> dupes = new ArrayList<>();
+    List<T> dupes = new ArrayList<>();
     for (T id : ids) {
       if (networkData.getNodeIDsMap().containsKey(id)
           || networkData.getNodeStateIDsMap().containsKey(id)) {
@@ -64,16 +72,13 @@ class NetworkDataUtils {
       throw new BayesNetIDException(
           String.format(
               "Error, found duplicate id(s)! : %s",
-              dupes.stream()
-                  .map(Object::toString)
-                  .map(s -> s + " ")
-                  .collect(Collectors.joining())));
+              dupes.stream().map(T::toString).map(s -> s + " ").collect(Collectors.joining())));
     }
   }
 
   private void addStatesToMap(Node node) {
     node.getNodeStates()
-        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getStateID(), state));
+        .forEach(state -> networkData.getNodeStateIDsMap().put(state.getId(), state));
   }
 
   <T> void addNode(T nodeID) {
@@ -124,7 +129,6 @@ class NetworkDataUtils {
       log.error("No node ID '{}' found!", nodeID);
       return;
     }
-    buildNetworkData();
 
     Node toRemove = getNodeByID(nodeID);
 
@@ -133,7 +137,7 @@ class NetworkDataUtils {
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove);
 
-    List<Node> newNodes = networkData.getNodes().stream().filter(n -> !n.equals(toRemove)).toList();
+    List<Node> newNodes = networkData.getNodeIDsMap().values().stream().toList();
     networkData.setNodes(newNodes);
 
     newNodes.forEach(
@@ -148,13 +152,13 @@ class NetworkDataUtils {
   private void removeStatesFromMap(Node toRemove) {
     toRemove
         .getNodeStates()
-        .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getStateID()));
+        .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getId()));
   }
 
   <T> void removeNodeStates(T nodeID) {
     if (nodeDoesNotExist(nodeID)) return;
     Node node = getNodeByID(nodeID);
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getStateID).toList();
+    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     node.setNodeStates(new ArrayList<>());
     stateIDs.forEach(networkData.getNodeStateIDsMap()::remove);
   }
@@ -189,14 +193,14 @@ class NetworkDataUtils {
 
   private Map<Object, Node> createNodeIdMap(List<Node> nodes) {
     return nodes.stream()
-        .map(n -> Map.entry(n.getNodeID(), n))
+        .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private Map<Object, NodeState> createNodeStateIdMap(List<Node> nodes) {
     return nodes.stream()
         .flatMap(n -> n.getNodeStates().stream())
-        .map(ns -> Map.entry(ns.getStateID(), ns))
+        .map(ns -> Map.entry(ns.getId(), ns))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
@@ -288,20 +292,20 @@ class NetworkDataUtils {
         .getNodes()
         .forEach(
             node -> {
-              Set<Node> events = Set.of(node);
-              Set<Node> conditions = orderConditions(node.getParents(), layerMap);
+              List<Node> events = List.of(node);
+              List<Node> conditions = orderConditions(node.getParents(), layerMap);
               ProbabilityTable table = buildNetworkTable(events, conditions);
-              TableUtils.marginalizeTable(table);
+              table.marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }
 
-  private Set<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
+  private List<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
     return parents.stream()
         .map(node -> Map.entry(node, layerMap.get(node)))
         .sorted(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .toList();
   }
 
   private Map<Node, Integer> orderNodes() {

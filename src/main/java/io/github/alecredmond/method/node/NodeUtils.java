@@ -3,6 +3,8 @@ package io.github.alecredmond.method.node;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +14,10 @@ public class NodeUtils {
 
   private NodeUtils() {}
 
-  public static List<Set<NodeState>> generateStateCombinations(Set<Node> nodes) {
-    List<Set<NodeState>> stateCombos = new ArrayList<>();
-    List<Node> nodesList = new ArrayList<>(nodes);
-    recursiveStateCombinationBuilder(stateCombos, nodesList, 0, new ArrayList<>());
-    return stateCombos;
+  public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
+    return states.stream()
+        .map((state -> Map.entry(state.getNode(), state)))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public static Set<NodeState> combineStates(
@@ -29,53 +30,47 @@ public class NodeUtils {
     return states.stream().map(NodeState::getNode).collect(Collectors.toSet());
   }
 
-  public static List<Set<Node>> generateNodeCombinations(List<Node> toCombine, int blockSize) {
-    if (toCombine.size() < blockSize) {
-      log.error(
-          "Requested block size {} for Node collection of size {}. Reducing to collection size...",
-          blockSize,
-          toCombine.size());
-      blockSize = toCombine.size();
-    }
-    List<Set<Node>> combos = new ArrayList<>();
-    recursiveNodeCombinationBuilder(toCombine, blockSize, combos, new ArrayList<>(), 0);
-    return combos;
+  public static void addParent(Node node, Node parent) {
+    addToList(node.getParents(), parent, node::setParents);
+    addToList(parent.getChildren(), node, parent::setChildren);
   }
 
-  private static void recursiveNodeCombinationBuilder(
-      List<Node> toCombine,
-      int blockSize,
-      List<Set<Node>> nodeSets,
-      List<Node> currentNodes,
-      int index) {
-    if (blockSize == 0) {
-      nodeSets.add(new LinkedHashSet<>(currentNodes));
-      return;
-    }
-    for (int i = index; i < toCombine.size(); i++) {
-      currentNodes.add(toCombine.get(i));
-      recursiveNodeCombinationBuilder(toCombine, blockSize - 1, nodeSets, currentNodes, i + 1);
-      currentNodes.removeLast();
-    }
+  private static <E> void addToList(List<E> list, E element, Consumer<List<E>> setter) {
+    actOnList(
+        list,
+        l -> l.add(element),
+        l -> setter.accept(Stream.concat(l.stream(), Stream.of(element)).distinct().toList()));
   }
 
-  private static void recursiveStateCombinationBuilder(
-      List<Set<NodeState>> stateCombos,
-      List<Node> nodesList,
-      int depth,
-      List<NodeState> currentCombo) {
-    if (depth == nodesList.size()) {
-      stateCombos.add(new LinkedHashSet<>(currentCombo));
+  private static <E> void actOnList(
+      List<E> list, Consumer<List<E>> arrayListConsumer, Consumer<List<E>> listConsumer) {
+    if (list instanceof ArrayList<E> arrayList) {
+      arrayListConsumer.accept(arrayList);
       return;
     }
+    listConsumer.accept(list);
+  }
 
-    Node currentNode = nodesList.get(depth);
-    List<NodeState> currentNodeStates = currentNode.getNodeStates();
+  public static <T> NodeState addNodeState(Node node, T stateID) {
+    NodeState state = new NodeState(stateID, node);
+    addToList(node.getNodeStates(), state, node::setNodeStates);
+    return state;
+  }
 
-    for (NodeState state : currentNodeStates) {
-      currentCombo.add(state);
-      recursiveStateCombinationBuilder(stateCombos, nodesList, depth + 1, currentCombo);
-      currentCombo.removeLast();
-    }
+  public static <E> void removeState(Node node, E stateID) {
+    removeFromList(node.getNodeStates(), s -> s.getId().equals(stateID), node::setNodeStates);
+  }
+
+  private static <E> void removeFromList(
+      List<E> list, Predicate<E> predicate, Consumer<List<E>> setter) {
+    actOnList(
+        list,
+        l -> l.removeIf(predicate),
+        l -> setter.accept(l.stream().filter(predicate).toList()));
+  }
+
+  public static void removeParent(Node node, Node parent) {
+    removeFromList(node.getParents(), parent::equals, node::setParents);
+    removeFromList(parent.getChildren(), node::equals, parent::setChildren);
   }
 }

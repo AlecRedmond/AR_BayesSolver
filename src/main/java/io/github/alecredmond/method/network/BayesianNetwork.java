@@ -1,10 +1,8 @@
 package io.github.alecredmond.method.network;
 
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
@@ -296,40 +294,6 @@ public interface BayesianNetwork {
   <T> BayesianNetwork addConstraint(T eventStateID, double probability);
 
   /**
-   * Sets the maximum number of cycles for the IPF solver. One cycle applies the algorithm once for
-   * every constraint. Default == 1000
-   *
-   * @param cyclesLimit the maximum number of cycles.
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork solverCyclesLimit(int cyclesLimit);
-
-  /**
-   * Sets a time limit in seconds for the inference solver to run. Default == 60
-   *
-   * @param timeLimitSeconds the maximum time in seconds.
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork solverTimeLimit(int timeLimitSeconds);
-
-  /**
-   * Sets the interval in seconds for logging solver progress. Default == 1
-   *
-   * @param seconds the log interval in seconds.
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork logIntervalSeconds(int seconds);
-
-  /**
-   * Sets the convergence threshold for the solver. The solver stops when changes between iterations
-   * are below this value. Default == 1E-9
-   *
-   * @param threshold the convergence threshold.
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork solverConvergeThreshold(double threshold);
-
-  /**
    * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other
    * methods that involve sampling, observing, and printing from the network implicitly run this
    * method
@@ -353,21 +317,6 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   BayesianNetwork printNetwork();
-
-  /**
-   * Retrieves the configuration class for the Inference Engine, which includes configurations for
-   * the Constraint Solver and Sample Generators
-   *
-   * @return the current InferenceEngineConfigs class used by the network
-   */
-  InferenceEngineConfigs getInferenceEngineConfigs();
-
-  /**
-   * Retrieves the configuration class for the Printer
-   *
-   * @return the current PrinterConfigs
-   */
-  PrinterConfigs getPrinterConfigs();
 
   /**
    * Sets evidence in the network by observing one or more node states. This fixes the state of

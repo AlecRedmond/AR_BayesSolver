@@ -1,5 +1,6 @@
 package io.github.alecredmond.application.printer;
 
+import io.github.alecredmond.method.utils.PropertiesLoader;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,17 +13,14 @@ public class PrinterConfigs {
   private int probDecimalPlaces;
 
   public PrinterConfigs() {
-    this.printToConsole = false;
-    this.probDecimalPlaces = 5;
-    this.openFileOnCreation = true;
-    this.saveDirectory = getDefaultSaveDirectory();
+    PropertiesLoader loader = new PropertiesLoader();
+    setSaveDirectory(loader.loadDirectory("app.printer.saveDirectory"));
+    setOpenFileOnCreation(loader.loadBoolean("app.printer.openFileOnCreation"));
+    setPrintToConsole(loader.loadBoolean("app.printer.printToConsole"));
+    setProbDecimalPlaces(loader.loadInt("app.printer.probDecimalPlaces"));
   }
 
-  private String getDefaultSaveDirectory() {
-    return System.getProperty("user.home") + "\\AR_Tools\\bayes_solver\\output\\";
-  }
-
-  public void setProbDecimalPlaces(int probDecimalPlaces) {
+  private void setProbDecimalPlaces(int probDecimalPlaces) {
     if (probDecimalPlaces < 0) {
       throw new IllegalArgumentException("Printer decimal places must not be negative!");
     }

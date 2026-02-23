@@ -5,10 +5,8 @@ import io.github.alecredmond.application.node.NodeState;
 import java.util.Collection;
 import lombok.Getter;
 
-/** A constraint on the network {@code P(eventState | conditionState(s) == probability)} */
 @Getter
 public class ConditionalConstraint extends ParameterConstraint {
-
   private final NodeState eventState;
   private final Node eventNode;
 

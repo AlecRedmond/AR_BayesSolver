@@ -1,17 +1,13 @@
 package io.github.alecredmond.method.inference;
 
-import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
-
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
-import io.github.alecredmond.application.inference.SampleGeneratorType;
+import io.github.alecredmond.method.inference.junctiontree.JTAInitializer;
 import io.github.alecredmond.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,12 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class InferenceEngine {
   private final BayesianNetworkData networkData;
-  private final InferenceEngineConfigs configs;
   private JunctionTreeAlgorithm junctionTree;
 
-  public InferenceEngine(BayesianNetworkData networkData, InferenceEngineConfigs configs) {
+  public InferenceEngine(BayesianNetworkData networkData) {
     this.networkData = networkData;
-    this.configs = configs;
     this.junctionTree = null;
   }
 
@@ -44,11 +38,8 @@ public class InferenceEngine {
   }
 
   private <T> Sampler<T> getSampler(Class<T> tClass) {
-    SampleGeneratorType type = Objects.requireNonNull(configs.getSampleGenerator());
-    if (type == LIKELIHOOD_WEIGHTING_SAMPLER) {
-      return new LikelihoodWeightingSampler<>(tClass);
-    }
-    throw new IllegalStateException("Unexpected value: " + type);
+    // Currently only Likelihood Weighting Sampler is used, this may change in the future
+    return new LikelihoodWeightingSampler<>(tClass);
   }
 
   public double getProbabilityFromCurrentObservations(Set<NodeState> newEvidence) {
@@ -60,7 +51,6 @@ public class InferenceEngine {
     newObservations.putAll(currentObservations);
     if (currentObservations.equals(newObservations)) return 1.0;
 
-    if (junctionTree.isMarginalized()) junctionTree.observeNetwork(currentObservations);
     double jointProbWithCurrentEvidence = junctionTree.getProbabilityOfEvidence();
     if (jointProbWithCurrentEvidence == 0) return 0;
 
@@ -80,7 +70,7 @@ public class InferenceEngine {
               .map(state -> Map.entry(state.getNode(), state))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     } catch (IllegalStateException e) {
-      // Duplicate keys detected
+      // Duplicate keys detected, i.e. multiple states with same node
       return true;
     }
 
@@ -115,17 +105,23 @@ public class InferenceEngine {
     }
   }
 
-  public void observeNetwork(Collection<NodeState> observed) {
-    if (!networkData.isSolved()) runSolver();
-    Map<Node, NodeState> observedMap = convertToMap(observed);
-    junctionTree.observeNetwork(observedMap);
-    junctionTree.marginalizeTables();
-    junctionTree.writeObservations();
-  }
-
   public void runSolver() {
+    if (networkData.getNodeIDsMap().isEmpty()) {
+      return;
+    }
     JTASolver.solveNetwork(this);
     networkData.setSolved(true);
-    junctionTree = new JunctionTreeAlgorithm(this);
+    junctionTree =
+        new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
+    observeNetwork(new HashSet<>());
+  }
+
+  public void observeNetwork(Collection<NodeState> observed) {
+    if (!networkData.isSolved()) {
+      return;
+    }
+    Map<Node, NodeState> observedMap = convertToMap(observed);
+    junctionTree.observeNetwork(observedMap);
+    junctionTree.writeObservations();
   }
 }

@@ -1,9 +1,10 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.inference.junctiontree.Clique;
+import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,16 +14,23 @@ class JTACliqueBuilder {
 
   private JTACliqueBuilder() {}
 
-  static Set<Clique> buildCliques(BayesianNetworkData data) {
-    Map<Node, Set<Node>> edgeGraph = initializeGraph(data);
-    moralizeGraph(edgeGraph, data);
-    triangulateGraph(edgeGraph, data);
+  static void buildCliques(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
+    moralizeGraph(edgeGraph, bnd);
+    triangulateGraph(edgeGraph, bnd);
 
     Set<Set<Node>> maximalCliques = findMaximalCliques(edgeGraph);
 
-    return maximalCliques.stream()
-        .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes)))
-        .collect(Collectors.toSet());
+    Clique[] cliques =
+        maximalCliques.stream()
+            .map(
+                nodes ->
+                    new Clique(
+                        nodes,
+                        TableBuilder.buildJunctionTreeTable(nodes, jtd.getBayesianNetworkData())))
+            .toArray(Clique[]::new);
+
+    jtd.setCliques(cliques);
   }
 
   static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
@@ -110,7 +118,9 @@ class JTACliqueBuilder {
   }
 
   /**
-   * The Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a graph.
+   * I have used the Bron-Kerbosch algorithm with pivoting for finding all maximal cliques in a
+   * graph. Further explanation of this algorithm can be found <a
+   * href="https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm#With_pivoting">here.</a>
    *
    * @param currentNodes (R) The set of nodes in the clique currently being built.
    * @param candidateNodes (P) The set of candidate nodes that can be added to extend the clique.

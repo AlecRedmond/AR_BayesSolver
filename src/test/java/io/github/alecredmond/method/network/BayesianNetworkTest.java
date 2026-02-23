@@ -1,26 +1,22 @@
 package io.github.alecredmond.method.network;
 
-import static io.github.alecredmond.application.inference.SampleGeneratorType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.application.inference.InferenceEngineConfigs;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintBuilderException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -424,176 +420,22 @@ class BayesianNetworkTest {
   }
 
   @Nested
-  class SolverConfigTests {
-    @Test
-    void solverCyclesLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverCyclesLimit(500));
-    }
-
-    @Test
-    void solverCyclesLimit_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverCyclesLimit(0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverCyclesLimit(-100));
-    }
-
-    @Test
-    void solverTimeLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverTimeLimit(30));
-    }
-
-    @Test
-    void solverTimeLimit_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverTimeLimit(0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverTimeLimit(-10));
-    }
-
-    @Test
-    void logIntervalSeconds_shouldSucceed() {
-      assertDoesNotThrow(() -> net.logIntervalSeconds(5));
-    }
-
-    @Test
-    void logIntervalSeconds_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.logIntervalSeconds(0));
-      assertThrows(IllegalArgumentException.class, () -> net.logIntervalSeconds(-1));
-    }
-
-    @Test
-    void solverConvergeThreshold_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solverConvergeThreshold(1E-6));
-    }
-
-    @Test
-    void solverConvergeThreshold_invalid_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.solverConvergeThreshold(0.0));
-      assertThrows(IllegalArgumentException.class, () -> net.solverConvergeThreshold(-0.1));
-    }
-  }
-
-  @Nested
-  class PrinterConfigTests {
-    @Test
-    void printerSettings_shouldNotThrow() {
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(() -> configs.setSaveDirectory("./output"));
-      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(true));
-      assertDoesNotThrow(() -> configs.setOpenFileOnCreation(false));
-      assertDoesNotThrow(() -> configs.setPrintToConsole(true));
-      assertDoesNotThrow(() -> configs.setPrintToConsole(false));
-      assertDoesNotThrow(() -> configs.setProbDecimalPlaces(4));
-    }
-
-    @Test
-    void printerProbDecimalPlaces_invalid_shouldThrowException() {
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertThrows(IllegalArgumentException.class, () -> configs.setProbDecimalPlaces(-1));
-    }
-
-    @Test
-    void printNetwork_beforeSolve_shouldImplicitlySolve() {
-      net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(
-          () -> {
-            configs.setPrintToConsole(true);
-            net.printNetwork();
-          });
-    }
-
-    @Test
-    void printObserved_beforeObserve_shouldImplicitlySolveAndObserveMarginals() {
-      net.addNode("A", List.of("A_T", "A_F")).addConstraint("A_T", 0.2);
-      PrinterConfigs configs = net.getPrinterConfigs();
-      assertDoesNotThrow(
-          () -> {
-            configs.setPrintToConsole(true);
-            net.printObserved();
-          });
-    }
-  }
-
-  @Nested
-  class InferenceEngineConfigTests {
-    InferenceEngineConfigs configs;
-
-    @BeforeEach
-    void initializeConfigs() {
-      configs = net.getInferenceEngineConfigs();
-    }
-
-    @Test
-    void changeSamplerType_shouldSucceed() {
-      assertDoesNotThrow(() -> configs.setSampleGenerator(LIKELIHOOD_WEIGHTING_SAMPLER));
-    }
-
-    @Test
-    void changeSolverCyclesLimit_shouldSucceed() {
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(1000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(10_000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(100_000));
-      assertDoesNotThrow(() -> configs.setSolverCyclesLimit(Integer.MAX_VALUE));
-    }
-
-    @Test
-    void changeSolverCyclesToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverCyclesLimit(i));
-      }
-    }
-
-    @Test
-    void changeSolverConvergeThreshold_shouldSucceed() {
-      List<Double> valid = List.of(1E-3, 1E-5, 1E-9, 1E-256, Double.MAX_VALUE);
-      for (double d : valid) {
-        assertDoesNotThrow(() -> configs.setSolverConvergeThreshold(d));
-      }
-    }
-
-    @Test
-    void changeSolverConvergeInvalid_shouldThrowException() {
-      List<Double> invalid = List.of(-1E-3, 0.0, -15.0);
-      for (double d : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverConvergeThreshold(d));
-      }
-    }
-
-    @Test
-    void changeLogIntervalToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverLogIntervalSeconds(i));
-      }
-    }
-
-    @Test
-    void changeTimeLimitToInvalid_shouldThrowException() {
-      List<Integer> invalid = List.of(0, -10, Integer.MIN_VALUE);
-      for (Integer i : invalid) {
-        assertThrows(IllegalArgumentException.class, () -> configs.setSolverTimeLimitSeconds(i));
-      }
-    }
-  }
-
-  @Nested
   class InferenceAndQueryTests {
 
     @BeforeEach
     void buildNetwork() {
-      // Using the Rain/Sprinkler example as a base for queries
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
           .addParent("SPRINKLER", "RAIN")
           .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-          .addConstraint("RAIN:TRUE", 0.2) // P(R) = 0.2
-          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01) // P(S|R) = 0.01
-          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4) // P(S|~R) = 0.4
+          .addConstraint("RAIN:TRUE", 0.2)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+          .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9);
-      // Missing constraints will be auto-completed by solver (e.g., P(RAIN:FALSE) = 0.8)
     }
 
     @Test
@@ -612,8 +454,7 @@ class BayesianNetworkTest {
       assertDoesNotThrow(() -> net.solveNetwork());
       net.observeMarginals();
       MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertEquals(
-          0.8, rainTable.getProbability(List.of(rainTable.getNodeState("RAIN:FALSE"))), 1E-9);
+      assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
     }
 
     @Test
@@ -621,33 +462,26 @@ class BayesianNetworkTest {
       assertDoesNotThrow(() -> net.observeMarginals());
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(
-          0.2, rainTable.getProbability(List.of(rainTable.getNodeState("RAIN:TRUE"))), 1E-9);
+      assertEquals(0.2, rainTable.getProbabilityFromIDs(List.of("RAIN:TRUE")), 1E-9);
     }
 
     @Test
     void observeNetwork_shouldUpdateProbabilities() {
       net.solveNetwork().observeMarginals();
-      // P(RAIN:TRUE) is 0.2 initially
       assertEquals(0.2, net.getObservedTable("RAIN").getProbability("RAIN:TRUE"), 1E-6);
-
-      // Observe WET_GRASS:TRUE
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      // P(RAIN:TRUE | WET_GRASS:TRUE) should be different (and higher)
-      // This is the "explaining away" problem
       double pRainGivenWet = net.getObservedTable("RAIN").getProbability("RAIN:TRUE");
       assertTrue(pRainGivenWet > 0.2);
       // Exact value P(R|W) = P(W|R)P(R)/P(W)
       // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
       // P(W|~R) = P(W|~R,S)P(S|~R) + P(W|~R,~S)P(~S|~R) = 0.9*0.4 + 0.0*0.6 = 0.36
       // P(W) = P(W|R)P(R) + P(W|~R)P(~R) = 0.9009*0.2 + 0.36*0.8 = 0.18018 + 0.288 = 0.46818
-      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485...
+      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485
       assertEquals(0.384852, pRainGivenWet, 1E-6);
     }
 
     @Test
     void observeNetwork_withConflictingEvidence_shouldThrowException() {
-      // Observing RAIN:TRUE and RAIN:FALSE
       assertThrows(Exception.class, () -> net.observeNetwork(List.of("RAIN:TRUE", "RAIN:FALSE")));
     }
 
@@ -673,11 +507,11 @@ class BayesianNetworkTest {
       net.solveNetwork();
       ProbabilityTable rainTable = net.getNetworkTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(1, rainTable.getNodes().size()); // Just RAIN
+      assertEquals(1, rainTable.getNodes().size());
 
       ProbabilityTable grassTable = net.getNetworkTable("WET_GRASS");
       assertNotNull(grassTable);
-      assertEquals(3, grassTable.getNodes().size()); // WET_GRASS, RAIN, SPRINKLER
+      assertEquals(3, grassTable.getNodes().size());
     }
 
     @Test
@@ -712,10 +546,8 @@ class BayesianNetworkTest {
     @Test
     void getObservedTable_beforeObserve_shouldReturnMarginals() {
       net.solveNetwork();
-      // No observe...() call
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      // Should be equal to the prior P(RAIN:TRUE)
       assertEquals(0.2, rainTable.getProbability("RAIN:TRUE"), 1E-6);
     }
 
@@ -765,7 +597,7 @@ class BayesianNetworkTest {
       List<List<String>> samples = net.generateSamples(null, List.of("RAIN"), 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
-        assertEquals(1, sample.size()); // Only one node state
+        assertEquals(1, sample.size());
         assertTrue(sample.getFirst().equals("RAIN:TRUE") || sample.getFirst().equals("RAIN:FALSE"));
       }
     }
@@ -776,7 +608,7 @@ class BayesianNetworkTest {
       List<List<String>> samples = net.generateSamples(List.of("RAIN"), null, 10, String.class);
       assertEquals(10, samples.size());
       for (List<String> sample : samples) {
-        assertEquals(2, sample.size()); // SPRINKLER and WET_GRASS
+        assertEquals(2, sample.size());
         for (String state : sample) {
           assertFalse(state.startsWith("RAIN:"));
         }
@@ -806,11 +638,6 @@ class BayesianNetworkTest {
     void testSolves_RainSprinkler() {
       net = BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS");
 
-      PrinterConfigs printerConfigs = net.getPrinterConfigs();
-      printerConfigs.setProbDecimalPlaces(3);
-      printerConfigs.setPrintToConsole(false);
-      printerConfigs.setOpenFileOnCreation(true);
-
       net.addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
           .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
           .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
@@ -824,10 +651,20 @@ class BayesianNetworkTest {
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
           .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0)
           .solveNetwork()
-          .observeMarginals()
           .printNetwork()
           .observeNetwork(List.of("WET_GRASS:TRUE"))
           .printObserved();
+
+      net.getNetworkData().getNetworkTablesMap().values().stream()
+          .map(ProbabilityTable::getVector)
+          .map(ProbabilityVector::getNodeArray)
+          .forEach(
+              nodes -> {
+                StringBuilder sb = new StringBuilder();
+                Arrays.stream(nodes)
+                    .forEach(node -> sb.append(node.getId().toString()).append(" "));
+                System.out.println(sb);
+              });
 
       net.observeMarginals();
 
@@ -887,7 +724,6 @@ class BayesianNetworkTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-      net.getPrinterConfigs().setPrintToConsole(true);
 
       assertDoesNotThrow(
           () ->
@@ -916,7 +752,7 @@ class BayesianNetworkTest {
                       .addConstraint("G-", List.of("E+"), 0.50)
                       .addConstraint("H+", List.of("E+"), 0.43)
                       .addConstraint("H-", List.of("E-"), 0.18)
-                      .addConstraint("A+", List.of("H+"), 0.25) // Non-local constraint
+                      .addConstraint("A+", List.of("H+"), 0.25)
                       .solveNetwork()
                       .observeMarginals()
                       .printObserved());
@@ -926,8 +762,6 @@ class BayesianNetworkTest {
     void testFantasyGraph_ComplexNetwork() {
       if (!debugSolveLengthyTests) return;
       net = BayesianNetwork.newNetwork("FANTASY_ELECTION");
-
-      net.getPrinterConfigs().setPrintToConsole(true);
 
       assertDoesNotThrow(
           () ->
@@ -988,14 +822,13 @@ class BayesianNetworkTest {
                           "VOTE:CSD",
                           "VOTE:OTH",
                           "VOTE:NONE"))
-                  .addParents("DISTRICT_TYPE", List.of()) // Root node
+                  .addParents("DISTRICT_TYPE", List.of())
                   .addParents("DISTRICT", List.of("DISTRICT_TYPE"))
                   .addParents("RACE", List.of("DISTRICT"))
                   .addParents("AGE", List.of("RACE", "DISTRICT"))
                   .addParents("WEALTH", List.of("RACE", "DISTRICT"))
                   .addParents("OUTLOOK", List.of("WEALTH", "AGE", "DISTRICT"))
                   .addParents("VOTE", List.of("RACE", "AGE", "DISTRICT", "OUTLOOK"))
-                  // --- Constraints from user file ---
                   // Known marginals
                   // DISTRICT
                   .addConstraint("DISTRICT:CAPITAL_CITY", 600E3 / 320E6)
@@ -1041,36 +874,157 @@ class BayesianNetworkTest {
                   .addConstraint("DISTRICT_TYPE:SUBURBAN", List.of("DISTRICT:CITY_SUBURBS"), 1.0)
                   .addConstraint("DISTRICT_TYPE:RURAL", List.of("DISTRICT:FARM_TOWN"), 1.0)
                   .addConstraint("DISTRICT_TYPE:FRONTIER", List.of("DISTRICT:MINING_OUTPOST"), 1.0)
-                  // ... (omitted many constraints for brevity, but they'd be here) ...
                   // Age|Race
                   .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ORC"), 0.177)
                   .addConstraint("AGE:YOUNG_ADULT", List.of("RACE:ANK"), 0.335)
                   .addConstraint("AGE:CHILD", List.of("RACE:DWARF"), 0.303)
-                  // ...
+                  .addConstraint("AGE:CHILD", List.of("RACE:GOBLIN"), 0.410)
+                  .addConstraint("AGE:ELDERLY", List.of("RACE:ELF"), 0.13)
+                  .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ELF"), 0.23)
+                  // Race|DISTRICT_TYPE
+                  .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.65)
+                  .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:SUBURBAN"), 1.05 * 0.65)
+                  .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:RURAL"), 1.03 * 0.65)
+                  .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.14)
+                  .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:SUBURBAN"), 0.78 * 0.14)
+                  .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.14)
+                  .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:URBAN"), 1.05 * 0.07)
+                  .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:SUBURBAN"), 0.73 * 0.07)
+                  .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:RURAL"), 1.01 * 0.07)
+                  .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:URBAN"), 1.03 * 0.06)
+                  .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:SUBURBAN"), 0.70 * 0.06)
+                  .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.06)
+                  .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.05)
+                  .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.01 * 0.05)
+                  .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:FRONTIER"), 1.1 * 0.05)
+                  .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.03)
+                  .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.03 * 0.03)
+                  .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:RURAL"), 1.02 * 0.03)
+
+                  // Wealth|Race,DISTRICT_TYPE
+                  .addConstraint(
+                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT:CAPITAL_CITY"), 0.25)
+                  .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
+                  .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
+                  .addConstraint(
+                      "WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
+                  .addConstraint(
+                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.23)
+                  .addConstraint(
+                      "WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
+                  .addConstraint(
+                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.10)
+                  .addConstraint(
+                      "WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.003)
+                  .addConstraint(
+                      "WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.29)
+                  .addConstraint(
+                      "WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.000)
+                  // Outlook|Race,Wealth,Age,DISTRICT_TYPE
+                  .addConstraint(
+                      "OUTLOOK:REACTIONARY",
+                      List.of(
+                          "RACE:HUMAN",
+                          "WEALTH:MIDDLE",
+                          "AGE:YOUNG_ADULT",
+                          "DISTRICT_TYPE:SUBURBAN"),
+                      0.42)
+                  .addConstraint(
+                      "OUTLOOK:REVOLUTIONARY",
+                      List.of(
+                          "RACE:ANK", "WEALTH:MARGINAL", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
+                      0.66)
+                  .addConstraint(
+                      "OUTLOOK:CONSERVATIVE",
+                      List.of("RACE:HUMAN", "WEALTH:LOW", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:RURAL"),
+                      0.387)
+                  .addConstraint(
+                      "OUTLOOK:PROGRESSIVE",
+                      List.of(
+                          "RACE:DWARF", "WEALTH:MIDDLE", "AGE:YOUNG_ADULT", "DISTRICT_TYPE:URBAN"),
+                      0.42)
+                  .addConstraint(
+                      "OUTLOOK:MODERATE",
+                      List.of(
+                          "RACE:ELF", "WEALTH:MIDDLE", "AGE:MIDDLE_AGE", "DISTRICT_TYPE:SUBURBAN"),
+                      0.41)
                   // NON-LOCAL CONDITIONALS
+                  // Never-will-votes
+                  .addConstraint("VOTE:CPK", List.of("OUTLOOK:CONSERVATIVE"), 0.01)
+                  .addConstraint("VOTE:CPK", List.of("OUTLOOK:REACTIONARY"), 0.01)
+                  .addConstraint("VOTE:UNF", List.of("OUTLOOK:PROGRESSIVE"), 0.01)
+                  .addConstraint("VOTE:UNF", List.of("OUTLOOK:REVOLUTIONARY"), 0.01)
                   // VOTE | DISTRICT, OUTLOOK
                   .addConstraint(
                       "VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:CAPITAL_CITY"), 0.8)
-                  // ...
+                  .addConstraint(
+                      "VOTE:CPK", List.of("OUTLOOK:REVOLUTIONARY", "DISTRICT:FARM_TOWN"), 0.62)
+                  .addConstraint(
+                      "VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.25)
+                  .addConstraint(
+                      "VOTE:FPK", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.05)
+                  .addConstraint(
+                      "VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:CAPITAL_CITY"), 0.21)
+                  .addConstraint(
+                      "VOTE:VNG", List.of("OUTLOOK:CONSERVATIVE", "DISTRICT:FARM_TOWN"), 0.45)
+                  .addConstraint(
+                      "VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:CAPITAL_CITY"), 0.51)
+                  .addConstraint(
+                      "VOTE:SDP", List.of("OUTLOOK:PROGRESSIVE", "DISTRICT:FARM_TOWN"), 0.28)
+                  // DISTRICT
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.05)
+                  .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CITY_SUBURBS"), 0.258)
+                  .addConstraint("AGE:CHILD", List.of("DISTRICT:CITY_SUBURBS"), 0.345)
+                  .addConstraint("OUTLOOK:REACTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.1)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:CAPITAL_CITY"), 0.275)
+                  .addConstraint("OUTLOOK:CONSERVATIVE", List.of("DISTRICT:FARM_TOWN"), 0.300)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:FARM_TOWN"), 0.08)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("DISTRICT:MINING_OUTPOST"), 0.15)
                   // OTHERS
                   .addConstraint("VOTE:NONE", List.of("AGE:CHILD"), 1.0)
-                  .addConstraint("OUTLOOK:APATHY", List.of("VOTE:NONE"), 0.75)
+                  .addConstraint("VOTE:NONE", List.of("OUTLOOK:APATHY"), 1.0)
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:MARGINAL"), 0.44)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:ULTRA"), 0.02)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("WEALTH:HIGH"), 0.05)
                   .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:CPK"), 0.65)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SND"), 0.55)
+                  .addConstraint("OUTLOOK:REVOLUTIONARY", List.of("VOTE:SDP"), 0.20)
                   .addConstraint("OUTLOOK:PROGRESSIVE", List.of("RACE:DWARF"), 0.46)
+                  .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:SDP"), 0.48)
+                  .addConstraint("OUTLOOK:PROGRESSIVE", List.of("VOTE:CPK"), 0.20)
+                  .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:VNG"), 0.20)
+                  .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:FPK"), 0.41)
+                  .addConstraint("OUTLOOK:MODERATE", List.of("VOTE:SDP"), 0.25)
                   .addConstraint("OUTLOOK:CONSERVATIVE", List.of("WEALTH:HIGH"), 0.48)
+                  .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:FPK"), 0.55)
+                  .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:VNG"), 0.42)
+                  .addConstraint("OUTLOOK:CONSERVATIVE", List.of("VOTE:UNF"), 0.35)
+                  .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:UNF"), 0.50)
+                  .addConstraint("OUTLOOK:REACTIONARY", List.of("VOTE:CSD"), 0.44)
                   .addConstraint("VOTE:UNF", List.of("RACE:ANK"), 0.02)
+                  .addConstraint("VOTE:UNF", List.of("RACE:DWARF"), 0.02)
+                  .addConstraint("VOTE:UNF", List.of("RACE:GOBLIN"), 0.03)
+                  .addConstraint("VOTE:UNF", List.of("RACE:ORC"), 0.08)
                   .addConstraint("RACE:ORC", List.of("VOTE:KNC"), 0.59)
                   .addConstraint("WEALTH:ULTRA", List.of("RACE:ANK"), 0.0005)
-                  // ...
+                  .addConstraint("WEALTH:HIGH", List.of("RACE:ANK"), 0.008)
+                  .addConstraint("WEALTH:MIDDLE", List.of("RACE:ANK"), 0.0726)
+                  .addConstraint("WEALTH:ULTRA", List.of("RACE:ORC"), 0.0005)
+                  .addConstraint("WEALTH:HIGH", List.of("RACE:ORC"), 0.008)
+                  .addConstraint("WEALTH:MIDDLE", List.of("RACE:ORC"), 0.0726)
+                  .addConstraint("WEALTH:ULTRA", List.of("RACE:GOBLIN"), 0.0005)
+                  .addConstraint("WEALTH:HIGH", List.of("RACE:GOBLIN"), 0.008)
+                  .addConstraint("WEALTH:MIDDLE", List.of("RACE:GOBLIN"), 0.0726)
+                  .addConstraint("VOTE:CPK", List.of("RACE:ANK", "AGE:YOUNG_ADULT"), 0.22)
                   .solveNetwork()
                   .observeMarginals()
-                  .printObserved()
-                  .observeNetwork(List.of("DISTRICT:CAPITAL_CITY"))
-                  .observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"))
                   .printObserved());
 
-      net.getPrinterConfigs().setPrintToConsole(true);
+      net.observeNetwork(List.of("VOTE:CPK")).printObserved();
+      net.observeNetwork(List.of("VOTE:UNF")).printObserved();
+
+      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT")).printObserved();
+
       net.printNetwork();
 
       int numOfSamples = 100_000;

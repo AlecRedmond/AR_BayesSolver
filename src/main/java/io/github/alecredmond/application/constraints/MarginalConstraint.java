@@ -5,7 +5,6 @@ import io.github.alecredmond.application.node.NodeState;
 import java.util.HashSet;
 import lombok.Getter;
 
-/** A constraint on the network {@code P(eventState == probability)} */
 @Getter
 public class MarginalConstraint extends ParameterConstraint {
   private final NodeState eventState;

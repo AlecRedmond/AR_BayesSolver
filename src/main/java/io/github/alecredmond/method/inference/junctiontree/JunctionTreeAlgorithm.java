@@ -1,15 +1,12 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
-import io.github.alecredmond.application.constraints.ParameterConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.junctiontree.JunctionTreeTable;
-import io.github.alecredmond.method.inference.InferenceEngine;
-import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandlerSeparator;
+import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -18,68 +15,54 @@ import lombok.Getter;
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
 
-  public JunctionTreeAlgorithm(InferenceEngine engine) {
-    this.data = JTAInitializer.build(engine);
+  public JunctionTreeAlgorithm(JunctionTreeData data) {
+    this.data = data;
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
-    marginalizeTables();
-  }
-
-  public void marginalizeTables() {
-    data.getCliqueSet().stream().map(Clique::getHandler).forEach(JTATableHandler::marginalize);
-    data.setMarginalized(true);
   }
 
   public void writeObservations() {
-    JTANetworkWriter.writeToObservations(data);
+    JTANetworkWriter.writeObservations(data);
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
     if (data.getNodes().isEmpty()) return;
-    JTANetworkWriter.setSeparatorsToUnity(data);
+    Clique bestClique = cliqueWithLargestOverlap(observed);
     setEvidence(observed);
-    Clique clique = data.getLeafCliques().stream().findAny().orElseThrow();
-    distributeAndCollectMessages(clique, new HashSet<>());
-    data.setMarginalized(false);
+    distributeAndCollectMessages(bestClique, new HashSet<>());
+  }
+
+  public void marginalizeTables() {
+    Arrays.stream(data.getCliques())
+        .map(Clique::getTable)
+        .forEach(ProbabilityTable::marginalizeTable);
   }
 
   public void writeTablesToNetwork() {
     JTANetworkWriter.writeToNetwork(data);
   }
 
-  /**
-   * Sums the values from the smallest table in the JTA. If the JTA has been marginalized, this will
-   * re-run inference.
-   */
   public double getProbabilityOfEvidence() {
-    boolean resetMarginalisation = data.isMarginalized();
-    if (resetMarginalisation) observeNetwork(data.getObserved());
     JunctionTreeTable smallestTable = data.getJunctionTreeTables().getFirst();
-    double[] probabilityArray = smallestTable.getCorrectProbabilities();
-    double jointProb = Arrays.stream(probabilityArray).sum();
-    if (resetMarginalisation) marginalizeTables();
-    return jointProb;
+    double[] probabilityArray = smallestTable.getVector().getProbabilities();
+    return Arrays.stream(probabilityArray).sum();
   }
 
-  public boolean isMarginalized() {
-    return data.isMarginalized();
-  }
-
-  double adjustAndReturnError(ParameterConstraint constraint) {
-    Clique clique = data.getCliqueForConstraint().get(constraint);
-    distributeAndCollectMessages(clique, new HashSet<>());
-
-    double error = data.getConstraintHandlers().get(constraint).adjustAndReturnError();
-
-    if (error != 0) {
-      distributeAndCollectMessages(clique, new HashSet<>());
-    }
-
-    return error;
+  private Clique cliqueWithLargestOverlap(Map<Node, NodeState> observed) {
+    return Arrays.stream(data.getCliques())
+        .max(
+            Comparator.comparingInt(
+                c -> {
+                  Set<Node> temp = new HashSet<>(c.getNodes());
+                  temp.retainAll(observed.keySet());
+                  return temp.size();
+                }))
+        .orElseThrow();
   }
 
   private void setEvidence(Map<Node, NodeState> evidence) {
     data.setObserved(evidence);
-    for (Clique clique : data.getCliqueSet()) {
+
+    for (Clique clique : data.getCliques()) {
       Set<NodeState> evidenceInTable =
           clique.getNodes().stream()
               .filter(evidence::containsKey)
@@ -90,22 +73,27 @@ public class JunctionTreeAlgorithm {
     }
   }
 
+  void distributeAndCollectMessages(Clique clique) {
+    distributeAndCollectMessages(clique, new HashSet<>());
+  }
+
   private void distributeAndCollectMessages(Clique currentClique, Set<Clique> cliqueChain) {
     cliqueChain.add(currentClique);
 
     getNextSeparators(currentClique, cliqueChain)
         .forEach(
             (nextClique, separator) -> {
-              JTATableHandlerSeparator sth = separator.getHandler();
-              sth.passMessageFrom(currentClique);
+              JTATransferWriter backSeparator = nextClique.getSeparator(currentClique);
+              separator.run();
               distributeAndCollectMessages(nextClique, cliqueChain);
-              sth.passMessageFrom(nextClique);
+              backSeparator.run();
             });
 
     cliqueChain.remove(currentClique);
   }
 
-  private Map<Clique, Separator> getNextSeparators(Clique currentClique, Set<Clique> cliqueChain) {
+  private Map<Clique, JTATransferWriter> getNextSeparators(
+      Clique currentClique, Set<Clique> cliqueChain) {
     return currentClique.getSeparatorMap().entrySet().stream()
         .filter(entry -> !cliqueChain.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
