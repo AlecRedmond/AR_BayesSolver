@@ -52,16 +52,9 @@ public class NodeUtils {
   }
 
   public static String formatToString(Collection<NodeState> stateCollection) {
-    int index = 0;
-    int lastIndex = stateCollection.size() - 1;
     StringBuilder sb = new StringBuilder();
-    for (NodeState state : stateCollection) {
-      sb.append(state.toString());
-      if (index != lastIndex) {
-        sb.append(", ");
-      }
-      index++;
-    }
+    stateCollection.forEach(state -> sb.append(state.toString()).append(", "));
+    sb.setLength(sb.length() - 2);
     return sb.toString();
   }
 
