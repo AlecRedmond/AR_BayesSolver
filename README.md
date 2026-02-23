@@ -10,13 +10,13 @@
 
 # Overview
 
-AR_BayesSolver is a library that enables easy Bayesian Network construction and inference without requiring the user to define the full Conditional Probability Tables (CPTs). Instead, the user defines *constraints* on the network, either marginal (e.g `P(RAIN=true) = 0.2`) or conditional (e.g `P(SPRINKLER=false | RAIN=true) = 0.95`). Using a Junction Tree Algorithm (JTA) accelerated Iterative Proportional Fitting Procedure (IPFP), a "best-fit" probability distribution is calculated that conforms to the given constraints. This is best suited in situations where the user only has partial domain knowledge (i.e. does not have the complete CPT for every node).
+AR_BayesSolver is a library that enables easy Bayesian Network construction and inference without requiring the user to define the full Conditional Probability Tables (CPTs). Instead, the user defines *probabilityConstraints* on the network, either marginal (e.g `P(RAIN=true) = 0.2`) or conditional (e.g `P(SPRINKLER=false | RAIN=true) = 0.95`). Using a Junction Tree Algorithm (JTA) accelerated Iterative Proportional Fitting Procedure (IPFP), a "best-fit" probability distribution is calculated that conforms to the given probabilityConstraints. This is best suited in situations where the user only has partial domain knowledge (i.e. does not have the complete CPT for every node).
 
 # Features
 
 - Simple API for constructing Bayesian Network structures.
 - Allows full CPT imputation or CPT estimation from a partially-constrained network.
-- Support for probability constraints that are independent of the network's parent/child structure.
+- Support for probability probabilityConstraints that are independent of the network's parent/child structure.
 - Perform direct probabilistic inference to query for marginal and joint probabilities.
 - Generate random samples, with or without fixed evidence.
 
@@ -33,7 +33,7 @@ AR_BayesSolver is a library that enables easy Bayesian Network construction and 
 	</figcaption>
 </figure>
 <br>
-This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network (Fig. 1). We will create the network, define its structure, add partial constraints, and then perform inference and sampling.
+This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network (Fig. 1). We will create the network, define its structure, add partial probabilityConstraints, and then perform inference and sampling.
 
 ### 1. Create a Network
 
@@ -73,12 +73,12 @@ network.addParent("SPRINKLER","RAIN")
 
 ### 4. Adding Constraints
 
-Constraints are built using the node state IDs. A key feature is that **constraints do not have to be aligned with the network structure**; for example, a marginal constraint can be defined on a node with parents, or an ancestor node's state can be conditional on a descendant node's state. 
+Constraints are built using the node state IDs. A key feature is that **probabilityConstraints do not have to be aligned with the network structure**; for example, a marginal probabilityConstraint can be defined on a node with parents, or an ancestor node's state can be conditional on a descendant node's state. 
 
-For this demo, we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
+For this demo, we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary probabilityConstraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
 
 ```Java
-// Marginal Constraint
+// Marginal ProbabilityConstraint
 network.addConstraint("RAIN:TRUE", 0.2)
 // Conditional Constraints
        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
@@ -91,7 +91,7 @@ network.addConstraint("RAIN:TRUE", 0.2)
 
 ### 5. Solving and Setting Evidence
 
-We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given constraints.
+We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given probabilityConstraints.
 ```Java
 network.solveNetwork();
 ```

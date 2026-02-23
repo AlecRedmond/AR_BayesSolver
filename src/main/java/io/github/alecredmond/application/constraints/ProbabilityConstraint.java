@@ -11,7 +11,7 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public abstract class Constraint {
+public abstract class ProbabilityConstraint {
   protected final Set<NodeState> eventStates;
   protected final Set<NodeState> conditionStates;
   protected final Set<NodeState> allStates;
@@ -20,7 +20,7 @@ public abstract class Constraint {
   protected final Set<Node> conditionNodes;
   protected final Set<Node> allNodes;
 
-  protected Constraint(
+  protected ProbabilityConstraint(
       @NonNull NodeState eventState, Collection<NodeState> conditionStates, double probability) {
     this.eventStates = Set.of(eventState);
     this.conditionStates = Set.copyOf(conditionStates);

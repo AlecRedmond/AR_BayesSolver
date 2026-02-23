@@ -1,6 +1,6 @@
 package io.github.alecredmond.method.inference.junctiontree;
 
-import io.github.alecredmond.application.constraints.Constraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
@@ -52,7 +52,7 @@ class JTACliqueBuilder {
       BayesianNetworkData data, Node node, Set<Node> connected) {
     if (data.isSolved()) return;
     data.getConstraints().stream()
-        .map(Constraint::getAllNodes)
+        .map(ProbabilityConstraint::getAllNodes)
         .filter(allNodes -> allNodes.contains(node))
         .flatMap(Collection::stream)
         .distinct()

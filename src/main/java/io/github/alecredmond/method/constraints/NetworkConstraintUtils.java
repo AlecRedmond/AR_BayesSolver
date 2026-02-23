@@ -1,11 +1,10 @@
 package io.github.alecredmond.method.constraints;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.NodeState;
-
 import java.util.*;
 
 public class NetworkConstraintUtils {
@@ -13,13 +12,15 @@ public class NetworkConstraintUtils {
   private NetworkConstraintUtils() {}
 
   public static void addConstraints(
-      Collection<Constraint> constraints, BayesianNetworkData networkData) {
+      Collection<ProbabilityConstraint> constraints, BayesianNetworkData networkData) {
     constraints.forEach(c -> addConstraint(c, networkData));
   }
 
-  public static void addConstraint(Constraint constraint, BayesianNetworkData networkData) {
-    ConstraintValidator.validate(constraint, networkData);
-    networkData.getConstraints().add(constraint);
+  public static void addConstraint(
+      ProbabilityConstraint constraint, BayesianNetworkData networkData) {
+    if (new ConstraintValidator(constraint, networkData).validate()) {
+      networkData.getConstraints().add(constraint);
+    }
   }
 
   public static void addConstraint(
@@ -32,18 +33,18 @@ public class NetworkConstraintUtils {
       Set<NodeState> conditionStates,
       double probability,
       BayesianNetworkData networkData) {
-    Constraint constraint;
+    ProbabilityConstraint probabilityConstraint;
     if (conditionStates.isEmpty()) {
-      constraint = new MarginalConstraint(eventState, probability);
+      probabilityConstraint = new MarginalConstraint(eventState, probability);
     } else {
-      constraint = new ConditionalConstraint(eventState, conditionStates, probability);
+      probabilityConstraint = new ConditionalConstraint(eventState, conditionStates, probability);
     }
-    addConstraint(constraint, networkData);
+    addConstraint(probabilityConstraint, networkData);
   }
 
   public static boolean removeAllConstraints(BayesianNetworkData networkData) {
-    List<Constraint> constraints = networkData.getConstraints();
-    if (constraints.isEmpty()) {
+    List<ProbabilityConstraint> probabilityConstraints = networkData.getConstraints();
+    if (probabilityConstraints.isEmpty()) {
       return false;
     }
     networkData.setConstraints(new ArrayList<>());
@@ -56,14 +57,15 @@ public class NetworkConstraintUtils {
 
   public static boolean removeConstraint(
       NodeState eventState, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
-    Constraint constraint = getConstraint(eventState, conditionStates, networkData);
-    if (constraint == null) {
+    ProbabilityConstraint probabilityConstraint =
+        getConstraint(eventState, conditionStates, networkData);
+    if (probabilityConstraint == null) {
       return false;
     }
-    return removeConstraint(constraint, networkData);
+    return removeConstraint(probabilityConstraint, networkData);
   }
 
-  public static Constraint getConstraint(
+  public static ProbabilityConstraint getConstraint(
       NodeState eventState, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
     if (conditionStates.isEmpty()) {
       return getConstraint(eventState, networkData);
@@ -78,8 +80,9 @@ public class NetworkConstraintUtils {
         .orElse(null);
   }
 
-  public static boolean removeConstraint(Constraint constraint, BayesianNetworkData networkData) {
-    return networkData.getConstraints().remove(constraint);
+  public static boolean removeConstraint(
+      ProbabilityConstraint probabilityConstraint, BayesianNetworkData networkData) {
+    return networkData.getConstraints().remove(probabilityConstraint);
   }
 
   public static MarginalConstraint getConstraint(

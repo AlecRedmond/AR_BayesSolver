@@ -6,7 +6,7 @@ import java.util.Collection;
 import lombok.Getter;
 
 @Getter
-public class ConditionalConstraint extends Constraint {
+public class ConditionalConstraint extends ProbabilityConstraint {
   private final NodeState eventState;
   private final Node eventNode;
 

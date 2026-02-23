@@ -1,6 +1,6 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
-import io.github.alecredmond.application.constraints.Constraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
@@ -11,12 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class JTAConstraintHandler {
   protected final JTATableHandler tableHandler;
-  protected final Constraint constraint;
+  protected final ProbabilityConstraint constraint;
   protected final ProbabilityVectorIterator iterator;
   protected VectorCombinationKey eventKey;
   protected VectorCombinationKey conditionKey;
 
-  protected JTAConstraintHandler(JTATableHandler tableHandler, Constraint constraint) {
+  protected JTAConstraintHandler(JTATableHandler tableHandler, ProbabilityConstraint constraint) {
     this.tableHandler = tableHandler;
     this.constraint = constraint;
     this.iterator = new ProbabilityVectorIterator();

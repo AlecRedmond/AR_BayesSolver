@@ -2,7 +2,7 @@ package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.constraints.Constraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
@@ -122,7 +122,7 @@ public class JTAInitializer {
   }
 
   private static JTAConstraintHandler buildConstraintHandler(
-          Constraint constraint, JunctionTreeData jtd) {
+      ProbabilityConstraint constraint, JunctionTreeData jtd) {
     JTATableHandler jtaTableHandler =
         getContainsScope(jtd.getCliques(), constraint.getAllNodes()).getHandler();
 

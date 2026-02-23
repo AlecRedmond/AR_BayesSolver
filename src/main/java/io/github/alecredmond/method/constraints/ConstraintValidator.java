@@ -1,8 +1,8 @@
 package io.github.alecredmond.method.constraints;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -10,24 +10,32 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.method.node.NodeUtils;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ConstraintValidator {
+  private final ProbabilityConstraint constraint;
+  private final BayesianNetworkData data;
 
-  private ConstraintValidator() {}
+  public ConstraintValidator(ProbabilityConstraint constraint, BayesianNetworkData data) {
+    this.constraint = constraint;
+    this.data = data;
+  }
 
-  public static void validate(Constraint constraint, BayesianNetworkData data) {
-    statesExistInNetwork(constraint, data);
-    parametersAreUnique(constraint, data);
-    probabilityWithinBounds(constraint);
+  public boolean validate() {
+    statesExistInNetwork();
+    parametersAreUnique();
+    probabilityWithinBounds();
     if (constraint instanceof MarginalConstraint mc) {
       noConditionsPresent(mc);
     }
     if (constraint instanceof ConditionalConstraint cc) {
       noConditionsInEventNode(cc);
     }
+    return true;
   }
 
-  private static void statesExistInNetwork(Constraint constraint, BayesianNetworkData data) {
+  private void statesExistInNetwork() {
     Set<NodeState> states = new HashSet<>(constraint.getAllStates());
     states.removeAll(data.getNodeStateIDsMap().values());
     if (states.isEmpty()) {
@@ -37,11 +45,11 @@ public class ConstraintValidator {
         "Some nodeStates in %s are not defined in the network!".formatted(constraint));
   }
 
-  private static void parametersAreUnique(Constraint constraint, BayesianNetworkData networkData) {
+  private void parametersAreUnique() {
     Set<NodeState> eventStates = constraint.getEventStates();
     Set<NodeState> conditionStates = constraint.getConditionStates();
     boolean parametersAreUnique =
-        networkData.getConstraints().parallelStream()
+        data.getConstraints().parallelStream()
             .filter(c -> eventStates.equals(c.getEventStates()))
             .noneMatch(c -> conditionStates.equals(c.getConditionStates()));
     if (parametersAreUnique) {
@@ -49,36 +57,38 @@ public class ConstraintValidator {
     }
     throw new ConstraintValidationException(
         String.format(
-            "Attempted to add a constraint C(%s | %s), which already exists!",
+            "Attempted to add a probabilityConstraint C(%s | %s), which already exists!",
             NodeUtils.formatToString(eventStates), NodeUtils.formatToString(conditionStates)));
   }
 
-  private static void probabilityWithinBounds(Constraint constraint) {
+  private void probabilityWithinBounds() {
     double probability = constraint.getProbability();
     if (probability < 0) {
       throw new ConstraintValidationException(
-          "Constraint %s has probability < 0".formatted(constraint.toString()));
+          "ProbabilityConstraint %s has probability < 0"
+              .formatted(constraint.toString()));
     } else if (probability > 1) {
       throw new ConstraintValidationException(
-          "Constraint %s has probability > 1".formatted(constraint.toString()));
+          "ProbabilityConstraint %s has probability > 1"
+              .formatted(constraint.toString()));
     }
   }
 
-  private static void noConditionsPresent(MarginalConstraint mc) {
+  private void noConditionsPresent(MarginalConstraint mc) {
     if (mc.getConditionStates().isEmpty()) {
       return;
     }
     throw new ConstraintValidationException(
-        "Marginal Constraint %s contained conditional states!".formatted(mc));
+        "Marginal ProbabilityConstraint %s contained conditional states!".formatted(mc));
   }
 
-  private static void noConditionsInEventNode(ConditionalConstraint cc) {
+  private void noConditionsInEventNode(ConditionalConstraint cc) {
     Node eventNode = cc.getEventNode();
     Set<Node> conditionNodes = cc.getConditionNodes();
     if (!conditionNodes.contains(eventNode)) {
       return;
     }
     throw new ConstraintValidationException(
-        "Constraint %s is conditional upon itself!".formatted(cc));
+        "ProbabilityConstraint %s is conditional upon itself!".formatted(cc));
   }
 }

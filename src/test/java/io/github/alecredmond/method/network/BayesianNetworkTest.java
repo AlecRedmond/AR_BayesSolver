@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.constraints.Constraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -350,7 +350,7 @@ class BayesianNetworkTest {
   }
 
   @Nested
-  class ConstraintTests {
+  class ProbabilityConstraintTests {
     NodeState aT;
     NodeState aF;
     NodeState bT;
@@ -442,12 +442,12 @@ class BayesianNetworkTest {
               });
     }
 
-    List<Constraint> buildTestConstraints() {
-      List<Constraint> constraints = new ArrayList<>();
-      constraints.add(new ConditionalConstraint(aT, List.of(bT), 0.6));
-      constraints.add(new MarginalConstraint(aF, 0.4));
-      constraints.add(new ConditionalConstraint(bF, List.of(aF), 0.3));
-      return constraints;
+    List<ProbabilityConstraint> buildTestConstraints() {
+      List<ProbabilityConstraint> probabilityConstraints = new ArrayList<>();
+      probabilityConstraints.add(new ConditionalConstraint(aT, List.of(bT), 0.6));
+      probabilityConstraints.add(new MarginalConstraint(aF, 0.4));
+      probabilityConstraints.add(new ConditionalConstraint(bF, List.of(aF), 0.3));
+      return probabilityConstraints;
     }
 
     @Test
@@ -458,9 +458,9 @@ class BayesianNetworkTest {
 
     @Test
     void getConstraints_validConstraints_shouldSucceed() {
-      List<Constraint> constraints = buildTestConstraints();
-      net.addConstraints(constraints);
-      constraints.stream()
+      List<ProbabilityConstraint> probabilityConstraints = buildTestConstraints();
+      net.addConstraints(probabilityConstraints);
+      probabilityConstraints.stream()
           .filter(MarginalConstraint.class::isInstance)
           .map(MarginalConstraint.class::cast)
           .forEach(
@@ -471,7 +471,7 @@ class BayesianNetworkTest {
                 assertEquals(marginalConstraint, net.getConstraint(eventStateId));
               });
 
-      constraints.stream()
+      probabilityConstraints.stream()
           .filter(ConditionalConstraint.class::isInstance)
           .map(ConditionalConstraint.class::cast)
           .forEach(

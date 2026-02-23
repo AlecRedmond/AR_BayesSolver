@@ -1,7 +1,7 @@
 package io.github.alecredmond.method.network;
 
-import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -167,16 +167,16 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   @Override
-  public BayesianNetwork addConstraint(Constraint constraint) {
+  public BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(constraint, networkData);
+    NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData);
     return this;
   }
 
   @Override
-  public BayesianNetwork addConstraints(Collection<Constraint> constraints) {
+  public BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraints(constraints, networkData);
+    NetworkConstraintUtils.addConstraints(probabilityConstraints, networkData);
     return this;
   }
 
@@ -186,15 +186,15 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   @Override
-  public <T, E> Constraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
+  public <T, E> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
     return NetworkConstraintUtils.getConstraint(
         getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
 
   @Override
-  public boolean removeConstraint(Constraint constraint) {
+  public boolean removeConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
-    return NetworkConstraintUtils.removeConstraint(constraint, networkData);
+    return NetworkConstraintUtils.removeConstraint(probabilityConstraint, networkData);
   }
 
   @Override
