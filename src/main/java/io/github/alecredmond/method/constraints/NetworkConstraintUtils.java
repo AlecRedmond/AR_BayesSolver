@@ -1,14 +1,14 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond.method.constraints;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.method.constraints.ConstraintValidator;
+
 import java.util.*;
 
-class NetworkConstraintUtils {
+public class NetworkConstraintUtils {
 
   private NetworkConstraintUtils() {}
 

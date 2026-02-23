@@ -7,6 +7,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.util.*;
