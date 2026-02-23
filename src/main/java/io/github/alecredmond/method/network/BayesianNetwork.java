@@ -1,8 +1,8 @@
 package io.github.alecredmond.method.network;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.application.constraints.MarginalConstraint;
 import io.github.alecredmond.application.constraints.Constraint;
+import io.github.alecredmond.application.constraints.MarginalConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -13,6 +13,7 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An interface that provides a toolset for building, solving, and providing direct inference on a
@@ -175,6 +176,16 @@ public interface BayesianNetwork {
    * @return the Node State object associated with the ID
    */
   <E> NodeState getNodeState(E nodeStateID);
+
+  /**
+   * Returns a set of NodeStates from their input IDs
+   *
+   * @param <E> class of the Node State IDs
+   * @param nodeStateIDs the Node State IDs
+   * @throws IllegalArgumentException if the Node State IDs are not mapped to a Node State value
+   * @return a set of Node State objects associated with their IDs
+   */
+  <E> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
 
   /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.

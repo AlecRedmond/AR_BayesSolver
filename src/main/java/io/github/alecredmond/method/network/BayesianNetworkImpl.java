@@ -156,10 +156,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        getNodeState(eventStateID),
-        getNodeStates(conditionStateIDs),
-        probability,
-        networkData);
+        getNodeState(eventStateID), getNodeStates(conditionStateIDs), probability, networkData);
     return this;
   }
 
@@ -191,9 +188,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
   @Override
   public <T, E> Constraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
     return NetworkConstraintUtils.getConstraint(
-        getNodeState(eventStateId),
-        getNodeStates(conditionStateIds),
-        networkData);
+        getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
 
   @Override
@@ -212,9 +207,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
   public <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds) {
     networkData.setSolved(false);
     return NetworkConstraintUtils.removeConstraint(
-        getNodeState(eventStateId),
-        getNodeStates(conditionStateIds),
-        networkData);
+        getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
 
   @Override
