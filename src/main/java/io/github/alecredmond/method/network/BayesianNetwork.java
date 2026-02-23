@@ -9,7 +9,7 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.Collection;
 import java.util.List;
@@ -272,7 +272,7 @@ public interface BayesianNetwork {
    * @param probability the conditional probability value.
    * @param <T> the class of the event state ID
    * @param <E> the class of the condition state IDs
-   * @throws ConstraintBuilderException <br>
+   * @throws ConstraintValidationException <br>
    *     - if a state is not found within the data <br>
    *     - if attempting to make a state conditional on another state from the same node <br>
    *     - if probability p is outwith 0 <= p <= 1
@@ -289,7 +289,7 @@ public interface BayesianNetwork {
    * @param eventStateID the state of the root node.
    * @param probability the prior probability value.
    * @param <T> the class of the event state ID
-   * @throws ConstraintBuilderException <br>
+   * @throws ConstraintValidationException <br>
    *     - if probability p is outwith 0 <= p <= 1 <br>
    *     - if the state is not found within the data.
    * @return this instance for method chaining.

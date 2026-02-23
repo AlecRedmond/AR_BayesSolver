@@ -12,7 +12,7 @@ import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -378,13 +378,13 @@ class BayesianNetworkTest {
 
     @Test
     void addConstraint_prior_invalidProbability_shouldThrowException() {
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", 1.5));
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", -0.5));
+      assertThrows(ConstraintValidationException.class, () -> net.addConstraint("A_T", 1.5));
+      assertThrows(ConstraintValidationException.class, () -> net.addConstraint("A_T", -0.5));
     }
 
     @Test
     void addConstraint_prior_forNonExistentState_shouldThrowException() {
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("Z_T", 0.5));
+      assertThrows(IllegalArgumentException.class, () -> net.addConstraint("Z_T", 0.5));
     }
 
     @Test
@@ -397,21 +397,21 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_conditional_invalidProbability_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
+          ConstraintValidationException.class, () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
+          ConstraintValidationException.class, () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentEventState_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
+          IllegalArgumentException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentConditionState_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
+          IllegalArgumentException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
     }
 
     @Test
@@ -422,7 +422,7 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_invalidConstraintBuilder_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class,
+          ConstraintValidationException.class,
           () -> net.addConstraint("B_T", List.of("A_T", "B_F"), 0.5));
     }
 

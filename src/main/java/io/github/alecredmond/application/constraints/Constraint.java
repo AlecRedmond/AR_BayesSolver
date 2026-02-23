@@ -7,8 +7,10 @@ import java.util.Collection;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Getter
+@ToString
 public abstract class Constraint {
   protected final Set<NodeState> eventStates;
   protected final Set<NodeState> conditionStates;
