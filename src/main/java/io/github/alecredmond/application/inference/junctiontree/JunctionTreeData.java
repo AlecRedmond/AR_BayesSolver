@@ -1,6 +1,6 @@
 package io.github.alecredmond.application.inference.junctiontree;
 
-import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -30,7 +30,7 @@ public class JunctionTreeData {
     return bayesianNetworkData.getObservationMap();
   }
 
-  public List<ParameterConstraint> getConstraints() {
+  public List<Constraint> getConstraints() {
     return bayesianNetworkData.getConstraints();
   }
 

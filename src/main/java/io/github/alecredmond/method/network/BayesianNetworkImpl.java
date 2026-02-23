@@ -1,11 +1,12 @@
 package io.github.alecredmond.method.network;
 
+import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.method.constraints.ConstraintBuilder;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.util.*;
@@ -14,19 +15,19 @@ import lombok.Getter;
 @Getter
 class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
-  private final NetworkDataUtils utils;
+  private final NetworkNodeUtils utils;
   private final InferenceEngine inferenceEngine;
 
   BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName(networkName);
-    this.utils = new NetworkDataUtils(networkData);
+    this.utils = new NetworkNodeUtils(networkData);
     this.inferenceEngine = new InferenceEngine(networkData);
   }
 
   BayesianNetworkImpl() {
     this.networkData = new BayesianNetworkData();
-    this.utils = new NetworkDataUtils(networkData);
+    this.utils = new NetworkNodeUtils(networkData);
     this.inferenceEngine = new InferenceEngine(networkData);
   }
 
@@ -148,20 +149,62 @@ class BayesianNetworkImpl implements BayesianNetwork {
   public <T, E> BayesianNetworkImpl addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
-    networkData
-        .getConstraints()
-        .add(
-            ConstraintBuilder.buildConstraint(
-                eventStateID, conditionStateIDs, probability, networkData));
+    NetworkConstraintUtils.addConstraint(eventStateID, conditionStateIDs, probability, networkData);
     return this;
   }
 
   public <T> BayesianNetworkImpl addConstraint(T eventStateID, double probability) {
     networkData.setSolved(false);
-    networkData
-        .getConstraints()
-        .add(ConstraintBuilder.buildConstraint(eventStateID, probability, networkData));
+    NetworkConstraintUtils.addConstraint(eventStateID, probability, networkData);
     return this;
+  }
+
+  @Override
+  public BayesianNetwork addConstraint(Constraint constraint) {
+    networkData.setSolved(false);
+    NetworkConstraintUtils.addConstraint(constraint, networkData);
+    return this;
+  }
+
+  @Override
+  public BayesianNetwork addConstraints(Collection<Constraint> constraints) {
+    networkData.setSolved(false);
+    NetworkConstraintUtils.addConstraints(constraints, networkData);
+    return this;
+  }
+
+  @Override
+  public <T> MarginalConstraint getConstraint(T eventStateId) {
+    return NetworkConstraintUtils.getConstraint(eventStateId, networkData);
+  }
+
+  @Override
+  public <T, E> Constraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
+    return NetworkConstraintUtils.getConstraint(eventStateId, conditionStateIds, networkData);
+  }
+
+  @Override
+  public boolean removeConstraint(Constraint constraint) {
+    networkData.setSolved(false);
+    return NetworkConstraintUtils.removeConstraint(constraint, networkData);
+  }
+
+  @Override
+  public <T> boolean removeConstraint(T eventStateId) {
+    networkData.setSolved(false);
+    return NetworkConstraintUtils.removeConstraint(eventStateId, networkData);
+  }
+
+  @Override
+  public <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds) {
+    networkData.setSolved(false);
+    return NetworkConstraintUtils.removeConstraint(eventStateId, conditionStateIds, networkData);
+  }
+
+  @Override
+  public boolean removeAllConstraints() {
+    networkData.setSolved(false);
+    return NetworkConstraintUtils.removeAllConstraints(networkData);
   }
 
   public BayesianNetworkImpl solveNetwork() {

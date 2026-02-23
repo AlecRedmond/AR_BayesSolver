@@ -2,7 +2,7 @@ package io.github.alecredmond.method.network;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -303,11 +303,11 @@ public interface BayesianNetwork {
    * decomposing the graph into cliques, potentially increasing the time complexity from its base of
    * {@code O(2^Max(Parents/Node))} up to a maximum of {@code O(2^Nodes)}.
    *
-   * @param parameterConstraint a constraint object such as {@link MarginalConstraint} or {@link
+   * @param constraint a constraint object such as {@link MarginalConstraint} or {@link
    *     ConditionalConstraint}
    * @return this instance for chaining
    */
-  BayesianNetwork addConstraint(ParameterConstraint parameterConstraint);
+  BayesianNetwork addConstraint(Constraint constraint);
 
   /**
    * Adds a collection probability constraints to the network.
@@ -316,22 +316,61 @@ public interface BayesianNetwork {
    *     {@link ConditionalConstraint}
    * @return this instance for chaining
    */
-  BayesianNetwork addConstraints(Collection<ParameterConstraint> constraints);
+  BayesianNetwork addConstraints(Collection<Constraint> constraints);
 
-  // TODO - JAVADOC
+  /**
+   * Searches the network for a marginal constraint with an event NodeState matching the given ID.
+   *
+   * @param eventStateId the id of the NodeState of a marginal constraint
+   * @param <T> the class of the event state ID
+   * @return the associated MarginalConstraint, or null if it does not exist
+   */
   <T> MarginalConstraint getConstraint(T eventStateId);
 
-  // TODO - JAVADOC
-  <T, E> ConditionalConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
+  /**
+   * Searches the network for a conditional or marginal constraint with event and condition
+   * NodeStates matching the given IDs.
+   *
+   * @param eventStateId the id of the NodeState of a marginal constraint
+   * @param <T> the class of the event state ID
+   * @return the associated constraint, or null if it does not exist
+   */
+  <T, E> Constraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
 
-  // TODO - JAVADOC
-  boolean removeConstraint(ParameterConstraint parameterConstraint);
+  /**
+   * Removes a constraint from the network.
+   *
+   * @param constraint the constraint to remove
+   * @return true if the constraint existed in the network
+   */
+  boolean removeConstraint(Constraint constraint);
 
-  // TODO - JAVADOC
+  /**
+   * Removes a marginal constraint from the network.
+   *
+   * @param eventStateId the id of the event NodeState in the constraint
+   * @param <T> the class of the event NodeState's id.
+   * @return true if the constraint existed in the network
+   */
   <T> boolean removeConstraint(T eventStateId);
 
-  // TODO - JAVADOC
+  /**
+   * Removes a constraint from the network.
+   *
+   * @param eventStateId the id of the event NodeState in the constraint
+   * @param <T> the class of the event NodeState's id.
+   * @param conditionStateIds the collected ids of all condition NodeStates in the constraint
+   * @param <E> the class of the condition NodeState ids
+   * @return true if the constraint existed in the network
+   */
   <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds);
+
+  /**
+   * Removes all constraints defined on the network.
+   *
+   * @return true if any constraints existed in the network
+   */
+  boolean removeAllConstraints();
 
   /**
    * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other

@@ -6,7 +6,7 @@ import java.util.HashSet;
 import lombok.Getter;
 
 @Getter
-public class MarginalConstraint extends ParameterConstraint {
+public class MarginalConstraint extends Constraint {
   private final NodeState eventState;
   private final Node eventNode;
 

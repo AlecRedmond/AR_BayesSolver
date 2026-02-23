@@ -2,8 +2,12 @@ package io.github.alecredmond.method.network;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.alecredmond.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
@@ -16,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
 
-  boolean debugSolveLengthyTests = false; // Set to false when performing a maven build
+  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
   boolean debugPrintSamplesToConsole = false;
   BayesianNetwork net;
 
@@ -347,12 +351,22 @@ class BayesianNetworkTest {
 
   @Nested
   class ConstraintTests {
+    NodeState aT;
+    NodeState aF;
+    NodeState bT;
+    NodeState bF;
 
     @BeforeEach
     void buildNetwork() {
-      net.addNode("A", List.of("A_T", "A_F"));
-      net.addNode("B", List.of("B_T", "B_F"));
-      net.addParent("B", "A");
+      Node a = new Node("A", List.of("A_T", "A_F"));
+      Node b = new Node("B", List.of("B_T", "B_F"));
+      aT = a.getNodeStates().getFirst();
+      aF = a.getNodeStates().getLast();
+      bT = b.getNodeStates().getFirst();
+      bF = b.getNodeStates().getLast();
+      net.addNode(a);
+      net.addNode(b);
+      net.addParent(b, a);
     }
 
     @Test
@@ -416,6 +430,61 @@ class BayesianNetworkTest {
     void addConstraint_nonLocalConstraint_shouldSucceed() {
       assertDoesNotThrow(() -> net.addConstraint("A_T", List.of("B_T"), 0.6));
       assertDoesNotThrow(() -> net.solveNetwork());
+    }
+
+    @Test
+    void addConstraint_manuallyBuilt_shouldSucceed() {
+      buildTestConstraints()
+          .forEach(
+              constraint -> {
+                assertDoesNotThrow(() -> net.addConstraint(constraint));
+                assertDoesNotThrow(() -> net.solveNetwork());
+              });
+    }
+
+    List<Constraint> buildTestConstraints() {
+      List<Constraint> constraints = new ArrayList<>();
+      constraints.add(new ConditionalConstraint(aT, List.of(bT), 0.6));
+      constraints.add(new MarginalConstraint(aF, 0.4));
+      constraints.add(new ConditionalConstraint(bF, List.of(aF), 0.3));
+      return constraints;
+    }
+
+    @Test
+    void addConstraints_manuallyBuilt_shouldSucceed() {
+      assertDoesNotThrow(() -> net.addConstraints(buildTestConstraints()));
+      assertDoesNotThrow(() -> net.solveNetwork());
+    }
+
+    @Test
+    void getConstraints_validConstraints_shouldSucceed() {
+      List<Constraint> constraints = buildTestConstraints();
+      net.addConstraints(constraints);
+      constraints.stream()
+          .filter(MarginalConstraint.class::isInstance)
+          .map(MarginalConstraint.class::cast)
+          .forEach(
+              marginalConstraint -> {
+                Object eventStateId = marginalConstraint.getEventState().getId();
+                assertNotNull(net.getConstraint(eventStateId));
+                assertNotNull(net.getConstraint(eventStateId, List.of()));
+                assertEquals(marginalConstraint, net.getConstraint(eventStateId));
+              });
+
+      constraints.stream()
+          .filter(ConditionalConstraint.class::isInstance)
+          .map(ConditionalConstraint.class::cast)
+          .forEach(
+              conditionalConstraint -> {
+                Object eventStateId = conditionalConstraint.getEventState().getId();
+                List<Object> conditionStateIDs =
+                    conditionalConstraint.getConditionStates().stream()
+                        .map(NodeState::getId)
+                        .toList();
+                assertNotNull(net.getConstraint(eventStateId, conditionStateIDs));
+                assertEquals(
+                    conditionalConstraint, net.getConstraint(eventStateId, conditionStateIDs));
+              });
     }
   }
 

@@ -2,7 +2,7 @@ package io.github.alecredmond.method.constraints;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.constraints.Constraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
@@ -16,7 +16,7 @@ public class ConstraintBuilder {
 
   private ConstraintBuilder() {}
 
-  public static <T, E> ParameterConstraint buildConstraint(
+  public static <T, E> Constraint buildConstraint(
       T eventStateID,
       Collection<E> conditionStateIDs,
       double probability,

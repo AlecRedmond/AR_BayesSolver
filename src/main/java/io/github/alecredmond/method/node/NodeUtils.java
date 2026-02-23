@@ -51,6 +51,20 @@ public class NodeUtils {
     listConsumer.accept(list);
   }
 
+  public static String formatToString(Collection<NodeState> stateCollection) {
+    int index = 0;
+    int lastIndex = stateCollection.size() - 1;
+    StringBuilder sb = new StringBuilder();
+    for (NodeState state : stateCollection) {
+      sb.append(state.toString());
+      if (index != lastIndex) {
+        sb.append(", ");
+      }
+      index++;
+    }
+    return sb.toString();
+  }
+
   public static <T> NodeState addNodeState(Node node, T stateID) {
     NodeState state = new NodeState(stateID, node);
     addToList(node.getNodeStates(), state, node::setNodeStates);
