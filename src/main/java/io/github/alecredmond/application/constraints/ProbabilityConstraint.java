@@ -7,9 +7,11 @@ import java.util.Collection;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Getter
-public abstract class ParameterConstraint {
+@ToString
+public abstract class ProbabilityConstraint {
   protected final Set<NodeState> eventStates;
   protected final Set<NodeState> conditionStates;
   protected final Set<NodeState> allStates;
@@ -18,7 +20,7 @@ public abstract class ParameterConstraint {
   protected final Set<Node> conditionNodes;
   protected final Set<Node> allNodes;
 
-  protected ParameterConstraint(
+  protected ProbabilityConstraint(
       @NonNull NodeState eventState, Collection<NodeState> conditionStates, double probability) {
     this.eventStates = Set.of(eventState);
     this.conditionStates = Set.copyOf(conditionStates);

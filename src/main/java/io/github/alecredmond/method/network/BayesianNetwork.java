@@ -1,15 +1,19 @@
 package io.github.alecredmond.method.network;
 
+import io.github.alecredmond.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An interface that provides a toolset for building, solving, and providing direct inference on a
@@ -174,6 +178,16 @@ public interface BayesianNetwork {
   <E> NodeState getNodeState(E nodeStateID);
 
   /**
+   * Returns a set of NodeStates from their input IDs
+   *
+   * @param <E> class of the Node State IDs
+   * @param nodeStateIDs the Node State IDs
+   * @throws IllegalArgumentException if the Node State IDs are not mapped to a Node State value
+   * @return a set of Node State objects associated with their IDs
+   */
+  <E> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
+
+  /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
    *
    * @param child the child node.
@@ -269,8 +283,8 @@ public interface BayesianNetwork {
    * @param probability the conditional probability value.
    * @param <T> the class of the event state ID
    * @param <E> the class of the condition state IDs
-   * @throws ConstraintBuilderException <br>
-   *     - if a state is not found within the data <br>
+   * @throws IllegalArgumentException if a state is not found within the data
+   * @throws ConstraintValidationException <br>
    *     - if attempting to make a state conditional on another state from the same node <br>
    *     - if probability p is outwith 0 <= p <= 1
    * @return this instance for method chaining.
@@ -286,12 +300,101 @@ public interface BayesianNetwork {
    * @param eventStateID the state of the root node.
    * @param probability the prior probability value.
    * @param <T> the class of the event state ID
-   * @throws ConstraintBuilderException <br>
+   * @throws IllegalArgumentException if the state is not found within the data.
+   * @throws ConstraintValidationException <br>
    *     - if probability p is outwith 0 <= p <= 1 <br>
    *     - if the state is not found within the data.
    * @return this instance for method chaining.
    */
   <T> BayesianNetwork addConstraint(T eventStateID, double probability);
+
+  /**
+   * Adds a probability constraint to the network This constraint doesn't have to be within the
+   * scope of the network's structure, but each conditional constraint will add another virtual
+   * "edge" to the graph during the solving process. This may prevent the Junction Tree solver from
+   * decomposing the graph into cliques, potentially increasing the time complexity from its base of
+   * {@code O(2^Max(Parents/Node))} up to a maximum of {@code O(2^Nodes)}.
+   *
+   * @param probabilityConstraint a ProbabilityConstraint object such as {@link MarginalConstraint}
+   *     or {@link ConditionalConstraint}
+   * @throws ConstraintValidationException <br>
+   *     - if probability p is outwith 0 <= p <= 1 <br>
+   *     - if attempting to make a state conditional on another state from the same node <br>
+   *     - if attempting to add a MarginalConstraint with non-empty conditions
+   * @return this instance for chaining
+   */
+  BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint);
+
+  /**
+   * Adds a collection probability constraints to the network.
+   *
+   * @param probabilityConstraints a collection of ProbabilityConstraint objects such as {@link
+   *     MarginalConstraint} or {@link ConditionalConstraint}
+   * @throws ConstraintValidationException <br>
+   *     - if probability p is outwith 0 <= p <= 1 <br>
+   *     - if attempting to make a state conditional on another state from the same node <br>
+   *     - if attempting to add a MarginalConstraint with non-empty conditions
+   * @return this instance for chaining
+   */
+  BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints);
+
+  /**
+   * Searches the network for a marginal constraint with an event NodeState matching the given ID.
+   *
+   * @param eventStateId the id of the NodeState of a marginal constraint
+   * @param <T> the class of the event state ID
+   * @throws IllegalArgumentException if the state is not found within the data.
+   * @return the associated MarginalConstraint, or null if it does not exist
+   */
+  <T> MarginalConstraint getConstraint(T eventStateId);
+
+  /**
+   * Searches the network for a conditional or marginal constraint with event and condition
+   * NodeStates matching the given IDs.
+   *
+   * @param eventStateId the id of the NodeState of a marginal constraint
+   * @param <T> the class of the event state ID
+   * @throws IllegalArgumentException if the states are not found within the data.
+   * @return the associated constraint, or null if it does not exist
+   */
+  <T, E> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
+
+  /**
+   * Removes a constraint from the network.
+   *
+   * @param probabilityConstraint the constraint to remove
+   * @return true if the constraint existed in the network
+   */
+  boolean removeConstraint(ProbabilityConstraint probabilityConstraint);
+
+  /**
+   * Removes a marginal constraint from the network.
+   *
+   * @param eventStateId the id of the event NodeState in the constraint
+   * @param <T> the class of the event NodeState's id.
+   * @throws IllegalArgumentException if the state is not found within the data.
+   * @return true if the constraint existed in the network
+   */
+  <T> boolean removeConstraint(T eventStateId);
+
+  /**
+   * Removes a constraint from the network.
+   *
+   * @param eventStateId the id of the event NodeState in the constraint
+   * @param <T> the class of the event NodeState's id.
+   * @param conditionStateIds the collected ids of all condition NodeStates in the constraint
+   * @param <E> the class of the condition NodeState ids
+   * @throws IllegalArgumentException if the states are not found within the data.
+   * @return true if the constraint existed in the network
+   */
+  <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds);
+
+  /**
+   * Removes all constraints defined on the network.
+   *
+   * @return true if any constraints existed in the network
+   */
+  boolean removeAllConstraints();
 
   /**
    * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other

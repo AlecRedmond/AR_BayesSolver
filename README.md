@@ -78,7 +78,7 @@ Constraints are built using the node state IDs. A key feature is that **constrai
 For this demo, we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
 
 ```Java
-// Marginal Constraint
+// Marginal constraint
 network.addConstraint("RAIN:TRUE", 0.2)
 // Conditional Constraints
        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)

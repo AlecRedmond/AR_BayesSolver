@@ -8,7 +8,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.*;
 import java.util.function.Function;
@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class NetworkDataUtils {
+class NetworkNodeUtils {
   public final BayesianNetworkData networkData;
 
-  NetworkDataUtils(BayesianNetworkData networkData) {
+  NetworkNodeUtils(BayesianNetworkData networkData) {
     this.networkData = networkData;
   }
 
@@ -120,7 +120,7 @@ class NetworkDataUtils {
     if (objectSet.size() == dupesCheckList.size()) {
       return;
     }
-    throw new ConstraintBuilderException(
+    throw new ConstraintValidationException(
         String.format("Duplicate state IDs found when building node %s", nodeID.toString()));
   }
 
