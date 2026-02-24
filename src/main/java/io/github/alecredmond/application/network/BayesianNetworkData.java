@@ -1,6 +1,6 @@
 package io.github.alecredmond.application.network;
 
-import io.github.alecredmond.application.constraints.ParameterConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
@@ -19,7 +19,7 @@ public class BayesianNetworkData {
   private Map<Node, ProbabilityTable> networkTablesMap;
   private Map<Node, MarginalTable> observationMap;
   private Map<Node, NodeState> observed;
-  private List<ParameterConstraint> constraints;
+  private List<ProbabilityConstraint> constraints;
   private boolean solved;
 
   public BayesianNetworkData() {

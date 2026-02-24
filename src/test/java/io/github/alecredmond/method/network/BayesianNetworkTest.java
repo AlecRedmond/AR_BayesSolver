@@ -2,13 +2,17 @@ package io.github.alecredmond.method.network;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.alecredmond.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.application.constraints.MarginalConstraint;
+import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
+import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -53,7 +57,7 @@ class BayesianNetworkTest {
       assertNotNull(net.getNode("A"));
       assertEquals(1, data.getNodeIDsMap().size());
 
-      net.addNode(Node.build("B", List.of("B+", "B-")));
+      net.addNode(new Node("B", List.of("B+", "B-")));
       assertNotNull(net.getNode("B"));
       assertEquals(2, data.getNodeIDsMap().size());
     }
@@ -62,7 +66,7 @@ class BayesianNetworkTest {
     void addNode_duplicateID_shouldThrowException() {
       net.addNode("A");
       assertThrows(IllegalArgumentException.class, () -> net.addNode("A"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNode(Node.build("A")));
+      assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
     }
 
     @Test
@@ -346,13 +350,23 @@ class BayesianNetworkTest {
   }
 
   @Nested
-  class ConstraintTests {
+  class ProbabilityConstraintTests {
+    NodeState aT;
+    NodeState aF;
+    NodeState bT;
+    NodeState bF;
 
     @BeforeEach
     void buildNetwork() {
-      net.addNode("A", List.of("A_T", "A_F"));
-      net.addNode("B", List.of("B_T", "B_F"));
-      net.addParent("B", "A");
+      Node a = new Node("A", List.of("A_T", "A_F"));
+      Node b = new Node("B", List.of("B_T", "B_F"));
+      aT = a.getNodeStates().getFirst();
+      aF = a.getNodeStates().getLast();
+      bT = b.getNodeStates().getFirst();
+      bF = b.getNodeStates().getLast();
+      net.addNode(a);
+      net.addNode(b);
+      net.addParent(b, a);
     }
 
     @Test
@@ -364,13 +378,13 @@ class BayesianNetworkTest {
 
     @Test
     void addConstraint_prior_invalidProbability_shouldThrowException() {
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", 1.5));
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("A_T", -0.5));
+      assertThrows(ConstraintValidationException.class, () -> net.addConstraint("A_T", 1.5));
+      assertThrows(ConstraintValidationException.class, () -> net.addConstraint("A_T", -0.5));
     }
 
     @Test
     void addConstraint_prior_forNonExistentState_shouldThrowException() {
-      assertThrows(ConstraintBuilderException.class, () -> net.addConstraint("Z_T", 0.5));
+      assertThrows(IllegalArgumentException.class, () -> net.addConstraint("Z_T", 0.5));
     }
 
     @Test
@@ -383,21 +397,21 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_conditional_invalidProbability_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
+          ConstraintValidationException.class, () -> net.addConstraint("B_T", List.of("A_T"), 1.5));
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
+          ConstraintValidationException.class, () -> net.addConstraint("B_T", List.of("A_T"), -0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentEventState_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
+          IllegalArgumentException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentConditionState_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
+          IllegalArgumentException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
     }
 
     @Test
@@ -408,7 +422,7 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_invalidConstraintBuilder_shouldThrowException() {
       assertThrows(
-          ConstraintBuilderException.class,
+          ConstraintValidationException.class,
           () -> net.addConstraint("B_T", List.of("A_T", "B_F"), 0.5));
     }
 
@@ -416,6 +430,61 @@ class BayesianNetworkTest {
     void addConstraint_nonLocalConstraint_shouldSucceed() {
       assertDoesNotThrow(() -> net.addConstraint("A_T", List.of("B_T"), 0.6));
       assertDoesNotThrow(() -> net.solveNetwork());
+    }
+
+    @Test
+    void addConstraint_manuallyBuilt_shouldSucceed() {
+      buildTestConstraints()
+          .forEach(
+              constraint -> {
+                assertDoesNotThrow(() -> net.addConstraint(constraint));
+                assertDoesNotThrow(() -> net.solveNetwork());
+              });
+    }
+
+    List<ProbabilityConstraint> buildTestConstraints() {
+      List<ProbabilityConstraint> probabilityConstraints = new ArrayList<>();
+      probabilityConstraints.add(new ConditionalConstraint(aT, List.of(bT), 0.6));
+      probabilityConstraints.add(new MarginalConstraint(aF, 0.4));
+      probabilityConstraints.add(new ConditionalConstraint(bF, List.of(aF), 0.3));
+      return probabilityConstraints;
+    }
+
+    @Test
+    void addConstraints_manuallyBuilt_shouldSucceed() {
+      assertDoesNotThrow(() -> net.addConstraints(buildTestConstraints()));
+      assertDoesNotThrow(() -> net.solveNetwork());
+    }
+
+    @Test
+    void getConstraints_validConstraints_shouldSucceed() {
+      List<ProbabilityConstraint> probabilityConstraints = buildTestConstraints();
+      net.addConstraints(probabilityConstraints);
+      probabilityConstraints.stream()
+          .filter(MarginalConstraint.class::isInstance)
+          .map(MarginalConstraint.class::cast)
+          .forEach(
+              marginalConstraint -> {
+                Object eventStateId = marginalConstraint.getEventState().getId();
+                assertNotNull(net.getConstraint(eventStateId));
+                assertNotNull(net.getConstraint(eventStateId, List.of()));
+                assertEquals(marginalConstraint, net.getConstraint(eventStateId));
+              });
+
+      probabilityConstraints.stream()
+          .filter(ConditionalConstraint.class::isInstance)
+          .map(ConditionalConstraint.class::cast)
+          .forEach(
+              conditionalConstraint -> {
+                Object eventStateId = conditionalConstraint.getEventState().getId();
+                List<Object> conditionStateIDs =
+                    conditionalConstraint.getConditionStates().stream()
+                        .map(NodeState::getId)
+                        .toList();
+                assertNotNull(net.getConstraint(eventStateId, conditionStateIDs));
+                assertEquals(
+                    conditionalConstraint, net.getConstraint(eventStateId, conditionStateIDs));
+              });
     }
   }
 

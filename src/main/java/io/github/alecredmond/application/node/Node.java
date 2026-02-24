@@ -1,46 +1,53 @@
 package io.github.alecredmond.application.node;
 
 import io.github.alecredmond.method.node.NodeUtils;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public interface Node {
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Node {
+  @EqualsAndHashCode.Include private final Object id;
+  private List<NodeState> nodeStates;
+  private List<Node> parents;
+  private List<Node> children;
 
-  static <T, E> Node build(T nodeID, Collection<E> stateIDs) {
-    return new NodeDefault(nodeID, stateIDs);
+  public <T, E> Node(T id, Collection<E> stateIDs) {
+    this.id = id;
+    this.parents = new ArrayList<>();
+    this.children = new ArrayList<>();
+    this.nodeStates = new ArrayList<>();
+    stateIDs.forEach(this::addState);
   }
 
-  static <T> Node build(T nodeID) {
-    return new NodeDefault(nodeID);
-  }
-
-  default <T> NodeState addState(T stateID) {
+  public <T> NodeState addState(T stateID) {
     return NodeUtils.addNodeState(this, stateID);
   }
 
-  default void addParent(Node parent) {
+  public <T> Node(T id) {
+    this.id = id;
+    this.parents = new ArrayList<>();
+    this.children = new ArrayList<>();
+    this.nodeStates = new ArrayList<>();
+  }
+
+  public void addParent(Node parent) {
     NodeUtils.addParent(this, parent);
   }
 
-  <T> T getId();
-
-  default void removeParent(Node parent) {
+  public void removeParent(Node parent) {
     NodeUtils.removeParent(this, parent);
   }
 
-  List<Node> getParents();
-
-  void setParents(List<Node> parents);
-
-  List<Node> getChildren();
-
-  void setChildren(List<Node> children);
-
-  default <E> void removeState(E stateID) {
+  public <E> void removeState(E stateID) {
     NodeUtils.removeState(this, stateID);
   }
 
-  List<NodeState> getNodeStates();
-
-  void setNodeStates(List<NodeState> states);
+  @Override
+  public String toString() {
+    return id.toString();
+  }
 }

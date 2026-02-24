@@ -15,11 +15,10 @@ AR_BayesSolver is a library that enables easy Bayesian Network construction and 
 # Features
 
 - Simple API for constructing Bayesian Network structures.
-- Definition of marginal and conditional probability constraints.
-- Support for constraints that are independent of the network's parent/child structure.
-- CPT estimation from a partially-constrained network using JTA/IPFP algorithm.
+- Allows full CPT imputation or CPT estimation from a partially-constrained network.
+- Support for probability constraints that are independent of the network's parent/child structure.
 - Perform direct probabilistic inference to query for marginal and joint probabilities.
-- Generate random samples using a Weighted Likelihood sampling algorithm.
+- Generate random samples, with or without fixed evidence.
 
 # Installation
 
@@ -79,7 +78,7 @@ Constraints are built using the node state IDs. A key feature is that **constrai
 For this demo, we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
 
 ```Java
-// Marginal Constraint
+// Marginal constraint
 network.addConstraint("RAIN:TRUE", 0.2)
 // Conditional Constraints
        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)

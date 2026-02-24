@@ -8,7 +8,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintBuilderException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import java.util.*;
 import java.util.function.Function;
@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class NetworkDataUtils {
+class NetworkNodeUtils {
   public final BayesianNetworkData networkData;
 
-  NetworkDataUtils(BayesianNetworkData networkData) {
+  NetworkNodeUtils(BayesianNetworkData networkData) {
     this.networkData = networkData;
   }
 
@@ -83,7 +83,7 @@ class NetworkDataUtils {
 
   <T> void addNode(T nodeID) {
     checkForExistingIDs(List.of(nodeID));
-    networkData.getNodeIDsMap().put(nodeID, Node.build(nodeID));
+    networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
     networkData.setSolved(false);
   }
 
@@ -109,7 +109,7 @@ class NetworkDataUtils {
     checkNoDuplicateStateIDs(nodeID, dupesCheckList);
     dupesCheckList.add(nodeID);
     checkForExistingIDs(dupesCheckList);
-    Node newNode = Node.build(nodeID, nodeStateIDs);
+    Node newNode = new Node(nodeID, nodeStateIDs);
     networkData.getNodeIDsMap().put(nodeID, newNode);
     addStatesToMap(newNode);
     networkData.setSolved(false);
@@ -120,7 +120,7 @@ class NetworkDataUtils {
     if (objectSet.size() == dupesCheckList.size()) {
       return;
     }
-    throw new ConstraintBuilderException(
+    throw new ConstraintValidationException(
         String.format("Duplicate state IDs found when building node %s", nodeID.toString()));
   }
 
