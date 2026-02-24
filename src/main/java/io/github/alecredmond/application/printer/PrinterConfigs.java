@@ -17,6 +17,7 @@ public class PrinterConfigs {
   private String observedFileTitle;
   private String networkFileTitle;
   private boolean openFileOnCreation;
+  private boolean openFolderOnCreation;
   private int probDecimalPlaces;
   private int probabilityCharLength;
   private String probabilityFormatter;
@@ -25,6 +26,7 @@ public class PrinterConfigs {
     PropertiesLoader loader = new PropertiesLoader();
     setSaveDirectory(loader.loadDirectory("app.printer.saveDirectory"));
     setOpenFileOnCreation(loader.loadBoolean("app.printer.openFileOnCreation"));
+    setOpenFolderOnCreation(loader.loadBoolean("app.printer.openFolderOnCreation"));
     setPrintToConsole(loader.loadBoolean("app.printer.printToConsole"));
     setProbDecimalPlaces(loader.loadInt("app.printer.probDecimalPlaces"));
     setPrintToTextFile(loader.loadBoolean("app.printer.printToTextFile"));
