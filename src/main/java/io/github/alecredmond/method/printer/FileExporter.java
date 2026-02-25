@@ -85,7 +85,8 @@ public class FileExporter {
 
   private String createBaseFilePath(String networkName, String fileSuffix) {
     return "%s%s-%s_%s"
-        .formatted(configs.getSaveDirectory(), generateDateTimeString(), networkName, fileSuffix);
+        .formatted(configs.getSaveDirectory(), generateDateTimeString(), networkName, fileSuffix)
+        .replace(' ', '_');
   }
 
   private String addSuffix(String filePathBase, int counter) {
