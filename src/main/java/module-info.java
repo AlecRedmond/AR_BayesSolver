@@ -13,9 +13,8 @@ module BayesSolver {
   exports io.github.alecredmond.application.printer;
   exports io.github.alecredmond.application.probabilitytables;
   exports io.github.alecredmond.exceptions;
-  exports io.github.alecredmond.method.network;
   exports io.github.alecredmond.application.probabilitytables.probabilityvector;
   exports io.github.alecredmond.method.probabilitytables;
   exports io.github.alecredmond.method.probabilitytables.probabilityvector;
-
+  exports io.github.alecredmond.method.network.export;
 }
