@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class NetworkNodeUtils {
+class NetworkDataUtils {
   public final BayesianNetworkData networkData;
 
-  NetworkNodeUtils(BayesianNetworkData networkData) {
+  NetworkDataUtils(BayesianNetworkData networkData) {
     this.networkData = networkData;
   }
 

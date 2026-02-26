@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond.method.network.export;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.constraints.MarginalConstraint;
@@ -11,6 +11,8 @@ import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.method.network.BayesianNetworkImpl;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;

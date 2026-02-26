@@ -9,27 +9,28 @@ import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.method.inference.InferenceEngine;
+import io.github.alecredmond.method.network.export.BayesianNetwork;
 import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
-class BayesianNetworkImpl implements BayesianNetwork {
+public class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
-  private final NetworkNodeUtils utils;
+  private final NetworkDataUtils utils;
   private final InferenceEngine inferenceEngine;
 
-  BayesianNetworkImpl(String networkName) {
+  public BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
     networkData.setNetworkName(networkName);
-    this.utils = new NetworkNodeUtils(networkData);
+    this.utils = new NetworkDataUtils(networkData);
     this.inferenceEngine = new InferenceEngine(networkData);
   }
 
-  BayesianNetworkImpl() {
+  public BayesianNetworkImpl() {
     this.networkData = new BayesianNetworkData();
-    this.utils = new NetworkNodeUtils(networkData);
+    this.utils = new NetworkDataUtils(networkData);
     this.inferenceEngine = new InferenceEngine(networkData);
   }
 
@@ -186,7 +187,8 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   @Override
-  public <T, E> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
+  public <T, E> ProbabilityConstraint getConstraint(
+      T eventStateId, Collection<E> conditionStateIds) {
     return NetworkConstraintUtils.getConstraint(
         getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
