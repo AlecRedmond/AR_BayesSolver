@@ -1,4 +1,4 @@
-package io.github.alecredmond.application.probabilitytables.probabilityvector;
+package io.github.alecredmond.application.probabilitytables.internal.probabilityvector;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;

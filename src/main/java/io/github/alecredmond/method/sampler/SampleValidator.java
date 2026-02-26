@@ -28,7 +28,7 @@ public class SampleValidator {
   }
 
   private void sampleCountCorrect() {
-    int totalSamples = collection.getTotalSamples();
+    int totalSamples = collection.size();
     Map<Sample, Integer> sampleMap = collection.getSampleMap();
     int sampleMapCount =
         sampleMap.isEmpty() ? 0 : sampleMap.values().stream().mapToInt(Integer::intValue).sum();
@@ -44,7 +44,7 @@ public class SampleValidator {
     Node[] nodes = collection.getNodes();
     boolean ok =
         collection.getSampleMap().keySet().stream()
-            .map(Sample::getRawSample)
+            .map(Sample::getRawSampledStates)
             .allMatch(
                 rawSample ->
                     IntStream.range(0, rawSample.length)

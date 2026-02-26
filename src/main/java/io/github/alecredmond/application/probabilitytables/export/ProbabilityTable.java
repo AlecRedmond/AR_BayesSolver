@@ -1,11 +1,10 @@
-package io.github.alecredmond.application.probabilitytables;
+package io.github.alecredmond.application.probabilitytables.export;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
-import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+
 import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +18,6 @@ public abstract class ProbabilityTable {
   protected final Set<Node> events;
   protected final Set<Node> conditions;
   @Setter protected Object tableID;
-  protected VectorCombinationKey marginalizationKey;
 
   protected <T> ProbabilityTable(
       Map<Object, NodeState> nodeStateIDMap,
@@ -36,7 +34,6 @@ public abstract class ProbabilityTable {
     this.nodes = nodes;
     this.events = events;
     this.conditions = conditions;
-    this.marginalizationKey = new VectorCombinationKeyFactory().buildMarginalisationKey(this);
   }
 
   public <T> double getProbabilityFromIDs(Collection<T> stateIDs) {

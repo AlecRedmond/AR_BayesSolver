@@ -2,8 +2,8 @@ package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.Set;
 import java.util.concurrent.atomic.DoubleAdder;

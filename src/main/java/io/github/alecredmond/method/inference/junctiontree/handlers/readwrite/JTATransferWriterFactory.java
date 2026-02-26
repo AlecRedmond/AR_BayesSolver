@@ -2,9 +2,9 @@ package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.Set;
 import java.util.stream.Collectors;

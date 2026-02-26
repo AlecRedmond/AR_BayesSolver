@@ -6,7 +6,7 @@ import static io.github.alecredmond.method.probabilitytables.TableBuilder.buildN
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
@@ -17,8 +17,20 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class NetworkDataUtils {
+public class NetworkDataUtils {
   private NetworkDataUtils() {}
+
+  public static <E> Set<Node> getNodesByID(Collection<E> nodeIDs, BayesianNetworkData networkData) {
+    if (Optional.ofNullable(nodeIDs).isEmpty()) return new HashSet<>();
+    return nodeIDs.stream().map(networkData.getNodeIDsMap()::get).collect(Collectors.toSet());
+  }
+
+  public static <T> Set<NodeState> getStatesByID(
+      Collection<T> nodeStateIDs, BayesianNetworkData networkData) {
+    return nodeStateIDs.stream()
+        .map(networkData.getNodeStateIDsMap()::get)
+        .collect(Collectors.toSet());
+  }
 
   static void buildNetworkData(BayesianNetworkData networkData) {
     Map<Node, Integer> layerMap = orderNodes(networkData);
@@ -239,18 +251,6 @@ class NetworkDataUtils {
     if (nodeDoesNotExist(nodeID, networkData)) return;
     getNodeByID(nodeID, networkData).removeState(nodeStateID);
     networkData.getNodeStateIDsMap().remove(nodeStateID);
-  }
-
-  static <E> Set<Node> getNodesByID(Collection<E> nodeIDs, BayesianNetworkData networkData) {
-    if (Optional.ofNullable(nodeIDs).isEmpty()) return new HashSet<>();
-    return nodeIDs.stream().map(networkData.getNodeIDsMap()::get).collect(Collectors.toSet());
-  }
-
-  static <T> Set<NodeState> getStatesByID(
-      Collection<T> nodeStateIDs, BayesianNetworkData networkData) {
-    return nodeStateIDs.stream()
-        .map(networkData.getNodeStateIDsMap()::get)
-        .collect(Collectors.toSet());
   }
 
   static void addParents(Node child, Collection<Node> parents) {

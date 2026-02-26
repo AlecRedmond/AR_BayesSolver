@@ -1,12 +1,13 @@
-package io.github.alecredmond.application.probabilitytables;
+package io.github.alecredmond.application.probabilitytables.export;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import lombok.Getter;
 

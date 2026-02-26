@@ -2,11 +2,12 @@ package io.github.alecredmond.method.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.ConditionalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
+import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.Collectors;
@@ -98,7 +99,8 @@ public class TableUtils {
 
   public static void marginalizeConditionalTable(ConditionalTable table) {
     ProbabilityVector vector = table.getVector();
-    VectorCombinationKey marginalizationKey = table.getMarginalizationKey();
+    VectorCombinationKey marginalizationKey =
+        new VectorCombinationKeyFactory().buildMarginalisationKey(table);
 
     int[] tumblerKey = marginalizationKey.getStateKey().clone();
     boolean[] lockConditions = marginalizationKey.getInnerLock();

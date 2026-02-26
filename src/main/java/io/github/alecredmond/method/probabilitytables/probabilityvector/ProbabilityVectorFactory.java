@@ -2,7 +2,7 @@ package io.github.alecredmond.method.probabilitytables.probabilityvector;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
 import java.util.*;
 import java.util.stream.Collectors;

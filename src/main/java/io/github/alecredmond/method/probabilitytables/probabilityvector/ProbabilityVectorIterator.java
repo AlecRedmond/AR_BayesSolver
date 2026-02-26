@@ -1,9 +1,9 @@
 package io.github.alecredmond.method.probabilitytables.probabilityvector;
 
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import java.util.*;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
