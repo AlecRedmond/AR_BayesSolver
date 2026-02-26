@@ -14,6 +14,8 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Pro
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import java.util.*;
+
+import io.github.alecredmond.method.network.export.BayesianNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -63,9 +65,9 @@ public class NetworkPrinter {
 
   private List<String> generateTableLines(ProbabilityTable table) {
     List<Set<NodeState>> eventCombinations =
-        table.getUtils().generateStateCombinations(table.getEvents());
+        TableUtils.generateStateCombinations(table.getEvents(),table);
     List<Set<NodeState>> conditionCombinations =
-        table.getUtils().generateStateCombinations(table.getConditions());
+        TableUtils.generateStateCombinations(table.getConditions(),table);
 
     List<String> eventHeaders = formatStateCombinations(eventCombinations, true);
     List<String> conditionLabels = formatStateCombinations(conditionCombinations, false);
