@@ -8,6 +8,7 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class TableFormatter {
   }
 
   private List<List<NodeState>> createCombinations(Set<Node> nodes, ProbabilityTable table) {
-    return table.getUtils().generateStateCombinations(nodes, ArrayList::new);
+    return TableUtils.generateStateCombinations(nodes, ArrayList::new, table);
   }
 
   private String joinStates(List<NodeState> states) {
