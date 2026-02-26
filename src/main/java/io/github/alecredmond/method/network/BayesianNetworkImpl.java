@@ -7,8 +7,10 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import io.github.alecredmond.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.method.inference.InferenceEngine;
+import io.github.alecredmond.method.node.NodeUtils;
 import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -186,7 +188,8 @@ class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   @Override
-  public <T, E> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds) {
+  public <T, E> ProbabilityConstraint getConstraint(
+      T eventStateId, Collection<E> conditionStateIds) {
     return NetworkConstraintUtils.getConstraint(
         getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
@@ -239,7 +242,7 @@ class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
-    inferenceEngine.observeNetwork(utils.getStatesByID(observedNodeStateIDs));
+    inferenceEngine.observeNetwork(NetworkNodeUtils.getStatesByID(observedNodeStateIDs));
     return this;
   }
 
@@ -263,28 +266,21 @@ class BayesianNetworkImpl implements BayesianNetwork {
     return networkData;
   }
 
-  public <T, E> List<List<T>> generateSamples(
-      Collection<E> excludeNodeIDs,
-      Collection<E> includeNodeIDs,
-      int numberOfSamples,
-      Class<T> sampleClass) {
-    if (!networkData.isSolved()) solveNetwork();
+  @Override
+  public SampleCollection generateSamples(int numberOfSamples) {
+    if (!networkData.isSolved()) {
+      solveNetwork();
+    }
+    return inferenceEngine.generateSamples(networkData.getObserved(), numberOfSamples);
+  }
+
+  @Override
+  public <T> SampleCollection generateSamples(int numberOfSamples, Collection<T> observedStateIDs) {
+    if (!networkData.isSolved()) {
+      solveNetwork();
+    }
     return inferenceEngine.generateSamples(
-        utils.getNodesByID(excludeNodeIDs),
-        utils.getNodesByID(includeNodeIDs),
-        numberOfSamples,
-        sampleClass);
-  }
-
-  @Override
-  public <T, E> List<List<T>> generateSamples(
-      Collection<E> includeNodeIDs, int numberOfSamples, Class<T> sampleClass) {
-    return generateSamples(List.of(), includeNodeIDs, numberOfSamples, sampleClass);
-  }
-
-  @Override
-  public <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass) {
-    return generateSamples(List.of(), List.of(), numberOfSamples, sampleClass);
+        NodeUtils.generateRequest(getNodeStates(observedStateIDs)), numberOfSamples);
   }
 
   public <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs) {

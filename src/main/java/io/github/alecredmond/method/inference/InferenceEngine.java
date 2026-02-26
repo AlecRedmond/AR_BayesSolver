@@ -3,9 +3,12 @@ package io.github.alecredmond.method.inference;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import io.github.alecredmond.method.inference.junctiontree.JTAInitializer;
 import io.github.alecredmond.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
+import io.github.alecredmond.method.sampler.LikelihoodWeightingSampler;
+import io.github.alecredmond.method.sampler.Sampler;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -22,24 +25,16 @@ public class InferenceEngine {
     this.junctionTree = null;
   }
 
-  public <T> List<List<T>> generateSamples(
-      Set<Node> excludeNodes, Set<Node> includeNodes, int numberOfSamples, Class<T> tClass) {
+  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
     if (numberOfSamples < 0) {
-      throw new IllegalArgumentException("Attempted to generate < 0 samples!");
+      throw new IllegalArgumentException("Attempted to generate a negative number of samples!");
     }
-    if (includeNodes.isEmpty()) {
-      includeNodes = new HashSet<>(networkData.getNodes());
-      includeNodes.removeAll(excludeNodes);
-    }
-
-    return getSampler(tClass)
-        .generateSamples(
-            networkData, networkData.getObserved(), excludeNodes, includeNodes, numberOfSamples);
+    return getSampler().generateSamples(observations, numberOfSamples);
   }
 
-  private <T> Sampler<T> getSampler(Class<T> tClass) {
+  private Sampler getSampler() {
     // Currently only Likelihood Weighting Sampler is used, this may change in the future
-    return new LikelihoodWeightingSampler<>(tClass);
+    return new LikelihoodWeightingSampler(networkData);
   }
 
   public double getProbabilityFromCurrentObservations(Set<NodeState> newEvidence) {

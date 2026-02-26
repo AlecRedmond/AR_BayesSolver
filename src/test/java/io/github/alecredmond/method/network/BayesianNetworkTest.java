@@ -11,6 +11,8 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.sampler.Sample;
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import java.util.*;
@@ -656,16 +658,16 @@ class BayesianNetworkTest {
     @Test
     void generateSamples_shouldReturnCorrectNumberOfSamples() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(null, null, 100, String.class);
+      SampleCollection samples = net.generateSamples(100);
       assertEquals(100, samples.size());
     }
 
     @Test
     void generateSamples_withIncludeNodes_shouldOnlyIncludeNodes() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(null, List.of("RAIN"), 10, String.class);
+      SampleCollection samples = net.generateSamples(10, List.of("RAIN"));
       assertEquals(10, samples.size());
-      for (List<String> sample : samples) {
+      for (Sample sample : samples.getDistinctSamples()) {
         assertEquals(1, sample.size());
         assertTrue(sample.getFirst().equals("RAIN:TRUE") || sample.getFirst().equals("RAIN:FALSE"));
       }
@@ -687,7 +689,7 @@ class BayesianNetworkTest {
     @Test
     void generateSamples_zeroSamples_shouldReturnEmptyList() {
       net.observeMarginals();
-      List<List<String>> samples = net.generateSamples(null, null, 0, String.class);
+      SampleCollection samples = net.generateSamples(0);
       assertNotNull(samples);
       assertTrue(samples.isEmpty());
     }
