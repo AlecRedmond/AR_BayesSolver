@@ -6,6 +6,8 @@ import io.github.alecredmond.application.probabilitytables.probabilityvector.Pro
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,6 +35,6 @@ public class JunctionTreeTable extends ProbabilityTable {
 
   @Override
   public void marginalizeTable() {
-    utils.marginalizeJointTable();
+    TableUtils.marginalizeJointTable(this);
   }
 }

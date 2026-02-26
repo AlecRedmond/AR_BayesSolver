@@ -3,6 +3,7 @@ package io.github.alecredmond.application.probabilitytables;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
@@ -27,6 +28,6 @@ public class ConditionalTable extends ProbabilityTable {
 
   @Override
   public void marginalizeTable() {
-    utils.marginalizeConditionalTable();
+    TableUtils.marginalizeConditionalTable(this);
   }
 }

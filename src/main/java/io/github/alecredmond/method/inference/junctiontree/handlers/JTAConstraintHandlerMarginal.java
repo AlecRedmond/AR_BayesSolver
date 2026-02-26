@@ -9,13 +9,11 @@ import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.ObjIntConsumer;
 
 public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
-  private final TableUtils utils;
   private final int[] positionKey;
 
   public JTAConstraintHandlerMarginal(
       JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
-    this.utils = tableHandler.getTable().getUtils();
     this.positionKey = new int[eventKey.getStateKey().length];
   }
 
@@ -27,7 +25,7 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
   @Override
   protected void calculateProbability(
       DoubleAdder eventJointProb, DoubleAdder complementJointProb, DoubleAdder conditionJointProb) {
-    eventJointProb.add(utils.sumProbabilities(eventKey));
+    eventJointProb.add(TableUtils.sumProbabilities(eventKey, tableHandler.getTable()));
     complementJointProb.add(
         Arrays.stream(tableHandler.getVector().getProbabilities()).sum() - eventJointProb.sum());
     conditionJointProb.add(1.0);
