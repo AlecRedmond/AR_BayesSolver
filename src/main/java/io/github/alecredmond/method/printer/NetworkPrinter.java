@@ -36,7 +36,7 @@ public class NetworkPrinter {
         .forEach(outputLines::addAll);
 
     if (configs.isPrintToConsole()) {
-      outputLines.forEach(System.out::println);
+      outputLines.forEach(log::info);
     }
     if (configs.isPrintToTextFile()) {
       fileExporter.exportLinesToFile(outputLines, tableType, networkData.getNetworkName());
