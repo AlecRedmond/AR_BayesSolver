@@ -1,6 +1,7 @@
 package io.github.alecredmond.method.printer;
 
 import io.github.alecredmond.application.printer.PrinterConfigs;
+import io.github.alecredmond.exceptions.NetworkPrinterException;
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,10 +25,7 @@ public class FileExporter {
 
   public void exportLinesToFile(List<String> outputLines, String fileSuffix, String networkName) {
     String filePath = determineFilePath(networkName, fileSuffix);
-    boolean successful = printWriteToFilePath(filePath, outputLines);
-    if (!successful) {
-      return;
-    }
+    printWriteToFilePath(filePath, outputLines);
     if (configs.isOpenFileOnCreation()) {
       openCreatedFile(filePath);
     }
@@ -49,19 +47,18 @@ public class FileExporter {
       }
       return filePath;
     } catch (IOException | SecurityException e) {
-      log.error("Error {} attempting to create file {}", e, filePath);
-      return "";
+      log.error("Error attempting to create file {}", filePath);
+      throw new NetworkPrinterException(e);
     }
   }
 
-  private boolean printWriteToFilePath(String filePath, List<String> outputLines) {
+  private void printWriteToFilePath(String filePath, List<String> outputLines) {
     try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
       outputLines.forEach(pw::println);
       log.info("File saved to {}", filePath);
-      return true;
     } catch (IOException | SecurityException e) {
-      log.error("Error {} attempting to write file {}", e, filePath);
-      return false;
+      log.error("Error attempting to write file {}!", filePath);
+      throw new NetworkPrinterException(e);
     }
   }
 
