@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,6 +28,11 @@ public class SampleCollection {
     this.collectionData =
         new SampleCollectionData(totalSamples, sampleMap, networkObservations, nodes);
     this.networkData = networkData;
+    getSampleMap().forEach((Sample::setCount));
+  }
+
+  public Map<Sample, Integer> getSampleMap() {
+    return collectionData.getSampleMap();
   }
 
   public Map<Node, NodeState> getNetworkObservations() {
@@ -44,25 +51,21 @@ public class SampleCollection {
     return collectionData.getTotalSamples();
   }
 
-  public List<Sample> getDistinctSamples() {
-    return getSampleMap().keySet().stream().toList();
-  }
-
-  public Map<Sample, Integer> getSampleMap() {
-    return collectionData.getSampleMap();
-  }
-
   public <T> void setExportNodesById(Collection<T> nodeIds) {
     Set<Node> nodes = NetworkDataUtils.getNodesByID(nodeIds, networkData);
-    SampleCollectionUtils.setExportSamples(this, nodes);
+    setExportNodes(nodes);
   }
 
   public void setExportNodes(Collection<Node> nodes) {
-    SampleCollectionUtils.setExportSamples(this, nodes);
+    SampleCollectionUtils.applyToSamples(this, s -> s.setExportNodes(nodes));
   }
 
   public void resetExportNodes() {
-    SampleCollectionUtils.resetExportNodes(this);
+    SampleCollectionUtils.applyToSamples(this, Sample::resetExportNodes);
+  }
+
+  public <R extends Collection<NodeState>> void setSupplier(Supplier<R> supplier) {
+    SampleCollectionUtils.applyToSamples(this, s -> s.setSampleSupplier(supplier));
   }
 
   public <T> int countSamplesWithStateIds(Collection<T> stateIds) {
@@ -70,6 +73,9 @@ public class SampleCollection {
   }
 
   public int countSamplesWithStates(Collection<NodeState> states) {
+    if (states.isEmpty()) {
+      return size();
+    }
     return SampleCollectionUtils.countSamplesIncludingStates(this, states);
   }
 
@@ -80,5 +86,14 @@ public class SampleCollection {
   public <T> Map<Sample, Integer> getSamplesIncludingStateIds(Collection<T> includedStateIds) {
     return SampleCollectionUtils.buildSampleMapIncludingStates(
         this, NetworkDataUtils.getStatesByID(includedStateIds, networkData));
+  }
+
+  @Override
+  public String toString() {
+    return getDistinctSamples().stream().map(Sample::toString).collect(Collectors.joining("\n"));
+  }
+
+  public List<Sample> getDistinctSamples() {
+    return getSampleMap().keySet().stream().toList();
   }
 }

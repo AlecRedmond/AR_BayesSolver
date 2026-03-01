@@ -1,6 +1,5 @@
 package io.github.alecredmond.method.sampler.internal;
 
-import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.method.sampler.export.Sample;
 import io.github.alecredmond.method.sampler.export.SampleCollection;
@@ -8,18 +7,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SampleCollectionUtils {
   private SampleCollectionUtils() {}
 
-  public static void setExportSamples(SampleCollection collection, Collection<Node> nodes) {
-    collection.getDistinctSamples().forEach(sample -> sample.setExportNodes(nodes));
-  }
-
-  public static void resetExportNodes(SampleCollection collection) {
-    collection.getDistinctSamples().forEach(Sample::resetExportNodes);
+  public static void applyToSamples(SampleCollection collection, Consumer<Sample> sampleConsumer) {
+    collection.getDistinctSamples().forEach(sampleConsumer);
   }
 
   public static int countSamplesIncludingStates(

@@ -8,12 +8,11 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.method.sampler.export.SampleCollection;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.method.network.BayesianNetworkImpl;
-
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.Collection;
 import java.util.Set;
 
@@ -432,6 +431,16 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
+
+  /**
+   * Sets evidence in the network by observing one node state as true. This fixes the state of
+   * certain nodes before running inference.
+   *
+   * @param observedNodeStateID the id of the state fixed as observed
+   * @param <T> the class of the NodeState ID.
+   * @return this instance for method chaining.
+   */
+  <T> BayesianNetwork observeNetwork(T observedNodeStateID);
 
   /**
    * Runs the inference algorithm to compute the posterior probabilities (marginals) of all nodes.

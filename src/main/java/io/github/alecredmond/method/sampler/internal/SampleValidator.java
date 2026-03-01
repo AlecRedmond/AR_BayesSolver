@@ -1,12 +1,9 @@
 package io.github.alecredmond.method.sampler.internal;
 
-import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.sampler.SampleData;
 import io.github.alecredmond.exceptions.SampleValidationException;
 import io.github.alecredmond.method.sampler.export.Sample;
 import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.Map;
-import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,7 +17,6 @@ public class SampleValidator {
   public SampleCollection validateSamples() {
     try {
       sampleCountCorrect();
-      sampleStatesInCorrectOrder();
       return collection;
     } catch (SampleValidationException e) {
       log.error(e.getMessage());
@@ -39,21 +35,5 @@ public class SampleValidator {
     throw new SampleValidationException(
         "Mismatch between expected total samples %d and counted samples %d"
             .formatted(totalSamples, sampleMapCount));
-  }
-
-  private void sampleStatesInCorrectOrder() {
-    Node[] nodes = collection.getNodes();
-    boolean ok =
-        collection.getSampleMap().keySet().stream()
-            .map(Sample::getSampleData)
-            .map(SampleData::getRawArray)
-            .allMatch(
-                rawSample ->
-                    IntStream.range(0, rawSample.length)
-                        .allMatch(i -> rawSample[i].getNode().equals(nodes[i])));
-    if (ok) {
-      return;
-    }
-    throw new SampleValidationException("Raw samples were found out of order!");
   }
 }

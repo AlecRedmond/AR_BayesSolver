@@ -3,6 +3,7 @@ package io.github.alecredmond.method.sampler.export;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.sampler.SampleData;
+import io.github.alecredmond.method.node.NodeUtils;
 import io.github.alecredmond.method.sampler.internal.SampleUtils;
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -25,6 +26,10 @@ public class Sample {
   public <T extends Collection<NodeState>, S extends T> T getSampleCollection(
       Supplier<S> supplier) {
     return SampleUtils.getSampleCollection(sampleData, supplier);
+  }
+
+  public Collection<NodeState> getSampleCollection() {
+    return sampleData.getStateCollection();
   }
 
   public void resetExportNodes() {
@@ -58,5 +63,16 @@ public class Sample {
 
   public NodeState[] getExportArray() {
     return sampleData.getExportArray();
+  }
+
+  @Override
+  public String toString() {
+    return "%s : %d"
+        .formatted(
+            NodeUtils.formatToString(sampleData.getStateCollection()), sampleData.getCount());
+  }
+
+  void setCount(Integer integer) {
+    sampleData.setCount(integer);
   }
 }
