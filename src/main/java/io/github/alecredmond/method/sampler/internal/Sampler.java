@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.sampler.internal;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;

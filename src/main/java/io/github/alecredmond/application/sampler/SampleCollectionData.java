@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import io.github.alecredmond.method.sampler.export.Sample;
 import lombok.Data;
 
 @Data
@@ -14,7 +16,7 @@ public class SampleCollectionData {
   private final Map<Sample, Integer> sampleMap;
   private final Map<Node, NodeState> networkObservations;
   private final Node[] nodes;
-  private Supplier<? extends Collection<NodeState>> exportSupplier;
+  private Supplier<? extends Collection<NodeState>> sampleSupplier;
 
   public SampleCollectionData(
       int totalSamples,
@@ -25,6 +27,6 @@ public class SampleCollectionData {
     this.sampleMap = sampleMap;
     this.networkObservations = networkObservations;
     this.nodes = nodes;
-    this.exportSupplier = ArrayList::new;
+    this.sampleSupplier = ArrayList::new;
   }
 }

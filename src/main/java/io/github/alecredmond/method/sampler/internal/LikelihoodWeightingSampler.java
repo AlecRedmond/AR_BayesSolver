@@ -1,10 +1,10 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.method.sampler.internal;
 
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.application.sampler.Sample;
+import io.github.alecredmond.method.sampler.export.Sample;
 import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

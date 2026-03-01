@@ -12,10 +12,10 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.sampler.Sample;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.method.network.export.BayesianNetwork;
+import io.github.alecredmond.method.sampler.export.Sample;
 import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -662,7 +662,7 @@ class BayesianNetworkTest {
 
       for (Sample sample : samples.getDistinctSamples()) {
         assertEquals(1, sample.size());
-        Object id = sample.getSampledStates()[0].getId();
+        Object id = sample.getExportArray()[0].getId();
         assertTrue(id.equals("RAIN:TRUE") || id.equals("RAIN:FALSE"));
       }
     }
@@ -673,11 +673,10 @@ class BayesianNetworkTest {
       SampleCollection samples = net.generateSamples(10);
       assertEquals(10, samples.size());
       samples.setExportNodesById(List.of("SPRINKLER", "WET_GRASS"));
-      List<List<NodeState>> sampledStates =
-          samples.getNestedSamples(ArrayList::new, ArrayList::new);
-      for (List<NodeState> sample : sampledStates) {
+      List<Sample> sampledStates = samples.getDistinctSamples();
+      for (Sample sample : sampledStates) {
         assertEquals(2, sample.size());
-        for (NodeState state : sample) {
+        for (NodeState state : sample.getExportArray()) {
           assertFalse(((String) state.getId()).startsWith("RAIN:"));
         }
       }
@@ -747,7 +746,7 @@ class BayesianNetworkTest {
 
       SampleCollection sampleCollection = net.generateSamples(numOfSamples);
       sampleCollection.setExportNodesById(List.of(includedNode));
-      int count = sampleCollection.sizeIncludingStateIds(List.of(testState));
+      int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
 
       System.out.printf(
           "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",

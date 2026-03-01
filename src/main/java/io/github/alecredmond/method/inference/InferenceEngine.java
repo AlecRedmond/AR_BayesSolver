@@ -7,10 +7,11 @@ import io.github.alecredmond.method.sampler.export.SampleCollection;
 import io.github.alecredmond.method.inference.junctiontree.JTAInitializer;
 import io.github.alecredmond.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.method.inference.junctiontree.JunctionTreeAlgorithm;
-import io.github.alecredmond.method.sampler.LikelihoodWeightingSampler;
-import io.github.alecredmond.method.sampler.Sampler;
+import io.github.alecredmond.method.sampler.internal.LikelihoodWeightingSampler;
+import io.github.alecredmond.method.sampler.internal.Sampler;
 import java.util.*;
 import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

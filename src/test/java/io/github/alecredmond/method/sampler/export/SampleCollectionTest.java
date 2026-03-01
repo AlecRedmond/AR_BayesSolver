@@ -6,64 +6,48 @@ import org.junit.jupiter.api.Test;
 
 class SampleCollectionTest {
 
+  @Test
+  void getNetworkObservations() {}
 
-    @Test
-    void getNetworkObservations() {
-      }
+  @Test
+  void getNodes() {}
 
-    @Test
-    void getNodes() {
-      }
+  @Test
+  void isEmpty() {}
 
-    @Test
-    void isEmpty() {
-      }
+  @Test
+  void size() {}
 
-    @Test
-    void size() {
-      }
+  @Test
+  void getDistinctSamples() {}
 
-    @Test
-    void getDistinctSamples() {
-      }
+  @Test
+  void getSamplesIncludingStates() {}
 
-    @Test
-    void getSampleMap() {
-      }
+  @Test
+  void setExportNodesById() {}
 
-    @Test
-    void setExportNodesById() {
-      }
+  @Test
+  void setExportNodes() {}
 
-    @Test
-    void setExportNodes() {
-      }
+  @Test
+  void resetExportNodes() {}
 
-    @Test
-    void resetExportNodes() {
-      }
+  @Test
+  void getNestedSampleIds() {}
 
-    @Test
-    void getNestedSampleIds() {
-      }
+  @Test
+  void getNestedSamples() {}
 
-    @Test
-    void getNestedSamples() {
-      }
+  @Test
+  void countSamplesWithStateIds() {}
 
-    @Test
-    void sizeIncludingStateIds() {
-      }
+  @Test
+  void countSamplesWithStates() {}
 
-    @Test
-    void sizeIncludingStates() {
-      }
+  @Test
+  void getSamplesIncludingStatesFromStates() {}
 
-    @Test
-    void samplesIncludingStates() {
-      }
-
-    @Test
-    void samplesIncludingStateIds() {
-      }
+  @Test
+  void getSamplesIncludingStatesWithIds() {}
 }
