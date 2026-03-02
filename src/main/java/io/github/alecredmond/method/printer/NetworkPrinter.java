@@ -3,9 +3,10 @@ package io.github.alecredmond.method.printer;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.printer.PrinterConfigs;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
 import java.util.*;
 import java.util.List;
+
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

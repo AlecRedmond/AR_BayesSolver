@@ -6,8 +6,8 @@ import static io.github.alecredmond.application.printer.PrinterConfigs.RIGHT_PAD
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.ArrayList;
 import java.util.List;
