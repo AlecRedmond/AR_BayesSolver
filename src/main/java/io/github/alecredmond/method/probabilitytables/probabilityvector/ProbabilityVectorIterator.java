@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 public class ProbabilityVectorIterator {
 
   public void iterateKeyCombos(
-      Collection<NodeState> request,
+      Collection<NodeState> lockedStates,
       ProbabilityTable table,
       ObjIntConsumer<int[]> iterativeConsumer) {
-    VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, request);
+    VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, lockedStates);
     iterateKeyCombos(table.getVector(), key, iterativeConsumer);
   }
 
