@@ -10,6 +10,7 @@ import io.github.alecredmond.method.probabilitytables.probabilityvector.Probabil
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -59,42 +60,33 @@ public class TableUtils {
         .forEach(i -> probabilities[i] = ratio * probabilities[i]);
   }
 
-  public static List<Set<NodeState>> generateStateCombinations(
-      Set<Node> nodes, ProbabilityTable table) {
-    return generateStateCombinations(new ArrayList<>(), nodes, table);
-  }
-
-  private static List<Set<NodeState>> generateStateCombinations(
-      Collection<NodeState> lockedStates, Set<Node> includedNodes, ProbabilityTable table) {
+  public static <T extends Collection<NodeState>, R extends T> List<T> generateStateCombinations(
+      Set<Node> includedNodes, Supplier<R> supplier, ProbabilityTable table) {
     if (includedNodes.isEmpty()) {
       return new ArrayList<>();
     }
-    List<Set<NodeState>> combos = new ArrayList<>();
-    Node[] nodes = table.getVector().getNodeArray();
-
-    List<NodeState> states = new ArrayList<>(lockedStates);
-
-    lockExcludedNodes(includedNodes, nodes, states);
+    List<T> combos = new ArrayList<>();
+    Node[] nodeArray = table.getVector().getNodeArray();
 
     ITERATOR.iterateKeyCombos(
-        states,
+        lockExcludedNodesFirstState(includedNodes, nodeArray),
         table,
         (k, index) ->
             combos.add(
                 IntStream.range(0, k.length)
-                    .mapToObj(i -> nodes[i].getNodeStates().get(k[i]))
+                    .mapToObj(i -> nodeArray[i].getNodeStates().get(k[i]))
                     .filter(state -> includedNodes.contains(state.getNode()))
-                    .collect(Collectors.toCollection(LinkedHashSet::new))));
+                    .collect(Collectors.toCollection(supplier))));
 
     return combos;
   }
 
-  private static void lockExcludedNodes(
-      Set<Node> includedNodes, Node[] nodes, List<NodeState> states) {
-    Arrays.stream(nodes)
+  private static List<NodeState> lockExcludedNodesFirstState(
+      Set<Node> includedNodes, Node[] nodes) {
+    return Arrays.stream(nodes)
         .filter(n -> !includedNodes.contains(n))
         .map(n -> n.getNodeStates().getFirst())
-        .forEach(states::add);
+        .toList();
   }
 
   public static void marginalizeConditionalTable(ConditionalTable table) {
