@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FileExporter {
-  private static final String REMOVE_PUNCTUATION = "[^\\sa-zA-Z0-9]";
-  private static final int ISO_TIME_STRING_LIMIT = 6;
   private static final String TXT_EXTENSION = ".txt";
   private final PrinterConfigs configs;
 
@@ -24,30 +22,39 @@ public class FileExporter {
   }
 
   public void exportLinesToFile(List<String> outputLines, String fileSuffix, String networkName) {
-    String filePath = determineFilePath(networkName, fileSuffix);
+    String filePath = buildFilePath(networkName, fileSuffix);
     printWriteToFilePath(filePath, outputLines);
     if (configs.isOpenFileOnCreation()) {
       openCreatedFile(filePath);
     }
     if (configs.isOpenFolderOnCreation()) {
-      openFolder();
+      openFolder(filePath);
     }
   }
 
-  private String determineFilePath(String networkName, String fileSuffix) {
-    String filePath = "";
+  private String buildFilePath(String networkName, String fileSuffix) {
+    String filePath =
+        "%s%s-%s_%s%s"
+            .formatted(
+                configs.getSaveDirectory(),
+                generateDateTimeString(),
+                networkName,
+                fileSuffix,
+                TXT_EXTENSION)
+            .replace(' ', '_');
+
     try {
-      String baseFilePath = createBaseFilePath(networkName, fileSuffix);
-      int i = 0;
-      boolean fileCreated = false;
-      while (!fileCreated) {
-        filePath = addSuffix(baseFilePath, i);
-        fileCreated = new File(filePath).createNewFile();
-        i++;
+      File file = new File(filePath);
+      File directory = file.getParentFile();
+      if (directory.mkdir()) {
+        log.info("Directory {} created", directory.getPath());
       }
-      return filePath;
+      if (file.createNewFile()) {
+        return filePath;
+      }
+      return "";
     } catch (IOException | SecurityException e) {
-      log.error("Error attempting to create file {}", filePath);
+      log.error("Error attempting to create file {}!", filePath);
       throw new NetworkPrinterException(e);
     }
   }
@@ -72,32 +79,15 @@ public class FileExporter {
     }
   }
 
-  private void openFolder() {
+  private void openFolder(String filePath) {
     try {
-      Desktop.getDesktop().open(new File(configs.getSaveDirectory()));
+      Desktop.getDesktop().open(new File(filePath).getParentFile());
     } catch (IOException e) {
       log.error("Could not open the save directory folder!");
     }
   }
 
-  private String createBaseFilePath(String networkName, String fileSuffix) {
-    return "%s%s-%s_%s"
-        .formatted(configs.getSaveDirectory(), generateDateTimeString(), networkName, fileSuffix)
-        .replace(' ', '_');
-  }
-
-  private String addSuffix(String filePathBase, int counter) {
-    String suffix = counter == 0 ? "" : "_%d".formatted(counter);
-    return "%s%s%s".formatted(filePathBase, suffix, TXT_EXTENSION);
-  }
-
   private String generateDateTimeString() {
-    LocalDateTime now = LocalDateTime.now();
-    String date = now.format(DateTimeFormatter.BASIC_ISO_DATE);
-    String time =
-        now.format(DateTimeFormatter.ISO_LOCAL_TIME)
-            .replaceAll(REMOVE_PUNCTUATION, "")
-            .substring(0, ISO_TIME_STRING_LIMIT);
-    return date + "-" + time;
+    return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MMdd/HHmmssSSS"));
   }
 }
