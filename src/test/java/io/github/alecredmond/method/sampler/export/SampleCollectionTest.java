@@ -11,73 +11,111 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final int NUMBER_OF_SAMPLES = 100_000;
-  static final String OBSERVED_STATE_ID = "WET_GRASS:TRUE";
-  static BayesianNetwork network;
-  static SampleCollection test;
-  static NodeState observedState;
+  static boolean debugSolveLengthyTests = false;
+  static List<SamplePackage> packages;
+
+  public static Stream<Arguments> provideSamplePackages() {
+    return packages.stream().map(Arguments::of);
+  }
 
   @BeforeAll
   static void init() {
-    network = NetworkScenarios.RAIN_NETWORK.get().solveNetwork().observeNetwork(OBSERVED_STATE_ID);
-    test = network.generateSamples(NUMBER_OF_SAMPLES);
-    observedState = network.getNodeState(OBSERVED_STATE_ID);
+    packages = new ArrayList<>();
+    packages.add(
+        new SamplePackage(
+            NetworkScenarios.RAIN_NETWORK.get(),
+            100_000,
+            Set.of("WET_GRASS:TRUE"),
+            Set.of("SPRINKLER"),
+            Set.of("RAIN:TRUE")));
+    packages.add(
+        new SamplePackage(
+            NetworkScenarios.AH_NETWORK.get(),
+            100_000,
+            Set.of("H+"),
+            Set.of("C", "E"),
+            Set.of("F+")));
+    if (!debugSolveLengthyTests) return;
+    packages.add(
+        new SamplePackage(
+            NetworkScenarios.FANTASY_GRAPH.get(),
+            1_000_000,
+            Set.of("DISTRICT:OTHER"),
+            Set.of("RACE", "WEALTH"),
+            Set.of("OUTLOOK:REVOLUTIONARY")));
   }
 
-  @Test
-  void getNetworkObservations() {
-    Map<Node, NodeState> observed = Map.of(observedState.getNode(), observedState);
-    assertEquals(observed, test.getNetworkObservations());
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void getNetworkObservations(SamplePackage samplePackage) {
+    Map<Node, NodeState> observed =
+        samplePackage.getObservedStates().stream()
+            .map(ns -> Map.entry(ns.getNode(), ns))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    assertEquals(observed, samplePackage.getTest().getNetworkObservations());
   }
 
-  @Test
-  void getNodes() {
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void getNodes(SamplePackage samplePackage) {
+    BayesianNetwork network = samplePackage.getNetwork();
+    SampleCollection test = samplePackage.getTest();
     Node[] nodes = network.getNetworkData().getNodes().toArray(new Node[0]);
     Node[] testNodes = test.getNodes();
     IntStream.range(0, nodes.length).forEach(i -> assertEquals(nodes[i], testNodes[i]));
   }
 
-  @Test
-  void isEmpty() {
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void isEmpty(SamplePackage samplePackage) {
+    SampleCollection test = samplePackage.getTest();
     assertFalse(test.isEmpty());
   }
 
-  @Test
-  void size() {
-    assertEquals(NUMBER_OF_SAMPLES, test.size());
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void size(SamplePackage samplePackage) {
+    int numberOfSamples = samplePackage.getNumberOfSamples();
+    SampleCollection test = samplePackage.getTest();
+    assertEquals(numberOfSamples, test.size());
   }
 
-  @Test
-  void getDistinctSamples() {
-    System.out.println(test.toString());
-    assertEquals(4, test.getDistinctSamples().size());
-  }
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void setExportNodesById(SamplePackage samplePackage) {
+    SampleCollection test = samplePackage.getTest();
 
-  @Test
-  void setExportNodesById() {
-    Set<String> includeId = Set.of("SPRINKLER");
+    Set<String> includeId = samplePackage.getExportNodeIds();
+
     test.setExportNodesById(includeId);
+
     Set<Node> excluded =
-        Stream.of("RAIN", "WET_GRASS").map(network::getNode).collect(Collectors.toSet());
+        Arrays.stream(test.getNodes())
+            .filter(n -> !samplePackage.getExportNodes().contains(n))
+            .collect(Collectors.toSet());
+
     test.getDistinctSamples()
         .forEach(
-            sample -> {
-              Arrays.stream(sample.getExportArray())
-                  .map(NodeState::getNode)
-                  .forEach(
-                      node -> {
-                        assertTrue(includeId.contains((String) node.getId()));
-                        assertFalse(excluded.contains(node));
-                      });
-            });
+            sample ->
+                Arrays.stream(sample.getExportArray())
+                    .map(NodeState::getNode)
+                    .forEach(
+                        node -> {
+                          assertTrue(includeId.contains((String) node.getId()));
+                          assertFalse(excluded.contains(node));
+                        }));
     test.resetExportNodes();
   }
 
-  @Test
-  void setSupplier() {
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void setSupplier(SamplePackage samplePackage) {
+    SampleCollection test = samplePackage.getTest();
     test.setSupplier(HashSet::new);
     test.getDistinctSamples()
         .forEach(sample -> assertInstanceOf(HashSet.class, sample.getSampleCollection()));
@@ -86,14 +124,22 @@ class SampleCollectionTest {
         .forEach(sample -> assertInstanceOf(ArrayList.class, sample.getSampleCollection()));
   }
 
-  @Test
-  void countSamplesWithStateIds() {
-    String id = "SPRINKLER:TRUE";
-    double probOfObserved = network.getProbabilityFromCurrentObservations(List.of(id));
-    double delta = Math.sqrt(NUMBER_OF_SAMPLES) * 3;
-    double lowerBound = probOfObserved * NUMBER_OF_SAMPLES - delta;
-    double upperBound = probOfObserved * NUMBER_OF_SAMPLES + delta;
-    int counted = test.countSamplesWithStateIds(List.of(id));
+  @ParameterizedTest
+  @MethodSource("provideSamplePackages")
+  void countSamplesWithStateIds(SamplePackage samplePackage) {
+    BayesianNetwork network = samplePackage.getNetwork();
+    network.printObserved();
+    SampleCollection test = samplePackage.getTest();
+    Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
+    int numberOfSamples = samplePackage.getNumberOfSamples();
+    double probOfObserved = network.getProbabilityFromCurrentObservations(measuredStateIds);
+    double delta = Math.sqrt(numberOfSamples) * 3;
+    double lowerBound = probOfObserved * numberOfSamples - delta;
+    double upperBound = probOfObserved * numberOfSamples + delta;
+    int counted = test.countSamplesWithStateIds(measuredStateIds);
+    System.out.printf(
+        "EXPECTED LOWER : %d%nEXPECTED UPPER: %d%nACTUAL: %d",
+        (int) lowerBound, (int) upperBound, counted);
     assertTrue(counted >= lowerBound);
     assertTrue(counted <= upperBound);
   }

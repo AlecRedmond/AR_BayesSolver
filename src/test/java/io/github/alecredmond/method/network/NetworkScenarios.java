@@ -241,6 +241,11 @@ public class NetworkScenarios {
   }
 
   private static Supplier<BayesianNetwork> buildAhNetwork() {
+    // A   B   C
+    //  \ / \ /
+    //   D   E
+    //  / \ / \
+    // F   G   H
     return () ->
         BayesianNetwork.newNetwork("A_TO_H")
             .addNode("A", List.of("A+", "A-"))
@@ -256,17 +261,32 @@ public class NetworkScenarios {
             .addParents("F", List.of("D"))
             .addParents("G", List.of("D", "E"))
             .addParents("H", List.of("E"))
-            .addConstraint("D+", List.of("A+"), 0.33)
-            .addConstraint("D-", List.of("B+"), 0.57)
-            .addConstraint("E+", List.of("B+"), 0.61)
-            .addConstraint("E-", List.of("C+"), 0.37)
-            .addConstraint("F+", List.of("D+"), 0.26)
-            .addConstraint("F-", List.of("D-"), 0.92)
-            .addConstraint("G+", List.of("D+"), 0.87)
-            .addConstraint("G-", List.of("E+"), 0.50)
-            .addConstraint("H+", List.of("E+"), 0.43)
-            .addConstraint("H-", List.of("E-"), 0.18)
-            .addConstraint("A+", List.of("H+"), 0.25);
+
+            // MARGINAL CONSTRAINTS
+            .addConstraint("A+", 0.50)
+            .addConstraint("B+", 0.60)
+            .addConstraint("C-", 0.30)
+
+            // LOCAL CONSTRAINTS (Standard CPT mappings)
+            .addConstraint("D+", List.of("A+", "B+"), 0.85)
+            .addConstraint("D-", List.of("A-", "B-"), 0.90)
+            .addConstraint("F+", List.of("D+"), 0.80)
+            .addConstraint("G+", List.of("D+", "E+"), 0.95)
+            .addConstraint("H-", List.of("E-"), 0.75)
+
+            // PARTIALLY-LOCAL CONSTRAINTS
+            .addConstraint("E+", List.of("B+"), 0.65)
+            .addConstraint("E-", List.of("C-"), 0.55)
+
+            // NON-LOCAL CONSTRAINTS
+            .addConstraint("A+", List.of("F+"), 0.70)
+            .addConstraint("B+", List.of("G+"), 0.75)
+
+            // NON-LOCAL CONSTRAINTS (Explaining Away / V-Structure)
+            .addConstraint("A+", List.of("D+", "B+"), 0.40)
+
+            // NON-LOCAL CONSTRAINTS (Cross-Branch)
+            .addConstraint("F+", List.of("H+"), 0.60);
   }
 
   private static Supplier<BayesianNetwork> buildRainNetwork() {

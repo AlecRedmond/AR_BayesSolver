@@ -126,6 +126,16 @@ public interface BayesianNetwork {
    */
   <T> Node getNode(T nodeID);
 
+    /**
+     * Returns a set of nodes from their input ID
+     *
+     * @param <T> class of the Node ID
+     * @param nodeIDs the node IDs
+     * @throws IllegalArgumentException if the node IDs are not mapped to a node value
+     * @return the Node object associated with the ID
+     */
+  <T> Set<Node> getNodes(Collection<T> nodeIDs);
+
   /**
    * Adds a collection of states to an existing node.
    *

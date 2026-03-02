@@ -81,6 +81,11 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     throw new IllegalArgumentException("No node with ID " + nodeID + " found in network");
   }
 
+  @Override
+  public <T> Set<Node> getNodes(Collection<T> nodeIDs) {
+    return nodeIDs.stream().map(this::getNode).collect(Collectors.toSet());
+  }
+
   public <T, E> BayesianNetworkImpl addNodeStates(T nodeID, Collection<E> nodeStateIDs) {
     networkData.setSolved(false);
     NetworkDataUtils.addNodeStates(nodeID, nodeStateIDs, networkData);

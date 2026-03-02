@@ -28,7 +28,7 @@ public class SampleCollection {
     this.collectionData =
         new SampleCollectionData(totalSamples, sampleMap, networkObservations, nodes);
     this.networkData = networkData;
-    getSampleMap().forEach((Sample::setCount));
+    getSampleMap().forEach(Sample::setCount);
   }
 
   public Map<Sample, Integer> getSampleMap() {

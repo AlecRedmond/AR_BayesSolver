@@ -763,6 +763,11 @@ class BayesianNetworkTest {
     void testNetworkAH_NonLocalConstraints() {
       assertDoesNotThrow(
           () -> net = AH_NETWORK.get().solveNetwork().observeMarginals().printObserved());
+
+      int numOfSamples = 100_000;
+      String testState = "B+";
+      String includedNode = "B";
+      generateSamples(net,numOfSamples,includedNode,testState);
     }
 
     @Test
