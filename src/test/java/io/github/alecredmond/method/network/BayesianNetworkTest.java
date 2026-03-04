@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
-
-  boolean debugSolveLengthyTests = true; // Set to false when performing a maven build
+  static final int NUMBER_OF_SAMPLES = 100_000;
+  static final int STANDARD_DEVIATIONS = 3;
+  // Set to false when performing a maven build
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
   BayesianNetwork net;
 
   @BeforeEach
@@ -723,28 +725,25 @@ class BayesianNetworkTest {
 
       net.observeMarginals();
 
-      int numOfSamples = 100_000;
-
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
 
-      generateSamples(net, numOfSamples, includedNode, testState);
+      generateSamples(net, includedNode, testState);
 
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
       System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
-      generateSamples(net, numOfSamples, includedNode, testState);
+      generateSamples(net, includedNode, testState);
     }
 
-    private void generateSamples(
-        BayesianNetwork network, int numOfSamples, String includedNode, String testState) {
+    private void generateSamples(BayesianNetwork network, String includedNode, String testState) {
 
       double observedProb = network.getProbabilityFromCurrentObservations(List.of(testState));
-      double expected = observedProb * numOfSamples;
-      double delta = Math.sqrt(numOfSamples) * 3; // 3 standard deviations
-      long lowerBound = Math.max(0, (long) (expected - delta));
-      long upperBound = (long) (expected + delta);
+      double expected = observedProb * NUMBER_OF_SAMPLES;
+      double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * STANDARD_DEVIATIONS;
+      long lowerBound = Math.max(0, (long) (expected - expectedDelta));
+      long upperBound = (long) (expected + expectedDelta);
 
-      SampleCollection sampleCollection = net.generateSamples(numOfSamples);
+      SampleCollection sampleCollection = net.generateSamples(NUMBER_OF_SAMPLES);
       sampleCollection.setExportNodesById(List.of(includedNode));
       int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
 
@@ -762,17 +761,23 @@ class BayesianNetworkTest {
     @Test
     void testNetworkAH_NonLocalConstraints() {
       assertDoesNotThrow(
-          () -> net = AH_NETWORK.get().solveNetwork().observeMarginals().printObserved());
+          () ->
+              net =
+                  AH_NETWORK
+                      .get()
+                      .solveNetwork()
+                      .observeMarginals()
+                      .printNetwork()
+                      .printObserved());
 
-      int numOfSamples = 100_000;
       String testState = "B+";
       String includedNode = "B";
-      generateSamples(net,numOfSamples,includedNode,testState);
+      generateSamples(net, includedNode, testState);
     }
 
     @Test
     void testFantasyGraph_ComplexNetwork() {
-      if (!debugSolveLengthyTests) return;
+      if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
       net = FANTASY_GRAPH.get();
 
       assertDoesNotThrow(() -> net.solveNetwork().observeMarginals().printObserved());
@@ -782,11 +787,10 @@ class BayesianNetworkTest {
       net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT")).printObserved();
       net.printNetwork();
 
-      int numOfSamples = 100_000;
       String testState = "VOTE:CPK";
       String includedNode = "VOTE";
 
-      generateSamples(net, numOfSamples, includedNode, testState);
+      generateSamples(net, includedNode, testState);
     }
   }
 }

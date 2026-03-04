@@ -85,7 +85,7 @@ public class JTASolver {
     }
 
     Clique distributeFrom = cliqueArray[cycle % cliqueArray.length];
-    jta.distributeAndCollectMessages(distributeFrom);
+    jta.collectAndDistributeMessages(distributeFrom);
 
     return error;
   }
