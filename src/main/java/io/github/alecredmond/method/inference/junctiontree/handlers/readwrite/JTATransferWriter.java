@@ -26,9 +26,8 @@ public class JTATransferWriter {
     readThread.start();
     writeThread.start();
     try {
-      while (readThread.isAlive() || writeThread.isAlive()) {
-        wait(1);
-      }
+      readThread.join();
+      writeThread.join();
     } catch (InterruptedException e) {
       readThread.interrupt();
       writeThread.interrupt();

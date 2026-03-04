@@ -5,6 +5,7 @@ import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
@@ -50,6 +51,10 @@ public class TableUtils {
     request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
     throw new IllegalArgumentException(
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
+  }
+
+  public static void setToUnity(JunctionTreeTable table) {
+    Arrays.fill(table.getVector().getProbabilities(), 1.0);
   }
 
   public static void marginalizeJointTable(ProbabilityTable table) {

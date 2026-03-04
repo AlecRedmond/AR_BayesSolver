@@ -14,7 +14,7 @@ public class Clique {
   @EqualsAndHashCode.Include private final Set<Node> nodes;
   private final JunctionTreeTable table;
   private JTATableHandler handler;
-  private Map<Clique, JTATransferWriter> separatorMap;
+  private Map<Clique, Separator> separatorMap;
   private List<JTATransferWriter> initializeFrom;
   private List<JTATransferWriter> networkWriters;
   private List<JTATransferWriter> observedWriters;
@@ -27,10 +27,6 @@ public class Clique {
     this.initializeFrom = new ArrayList<>();
     this.networkWriters = new ArrayList<>();
     this.observedWriters = new ArrayList<>();
-  }
-
-  public JTATransferWriter getSeparator(Clique clique) {
-    return separatorMap.get(clique);
   }
 
   @Override

@@ -2,11 +2,10 @@ package io.github.alecredmond.method.inference.junctiontree;
 
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -28,7 +27,7 @@ public class JunctionTreeAlgorithm {
     if (data.getNodes().isEmpty()) return;
     Clique bestClique = cliqueWithLargestOverlap(observed);
     setEvidence(observed);
-    distributeAndCollectMessages(bestClique, new HashSet<>());
+    collectAndDistributeMessages(bestClique);
   }
 
   public void marginalizeTables() {
@@ -42,8 +41,8 @@ public class JunctionTreeAlgorithm {
   }
 
   public double getProbabilityOfEvidence() {
-    JunctionTreeTable smallestTable = data.getJunctionTreeTables().getFirst();
-    double[] probabilityArray = smallestTable.getVector().getProbabilities();
+    Clique bestClique = cliqueWithLargestOverlap(data.getObserved());
+    double[] probabilityArray = bestClique.getTable().getVector().getProbabilities();
     return Arrays.stream(probabilityArray).sum();
   }
 
@@ -73,27 +72,35 @@ public class JunctionTreeAlgorithm {
     }
   }
 
-  void distributeAndCollectMessages(Clique clique) {
-    distributeAndCollectMessages(clique, new HashSet<>());
+  void collectAndDistributeMessages(Clique clique) {
+    Set<Clique> visited = new HashSet<>();
+    collectEvidence(clique, visited);
+    visited.clear();
+    distributeEvidence(clique, visited);
   }
 
-  private void distributeAndCollectMessages(Clique currentClique, Set<Clique> cliqueChain) {
-    cliqueChain.add(currentClique);
-
-    getNextSeparators(currentClique, cliqueChain)
+  private void collectEvidence(Clique currentClique, Set<Clique> visited) {
+    visited.add(currentClique);
+    getNextSeparators(currentClique, visited)
         .forEach(
             (nextClique, separator) -> {
-              JTATransferWriter backSeparator = nextClique.getSeparator(currentClique);
-              separator.run();
-              distributeAndCollectMessages(nextClique, cliqueChain);
-              backSeparator.run();
+              separator.reset();
+              collectEvidence(nextClique, visited);
+              separator.run(nextClique);
             });
-
-    cliqueChain.remove(currentClique);
   }
 
-  private Map<Clique, JTATransferWriter> getNextSeparators(
-      Clique currentClique, Set<Clique> cliqueChain) {
+  private void distributeEvidence(Clique currentClique, Set<Clique> visited) {
+    visited.add(currentClique);
+    getNextSeparators(currentClique, visited)
+        .forEach(
+            (nextClique, separator) -> {
+              separator.run(currentClique);
+              distributeEvidence(nextClique, visited);
+            });
+  }
+
+  private Map<Clique, Separator> getNextSeparators(Clique currentClique, Set<Clique> cliqueChain) {
     return currentClique.getSeparatorMap().entrySet().stream()
         .filter(entry -> !cliqueChain.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

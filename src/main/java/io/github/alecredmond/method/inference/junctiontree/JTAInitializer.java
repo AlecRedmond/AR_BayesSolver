@@ -7,16 +7,16 @@ import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriterFactory;
+import io.github.alecredmond.method.inference.junctiontree.separators.CliqueJoiner;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,18 +26,10 @@ public class JTAInitializer {
 
   public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
+    junctionTreeData.setInferenceConfiguration(false);
     buildCommon(junctionTreeData, bayesianNetworkData, true);
     buildConstraintHandlers(junctionTreeData, bayesianNetworkData);
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
-    return junctionTreeData;
-  }
-
-  public static JunctionTreeData buildInferenceConfiguration(
-      BayesianNetworkData bayesianNetworkData) {
-    JunctionTreeData junctionTreeData = new JunctionTreeData();
-    buildCommon(junctionTreeData, bayesianNetworkData, false);
-    junctionTreeData.setConstraintHandlers(new ArrayList<>());
-    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
     return junctionTreeData;
   }
 
@@ -47,7 +39,6 @@ public class JTAInitializer {
       boolean writeBackToCPTs) {
     junctionTreeData.setBayesianNetworkData(bayesianNetworkData);
     JTACliqueBuilder.buildCliques(junctionTreeData, bayesianNetworkData);
-    setJunctionTreeTablesList(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData, writeBackToCPTs);
   }
@@ -60,22 +51,8 @@ public class JTAInitializer {
     jtd.setConstraintHandlers(list);
   }
 
-  private static void setJunctionTreeTablesList(JunctionTreeData jtd) {
-    jtd.setJunctionTreeTables(
-        Arrays.stream(jtd.getCliques())
-            .map(Clique::getTable)
-            .sorted(Comparator.comparing(table -> table.getNodes().size()))
-            .toList());
-  }
-
   private static void buildInternalMessagePassers(JunctionTreeData jtd) {
-    Set<Clique> cliques =
-        Arrays.stream(jtd.getCliques()).collect(Collectors.toCollection(HashSet::new));
-    Clique smallest =
-        cliques.stream().min(Comparator.comparing(c -> c.getNodes().size())).orElseThrow();
-    cliques.remove(smallest);
-    Set<Clique> joined = new HashSet<>(Set.of(smallest));
-    recursivelyJoinCliques(smallest, cliques, joined, new JTATransferWriterFactory());
+    CliqueJoiner.join(jtd);
   }
 
   private static void buildExternalMessagePassers(
@@ -114,13 +91,6 @@ public class JTAInitializer {
     }
   }
 
-  private static Clique getContainsScope(Clique[] cliques, Set<Node> nodesInScope) {
-    return Arrays.stream(cliques)
-        .filter(c -> c.getNodes().containsAll(nodesInScope))
-        .min(Comparator.comparing(clique -> clique.getNodes().size()))
-        .orElseThrow();
-  }
-
   private static JTAConstraintHandler buildConstraintHandler(
       ProbabilityConstraint constraint, JunctionTreeData jtd) {
     JTATableHandler jtaTableHandler =
@@ -134,42 +104,20 @@ public class JTAInitializer {
     throw new IllegalStateException("Unexpected value: " + constraint);
   }
 
-  private static void recursivelyJoinCliques(
-      Clique current, Set<Clique> available, Set<Clique> joined, JTATransferWriterFactory factory) {
-
-    List<Clique> orderedCandidates =
-        available.stream()
-            .map(clique -> commonNodes(clique, current))
-            .filter(connectionSize -> connectionSize.getValue() > 0)
-            .sorted(Map.Entry.<Clique, Integer>comparingByValue().reversed())
-            .map(Map.Entry::getKey)
-            .toList();
-
-    if (orderedCandidates.isEmpty()) {
-      available.remove(current);
-      return;
-    }
-
-    orderedCandidates.forEach(
-        nextClique -> {
-          if (joined.contains(nextClique)) {
-            return;
-          }
-          current
-              .getSeparatorMap()
-              .put(nextClique, factory.buildMessagePassWriter(current, nextClique));
-          nextClique
-              .getSeparatorMap()
-              .put(current, factory.buildMessagePassWriter(nextClique, current));
-          available.remove(nextClique);
-          joined.add(nextClique);
-          recursivelyJoinCliques(nextClique, available, joined, factory);
-        });
+  private static Clique getContainsScope(Clique[] cliques, Set<Node> nodesInScope) {
+    return Arrays.stream(cliques)
+        .filter(c -> c.getNodes().containsAll(nodesInScope))
+        .min(Comparator.comparing(clique -> clique.getNodes().size()))
+        .orElseThrow();
   }
 
-  private static Map.Entry<Clique, Integer> commonNodes(Clique clique, Clique current) {
-    Set<Node> cliqueNodes = new HashSet<>(clique.getNodes());
-    cliqueNodes.retainAll(current.getNodes());
-    return Map.entry(clique, cliqueNodes.size());
+  public static JunctionTreeData buildInferenceConfiguration(
+      BayesianNetworkData bayesianNetworkData) {
+    JunctionTreeData junctionTreeData = new JunctionTreeData();
+    junctionTreeData.setInferenceConfiguration(true);
+    buildCommon(junctionTreeData, bayesianNetworkData, false);
+    junctionTreeData.setConstraintHandlers(new ArrayList<>());
+    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+    return junctionTreeData;
   }
 }

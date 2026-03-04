@@ -15,7 +15,6 @@ import lombok.Setter;
 @Getter
 public class JunctionTreeTable extends ProbabilityTable {
   private final ProbabilityVector backupVector;
-  private final Map<ProbabilityTable, Integer[]> indexPointerMap;
   private final Set<NodeState> observedStates;
   @Setter boolean observed;
 
@@ -24,12 +23,10 @@ public class JunctionTreeTable extends ProbabilityTable {
       ProbabilityVector vector,
       Set<Node> events,
       ProbabilityVector backupVector,
-      Map<ProbabilityTable, Integer[]> indexPointerMap,
       Map<Object, NodeState> nodeStateIDMap,
       Map<Object, Node> nodeIDMap) {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
-    this.indexPointerMap = indexPointerMap;
     observedStates = new HashSet<>();
     observed = false;
   }

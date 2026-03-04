@@ -1,9 +1,9 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers.readwrite;
 
-import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.Set;
@@ -13,9 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JTATransferWriterFactory {
 
-  public JTATransferWriter buildMessagePassWriter(Clique read, Clique write) {
-    ProbabilityTable readTable = read.getTable();
-    ProbabilityTable writeTable = write.getTable();
+  public JTATransferWriter buildMessagePassWriter(
+      JunctionTreeTable readTable, JunctionTreeTable writeTable) {
     Set<Node> sharedNodes = findSharedNodes(readTable.getNodes(), writeTable.getNodes());
 
     VectorCombinationKeyFactory keyFactory = new VectorCombinationKeyFactory();

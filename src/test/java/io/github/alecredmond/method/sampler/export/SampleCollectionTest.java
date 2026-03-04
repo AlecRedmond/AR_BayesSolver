@@ -16,7 +16,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static boolean debugSolveLengthyTests = false;
+  static boolean debugSolveLengthyTests = true;
   static List<SamplePackage> packages;
 
   public static Stream<Arguments> provideSamplePackages() {
