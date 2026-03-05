@@ -21,8 +21,10 @@ public abstract class Sampler {
     if (weights.isEmpty()) {
       throw new IllegalArgumentException("nextRandom received an empty weights map!");
     }
+
     double totalWeight = weights.values().stream().mapToDouble(Number::doubleValue).sum();
     double randomValue = RANDOM.nextDouble() * totalWeight;
+
     for (Map.Entry<R, E> entry : weights.entrySet()) {
       randomValue -= entry.getValue().doubleValue();
       if (randomValue <= 0.0) return entry.getKey();

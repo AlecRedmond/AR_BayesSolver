@@ -32,6 +32,18 @@ public class TableUtils {
     return vector.getProbabilities()[index];
   }
 
+  public static double sumProbabilities(Collection<NodeState> request, ProbabilityTable table) {
+    List<NodeState> matchedRequest = matchRequestToTable(request, table);
+    VectorCombinationKey comboKey =
+        new VectorCombinationKeyFactory().buildKey(table, matchedRequest);
+    return sumProbabilities(comboKey, table);
+  }
+
+  private static List<NodeState> matchRequestToTable(
+      Collection<NodeState> request, ProbabilityTable table) {
+    return request.stream().filter(state -> table.getNodes().contains(state.getNode())).toList();
+  }
+
   public static double sumProbabilities(VectorCombinationKey comboKey, ProbabilityTable table) {
     ProbabilityVector vector = table.getVector();
     double[] probability = vector.getProbabilities();
@@ -53,8 +65,8 @@ public class TableUtils {
         String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
   }
 
-  public static void setToUnity(JunctionTreeTable table) {
-    Arrays.fill(table.getVector().getProbabilities(), 1.0);
+  public static double sumAll(JunctionTreeTable junctionTreeTable) {
+    return Arrays.stream(junctionTreeTable.getVector().getProbabilities()).sum();
   }
 
   public static void marginalizeJointTable(ProbabilityTable table) {

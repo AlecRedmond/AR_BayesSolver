@@ -17,13 +17,16 @@ public class SamplePackage {
   private final Set<Node> exportNodes;
   private final Set<String> measuredStateIds;
   private final Set<NodeState> measuredStates;
+  private final boolean printMarginals;
 
   public SamplePackage(
       BayesianNetwork network,
       int numberOfSamples,
       Set<String> observedStateIds,
       Set<String> exportNodeIds,
-      Set<String> measuredStateIds) {
+      Set<String> measuredStateIds,
+      boolean printMarginals) {
+    this.printMarginals = printMarginals;
     this.test = network.observeNetwork(observedStateIds).generateSamples(numberOfSamples);
     this.network = network;
     this.numberOfSamples = numberOfSamples;

@@ -7,6 +7,8 @@ import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,8 +35,8 @@ public class JTASolver {
     long endTime = now + configs.getTimeLimitSeconds();
     long nextLogTime = now + configs.getLogIntervalSeconds();
 
-    Clique[] cliques = jta.getData().getCliques();
-    List<JTAConstraintHandler> constraintHandlers = jta.getData().getConstraintHandlers();
+    Map<Clique, List<JTAConstraintHandler>> constraintMap =
+        jta.getData().getConstraintHandlersMap();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -42,7 +44,7 @@ public class JTASolver {
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, cycle, cliques, constraintHandlers);
+      error = runSolverCycleAndReturnError(jta, constraintMap);
       converge = Math.abs(error - lastError);
 
       now = Instant.now().getEpochSecond();
@@ -64,6 +66,7 @@ public class JTASolver {
       logCycleComplete(cycle, converge, error);
     }
 
+    jta.collectAndDistributeMessages(jta.getData().getCliques()[0]);
     jta.writeTablesToNetwork();
   }
 
@@ -75,19 +78,17 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta,
-      int cycle,
-      Clique[] cliqueArray,
-      List<JTAConstraintHandler> constraintHandlers) {
-    double error = 0.0;
-    for (JTAConstraintHandler handler : constraintHandlers) {
-      error += handler.adjustAndReturnError();
-    }
+      JunctionTreeAlgorithm jta, Map<Clique, List<JTAConstraintHandler>> constraintHandlers) {
 
-    Clique distributeFrom = cliqueArray[cycle % cliqueArray.length];
-    jta.collectAndDistributeMessages(distributeFrom);
+    DoubleAdder error = new DoubleAdder();
 
-    return error;
+    constraintHandlers.forEach(
+        (clique, handlers) -> {
+          jta.collectAndDistributeMessages(clique);
+          handlers.forEach(h -> error.add(h.adjustAndReturnError()));
+        });
+
+    return error.sum();
   }
 
   private static void logCycleComplete(int cycle, double loss, double error) {

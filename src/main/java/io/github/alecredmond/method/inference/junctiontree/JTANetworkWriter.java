@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class JTANetworkWriter {
 
-  private JTANetworkWriter() {}
+    private JTANetworkWriter() {}
 
   static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
     for (Clique clique : data.getCliques()) {

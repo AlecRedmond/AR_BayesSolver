@@ -6,15 +6,35 @@ import io.github.alecredmond.application.inference.junctiontree.JunctionTreeData
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.method.utils.PropertiesLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class JTACliqueBuilder {
+  private static final String USE_JTA_PROPERTY = "app.inference.useJunctionTree";
 
   private JTACliqueBuilder() {}
 
-  static void buildCliques(JunctionTreeData jtd, BayesianNetworkData bnd) {
+  static void buildCliques(JunctionTreeData jtd) {
+    boolean useJta = new PropertiesLoader().loadBoolean(USE_JTA_PROPERTY);
+    if (useJta) {
+      buildJtaCliques(jtd);
+    } else {
+      buildIPFPClique(jtd);
+    }
+  }
+
+  private static void buildIPFPClique(JunctionTreeData jtd) {
+    BayesianNetworkData bnd = jtd.getBayesianNetworkData();
+    Clique[] cliques = new Clique[1];
+    Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
+    cliques[0] = new Clique(linkedNodes, TableBuilder.buildJunctionTreeTable(linkedNodes, bnd));
+    jtd.setCliques(cliques);
+  }
+
+  private static void buildJtaCliques(JunctionTreeData jtd) {
+    BayesianNetworkData bnd = jtd.getBayesianNetworkData();
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
     triangulateGraph(edgeGraph, bnd);
@@ -23,11 +43,7 @@ class JTACliqueBuilder {
 
     Clique[] cliques =
         maximalCliques.stream()
-            .map(
-                nodes ->
-                    new Clique(
-                        nodes,
-                        TableBuilder.buildJunctionTreeTable(nodes, jtd.getBayesianNetworkData())))
+            .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes, bnd)))
             .toArray(Clique[]::new);
 
     jtd.setCliques(cliques);

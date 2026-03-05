@@ -16,7 +16,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static boolean debugSolveLengthyTests = true;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
+  static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
   public static Stream<Arguments> provideSamplePackages() {
@@ -29,25 +30,28 @@ class SampleCollectionTest {
     packages.add(
         new SamplePackage(
             NetworkScenarios.RAIN_NETWORK.get(),
-            100_000,
+            NUMBER_OF_SAMPLES,
             Set.of("WET_GRASS:TRUE"),
             Set.of("SPRINKLER"),
-            Set.of("RAIN:TRUE")));
+            Set.of("RAIN:TRUE"),
+            false));
     packages.add(
         new SamplePackage(
             NetworkScenarios.AH_NETWORK.get(),
-            100_000,
+            NUMBER_OF_SAMPLES,
             Set.of("H+"),
             Set.of("C", "E"),
-            Set.of("F+")));
-    if (!debugSolveLengthyTests) return;
+            Set.of("F+"),
+            true));
+    if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.FANTASY_GRAPH.get(),
-            1_000_000,
+            NUMBER_OF_SAMPLES,
             Set.of("DISTRICT:OTHER"),
             Set.of("RACE", "WEALTH"),
-            Set.of("OUTLOOK:REVOLUTIONARY")));
+            Set.of("OUTLOOK:REVOLUTIONARY"),
+            true));
   }
 
   @ParameterizedTest
@@ -128,7 +132,10 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
-    network.printObserved();
+    if (samplePackage.isPrintMarginals()) {
+      network.printObserved();
+      network.printNetwork();
+    }
     SampleCollection test = samplePackage.getTest();
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();
