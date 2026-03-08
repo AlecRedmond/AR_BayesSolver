@@ -261,32 +261,33 @@ public class NetworkScenarios {
             .addParents("F", List.of("D"))
             .addParents("G", List.of("D", "E"))
             .addParents("H", List.of("E"))
-
-            // MARGINAL CONSTRAINTS
-            .addConstraint("A+", 0.50)
-            .addConstraint("B+", 0.60)
-            .addConstraint("C-", 0.30)
-
-            // LOCAL CONSTRAINTS (Standard CPT mappings)
-            .addConstraint("D+", List.of("A+", "B+"), 0.85)
-            .addConstraint("D-", List.of("A-", "B-"), 0.90)
-            .addConstraint("F+", List.of("D+"), 0.80)
-            .addConstraint("G+", List.of("D+", "E+"), 0.95)
-            .addConstraint("H-", List.of("E-"), 0.75)
-
-            // PARTIALLY-LOCAL CONSTRAINTS
-            .addConstraint("E+", List.of("B+"), 0.65)
-            .addConstraint("E-", List.of("C-"), 0.55)
-
-            // NON-LOCAL CONSTRAINTS
-            .addConstraint("A+", List.of("F+"), 0.70)
-            .addConstraint("B+", List.of("G+"), 0.75)
-
-            // NON-LOCAL CONSTRAINTS (Explaining Away / V-Structure)
-            .addConstraint("A+", List.of("D+", "B+"), 0.40)
-
-            // NON-LOCAL CONSTRAINTS (Cross-Branch)
-            .addConstraint("F+", List.of("H+"), 0.60);
+            // A
+            .addConstraint("A+", 0.80)
+            // B
+            .addConstraint("B+", 0.40)
+            // C
+            .addConstraint("C-", 0.55)
+            // D
+            .addConstraint("D+", List.of("A+", "B+"), 0.90)
+            .addConstraint("D+", List.of("A+", "B-"), 0.00)
+            .addConstraint("D+", List.of("A-", "B+"), 0.20)
+            .addConstraint("D+", List.of("A-", "B-"), 0.00)
+            // E
+            .addConstraint("E+", List.of("B+", "C+"), 0.85)
+            .addConstraint("E+", List.of("B+", "C-"), 0.05)
+            .addConstraint("E+", List.of("B-", "C+"), 0.00)
+            .addConstraint("E+", List.of("B-", "C-"), 0.00)
+            // F
+            .addConstraint("F+", List.of("D+"), 0.95)
+            .addConstraint("F+", List.of("D-"), 0.30)
+            // G
+            .addConstraint("G+", List.of("D+", "E+"), 0.15)
+            .addConstraint("G+", List.of("D+", "E-"), 0.40)
+            .addConstraint("G+", List.of("D-", "E+"), 0.75)
+            .addConstraint("G+", List.of("D-", "E-"), 0.60)
+            // H
+            .addConstraint("H+", List.of("E+"), 0.95)
+            .addConstraint("H+", List.of("E-"), 0.55);
   }
 
   private static Supplier<BayesianNetwork> buildRainNetwork() {
