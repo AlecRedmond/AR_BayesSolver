@@ -23,7 +23,7 @@ public class JTATransferWriterFactory {
 
     JTAReadWriteSynchronizer synchronizer = new JTAReadWriteSynchronizer();
     JTAReader reader = new JTAReader(synchronizer, readTable.getVector(), readKey);
-    JTAWriter writer = new JTAWriterMessagePass(synchronizer, writeTable.getVector(), writeKey);
+    JTAWriter writer = new JTAWriterMessagePassSolver(synchronizer, writeTable.getVector(), writeKey);
     return new JTATransferWriter(reader, writer, synchronizer);
   }
 

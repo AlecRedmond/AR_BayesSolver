@@ -37,6 +37,7 @@ public class JTASolver {
 
     Map<Clique, List<JTAConstraintHandler>> constraintMap =
         jta.getData().getConstraintHandlersMap();
+    Clique[] cliques = jta.getData().getCliques();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -44,7 +45,7 @@ public class JTASolver {
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, constraintMap);
+      error = runSolverCycleAndReturnError(jta, constraintMap, cycle, cliques);
       converge = Math.abs(error - lastError);
 
       now = Instant.now().getEpochSecond();
@@ -78,15 +79,17 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<JTAConstraintHandler>> constraintHandlers) {
+      JunctionTreeAlgorithm jta,
+      Map<Clique, List<JTAConstraintHandler>> constraintHandlers,
+      int cycle,
+      Clique[] cliques) {
 
     DoubleAdder error = new DoubleAdder();
 
     constraintHandlers.forEach(
-        (clique, handlers) -> {
-          jta.collectAndDistributeMessages(clique);
-          handlers.forEach(h -> error.add(h.adjustAndReturnError()));
-        });
+        (clique, handlers) -> handlers.forEach(h -> error.add(h.adjustAndReturnError())));
+
+    jta.collectAndDistributeMessages(cliques[cycle % cliques.length]);
 
     return error.sum();
   }

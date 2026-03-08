@@ -4,8 +4,8 @@ import io.github.alecredmond.application.probabilitytables.export.probabilityvec
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import java.util.concurrent.atomic.DoubleAdder;
 
-public class JTAWriterMessagePass extends JTAWriter {
-  public JTAWriterMessagePass(
+public class JTAWriterMessagePassSolver extends JTAWriter {
+  public JTAWriterMessagePassSolver(
       JTAReadWriteSynchronizer synchronizer,
       ProbabilityVector vector,
       VectorCombinationKey writeKey) {
