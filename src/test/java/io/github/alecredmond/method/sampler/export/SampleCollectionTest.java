@@ -142,10 +142,10 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
-    if (samplePackage.isPrintMarginals()) {
-      network.printObserved();
-      network.printNetwork();
-    }
+//    if (samplePackage.isPrintMarginals()) {
+//      network.printObserved();
+//      network.printNetwork();
+//    }
     SampleCollection test = samplePackage.getTest();
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();

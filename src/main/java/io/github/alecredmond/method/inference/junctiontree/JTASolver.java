@@ -78,6 +78,8 @@ public class JTASolver {
       List<JunctionTreeTable> tables =
           Arrays.stream(jta.getData().getCliques()).map(Clique::getTable).toList();
       printer.printTables(tables, "JUNCTION TREE TABLES");
+      printer.printNetwork();
+      printer.printObserved();
     }
   }
 

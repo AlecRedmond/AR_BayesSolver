@@ -7,7 +7,7 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
+import io.github.alecredmond.method.probabilitytables.transfer.TransferIterator;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ class JTANetworkWriter {
   static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
     for (Clique clique : data.getCliques()) {
       setProbabilitiesToUnity(clique);
-      clique.getInitializeFrom().forEach(JTATransferWriter::run);
+      clique.getWriteFromCPTs().forEach(TransferIterator::transfer);
     }
     backupUnobservedData(data);
   }
@@ -46,9 +46,9 @@ class JTANetworkWriter {
     data.getBayesianNetworkData().setObserved(data.getObserved());
 
     Arrays.stream(data.getCliques())
-        .map(Clique::getObservedWriters)
+        .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
-        .forEach(JTATransferWriter::setToUnityAndRun);
+        .forEach(TransferIterator::transfer);
 
     data.getBayesianNetworkData()
         .getObservationMap()
@@ -79,9 +79,9 @@ class JTANetworkWriter {
     BayesianNetworkData bnd = data.getBayesianNetworkData();
 
     Stream.concat(
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getNetworkWriters().stream()),
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getObservedWriters().stream()))
-        .forEach(JTATransferWriter::setToUnityAndRun);
+            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToCPTs().stream()),
+            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToObserved().stream()))
+        .forEach(TransferIterator::transfer);
 
     Stream.concat(
             bnd.getNetworkTablesMap().values().stream(), bnd.getObservationMap().values().stream())

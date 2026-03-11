@@ -4,35 +4,31 @@ import io.github.alecredmond.application.probabilitytables.export.probabilityvec
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.TransferIteratorData;
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.DoubleAdder;
 
-public class MarginalTransferIterator extends TransferIterator {
+public class MultiplyTransferIterator extends TransferIterator {
 
-  public MarginalTransferIterator(TransferIteratorData readData, TransferIteratorData writeData) {
+  protected MultiplyTransferIterator(
+      TransferIteratorData readData, TransferIteratorData writeData) {
     super(readData, writeData);
   }
 
+  @Override
   public void transfer() {
     double[] transferArray = new double[readData.getIterationSteps()];
     fillTransferArray(readData, transferArray);
-    sumTransferToOutput(writeData, transferArray);
+    multiplyTransferToOutput(writeData, transferArray);
   }
 
-  private void sumTransferToOutput(TransferIteratorData outputData, double[] transferArray) {
+  private void multiplyTransferToOutput(TransferIteratorData output, double[] transferArray) {
     AtomicInteger i = new AtomicInteger();
-    VectorCombinationKey transferKey = outputData.getTransferKey();
-    ProbabilityVector vector = outputData.getTableVector();
-    DoubleAdder adder = new DoubleAdder();
+    VectorCombinationKey transferKey = output.getTransferKey();
+    ProbabilityVector vector = output.getTableVector();
     double[] p = vector.getProbabilities();
     ITERATOR.iterateConditions(
         vector,
         transferKey,
         (conditionKey, conditionIndex) -> {
-          ITERATOR.iterateEvents(
-              vector, transferKey, (eventKey, eventIndex) -> adder.add(p[eventIndex]));
-          double actual = adder.sumThenReset();
-          double expected = transferArray[i.getAndAdd(1)];
-          double ratio = actual == 0.0 ? 0.0 : expected / actual;
+          double ratio = transferArray[i.getAndAdd(1)];
           ITERATOR.iterateEvents(
               vector, transferKey, (eventKey, eventIndex) -> p[eventIndex] = p[eventIndex] * ratio);
         });

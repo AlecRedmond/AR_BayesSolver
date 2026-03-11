@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class SeparatorFactory {
+  public static final TransferIteratorBuilder TRANSFER_BUILDER = new TransferIteratorBuilder();
 
   public Separator buildSeparator(Clique cliqueA, Clique cliqueB, JunctionTreeData jtd) {
     Separator separator = new Separator();
@@ -47,12 +48,10 @@ public class SeparatorFactory {
     Map<Clique, TransferIterator> map = new HashMap<>();
     map.put(
         cliqueA,
-        TransferIteratorBuilder.buildMarginalTransferIterator(
-            cliqueA.getTable(), cliqueB.getTable()));
+        TRANSFER_BUILDER.buildMarginalTransferIterator(cliqueA.getTable(), cliqueB.getTable()));
     map.put(
         cliqueB,
-        TransferIteratorBuilder.buildMarginalTransferIterator(
-            cliqueB.getTable(), cliqueA.getTable()));
+        TRANSFER_BUILDER.buildMarginalTransferIterator(cliqueB.getTable(), cliqueA.getTable()));
     return map;
   }
 
@@ -61,11 +60,11 @@ public class SeparatorFactory {
     Map<Clique, TransferIterator> map = new HashMap<>();
     map.put(
         cliqueA,
-        TransferIteratorBuilder.buildMessagePassIterator(
+        TRANSFER_BUILDER.buildMessagePassIterator(
             cliqueA.getTable(), cliqueB.getTable(), separator.getTable()));
     map.put(
         cliqueB,
-        TransferIteratorBuilder.buildMessagePassIterator(
+        TRANSFER_BUILDER.buildMessagePassIterator(
             cliqueB.getTable(), cliqueA.getTable(), separator.getTable()));
     return map;
   }
