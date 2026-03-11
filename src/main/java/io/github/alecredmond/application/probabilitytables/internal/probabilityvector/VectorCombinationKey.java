@@ -9,8 +9,16 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class VectorCombinationKey {
-  protected Map<Node, NodeState> request;
-  protected int[] stateKey;
-  protected boolean[] innerLock;
-  protected boolean[] outerLock;
+  private Map<Node, NodeState> request;
+  private int[] stateIndexes;
+  private boolean[] iterateEvents;
+  private boolean[] iterateConditions;
+
+  public boolean[] getIterateCommon() {
+    return iterateConditions;
+  }
+
+  public boolean[] getIterateExclusive() {
+    return iterateEvents;
+  }
 }

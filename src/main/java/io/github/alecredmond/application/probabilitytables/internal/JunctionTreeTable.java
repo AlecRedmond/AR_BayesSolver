@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.alecredmond.method.probabilitytables.TableUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
+@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 public class JunctionTreeTable extends ProbabilityTable {
   private final ProbabilityVector backupVector;
   private final Set<NodeState> observedStates;

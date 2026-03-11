@@ -6,9 +6,11 @@ import io.github.alecredmond.application.probabilitytables.export.probabilityvec
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.Map;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 public class ConditionalTable extends ProbabilityTable {
 
   private final Node networkNode;

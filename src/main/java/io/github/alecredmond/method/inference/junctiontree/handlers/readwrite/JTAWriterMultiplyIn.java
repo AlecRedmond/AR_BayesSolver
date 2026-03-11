@@ -14,20 +14,23 @@ public class JTAWriterMultiplyIn extends JTAWriter {
 
   @Override
   public void run() {
-    int[] tumblerKey = writeKey.getStateKey();
-    boolean[] outerLock = writeKey.getOuterLock();
-    boolean[] innerLock = writeKey.getInnerLock();
+    int[] tumblerKey = writeKey.getStateIndexes();
+    boolean[] iterateCommon = writeKey.getIterateConditions();
+    boolean[] iterateExclusive = writeKey.getIterateEvents();
     double[] probabilities = vector.getProbabilities();
 
     iterator.iterateKeyCombos(
         vector,
         tumblerKey,
-        outerLock,
+        iterateCommon,
         (key, index) -> {
           synchronized (this.synchronizer) {
             double multiplier = synchronizer.getSum();
             iterator.iterateKeyCombos(
-                vector, key, innerLock, (k, i) -> probabilities[i] = multiplier * probabilities[i]);
+                vector,
+                key,
+                iterateExclusive,
+                (k, i) -> probabilities[i] = multiplier * probabilities[i]);
           }
         });
   }

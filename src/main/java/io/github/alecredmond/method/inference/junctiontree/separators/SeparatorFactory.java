@@ -2,14 +2,12 @@ package io.github.alecredmond.method.inference.junctiontree.separators;
 
 import io.github.alecredmond.application.inference.junctiontree.*;
 import io.github.alecredmond.application.network.BayesianNetworkData;
-import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriter;
-import io.github.alecredmond.method.inference.junctiontree.handlers.readwrite.JTATransferWriterFactory;
 import io.github.alecredmond.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
+import io.github.alecredmond.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.method.probabilitytables.transfer.TransferIteratorBuilder;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -20,10 +18,7 @@ public class SeparatorFactory {
     setConnectedCliques(cliqueA, cliqueB, separator);
     setNodes(cliqueA, cliqueB, separator);
     buildTable(jtd.getBayesianNetworkData(), separator);
-    buildTableHandler(separator);
-    JTATransferWriterFactory factory = new JTATransferWriterFactory();
-    buildInputWriters(factory, separator);
-    buildOutputWriters(factory, separator);
+    buildMessagePassers(separator, jtd, cliqueA, cliqueB);
     return separator;
   }
 
@@ -32,42 +27,46 @@ public class SeparatorFactory {
   }
 
   private void setNodes(Clique cliqueA, Clique cliqueB, Separator separator) {
-    separator.setNodes(
-        cliqueA.getNodes().stream()
-            .filter(cliqueB.getNodes()::contains)
-            .collect(Collectors.toSet()));
+    separator.setNodes(TableUtils.getCommonNodes(cliqueA.getTable(), cliqueB.getTable()));
   }
 
   private void buildTable(BayesianNetworkData data, Separator separator) {
     separator.setTable(TableBuilder.buildJunctionTreeTable(separator.getNodes(), data));
   }
 
-  private void buildTableHandler(Separator separator) {
-    separator.setHandler(new JTATableHandler(separator.getTable()));
+  private void buildMessagePassers(
+      Separator separator, JunctionTreeData data, Clique cliqueA, Clique cliqueB) {
+    Map<Clique, TransferIterator> messagePassers =
+        data.isSolverConfig()
+            ? buildSolverPassers(cliqueA, cliqueB)
+            : buildInferencePassers(cliqueA, cliqueB, separator);
+    separator.setMessagePassers(messagePassers);
   }
 
-  private void buildInputWriters(JTATransferWriterFactory factory, Separator separator) {
-    setWriterMap(
-        separator,
-        clique -> factory.buildMessagePassWriter(clique.getTable(), separator.getTable()),
-        separator::setInputWriters);
+  private Map<Clique, TransferIterator> buildSolverPassers(Clique cliqueA, Clique cliqueB) {
+    Map<Clique, TransferIterator> map = new HashMap<>();
+    map.put(
+        cliqueA,
+        TransferIteratorBuilder.buildMarginalTransferIterator(
+            cliqueA.getTable(), cliqueB.getTable()));
+    map.put(
+        cliqueB,
+        TransferIteratorBuilder.buildMarginalTransferIterator(
+            cliqueB.getTable(), cliqueA.getTable()));
+    return map;
   }
 
-  private void buildOutputWriters(JTATransferWriterFactory factory, Separator separator) {
-    setWriterMap(
-        separator,
-        clique -> factory.buildMessagePassWriter(separator.getTable(), clique.getTable()),
-        separator::setOutputWriters);
-  }
-
-  private void setWriterMap(
-      Separator separator,
-      Function<Clique, JTATransferWriter> writerBuilder,
-      Consumer<Map<Clique, JTATransferWriter>> setter) {
-    Map<Clique, JTATransferWriter> writerMap =
-        separator.getConnected().keySet().stream()
-            .map(clique -> Map.entry(clique, writerBuilder.apply(clique)))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    setter.accept(writerMap);
+  private Map<Clique, TransferIterator> buildInferencePassers(
+      Clique cliqueA, Clique cliqueB, Separator separator) {
+    Map<Clique, TransferIterator> map = new HashMap<>();
+    map.put(
+        cliqueA,
+        TransferIteratorBuilder.buildMessagePassIterator(
+            cliqueA.getTable(), cliqueB.getTable(), separator.getTable()));
+    map.put(
+        cliqueB,
+        TransferIteratorBuilder.buildMessagePassIterator(
+            cliqueB.getTable(), cliqueA.getTable(), separator.getTable()));
+    return map;
   }
 }

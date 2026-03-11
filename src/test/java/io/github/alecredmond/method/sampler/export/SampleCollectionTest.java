@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
   static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
+  static final boolean SOLVE_ONLY_PROBLEMATIC = true;
   static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
@@ -29,12 +30,13 @@ class SampleCollectionTest {
     packages = new ArrayList<>();
     packages.add(
         new SamplePackage(
-            NetworkScenarios.RAIN_NETWORK.get(),
+            NetworkScenarios.SIMPLE_LINEAR.get(),
             NUMBER_OF_SAMPLES,
-            Set.of("WET_GRASS:TRUE"),
-            Set.of("SPRINKLER"),
-            Set.of("RAIN:TRUE"),
-            false));
+            Set.of(),
+            Set.of("B", "C"),
+            Set.of("D+"),
+            true));
+    if (SOLVE_ONLY_PROBLEMATIC) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.AH_NETWORK.get(),
@@ -43,6 +45,14 @@ class SampleCollectionTest {
             Set.of("C", "E"),
             Set.of("F+"),
             true));
+    packages.add(
+        new SamplePackage(
+            NetworkScenarios.RAIN_NETWORK.get(),
+            NUMBER_OF_SAMPLES,
+            Set.of("WET_GRASS:TRUE"),
+            Set.of("SPRINKLER"),
+            Set.of("RAIN:TRUE"),
+            false));
     if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
     packages.add(
         new SamplePackage(

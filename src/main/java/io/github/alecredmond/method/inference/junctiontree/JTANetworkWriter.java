@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class JTANetworkWriter {
 
-    private JTANetworkWriter() {}
+  private JTANetworkWriter() {}
 
   static void initializeJunctionTreeFromNetwork(JunctionTreeData data) {
     for (Clique clique : data.getCliques()) {
@@ -34,7 +34,6 @@ class JTANetworkWriter {
         .map(Clique::getTable)
         .forEach(
             jtt -> {
-              jtt.marginalizeTable();
               double[] solvedProbabilities = jtt.getVector().getProbabilities();
               double[] backup = jtt.getBackupVector().getProbabilities();
               System.arraycopy(solvedProbabilities, 0, backup, 0, backup.length);
@@ -71,7 +70,7 @@ class JTANetworkWriter {
       sb.deleteCharAt(sb.length() - 1);
     }
     sb.append(")");
-    observedTable.setTableID(sb.toString());
+    observedTable.setTableName(sb.toString());
   }
 
   static void writeToNetwork(JunctionTreeData data) {

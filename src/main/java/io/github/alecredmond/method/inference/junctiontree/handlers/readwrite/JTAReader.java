@@ -23,20 +23,15 @@ public class JTAReader implements Runnable {
 
   @Override
   public void run() {
-    int[] tumblerKey = readKey.getStateKey();
-    boolean[] outerLock = readKey.getOuterLock();
-    boolean[] innerLock = readKey.getInnerLock();
     DoubleAdder adder = new DoubleAdder();
     double[] probabilities = vector.getProbabilities();
 
-    iterator.iterateKeyCombos(
+    iterator.iterateConditions(
         vector,
-        tumblerKey,
-        outerLock,
+        readKey,
         (key, index) -> {
           synchronized (this.synchronizer) {
-            iterator.iterateKeyCombos(
-                vector, key, innerLock, (k, i) -> adder.add(probabilities[i]));
+            iterator.iterateEvents(vector, readKey, (k, i) -> adder.add(probabilities[i]));
             double sum = adder.sumThenReset();
             this.synchronizer.setSum(sum);
           }

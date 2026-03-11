@@ -6,7 +6,7 @@ import static io.github.alecredmond.application.printer.PrinterConfigs.RIGHT_PAD
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.printer.PrinterConfigs;
-import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.ConditionalTable;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class TableFormatter {
             table, eventCombos, conditionCombos, conditionLabels, eventColWidth, condColWidth);
 
     List<String> tableLines = new ArrayList<>();
-    tableLines.add(table.getTableID().toString());
+    tableLines.add(table.getTableName().toString());
     tableLines.add(borderRow);
     tableLines.add(headerRow);
     tableLines.addAll(dataRows);
@@ -88,23 +88,23 @@ public class TableFormatter {
       int condWidth) {
     String probabilityFormatter = configs.getProbabilityFormatter();
 
-    if (table instanceof MarginalTable) {
-      return List.of(
-          buildSingleRow(
-              "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));
+    if (table instanceof ConditionalTable) {
+      return IntStream.range(0, conditionCombos.size())
+          .mapToObj(
+              i ->
+                  buildSingleRow(
+                      conditionLabels.get(i),
+                      eventCombos,
+                      conditionCombos.get(i),
+                      table,
+                      eventWidth,
+                      condWidth,
+                      probabilityFormatter))
+          .toList();
     }
-    return IntStream.range(0, conditionCombos.size())
-        .mapToObj(
-            i ->
-                buildSingleRow(
-                    conditionLabels.get(i),
-                    eventCombos,
-                    conditionCombos.get(i),
-                    table,
-                    eventWidth,
-                    condWidth,
-                    probabilityFormatter))
-        .toList();
+    return List.of(
+        buildSingleRow(
+            "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));
   }
 
   private String padLeft(String text, int width) {

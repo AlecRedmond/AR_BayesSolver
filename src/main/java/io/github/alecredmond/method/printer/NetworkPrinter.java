@@ -44,6 +44,17 @@ public class NetworkPrinter {
     }
   }
 
+  public <T extends ProbabilityTable> void printTables(List<T> tableList,String tableType){
+      List<String> outputLines = new ArrayList<>(List.of(tableType, ""));
+      tableList.stream().map(tableFormatter::generateTableLines).forEach(outputLines::addAll);
+      if (configs.isPrintToConsole()) {
+          outputLines.forEach(log::info);
+      }
+      if (configs.isPrintToTextFile()) {
+          fileExporter.exportLinesToFile(outputLines, tableType, networkData.getNetworkName());
+      }
+  }
+
   public void printNetwork() {
     printTables(networkData.getNetworkTablesMap(), configs.getNetworkFileTitle());
   }

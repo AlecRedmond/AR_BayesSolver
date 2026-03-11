@@ -6,14 +6,9 @@ import io.github.alecredmond.application.inference.junctiontree.Separator;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 
 @Getter
@@ -30,16 +25,31 @@ public class JunctionTreeAlgorithm {
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
-    if (data.getNodes().isEmpty()) return;
-    Clique bestClique = cliqueWithLargestOverlap(observed);
-    setEvidence(observed);
-    collectAndDistributeMessages(bestClique);
+    if (data.getNodes().isEmpty()) {
+      return;
+    }
+    data.setObserved(observed);
+    resetObservations();
+    if (observed.isEmpty()) {
+      return;
+    }
+    Map<Node, NodeState> observedLeft = new HashMap<>(observed);
+    Set<NodeState> evidenceStates = new HashSet<>();
+    Clique rootClique = data.getRootCliques()[0];
+    while (!observedLeft.isEmpty()) {
+      Map.Entry<Clique, Set<Node>> largestOverlap = findLargestOverlap(observedLeft);
+      popMapIntoEvidenceStates(largestOverlap.getValue(), observedLeft, evidenceStates);
+      Clique bestClique = largestOverlap.getKey();
+      bestClique.getHandler().setObserved(evidenceStates);
+      passMessages(rootClique);
+    }
   }
 
   public void marginalizeTables() {
     Arrays.stream(data.getCliques())
         .map(Clique::getTable)
         .forEach(ProbabilityTable::marginalizeTable);
+    Arrays.stream(data.getSeparators()).forEach(Separator::setToUnity);
   }
 
   public void writeTablesToNetwork() {
@@ -47,72 +57,56 @@ public class JunctionTreeAlgorithm {
   }
 
   public double getProbabilityOfEvidence() {
-    double cliqueProb = multiplyTableSums(data.getCliques(), Clique::getTable, TableUtils::sumAll);
-    double separatorProb =
-        multiplyTableSums(data.getSeparators(), Separator::getTable, TableUtils::sumAll);
-    return separatorProb == 0.0 ? 0.0 : cliqueProb / separatorProb;
-  }
-
-  private <T> double multiplyTableSums(
-      T[] array,
-      Function<T, JunctionTreeTable> tableFunction,
-      ToDoubleFunction<JunctionTreeTable> toDoubleFunction) {
-    return Arrays.stream(array)
-        .map(tableFunction)
-        .mapToDouble(toDoubleFunction)
-        .reduce(1.0, (x, y) -> x * y);
-  }
-
-  public double getProbabilityOfNewEvidence(Collection<NodeState> newEvidence) {
-    ToDoubleFunction<JunctionTreeTable> toDoubleFunction =
-        table -> TableUtils.sumProbabilities(newEvidence, table);
-    double cliqueProb = multiplyTableSums(data.getCliques(), Clique::getTable, toDoubleFunction);
-    double separatorProb =
-        multiplyTableSums(data.getSeparators(), Separator::getTable, toDoubleFunction);
-    return separatorProb == 0.0 ? 0.0 : cliqueProb / separatorProb;
-  }
-
-  private Clique cliqueWithLargestOverlap(Map<Node, NodeState> observed) {
     return Arrays.stream(data.getCliques())
-        .max(
-            Comparator.comparingInt(
-                c -> {
-                  Set<Node> temp = new HashSet<>(c.getNodes());
-                  temp.retainAll(observed.keySet());
-                  return temp.size();
-                }))
+        .map(clique -> clique.getTable().getVector().getProbabilities())
+        .min(Comparator.comparingInt(p -> p.length))
+        .map(p -> Arrays.stream(p).sum())
+        .orElse(0.0);
+  }
+
+  private void resetObservations() {
+    Arrays.stream(data.getCliques())
+        .map(Clique::getHandler)
+        .forEach(JTATableHandler::resetObservations);
+    Arrays.stream(data.getSeparators()).forEach(Separator::setToUnity);
+  }
+
+  private void popMapIntoEvidenceStates(
+      Set<Node> common, Map<Node, NodeState> observedLeft, Set<NodeState> evidenceStates) {
+    evidenceStates.clear();
+    common.forEach(
+        node -> {
+          evidenceStates.add(observedLeft.get(node));
+          observedLeft.remove(node);
+        });
+  }
+
+  private Map.Entry<Clique, Set<Node>> findLargestOverlap(Map<Node, NodeState> observed) {
+    return Arrays.stream(data.getCliques())
+        .map(clique -> Map.entry(clique, getOverlap(clique.getNodes(), observed.keySet())))
+        .filter(entry -> !entry.getValue().isEmpty())
+        .max(Comparator.comparingInt(entry -> entry.getValue().size()))
         .orElseThrow();
   }
 
-  private void setEvidence(Map<Node, NodeState> evidence) {
-    data.setObserved(evidence);
-
-    for (JTATableHandler handler : getAllHandlers()) {
-      Set<NodeState> evidenceInTable =
-          handler.getTable().getNodes().stream()
-              .filter(evidence::containsKey)
-              .map(evidence::get)
-              .collect(Collectors.toSet());
-
-      handler.setObserved(evidenceInTable, !evidenceInTable.isEmpty());
-    }
+  private Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {
+    return nodesA.stream().filter(nodesB::contains).collect(Collectors.toSet());
   }
 
-  private List<JTATableHandler> getAllHandlers() {
-    return Stream.concat(
-            Arrays.stream(data.getCliques()).map(Clique::getHandler),
-            Arrays.stream(data.getSeparators()).map(Separator::getHandler))
-        .toList();
+  void sumTransfer(Clique clique) {
+    distributeEvidence(clique, new HashSet<>());
   }
 
-  void collectAndDistributeMessages(Clique clique) {
-    Set<Clique> visited = new HashSet<>();
-    collectEvidence(clique, visited);
-    visited.clear();
-    distributeEvidence(clique, visited);
+  private void passMessages(Clique clique) {
+    collectAndDistributeMessages(clique);
   }
 
-  void collectEvidence(Clique currentClique, Set<Clique> visited) {
+  private void collectAndDistributeMessages(Clique clique) {
+    collectEvidence(clique, new HashSet<>());
+    distributeEvidence(clique, new HashSet<>());
+  }
+
+  private void collectEvidence(Clique currentClique, Set<Clique> visited) {
     visited.add(currentClique);
     getNextSeparators(currentClique, visited)
         .forEach(
@@ -122,7 +116,7 @@ public class JunctionTreeAlgorithm {
             });
   }
 
-  void distributeEvidence(Clique currentClique, Set<Clique> visited) {
+  private void distributeEvidence(Clique currentClique, Set<Clique> visited) {
     visited.add(currentClique);
     getNextSeparators(currentClique, visited)
         .forEach(

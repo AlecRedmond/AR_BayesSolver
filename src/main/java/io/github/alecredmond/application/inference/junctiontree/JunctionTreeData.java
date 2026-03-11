@@ -18,8 +18,10 @@ import lombok.NoArgsConstructor;
 public class JunctionTreeData {
   private BayesianNetworkData bayesianNetworkData;
   private Clique[] cliques;
+  private Clique[] rootCliques;
   private Separator[] separators;
   private Map<Clique, List<JTAConstraintHandler>> constraintHandlersMap;
+  private boolean solverConfig;
 
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();

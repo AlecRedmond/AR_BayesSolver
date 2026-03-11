@@ -85,4 +85,10 @@ public class NodeUtils {
     removeFromList(node.getParents(), parent::equals, node::setParents);
     removeFromList(parent.getChildren(), node::equals, parent::setChildren);
   }
+
+  public static Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {
+    return nodesA.stream()
+        .filter(nodesB::contains)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
 }

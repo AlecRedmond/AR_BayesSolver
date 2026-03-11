@@ -37,11 +37,11 @@ public class JTAInitializer {
   private static void buildCommon(
       JunctionTreeData junctionTreeData,
       BayesianNetworkData bayesianNetworkData,
-      boolean writeBackToCPTs) {
+      boolean solverConfig) {
     junctionTreeData.setBayesianNetworkData(bayesianNetworkData);
     JTACliqueBuilder.buildCliques(junctionTreeData);
-    buildInternalMessagePassers(junctionTreeData);
-    buildExternalMessagePassers(junctionTreeData, bayesianNetworkData, writeBackToCPTs);
+    buildInternalMessagePassers(junctionTreeData,solverConfig);
+    buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
   }
 
   private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
@@ -54,8 +54,9 @@ public class JTAInitializer {
     jtd.setConstraintHandlersMap(map);
   }
 
-  private static void buildInternalMessagePassers(JunctionTreeData jtd) {
+  private static void buildInternalMessagePassers(JunctionTreeData jtd, boolean solverConfig) {
     CliqueJoiner.join(jtd);
+
     Separator[] separators =
         Arrays.stream(jtd.getCliques())
             .flatMap(clique -> clique.getSeparatorMap().values().stream())
@@ -65,7 +66,8 @@ public class JTAInitializer {
   }
 
   private static void buildExternalMessagePassers(
-      JunctionTreeData jtd, BayesianNetworkData bnd, boolean writeBackToCPTs) {
+      JunctionTreeData jtd, BayesianNetworkData bnd) {
+      boolean writeBackToCPTs = jtd.isSolverConfig();
     Clique[] cliques = jtd.getCliques();
 
     JTATransferWriterFactory factory = new JTATransferWriterFactory();

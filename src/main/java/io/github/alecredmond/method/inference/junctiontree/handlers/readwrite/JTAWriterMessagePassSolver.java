@@ -14,25 +14,28 @@ public class JTAWriterMessagePassSolver extends JTAWriter {
 
   @Override
   public void run() {
-    int[] tumblerKey = writeKey.getStateKey();
-    boolean[] outerLock = writeKey.getOuterLock();
-    boolean[] innerLock = writeKey.getInnerLock();
+    int[] tumblerKey = writeKey.getStateIndexes();
+    boolean[] iterateCommon = writeKey.getIterateConditions();
+    boolean[] iterateExclusive = writeKey.getIterateEvents();
     double[] probabilities = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
 
     iterator.iterateKeyCombos(
         vector,
         tumblerKey,
-        outerLock,
+        iterateCommon,
         (key, index) -> {
           synchronized (this.synchronizer) {
             iterator.iterateKeyCombos(
-                vector, key, innerLock, (k, i) -> adder.add(probabilities[i]));
+                vector, key, iterateExclusive, (k, i) -> adder.add(probabilities[i]));
             double sum = adder.sumThenReset();
             double expected = synchronizer.getSum();
             double ratio = sum == 0.0 ? 0.0 : expected / sum;
             iterator.iterateKeyCombos(
-                vector, key, innerLock, (k, i) -> probabilities[i] = ratio * probabilities[i]);
+                vector,
+                key,
+                iterateExclusive,
+                (k, i) -> probabilities[i] = ratio * probabilities[i]);
           }
         });
   }

@@ -21,7 +21,7 @@ public class VectorCombinationKeyFactory {
 
     if (!table.getNodes().containsAll(requestMap.keySet())) {
       throw new IllegalArgumentException(
-          String.format("the Request to table %s did not match the keyset", table.getTableID()));
+          String.format("the Request to table %s did not match the keyset", table.getTableName()));
     }
 
     return buildKey(requestMap, table.getVector());

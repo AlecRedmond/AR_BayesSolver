@@ -8,6 +8,26 @@ public class NetworkScenarios {
   public static final Supplier<BayesianNetwork> RAIN_NETWORK = buildRainNetwork();
   public static final Supplier<BayesianNetwork> AH_NETWORK = buildAhNetwork();
   public static final Supplier<BayesianNetwork> FANTASY_GRAPH = buildFantasyGraph();
+  public static final Supplier<BayesianNetwork> SIMPLE_LINEAR = buildSimpleLinearGraph();
+
+  private static Supplier<BayesianNetwork> buildSimpleLinearGraph() {
+    return () ->
+        BayesianNetwork.newNetwork("SIMPLE_LINEAR_GRAPH")
+            .addNode("A", List.of("A+", "A-"))
+            .addNode("B", List.of("B+", "B-"))
+            .addNode("C", List.of("C+", "C-"))
+            .addNode("D", List.of("D+", "D-"))
+            .addParent("B", "A")
+            .addParent("C", "B")
+            .addParent("D", "C")
+            .addConstraint("A+", 0.4)
+            .addConstraint("B+", List.of("A+"), 0.8)
+            .addConstraint("B+", List.of("A-"), 0.5)
+            .addConstraint("C+", List.of("B+"), 0.9)
+            .addConstraint("C+", List.of("B-"), 0.25)
+            .addConstraint("D+", List.of("C+"), 0.6)
+            .addConstraint("D+", List.of("C-"), 0.3);
+  }
 
   private static Supplier<BayesianNetwork> buildFantasyGraph() {
     return () ->

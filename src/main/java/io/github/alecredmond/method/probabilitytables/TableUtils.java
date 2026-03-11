@@ -7,6 +7,7 @@ import io.github.alecredmond.application.probabilitytables.export.ProbabilityTab
 import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.method.node.NodeUtils;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
@@ -48,7 +49,7 @@ public class TableUtils {
     ProbabilityVector vector = table.getVector();
     double[] probability = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
-    ITERATOR.iterateKeyCombos(vector, comboKey, (key, index) -> adder.add(probability[index]));
+    ITERATOR.iterateEvents(vector, comboKey, (key, index) -> adder.add(probability[index]));
     double sum = adder.sum();
     if (Double.isNaN(sum)) {
       throwQueryError(
@@ -62,7 +63,8 @@ public class TableUtils {
     StringBuilder requestString = new StringBuilder();
     request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
     throw new IllegalArgumentException(
-        String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
+        String.format(
+            "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
   }
 
   public static double sumAll(JunctionTreeTable junctionTreeTable) {
@@ -85,7 +87,7 @@ public class TableUtils {
     List<T> combos = new ArrayList<>();
     Node[] nodeArray = table.getVector().getNodeArray();
 
-    ITERATOR.iterateKeyCombos(
+    ITERATOR.iterateEvents(
         lockExcludedNodesFirstState(includedNodes, nodeArray),
         table,
         (k, index) ->
@@ -111,31 +113,22 @@ public class TableUtils {
     VectorCombinationKey marginalizationKey =
         new VectorCombinationKeyFactory().buildMarginalisationKey(table);
 
-    int[] tumblerKey = marginalizationKey.getStateKey().clone();
-    boolean[] lockConditions = marginalizationKey.getInnerLock();
-    boolean[] lockEvents = marginalizationKey.getOuterLock();
-
     double[] probs = vector.getProbabilities();
 
     DoubleAdder adder = new DoubleAdder();
 
-    ITERATOR.iterateKeyCombos(
+    ITERATOR.iterateConditions(
         vector,
-        tumblerKey,
-        lockEvents,
+        marginalizationKey,
         (conditionKey, conditionIndex) -> {
-          ITERATOR.iterateKeyCombos(
-              vector,
-              conditionKey,
-              lockConditions,
-              (eventKey, eventIndex) -> adder.add(probs[eventIndex]));
+          ITERATOR.iterateEvents(
+              vector, marginalizationKey, (eventKey, eventIndex) -> adder.add(probs[eventIndex]));
           double sumAcrossConditions = adder.sumThenReset();
           if (sumAcrossConditions == 0) return;
           double ratio = 1 / sumAcrossConditions;
-          ITERATOR.iterateKeyCombos(
+          ITERATOR.iterateEvents(
               vector,
-              conditionKey,
-              lockConditions,
+              marginalizationKey,
               (eventKey, eventIndex) -> probs[eventIndex] = ratio * probs[eventIndex]);
         });
   }
@@ -153,5 +146,9 @@ public class TableUtils {
     if (!allNodesQueried) {
       throwQueryError("did not query all nodes", request, table);
     }
+  }
+
+  public static Set<Node> getCommonNodes(ProbabilityTable tableA, ProbabilityTable tableB) {
+    return NodeUtils.getOverlap(tableA.getNodes(), tableB.getNodes());
   }
 }

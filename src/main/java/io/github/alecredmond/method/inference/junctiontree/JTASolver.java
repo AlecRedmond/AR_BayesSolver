@@ -3,9 +3,12 @@ package io.github.alecredmond.method.inference.junctiontree;
 import io.github.alecredmond.application.inference.SolverConfigs;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.network.BayesianNetworkData;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
+import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -13,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTASolver {
+  private static final boolean DEBUG_PRINT_CLIQUE_TABLES = true;
 
   private JTASolver() {}
 
@@ -37,7 +41,6 @@ public class JTASolver {
 
     Map<Clique, List<JTAConstraintHandler>> constraintMap =
         jta.getData().getConstraintHandlersMap();
-    Clique[] cliques = jta.getData().getCliques();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -45,7 +48,7 @@ public class JTASolver {
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, constraintMap, cycle, cliques);
+      error = runSolverCycleAndReturnError(jta, constraintMap);
       converge = Math.abs(error - lastError);
 
       now = Instant.now().getEpochSecond();
@@ -67,8 +70,15 @@ public class JTASolver {
       logCycleComplete(cycle, converge, error);
     }
 
-    jta.collectAndDistributeMessages(jta.getData().getCliques()[0]);
+    jta.sumTransfer(jta.getData().getRootCliques()[0]);
     jta.writeTablesToNetwork();
+
+    if (DEBUG_PRINT_CLIQUE_TABLES) {
+      NetworkPrinter printer = new NetworkPrinter(jta.getData().getBayesianNetworkData());
+      List<JunctionTreeTable> tables =
+          Arrays.stream(jta.getData().getCliques()).map(Clique::getTable).toList();
+      printer.printTables(tables, "JUNCTION TREE TABLES");
+    }
   }
 
   private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {
@@ -79,17 +89,17 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta,
-      Map<Clique, List<JTAConstraintHandler>> constraintHandlers,
-      int cycle,
-      Clique[] cliques) {
+      JunctionTreeAlgorithm jta, Map<Clique, List<JTAConstraintHandler>> constraintHandlers) {
 
     DoubleAdder error = new DoubleAdder();
 
     constraintHandlers.forEach(
-        (clique, handlers) -> handlers.forEach(h -> error.add(h.adjustAndReturnError())));
-
-    jta.collectAndDistributeMessages(cliques[cycle % cliques.length]);
+        (clique, handlers) ->
+            handlers.forEach(
+                h -> {
+                  error.add(h.adjustAndReturnError());
+                  jta.sumTransfer(clique);
+                }));
 
     return error.sum();
   }

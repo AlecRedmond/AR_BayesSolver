@@ -9,9 +9,11 @@ import java.util.Set;
 
 import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 public class MarginalTable extends ProbabilityTable {
 
   private final Node networkNode;
