@@ -5,13 +5,11 @@ import static io.github.alecredmond.internal.application.printer.PrinterConfigs.
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -30,16 +28,16 @@ public class TableFormatter {
     List<List<NodeState>> conditionCombos = createCombinations(table.getConditions(), table);
 
     List<String> eventLabels = eventCombos.stream().map(this::joinStates).toList();
-    List<String> conditionLabels = conditionCombos.stream().map(this::joinStates).toList();
+    List<String> conditionLabels = createConditionLabels(conditionCombos, table.getConditions());
 
     int eventColWidth = Math.max(getMaxLength(eventLabels), configs.getProbabilityCharLength());
-    int condColWidth = getMaxLength(conditionLabels);
+    int condColWidth = getCondColWidth(conditionLabels);
 
-    String borderRow = createBorderRow(eventLabels.size(), eventColWidth, condColWidth);
     String headerRow = renderHeaderRow(eventLabels, eventColWidth, condColWidth);
     List<String> dataRows =
         renderDataRows(
             table, eventCombos, conditionCombos, conditionLabels, eventColWidth, condColWidth);
+    String borderRow = createBorderRow(dataRows);
 
     List<String> tableLines = new ArrayList<>();
     tableLines.add(table.getTableName().toString());
@@ -59,13 +57,33 @@ public class TableFormatter {
     return states.stream().map(NodeState::toString).collect(Collectors.joining("|"));
   }
 
+  private List<String> createConditionLabels(
+      List<List<NodeState>> conditionCombos, Set<Node> conditionNodes) {
+    if (conditionCombos.isEmpty()) return new ArrayList<>();
+    Map<NodeState, String> toStringMap = new HashMap<>();
+    Map<Node, Integer> widthMap = new HashMap<>();
+    fillWidthAndToStringMap(toStringMap, widthMap, conditionNodes);
+    List<String> strings = new ArrayList<>();
+    conditionCombos.forEach(
+        combo -> {
+          StringBuilder sb = new StringBuilder();
+          combo.forEach(
+              nodeState ->
+                  sb.append(padRight(toStringMap.get(nodeState), widthMap.get(nodeState.getNode())))
+                      .append("|"));
+          sb.deleteCharAt(sb.length() - 1);
+          strings.add(sb.toString());
+        });
+    return strings;
+  }
+
   private int getMaxLength(List<String> eventLabels) {
     return eventLabels.stream().mapToInt(String::length).max().orElse(0);
   }
 
-  private String createBorderRow(int eventCount, int eventColWidth, int condColWidth) {
-    int numberOfDashes = condColWidth + (eventCount * eventColWidth) + (condColWidth > 0 ? 1 : 0);
-    return "-" + "-".repeat(numberOfDashes + 1) + "-";
+  private int getCondColWidth(List<String> conditionLabels) {
+    if (conditionLabels.isEmpty()) return 0;
+    return conditionLabels.getFirst().length();
   }
 
   private String renderHeaderRow(List<String> eventLabels, int eventWidth, int condWidth) {
@@ -107,6 +125,29 @@ public class TableFormatter {
             "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));
   }
 
+  private String createBorderRow(List<String> dataRows) {
+    int firstLength = dataRows.getFirst().length();
+    return "-".repeat(firstLength);
+  }
+
+  private void fillWidthAndToStringMap(
+      Map<NodeState, String> toStringMap, Map<Node, Integer> widthMap, Set<Node> conditionNodes) {
+    conditionNodes.forEach(
+        node -> {
+          Map<NodeState, String> stringMap =
+              node.getNodeStates().stream()
+                  .map(state -> Map.entry(state, state.toString()))
+                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+          int longest = stringMap.values().stream().mapToInt(String::length).max().orElse(0);
+          toStringMap.putAll(stringMap);
+          widthMap.put(node, longest);
+        });
+  }
+
+  private String padRight(String text, int width) {
+    return String.format(RIGHT_PAD_FORMAT.formatted(width), text);
+  }
+
   private String padLeft(String text, int width) {
     return String.format(LEFT_PAD_FORMAT.formatted(width), text);
   }
@@ -133,10 +174,6 @@ public class TableFormatter {
         .forEach(padded -> row.append(padded).append("|"));
 
     return row.toString();
-  }
-
-  private String padRight(String text, int width) {
-    return String.format(RIGHT_PAD_FORMAT.formatted(width), text);
   }
 
   private List<NodeState> concatStates(List<NodeState> currentConditions, List<NodeState> events) {
