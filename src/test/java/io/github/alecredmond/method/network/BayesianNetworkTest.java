@@ -3,20 +3,20 @@ package io.github.alecredmond.method.network;
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.application.network.BayesianNetworkData;
-import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.application.constraints.MarginalConstraint;
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.method.network.export.BayesianNetwork;
-import io.github.alecredmond.method.sampler.export.Sample;
-import io.github.alecredmond.method.sampler.export.SampleCollection;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.sampler.Sample;
+import io.github.alecredmond.export.method.sampler.SampleCollection;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -26,7 +26,7 @@ class BayesianNetworkTest {
   static final int NUMBER_OF_SAMPLES = 100_000;
   static final int STANDARD_DEVIATIONS = 3;
   // Set to false when performing a maven build
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
   static final boolean PRINT_RESULTS = false;
   BayesianNetwork net;
 

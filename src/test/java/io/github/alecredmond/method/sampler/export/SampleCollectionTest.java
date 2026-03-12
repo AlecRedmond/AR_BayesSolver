@@ -2,10 +2,11 @@ package io.github.alecredmond.method.sampler.export;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.method.network.NetworkScenarios;
-import io.github.alecredmond.method.network.export.BayesianNetwork;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,7 +17,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
   static final boolean SOLVE_ONLY_PROBLEMATIC = false;
   static final boolean PRINT_RESULTS = true;
   static final int NUMBER_OF_SAMPLES = 100_000;

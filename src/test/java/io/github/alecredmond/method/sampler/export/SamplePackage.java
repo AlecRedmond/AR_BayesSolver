@@ -1,9 +1,11 @@
 package io.github.alecredmond.method.sampler.export;
 
-import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.method.network.export.BayesianNetwork;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.Set;
+
+import io.github.alecredmond.export.method.sampler.SampleCollection;
 import lombok.Data;
 
 @Data
