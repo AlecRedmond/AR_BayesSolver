@@ -21,7 +21,8 @@ public class Separator {
     messagePassers.get(start).transfer();
   }
 
-  public void setToUnity() {
-    Arrays.fill(table.getVector().getProbabilities(), 1.0);
+  public void resetSeparator() {
+    double marginalised = 1.0 / table.getVector().getProbabilities().length;
+    Arrays.fill(table.getVector().getProbabilities(), marginalised);
   }
 }

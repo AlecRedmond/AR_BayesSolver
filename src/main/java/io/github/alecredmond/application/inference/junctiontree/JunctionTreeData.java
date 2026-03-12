@@ -22,6 +22,7 @@ public class JunctionTreeData {
   private Separator[] separators;
   private Map<Clique, List<JTAConstraintHandler>> constraintHandlersMap;
   private boolean solverConfig;
+  private double jointProbability;
 
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();

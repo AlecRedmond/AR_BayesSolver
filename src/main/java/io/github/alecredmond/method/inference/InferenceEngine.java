@@ -39,19 +39,26 @@ public class InferenceEngine {
   }
 
   public double getProbabilityFromCurrentObservations(Set<NodeState> newEvidence) {
-    Set<NodeState> currentEvidence = new HashSet<>(networkData.getObserved().values());
-    double currentJointProb = junctionTree.getProbabilityOfEvidence();
     try {
-      Set<NodeState> joinedEvidence = new HashSet<>(currentEvidence);
-      joinedEvidence.addAll(newEvidence);
-      observeNetwork(joinedEvidence);
-      double newJointProb = junctionTree.getProbabilityOfEvidence();
-      observeNetwork(currentEvidence);
-      return currentJointProb == 0.0 ? 0.0 : newJointProb / currentJointProb;
+      double currentJointProb = junctionTree.getJointProbability();
+      if (currentJointProb == 0.0) return 0.0;
+      double newJointProb = junctionTree.getJointProbOfNewEvidence(newEvidence);
+      return newJointProb / currentJointProb;
     } catch (NodeStateConflictException e) {
       log.error("Nodes sharing the same state found in {}", NodeUtils.formatToString(newEvidence));
       return 0.0;
     }
+  }
+
+  public void runSolver() {
+    if (networkData.getNodeIDsMap().isEmpty()) {
+      return;
+    }
+    JTASolver.solveNetwork(this);
+    networkData.setSolved(true);
+    junctionTree =
+        new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
+    observeNetwork(new HashSet<>());
   }
 
   public void observeNetwork(Collection<NodeState> observed) {
@@ -77,16 +84,5 @@ public class InferenceEngine {
     if (evidence.containsKey(state.getNode())) {
       throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
     }
-  }
-
-  public void runSolver() {
-    if (networkData.getNodeIDsMap().isEmpty()) {
-      return;
-    }
-    JTASolver.solveNetwork(this);
-    networkData.setSolved(true);
-    junctionTree =
-        new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
-    observeNetwork(new HashSet<>());
   }
 }

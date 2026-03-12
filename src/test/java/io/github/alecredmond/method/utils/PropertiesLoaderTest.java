@@ -42,7 +42,7 @@ class PropertiesLoaderTest {
   @Test
   void loadString() {
     String saveDir = test.loadString("app.printer.saveDirectory");
-    assertEquals("$$user.home$$\\AR_Tools\\bayes_solver\\output\\", saveDir);
+    assertEquals("$$user.home$$/AR_Tools/bayes_solver/output/", saveDir);
   }
 
   @Test

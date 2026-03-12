@@ -7,7 +7,10 @@ import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
 import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.method.node.NodeUtils;
+import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
@@ -33,6 +36,7 @@ public class JunctionTreeAlgorithm {
     if (observed.isEmpty()) {
       Clique rootClique = data.getRootCliques()[0];
       passMessages(rootClique);
+      setJointProbability();
       return;
     }
     Map<Node, NodeState> observedLeft = new HashMap<>(observed);
@@ -45,32 +49,57 @@ public class JunctionTreeAlgorithm {
       bestClique.getHandler().setObserved(evidenceStates);
       passMessages(rootClique);
     }
+    setJointProbability();
   }
 
   public void marginalizeTables() {
     Arrays.stream(data.getCliques())
         .map(Clique::getTable)
         .forEach(ProbabilityTable::marginalizeTable);
-    Arrays.stream(data.getSeparators()).forEach(Separator::setToUnity);
+    Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 
   public void writeTablesToNetwork() {
     JTANetworkWriter.writeToNetwork(data);
   }
 
-  public double getProbabilityOfEvidence() {
-    return Arrays.stream(data.getCliques())
-        .map(clique -> clique.getTable().getVector().getProbabilities())
-        .min(Comparator.comparingInt(p -> p.length))
-        .map(p -> Arrays.stream(p).sum())
-        .orElse(0.0);
+  public double getJointProbability() {
+    return data.getJointProbability();
+  }
+
+  public double getJointProbOfNewEvidence(Collection<NodeState> newEvidence) {
+    Map<Node, NodeState> request = createNewEvidenceRequest(newEvidence);
+    return multiplyTableSums(data.getCliques(), Clique::getTable, request)
+        / multiplyTableSums(data.getSeparators(), Separator::getTable, request);
+  }
+
+  private <T> double multiplyTableSums(
+      T[] array, Function<T, ProbabilityTable> tableFunction, Map<Node, NodeState> request) {
+    return Arrays.stream(array)
+        .map(tableFunction)
+        .mapToDouble(pt -> TableUtils.sumProbabilities(request, pt))
+        .reduce(1.0, (x, y) -> x * y);
+  }
+
+  private void setJointProbability() {
+    data.setJointProbability(getJointProbOfNewEvidence(new HashSet<>()));
+  }
+
+  private Map<Node, NodeState> createNewEvidenceRequest(Collection<NodeState> newEvidence) {
+    if (newEvidence.isEmpty()) {
+      return new HashMap<>();
+    }
+    Map<Node, NodeState> observed = data.getObserved();
+    Map<Node, NodeState> request = NodeUtils.generateRequest(newEvidence, observed.values());
+    observed.keySet().forEach(request::remove);
+    return request;
   }
 
   private void resetObservations() {
     Arrays.stream(data.getCliques())
         .map(Clique::getHandler)
         .forEach(JTATableHandler::resetObservations);
-    Arrays.stream(data.getSeparators()).forEach(Separator::setToUnity);
+    Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 
   private void popMapIntoEvidenceStates(

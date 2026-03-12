@@ -13,12 +13,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class JTACliqueBuilder {
-  private static final String USE_JTA_PROPERTY = "app.inference.useJunctionTree";
+  private static final String USE_JTA_SOLVER = "app.inference.useJunctionTreeSolver";
+  private static final String USE_JTA_INFERENCE = "app.inference.useJunctionTreeInference";
 
   private JTACliqueBuilder() {}
 
   static void buildCliques(JunctionTreeData jtd) {
-    boolean useJta = new PropertiesLoader().loadBoolean(USE_JTA_PROPERTY);
+    String property = jtd.isSolverConfig() ? USE_JTA_SOLVER : USE_JTA_INFERENCE;
+    boolean useJta = new PropertiesLoader().loadBoolean(property);
     if (useJta) {
       buildJtaCliques(jtd);
     } else {

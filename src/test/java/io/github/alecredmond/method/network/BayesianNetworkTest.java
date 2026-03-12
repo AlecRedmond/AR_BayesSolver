@@ -26,7 +26,8 @@ class BayesianNetworkTest {
   static final int NUMBER_OF_SAMPLES = 100_000;
   static final int STANDARD_DEVIATIONS = 3;
   // Set to false when performing a maven build
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
+  static final boolean PRINT_RESULTS = false;
   BayesianNetwork net;
 
   @BeforeEach
@@ -704,13 +705,10 @@ class BayesianNetworkTest {
 
     @Test
     void testSolves_RainSprinkler() {
-      net =
-          RAIN_NETWORK
-              .get()
-              .solveNetwork()
-              .printNetwork()
-              .observeNetwork(List.of("WET_GRASS:TRUE"))
-              .printObserved();
+      net = RAIN_NETWORK.get().solveNetwork();
+      if (PRINT_RESULTS) net.printNetwork();
+      net.observeNetwork(List.of("WET_GRASS:TRUE"));
+      if (PRINT_RESULTS) net.printObserved();
 
       net.getNetworkData().getNetworkTablesMap().values().stream()
           .map(ProbabilityTable::getVector)
@@ -760,15 +758,9 @@ class BayesianNetworkTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-      assertDoesNotThrow(
-          () ->
-              net =
-                  AH_NETWORK
-                      .get()
-                      .solveNetwork()
-                      .observeMarginals()
-                      .printNetwork()
-                      .printObserved());
+      assertDoesNotThrow(() -> net = AH_NETWORK.get().solveNetwork().observeMarginals());
+
+      if (PRINT_RESULTS) net.printNetwork().printObserved();
 
       String testState = "B+";
       String includedNode = "B";
@@ -779,13 +771,17 @@ class BayesianNetworkTest {
     void testFantasyGraph_ComplexNetwork() {
       if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
       net = FANTASY_GRAPH.get();
-
-      assertDoesNotThrow(() -> net.solveNetwork().observeMarginals().printObserved());
-
-      net.observeNetwork(List.of("VOTE:CPK")).printObserved();
-      net.observeNetwork(List.of("VOTE:UNF")).printObserved();
-      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT")).printObserved();
-      net.printNetwork();
+      assertDoesNotThrow(() -> net.solveNetwork().observeMarginals());
+      if (PRINT_RESULTS) net.printObserved();
+      net.observeNetwork(List.of("VOTE:CPK"));
+      if (PRINT_RESULTS) net.printObserved();
+      net.observeNetwork(List.of("VOTE:UNF"));
+      if (PRINT_RESULTS) net.printObserved();
+      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
+      if (PRINT_RESULTS) {
+        net.printObserved();
+        net.printNetwork();
+      }
 
       String testState = "VOTE:CPK";
       String includedNode = "VOTE";

@@ -3,12 +3,9 @@ package io.github.alecredmond.method.inference.junctiontree;
 import io.github.alecredmond.application.inference.SolverConfigs;
 import io.github.alecredmond.application.inference.junctiontree.Clique;
 import io.github.alecredmond.application.network.BayesianNetworkData;
-import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
-import io.github.alecredmond.method.printer.NetworkPrinter;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -16,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTASolver {
-  private static final boolean DEBUG_PRINT_CLIQUE_TABLES = true;
 
   private JTASolver() {}
 
@@ -72,15 +68,6 @@ public class JTASolver {
 
     jta.sumTransfer(jta.getData().getRootCliques()[0]);
     jta.writeTablesToNetwork();
-
-    if (DEBUG_PRINT_CLIQUE_TABLES) {
-      NetworkPrinter printer = new NetworkPrinter(jta.getData().getBayesianNetworkData());
-      List<JunctionTreeTable> tables =
-          Arrays.stream(jta.getData().getCliques()).map(Clique::getTable).toList();
-      printer.printTables(tables, "JUNCTION TREE TABLES");
-      printer.printNetwork();
-      printer.printObserved();
-    }
   }
 
   private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {

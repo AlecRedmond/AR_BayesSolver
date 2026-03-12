@@ -4,6 +4,7 @@ import io.github.alecredmond.application.probabilitytables.export.probabilityvec
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.TransferIteratorData;
 import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.DoubleAdder;
 
@@ -15,6 +16,11 @@ public abstract class TransferIterator {
   protected TransferIterator(TransferIteratorData readData, TransferIteratorData writeData) {
     this.readData = readData;
     this.writeData = writeData;
+  }
+
+  public void setToUnityAndTransfer() {
+    Arrays.fill(writeData.getTableVector().getProbabilities(), 1.0);
+    transfer();
   }
 
   public abstract void transfer();

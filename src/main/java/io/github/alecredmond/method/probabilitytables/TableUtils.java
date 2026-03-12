@@ -33,7 +33,7 @@ public class TableUtils {
     return vector.getProbabilities()[index];
   }
 
-  public static double sumProbabilities(Collection<NodeState> request, ProbabilityTable table) {
+  public static double sumProbabilities(Map<Node, NodeState> request, ProbabilityTable table) {
     List<NodeState> matchedRequest = matchRequestToTable(request, table);
     VectorCombinationKey comboKey =
         new VectorCombinationKeyFactory().buildKey(table, matchedRequest);
@@ -41,8 +41,11 @@ public class TableUtils {
   }
 
   private static List<NodeState> matchRequestToTable(
-      Collection<NodeState> request, ProbabilityTable table) {
-    return request.stream().filter(state -> table.getNodes().contains(state.getNode())).toList();
+      Map<Node, NodeState> request, ProbabilityTable table) {
+    return request.entrySet().stream()
+        .filter(entry -> table.getNodes().contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .toList();
   }
 
   public static double sumProbabilities(VectorCombinationKey comboKey, ProbabilityTable table) {

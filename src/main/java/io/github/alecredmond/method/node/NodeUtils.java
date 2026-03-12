@@ -15,6 +15,11 @@ public class NodeUtils {
 
   private NodeUtils() {}
 
+  public static Map<Node, NodeState> generateRequest(
+      Collection<NodeState> statesA, Collection<NodeState> statesB) {
+    return generateRequest(Stream.concat(statesA.stream(), statesB.stream()).toList());
+  }
+
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
     try {
       return states.stream()
