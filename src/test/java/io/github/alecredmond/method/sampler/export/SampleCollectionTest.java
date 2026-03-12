@@ -16,8 +16,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
-  static final boolean SOLVE_ONLY_PROBLEMATIC = true;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
+  static final boolean SOLVE_ONLY_PROBLEMATIC = false;
   static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
@@ -142,10 +142,10 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
-//    if (samplePackage.isPrintMarginals()) {
-//      network.printObserved();
-//      network.printNetwork();
-//    }
+    if (samplePackage.isPrintMarginals()) {
+      network.printObserved();
+      network.printNetwork();
+    }
     SampleCollection test = samplePackage.getTest();
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();

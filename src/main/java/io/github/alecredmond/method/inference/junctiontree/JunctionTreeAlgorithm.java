@@ -31,6 +31,8 @@ public class JunctionTreeAlgorithm {
     data.setObserved(observed);
     resetObservations();
     if (observed.isEmpty()) {
+      Clique rootClique = data.getRootCliques()[0];
+      passMessages(rootClique);
       return;
     }
     Map<Node, NodeState> observedLeft = new HashMap<>(observed);
