@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler.export;
+package io.github.alecredmond.method.sampler;
 
 import static org.junit.jupiter.api.Assertions.*;
 

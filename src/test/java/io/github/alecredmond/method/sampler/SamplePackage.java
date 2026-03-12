@@ -1,4 +1,4 @@
-package io.github.alecredmond.method.sampler.export;
+package io.github.alecredmond.method.sampler;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
