@@ -3,11 +3,11 @@ package io.github.alecredmond.method.probabilitytables;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.export.ConditionalTable;
+import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
 import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
 import java.util.*;
@@ -93,7 +93,6 @@ public class TableBuilder {
     List<Node> orderedEvents = bnd.getNodes().stream().filter(events::contains).toList();
     ProbabilityVector vector = new ProbabilityVectorFactory().build(orderedEvents);
     ProbabilityVector backupVector = new ProbabilityVectorFactory().build(orderedEvents);
-    Map<ProbabilityTable, Integer[]> equivalentIndexes = new HashMap<>();
     Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
     Map<Object, Node> nodeIDMap = buildNodeIDMap(events);
     return new JunctionTreeTable(
@@ -101,7 +100,6 @@ public class TableBuilder {
         vector,
         new LinkedHashSet<>(orderedEvents),
         backupVector,
-        equivalentIndexes,
         nodeStateIDMap,
         nodeIDMap);
   }

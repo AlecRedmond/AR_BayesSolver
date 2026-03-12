@@ -2,6 +2,7 @@ package io.github.alecredmond.method.node;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
+import io.github.alecredmond.exceptions.NodeStateConflictException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -14,10 +15,19 @@ public class NodeUtils {
 
   private NodeUtils() {}
 
+  public static Map<Node, NodeState> generateRequest(
+      Collection<NodeState> statesA, Collection<NodeState> statesB) {
+    return generateRequest(Stream.concat(statesA.stream(), statesB.stream()).toList());
+  }
+
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
-    return states.stream()
-        .map((state -> Map.entry(state.getNode(), state)))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    try {
+      return states.stream()
+          .map((state -> Map.entry(state.getNode(), state)))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    } catch (IllegalStateException e) {
+      throw new NodeStateConflictException(e);
+    }
   }
 
   public static Set<NodeState> combineStates(
@@ -79,5 +89,11 @@ public class NodeUtils {
   public static void removeParent(Node node, Node parent) {
     removeFromList(node.getParents(), parent::equals, node::setParents);
     removeFromList(parent.getChildren(), node::equals, parent::setChildren);
+  }
+
+  public static Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {
+    return nodesA.stream()
+        .filter(nodesB::contains)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

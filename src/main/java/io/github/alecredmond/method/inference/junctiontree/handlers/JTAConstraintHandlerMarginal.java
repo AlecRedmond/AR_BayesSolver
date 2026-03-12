@@ -1,8 +1,8 @@
 package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.MarginalConstraint;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.TableUtils;
 import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -14,7 +14,7 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
   public JTAConstraintHandlerMarginal(
       JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
-    this.positionKey = new int[eventKey.getStateKey().length];
+    this.positionKey = new int[eventKey.getStateIndexes().length];
   }
 
   @Override
@@ -41,19 +41,19 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
 
   private void iterateOverConditions(
       ObjIntConsumer<int[]> ifIsEvent, ObjIntConsumer<int[]> ifNotEvent) {
-    int[] eventPosition = eventKey.getStateKey();
-    boolean[] innerLock = eventKey.getInnerLock();
-    boolean[] outerLock = eventKey.getOuterLock();
+    int[] eventPosition = eventKey.getStateIndexes();
+    boolean[] iterateEvents = eventKey.getIterateEvents();
+    boolean[] iterateConditions = eventKey.getIterateConditions();
     ProbabilityVector vector = tableHandler.getVector();
 
     iterator.iterateKeyCombos(
         vector,
         positionKey,
-        outerLock,
+        iterateConditions,
         (outerKey, outerIndex) -> {
-          boolean isEvent = checkIsEvidence(outerKey, eventPosition, innerLock);
+          boolean isEvent = checkIsEvidence(outerKey, eventPosition, iterateEvents);
           ObjIntConsumer<int[]> consumer = isEvent ? ifIsEvent : ifNotEvent;
-          iterator.iterateKeyCombos(vector, outerKey, innerLock, consumer);
+          iterator.iterateKeyCombos(vector, outerKey, iterateEvents, consumer);
         });
   }
 }

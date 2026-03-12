@@ -2,8 +2,8 @@ package io.github.alecredmond.method.inference.junctiontree.handlers;
 
 import io.github.alecredmond.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.application.node.Node;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.Set;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -28,27 +28,27 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
 
   private void lockAllNonEventNodes(VectorCombinationKey key) {
     Node[] nodes = tableHandler.getVector().getNodeArray();
-    boolean[] innerLock = key.getInnerLock();
+    boolean[] iterateEvents = key.getIterateEvents();
     Set<Node> eventNodes = constraint.getEventNodes();
     for (int i = 0; i < nodes.length; i++) {
-      innerLock[i] = !eventNodes.contains(nodes[i]);
+      iterateEvents[i] = !eventNodes.contains(nodes[i]);
     }
   }
 
   @Override
   protected void calculateProbability(
       DoubleAdder eventJointProb, DoubleAdder complementJointProb, DoubleAdder conditionJointProb) {
-    double[] probs = tableHandler.getVector().getProbabilities();
+    double[] probabilities = tableHandler.getVector().getProbabilities();
     iterateOverConditions(
         eventKey,
         conditionKey,
         (key, index) -> {
-          double p = probs[index];
+          double p = probabilities[index];
           eventJointProb.add(p);
           conditionJointProb.add(p);
         },
         (key, index) -> {
-          double p = probs[index];
+          double p = probabilities[index];
           complementJointProb.add(p);
           conditionJointProb.add(p);
         });
@@ -68,20 +68,20 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
       VectorCombinationKey conditionKey,
       ObjIntConsumer<int[]> ifIsEvent,
       ObjIntConsumer<int[]> ifNotEvent) {
-    int[] eventPosition = eventKey.getStateKey();
-    int[] conditionPosition = conditionKey.getStateKey();
-    boolean[] conditionLock = conditionKey.getInnerLock();
-    boolean[] eventLock = eventKey.getInnerLock();
+    int[] eventPosition = eventKey.getStateIndexes();
+    int[] conditionPosition = conditionKey.getStateIndexes();
+    boolean[] iterateConditions = conditionKey.getIterateEvents();
+    boolean[] iterateEvents = eventKey.getIterateEvents();
     ProbabilityVector vector = tableHandler.getVector();
 
     iterator.iterateKeyCombos(
         vector,
         conditionPosition,
-        conditionLock,
+        iterateConditions,
         (outerKey, outerIndex) -> {
-          boolean isEvent = checkIsEvidence(outerKey, eventPosition, eventLock);
+          boolean isEvent = checkIsEvidence(outerKey, eventPosition, iterateEvents);
           ObjIntConsumer<int[]> consumer = isEvent ? ifIsEvent : ifNotEvent;
-          iterator.iterateKeyCombos(vector, outerKey, eventLock, consumer);
+          iterator.iterateKeyCombos(vector, outerKey, iterateEvents, consumer);
         });
   }
 }

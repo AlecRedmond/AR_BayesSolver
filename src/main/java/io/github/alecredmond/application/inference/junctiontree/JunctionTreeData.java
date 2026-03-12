@@ -4,8 +4,7 @@ import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
 import io.github.alecredmond.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +18,11 @@ import lombok.NoArgsConstructor;
 public class JunctionTreeData {
   private BayesianNetworkData bayesianNetworkData;
   private Clique[] cliques;
-  private List<JunctionTreeTable> junctionTreeTables;
-  private List<JTAConstraintHandler> constraintHandlers;
+  private Clique[] rootCliques;
+  private Separator[] separators;
+  private Map<Clique, List<JTAConstraintHandler>> constraintHandlersMap;
+  private boolean solverConfig;
+  private double jointProbability;
 
   public List<Node> getNodes() {
     return bayesianNetworkData.getNodes();

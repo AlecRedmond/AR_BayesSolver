@@ -5,12 +5,14 @@ import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.method.inference.InferenceEngine;
 import io.github.alecredmond.method.network.export.BayesianNetwork;
+import io.github.alecredmond.method.node.NodeUtils;
 import io.github.alecredmond.method.printer.NetworkPrinter;
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -34,19 +36,19 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   @Override
   public BayesianNetwork addNode(Node node) {
     networkData.setSolved(false);
-    NetworkDataUtils.addNode(node,networkData);
+    NetworkDataUtils.addNode(node, networkData);
     return this;
   }
 
   public <T> BayesianNetworkImpl addNode(T nodeID) {
     networkData.setSolved(false);
-    NetworkDataUtils.addNode(nodeID,networkData);
+    NetworkDataUtils.addNode(nodeID, networkData);
     return this;
   }
 
   public <T, E> BayesianNetworkImpl addNode(T nodeID, Collection<E> nodeStateIDs) {
     networkData.setSolved(false);
-    NetworkDataUtils.addNode(nodeID, nodeStateIDs,networkData);
+    NetworkDataUtils.addNode(nodeID, nodeStateIDs, networkData);
     return this;
   }
 
@@ -54,13 +56,13 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   public BayesianNetwork removeNode(Node node) {
     networkData.setSolved(false);
     if (Optional.ofNullable(node).isEmpty()) return this;
-    NetworkDataUtils.removeNode(node.getId(),networkData);
+    NetworkDataUtils.removeNode(node.getId(), networkData);
     return null;
   }
 
   public <T> BayesianNetworkImpl removeNode(T nodeID) {
     networkData.setSolved(false);
-    NetworkDataUtils.removeNode(nodeID,networkData);
+    NetworkDataUtils.removeNode(nodeID, networkData);
     return this;
   }
 
@@ -79,27 +81,32 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     throw new IllegalArgumentException("No node with ID " + nodeID + " found in network");
   }
 
+  @Override
+  public <T> Set<Node> getNodes(Collection<T> nodeIDs) {
+    return nodeIDs.stream().map(this::getNode).collect(Collectors.toSet());
+  }
+
   public <T, E> BayesianNetworkImpl addNodeStates(T nodeID, Collection<E> nodeStateIDs) {
     networkData.setSolved(false);
-    NetworkDataUtils.addNodeStates(nodeID, nodeStateIDs,networkData);
+    NetworkDataUtils.addNodeStates(nodeID, nodeStateIDs, networkData);
     return this;
   }
 
   public <T, E> BayesianNetworkImpl addNodeState(T nodeID, E nodeStateID) {
     networkData.setSolved(false);
-    NetworkDataUtils.addNodeState(nodeID, nodeStateID,networkData);
+    NetworkDataUtils.addNodeState(nodeID, nodeStateID, networkData);
     return this;
   }
 
   public <T> BayesianNetworkImpl removeNodeStates(T nodeID) {
     networkData.setSolved(false);
-    NetworkDataUtils.removeNodeStates(nodeID,networkData);
+    NetworkDataUtils.removeNodeStates(nodeID, networkData);
     return this;
   }
 
   public <T, E> BayesianNetworkImpl removeNodeState(T nodeID, E nodeStateID) {
     networkData.setSolved(false);
-    NetworkDataUtils.removeNodeState(nodeID, nodeStateID,networkData);
+    NetworkDataUtils.removeNodeState(nodeID, nodeStateID, networkData);
     return this;
   }
 
@@ -125,7 +132,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T, E> BayesianNetworkImpl addParents(T childID, Collection<E> parentIDs) {
     networkData.setSolved(false);
-    NetworkDataUtils.addParents(childID, parentIDs,networkData);
+    NetworkDataUtils.addParents(childID, parentIDs, networkData);
     return this;
   }
 
@@ -138,7 +145,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T, E> BayesianNetworkImpl addParent(T childID, E parentID) {
     networkData.setSolved(false);
-    NetworkDataUtils.addParent(childID, parentID,networkData);
+    NetworkDataUtils.addParent(childID, parentID, networkData);
     return this;
   }
 
@@ -151,7 +158,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T, E> BayesianNetworkImpl removeParent(T childID, E parentID) {
     networkData.setSolved(false);
-    NetworkDataUtils.removeParent(childID, parentID,networkData);
+    NetworkDataUtils.removeParent(childID, parentID, networkData);
     return this;
   }
 
@@ -164,7 +171,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T> BayesianNetworkImpl removeParents(T childID) {
     networkData.setSolved(false);
-    NetworkDataUtils.removeParents(childID,networkData);
+    NetworkDataUtils.removeParents(childID, networkData);
     return this;
   }
 
@@ -256,8 +263,14 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T> BayesianNetworkImpl observeNetwork(Collection<T> observedNodeStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
-    inferenceEngine.observeNetwork(NetworkDataUtils.getStatesByID(observedNodeStateIDs,networkData));
+    inferenceEngine.observeNetwork(
+        NetworkDataUtils.getStatesByID(observedNodeStateIDs, networkData));
     return this;
+  }
+
+  @Override
+  public <T> BayesianNetwork observeNetwork(T observedNodeStateID) {
+    return observeNetwork(List.of(observedNodeStateID));
   }
 
   public BayesianNetworkImpl observeMarginals() {
@@ -280,34 +293,27 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return networkData;
   }
 
-  public <T, E> List<List<T>> generateSamples(
-      Collection<E> excludeNodeIDs,
-      Collection<E> includeNodeIDs,
-      int numberOfSamples,
-      Class<T> sampleClass) {
-    if (!networkData.isSolved()) solveNetwork();
+  @Override
+  public SampleCollection generateSamples(int numberOfSamples) {
+    if (!networkData.isSolved()) {
+      solveNetwork();
+    }
+    return inferenceEngine.generateSamples(networkData.getObserved(), numberOfSamples);
+  }
+
+  @Override
+  public <T> SampleCollection generateSamples(int numberOfSamples, Collection<T> observedStateIDs) {
+    if (!networkData.isSolved()) {
+      solveNetwork();
+    }
     return inferenceEngine.generateSamples(
-        NetworkDataUtils.getNodesByID(excludeNodeIDs,networkData),
-        NetworkDataUtils.getNodesByID(includeNodeIDs,networkData),
-        numberOfSamples,
-        sampleClass);
-  }
-
-  @Override
-  public <T, E> List<List<T>> generateSamples(
-      Collection<E> includeNodeIDs, int numberOfSamples, Class<T> sampleClass) {
-    return generateSamples(List.of(), includeNodeIDs, numberOfSamples, sampleClass);
-  }
-
-  @Override
-  public <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass) {
-    return generateSamples(List.of(), List.of(), numberOfSamples, sampleClass);
+        NodeUtils.generateRequest(getNodeStates(observedStateIDs)), numberOfSamples);
   }
 
   public <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs) {
     if (!networkData.isSolved()) solveNetwork();
     return inferenceEngine.getProbabilityFromCurrentObservations(
-        NetworkDataUtils.getStatesByID(eventStateIDs,networkData));
+        NetworkDataUtils.getStatesByID(eventStateIDs, networkData));
   }
 
   public <T> ProbabilityTable getNetworkTable(T nodeID) {

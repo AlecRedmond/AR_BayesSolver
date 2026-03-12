@@ -7,14 +7,12 @@ module BayesSolver {
   requires java.rmi;
 
   exports io.github.alecredmond.application.constraints;
-  exports io.github.alecredmond.application.inference;
   exports io.github.alecredmond.application.network;
   exports io.github.alecredmond.application.node;
-  exports io.github.alecredmond.application.printer;
-  exports io.github.alecredmond.application.probabilitytables;
+  exports io.github.alecredmond.application.probabilitytables.export;
+  exports io.github.alecredmond.application.probabilitytables.export.probabilityvector;
+  exports io.github.alecredmond.application.sampler;
   exports io.github.alecredmond.exceptions;
-  exports io.github.alecredmond.application.probabilitytables.probabilityvector;
-  exports io.github.alecredmond.method.probabilitytables;
-  exports io.github.alecredmond.method.probabilitytables.probabilityvector;
   exports io.github.alecredmond.method.network.export;
+  exports io.github.alecredmond.method.sampler.export;
 }

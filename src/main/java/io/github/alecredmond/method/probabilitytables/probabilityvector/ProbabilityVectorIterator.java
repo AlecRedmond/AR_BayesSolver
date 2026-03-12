@@ -1,9 +1,9 @@
 package io.github.alecredmond.method.probabilitytables.probabilityvector;
 
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
 import java.util.*;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
@@ -12,17 +12,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProbabilityVectorIterator {
 
-  public void iterateKeyCombos(
+  public void iterateEvents(
       Collection<NodeState> lockedStates,
       ProbabilityTable table,
       ObjIntConsumer<int[]> iterativeConsumer) {
     VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, lockedStates);
-    iterateKeyCombos(table.getVector(), key, iterativeConsumer);
+    iterateEvents(table.getVector(), key, iterativeConsumer);
   }
 
-  public void iterateKeyCombos(
+  public void iterateEvents(
       ProbabilityVector vector, VectorCombinationKey key, ObjIntConsumer<int[]> iterativeConsumer) {
-    iterateKeyCombos(vector, key.getStateKey(), key.getInnerLock(), iterativeConsumer);
+    iterateKeyCombos(vector, key.getStateIndexes(), key.getIterateEvents(), iterativeConsumer);
   }
 
   /**
@@ -104,5 +104,10 @@ public class ProbabilityVectorIterator {
         .filter(i -> positionLocked[i])
         .forEach(i -> corrections[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
     return corrections;
+  }
+
+  public void iterateConditions(
+      ProbabilityVector vector, VectorCombinationKey key, ObjIntConsumer<int[]> iterativeConsumer) {
+    iterateKeyCombos(vector, key.getStateIndexes(), key.getIterateConditions(), iterativeConsumer);
   }
 }

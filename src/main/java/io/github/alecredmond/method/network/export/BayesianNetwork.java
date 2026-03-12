@@ -6,15 +6,14 @@ import io.github.alecredmond.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.application.network.BayesianNetworkData;
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.MarginalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.method.network.BayesianNetworkImpl;
-
+import io.github.alecredmond.method.sampler.export.SampleCollection;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -126,6 +125,16 @@ public interface BayesianNetwork {
    * @return the Node object associated with the ID
    */
   <T> Node getNode(T nodeID);
+
+    /**
+     * Returns a set of nodes from their input ID
+     *
+     * @param <T> class of the Node ID
+     * @param nodeIDs the node IDs
+     * @throws IllegalArgumentException if the node IDs are not mapped to a node value
+     * @return the Node object associated with the ID
+     */
+  <T> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
    * Adds a collection of states to an existing node.
@@ -434,6 +443,16 @@ public interface BayesianNetwork {
   <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
 
   /**
+   * Sets evidence in the network by observing one node state as true. This fixes the state of
+   * certain nodes before running inference.
+   *
+   * @param observedNodeStateID the id of the state fixed as observed
+   * @param <T> the class of the NodeState ID.
+   * @return this instance for method chaining.
+   */
+  <T> BayesianNetwork observeNetwork(T observedNodeStateID);
+
+  /**
    * Runs the inference algorithm to compute the posterior probabilities (marginals) of all nodes.
    * This is the equivalent of running the observeNetwork method with an empty collection.
    *
@@ -462,47 +481,21 @@ public interface BayesianNetwork {
    * marginals if no observation has been made.
    *
    * @param numberOfSamples the total number of samples to generate.
-   * @param excludeNodeIDs a collection of node IDs to exclude from the samples.
-   * @param includeNodeIDs a collection of node IDs to include in the samples. If empty, all nodes
-   *     will be included.
-   * @param <T> class of NodeState IDs
-   * @param <E> class of the Node IDs
-   * @param sampleClass the class of the type T, used for type casting.
-   * @return a list of samples, where each sample is a list of node states.
+   * @return a SampleCollection object providing further methods
    */
-  <T, E> List<List<T>> generateSamples(
-      Collection<E> excludeNodeIDs,
-      Collection<E> includeNodeIDs,
-      int numberOfSamples,
-      Class<T> sampleClass);
+  SampleCollection generateSamples(int numberOfSamples);
 
   /**
-   * Generates random samples from the joint probability distribution defined by the network. Note
-   * that this method utilizes the most recent result observations on the network, or the base
-   * marginals if no observation has been made.
+   * Generates random samples from the joint probability distribution defined by the network. This
+   * version of the method allows an observation to be sampled <b>without changing the observation
+   * status of the network itself</b>.
    *
    * @param numberOfSamples the total number of samples to generate.
-   * @param includeNodeIDs a collection of node IDs to include in the samples. If empty, all nodes
-   *     will be included.
-   * @param <T> class of NodeState IDs
-   * @param <E> class of the Node IDs
-   * @param sampleClass the class of the type T, used for type casting.
-   * @return a list of samples, where each sample is a list of node states.
+   * @param observedStateIDs ids of the NodeStates to be treated as observed
+   * @param <T> class of the NodeState ids.
+   * @return a SampleCollection object providing further methods
    */
-  <T, E> List<List<T>> generateSamples(
-      Collection<E> includeNodeIDs, int numberOfSamples, Class<T> sampleClass);
-
-  /**
-   * Generates random samples from the joint probability distribution defined by the network. Note
-   * that this method utilizes the most recent result observations on the network, or the base
-   * marginals if no observation has been made.
-   *
-   * @param numberOfSamples the total number of samples to generate.
-   * @param <T> class of NodeState IDs
-   * @param sampleClass the class of the type T, used for type casting.
-   * @return a list of samples, where each sample is a list of node states.
-   */
-  <T> List<List<T>> generateSamples(int numberOfSamples, Class<T> sampleClass);
+  <T> SampleCollection generateSamples(int numberOfSamples, Collection<T> observedStateIDs);
 
   /**
    * Calculates the joint probability of a set of events occurring, conditional on the current

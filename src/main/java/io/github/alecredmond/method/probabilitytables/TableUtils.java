@@ -2,11 +2,14 @@ package io.github.alecredmond.method.probabilitytables;
 
 import io.github.alecredmond.application.node.Node;
 import io.github.alecredmond.application.node.NodeState;
-import io.github.alecredmond.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.application.probabilitytables.export.ConditionalTable;
+import io.github.alecredmond.application.probabilitytables.export.ProbabilityTable;
+import io.github.alecredmond.application.probabilitytables.export.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.application.probabilitytables.internal.JunctionTreeTable;
+import io.github.alecredmond.application.probabilitytables.internal.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.method.node.NodeUtils;
 import io.github.alecredmond.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
+import io.github.alecredmond.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Supplier;
@@ -30,11 +33,26 @@ public class TableUtils {
     return vector.getProbabilities()[index];
   }
 
+  public static double sumProbabilities(Map<Node, NodeState> request, ProbabilityTable table) {
+    List<NodeState> matchedRequest = matchRequestToTable(request, table);
+    VectorCombinationKey comboKey =
+        new VectorCombinationKeyFactory().buildKey(table, matchedRequest);
+    return sumProbabilities(comboKey, table);
+  }
+
+  private static List<NodeState> matchRequestToTable(
+      Map<Node, NodeState> request, ProbabilityTable table) {
+    return request.entrySet().stream()
+        .filter(entry -> table.getNodes().contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .toList();
+  }
+
   public static double sumProbabilities(VectorCombinationKey comboKey, ProbabilityTable table) {
     ProbabilityVector vector = table.getVector();
     double[] probability = vector.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
-    ITERATOR.iterateKeyCombos(vector, comboKey, (key, index) -> adder.add(probability[index]));
+    ITERATOR.iterateEvents(vector, comboKey, (key, index) -> adder.add(probability[index]));
     double sum = adder.sum();
     if (Double.isNaN(sum)) {
       throwQueryError(
@@ -48,7 +66,12 @@ public class TableUtils {
     StringBuilder requestString = new StringBuilder();
     request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
     throw new IllegalArgumentException(
-        String.format("Request %s to table %s %s", requestString, table.getTableID(), endMessage));
+        String.format(
+            "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
+  }
+
+  public static double sumAll(JunctionTreeTable junctionTreeTable) {
+    return Arrays.stream(junctionTreeTable.getVector().getProbabilities()).sum();
   }
 
   public static void marginalizeJointTable(ProbabilityTable table) {
@@ -67,7 +90,7 @@ public class TableUtils {
     List<T> combos = new ArrayList<>();
     Node[] nodeArray = table.getVector().getNodeArray();
 
-    ITERATOR.iterateKeyCombos(
+    ITERATOR.iterateEvents(
         lockExcludedNodesFirstState(includedNodes, nodeArray),
         table,
         (k, index) ->
@@ -90,33 +113,25 @@ public class TableUtils {
 
   public static void marginalizeConditionalTable(ConditionalTable table) {
     ProbabilityVector vector = table.getVector();
-    VectorCombinationKey marginalizationKey = table.getMarginalizationKey();
-
-    int[] tumblerKey = marginalizationKey.getStateKey().clone();
-    boolean[] lockConditions = marginalizationKey.getInnerLock();
-    boolean[] lockEvents = marginalizationKey.getOuterLock();
+    VectorCombinationKey marginalizationKey =
+        new VectorCombinationKeyFactory().buildMarginalisationKey(table);
 
     double[] probs = vector.getProbabilities();
 
     DoubleAdder adder = new DoubleAdder();
 
-    ITERATOR.iterateKeyCombos(
+    ITERATOR.iterateConditions(
         vector,
-        tumblerKey,
-        lockEvents,
+        marginalizationKey,
         (conditionKey, conditionIndex) -> {
-          ITERATOR.iterateKeyCombos(
-              vector,
-              conditionKey,
-              lockConditions,
-              (eventKey, eventIndex) -> adder.add(probs[eventIndex]));
+          ITERATOR.iterateEvents(
+              vector, marginalizationKey, (eventKey, eventIndex) -> adder.add(probs[eventIndex]));
           double sumAcrossConditions = adder.sumThenReset();
           if (sumAcrossConditions == 0) return;
           double ratio = 1 / sumAcrossConditions;
-          ITERATOR.iterateKeyCombos(
+          ITERATOR.iterateEvents(
               vector,
-              conditionKey,
-              lockConditions,
+              marginalizationKey,
               (eventKey, eventIndex) -> probs[eventIndex] = ratio * probs[eventIndex]);
         });
   }
@@ -134,5 +149,9 @@ public class TableUtils {
     if (!allNodesQueried) {
       throwQueryError("did not query all nodes", request, table);
     }
+  }
+
+  public static Set<Node> getCommonNodes(ProbabilityTable tableA, ProbabilityTable tableB) {
+    return NodeUtils.getOverlap(tableA.getNodes(), tableB.getNodes());
   }
 }
