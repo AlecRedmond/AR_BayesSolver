@@ -97,7 +97,7 @@ public class JunctionTreeAlgorithm {
     if (newEvidence.isEmpty()) {
       return new HashMap<>();
     }
-    Map<Node, NodeState> observed = data.getObserved();
+    Map<Node, NodeState> observed = data.getObservedEvidence();
     Map<Node, NodeState> request = generateRequest(newEvidence, observed.values());
     observed.keySet().forEach(request::remove);
     return request;

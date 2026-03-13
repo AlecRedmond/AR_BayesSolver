@@ -51,7 +51,7 @@ class JTANetworkWriter {
   static void writeObservations(JunctionTreeData data) {
     log.info("WRITING OBSERVATIONS...");
 
-    data.getBayesianNetworkData().setObservedEvidence(data.getObserved());
+    data.getBayesianNetworkData().setObservedEvidence(data.getObservedEvidence());
 
     Arrays.stream(data.getCliques())
         .map(Clique::getWriteToObserved)
@@ -69,8 +69,8 @@ class JTANetworkWriter {
   }
 
   private static void updateTableName(Node node, JunctionTreeData data) {
-    MarginalTable observedTable = data.getObservationMap().get(node);
-    Collection<NodeState> states = data.getObserved().values();
+    MarginalTable observedTable = data.getObservedTablesMap().get(node);
+    Collection<NodeState> states = data.getObservedEvidence().values();
     StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
     if (!states.isEmpty()) {
       sb.append("|");

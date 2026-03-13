@@ -27,7 +27,7 @@ public class JunctionTreeData {
     return bayesianNetworkData.getNodes();
   }
 
-  public Map<Node, MarginalTable> getObservationMap() {
+  public Map<Node, MarginalTable> getObservedTablesMap() {
     return bayesianNetworkData.getObservedTablesMap();
   }
 
@@ -35,7 +35,7 @@ public class JunctionTreeData {
     return bayesianNetworkData.getConstraints();
   }
 
-  public Map<Node, NodeState> getObserved() {
+  public Map<Node, NodeState> getObservedEvidence() {
     return this.bayesianNetworkData.getObservedEvidence();
   }
 
