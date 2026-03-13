@@ -44,7 +44,7 @@ public class InferenceEngine {
       double newJointProb = junctionTree.getJointProbOfNewEvidence(newEvidence);
       return newJointProb / currentJointProb;
     } catch (NodeStateConflictException e) {
-      log.error("Conflicting states found in {}", NodeUtils.formatStatesToString(newEvidence));
+      log.warn("Conflicting states found in {}", NodeUtils.formatStatesToString(newEvidence));
       return 0.0;
     }
   }
