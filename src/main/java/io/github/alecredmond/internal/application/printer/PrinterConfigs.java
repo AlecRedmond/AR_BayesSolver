@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PrinterConfigs {
   public static final String LEFT_PAD_FORMAT = "%%%ds";
   public static final String RIGHT_PAD_FORMAT = "%%-%ds";
-  public static final boolean EVENT_COLUMN = true;
-  public static final boolean CONDITION_COLUMN = false;
   private String saveDirectory;
   private boolean printToConsole;
   private boolean printToTextFile;

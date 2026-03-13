@@ -5,14 +5,14 @@ import static io.github.alecredmond.internal.application.printer.PrinterConfigs.
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import lombok.Data;
 
 @Data
@@ -27,16 +27,17 @@ public class TableFormatter {
     List<List<NodeState>> eventCombos = createCombinations(table.getEvents(), table);
     List<List<NodeState>> conditionCombos = createCombinations(table.getConditions(), table);
 
-    List<String> eventLabels = eventCombos.stream().map(this::joinStates).toList();
+    List<String> eventLabels = eventCombos.stream().map(this::joinStateStrings).toList();
     List<String> conditionLabels = createConditionLabels(conditionCombos, table.getConditions());
 
     int eventColWidth = Math.max(getMaxLength(eventLabels), configs.getProbabilityCharLength());
-    int condColWidth = getCondColWidth(conditionLabels);
+    int condColWidth = conditionLabels.isEmpty() ? 0 : conditionLabels.getFirst().length();
 
-    String headerRow = renderHeaderRow(eventLabels, eventColWidth, condColWidth);
     List<String> dataRows =
         renderDataRows(
             table, eventCombos, conditionCombos, conditionLabels, eventColWidth, condColWidth);
+
+    String headerRow = renderHeaderRow(eventLabels, eventColWidth, condColWidth);
     String borderRow = createBorderRow(dataRows);
 
     List<String> tableLines = new ArrayList<>();
@@ -53,37 +54,52 @@ public class TableFormatter {
     return TableUtils.generateStateCombinations(nodes, ArrayList::new, table);
   }
 
-  private String joinStates(List<NodeState> states) {
+  private String joinStateStrings(List<NodeState> states) {
     return states.stream().map(NodeState::toString).collect(Collectors.joining("|"));
   }
 
   private List<String> createConditionLabels(
       List<List<NodeState>> conditionCombos, Set<Node> conditionNodes) {
-    if (conditionCombos.isEmpty()) return new ArrayList<>();
+    if (conditionCombos.isEmpty()) {
+      return new ArrayList<>();
+    }
     Map<NodeState, String> toStringMap = new HashMap<>();
     Map<Node, Integer> widthMap = new HashMap<>();
     fillWidthAndToStringMap(toStringMap, widthMap, conditionNodes);
-    List<String> strings = new ArrayList<>();
-    conditionCombos.forEach(
-        combo -> {
-          StringBuilder sb = new StringBuilder();
-          combo.forEach(
-              nodeState ->
-                  sb.append(padRight(toStringMap.get(nodeState), widthMap.get(nodeState.getNode())))
-                      .append("|"));
-          sb.deleteCharAt(sb.length() - 1);
-          strings.add(sb.toString());
-        });
-    return strings;
+    return conditionCombos.stream()
+        .map(combo -> buildStringForConditionCombo(combo, toStringMap, widthMap))
+        .toList();
   }
 
   private int getMaxLength(List<String> eventLabels) {
     return eventLabels.stream().mapToInt(String::length).max().orElse(0);
   }
 
-  private int getCondColWidth(List<String> conditionLabels) {
-    if (conditionLabels.isEmpty()) return 0;
-    return conditionLabels.getFirst().length();
+  private List<String> renderDataRows(
+      ProbabilityTable table,
+      List<List<NodeState>> eventCombos,
+      List<List<NodeState>> conditionCombos,
+      List<String> conditionLabels,
+      int eventWidth,
+      int condWidth) {
+    String probabilityFormatter = configs.getProbabilityFormatter();
+    if (table instanceof MarginalTable) {
+      return List.of(
+          buildSingleRow(
+              "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));
+    }
+    return IntStream.range(0, conditionCombos.size())
+        .mapToObj(
+            i ->
+                buildSingleRow(
+                    conditionLabels.get(i),
+                    eventCombos,
+                    conditionCombos.get(i),
+                    table,
+                    eventWidth,
+                    condWidth,
+                    probabilityFormatter))
+        .toList();
   }
 
   private String renderHeaderRow(List<String> eventLabels, int eventWidth, int condWidth) {
@@ -97,34 +113,6 @@ public class TableFormatter {
     return header.toString();
   }
 
-  private List<String> renderDataRows(
-      ProbabilityTable table,
-      List<List<NodeState>> eventCombos,
-      List<List<NodeState>> conditionCombos,
-      List<String> conditionLabels,
-      int eventWidth,
-      int condWidth) {
-    String probabilityFormatter = configs.getProbabilityFormatter();
-
-    if (table instanceof ConditionalTable) {
-      return IntStream.range(0, conditionCombos.size())
-          .mapToObj(
-              i ->
-                  buildSingleRow(
-                      conditionLabels.get(i),
-                      eventCombos,
-                      conditionCombos.get(i),
-                      table,
-                      eventWidth,
-                      condWidth,
-                      probabilityFormatter))
-          .toList();
-    }
-    return List.of(
-        buildSingleRow(
-            "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));
-  }
-
   private String createBorderRow(List<String> dataRows) {
     int firstLength = dataRows.getFirst().length();
     return "-".repeat(firstLength);
@@ -132,24 +120,27 @@ public class TableFormatter {
 
   private void fillWidthAndToStringMap(
       Map<NodeState, String> toStringMap, Map<Node, Integer> widthMap, Set<Node> conditionNodes) {
-    conditionNodes.forEach(
-        node -> {
-          Map<NodeState, String> stringMap =
-              node.getNodeStates().stream()
-                  .map(state -> Map.entry(state, state.toString()))
-                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-          int longest = stringMap.values().stream().mapToInt(String::length).max().orElse(0);
-          toStringMap.putAll(stringMap);
-          widthMap.put(node, longest);
-        });
+    for (Node node : conditionNodes) {
+      int longest = 0;
+      for (NodeState state : node.getNodeStates()) {
+        String stateString = state.toString();
+        toStringMap.put(state, stateString);
+        if (stateString.length() > longest) {
+          longest = stateString.length();
+        }
+      }
+      widthMap.put(node, longest);
+    }
   }
 
-  private String padRight(String text, int width) {
-    return String.format(RIGHT_PAD_FORMAT.formatted(width), text);
-  }
-
-  private String padLeft(String text, int width) {
-    return String.format(LEFT_PAD_FORMAT.formatted(width), text);
+  private String buildStringForConditionCombo(
+      List<NodeState> combo, Map<NodeState, String> toStringMap, Map<Node, Integer> widthMap) {
+    StringBuilder sb = new StringBuilder();
+    combo.forEach(
+        state ->
+            sb.append(padRight(toStringMap.get(state), widthMap.get(state.getNode()))).append("|"));
+    sb.deleteCharAt(sb.length() - 1);
+    return sb.toString();
   }
 
   private String buildSingleRow(
@@ -167,7 +158,7 @@ public class TableFormatter {
     }
 
     eventCombos.stream()
-        .map(events -> concatStates(currentConditions, events))
+        .map(events -> NodeUtils.combineStates(events, currentConditions))
         .map(table::getProbability)
         .map(probability -> String.format(probFormatter, probability))
         .map(probString -> padLeft(probString, eventWidth))
@@ -176,7 +167,11 @@ public class TableFormatter {
     return row.toString();
   }
 
-  private List<NodeState> concatStates(List<NodeState> currentConditions, List<NodeState> events) {
-    return Stream.concat(currentConditions.stream(), events.stream()).toList();
+  private String padLeft(String text, int width) {
+    return String.format(LEFT_PAD_FORMAT.formatted(width), text);
+  }
+
+  private String padRight(String text, int width) {
+    return String.format(RIGHT_PAD_FORMAT.formatted(width), text);
   }
 }
