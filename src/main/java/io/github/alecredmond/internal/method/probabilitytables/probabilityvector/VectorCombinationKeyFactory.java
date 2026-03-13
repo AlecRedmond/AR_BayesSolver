@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class VectorCombinationKeyFactory {
-
   public VectorCombinationKey buildKey(ProbabilityTable table, Collection<NodeState> request) {
     Map<Node, NodeState> requestMap = NodeUtils.generateRequest(request);
 

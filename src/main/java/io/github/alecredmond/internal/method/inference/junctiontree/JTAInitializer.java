@@ -3,23 +3,23 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
+import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
-
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,7 +50,6 @@ public class JTAInitializer {
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
     jtd.setConstraintHandlersMap(map);
   }
 
@@ -74,7 +73,7 @@ public class JTAInitializer {
 
     for (Node node : bnd.getNodes()) {
       ProbabilityTable networkTable = bnd.getNetworkTablesMap().get(node);
-      MarginalTable observedTable = bnd.getObservationMap().get(node);
+      MarginalTable observedTable = bnd.getObservedTablesMap().get(node);
 
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
@@ -111,15 +110,13 @@ public class JTAInitializer {
   }
 
   private static JTAConstraintHandler buildConstraintHandler(
-      ProbabilityConstraint constraint, Clique clique) {
+      @NonNull ProbabilityConstraint constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
-
-    if (Objects.requireNonNull(constraint) instanceof MarginalConstraint mc) {
-      return new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
-    } else if (constraint instanceof ConditionalConstraint cc) {
-      return new JTAConstraintHandlerConditional(jtaTableHandler, cc);
-    }
-    throw new IllegalStateException("Unexpected value: " + constraint);
+    return switch (constraint) {
+      case MarginalConstraint mc -> new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
+      case ConditionalConstraint cc -> new JTAConstraintHandlerConditional(jtaTableHandler, cc);
+      default -> throw new IllegalStateException("Unexpected value: " + constraint);
+    };
   }
 
   public static JunctionTreeData buildInferenceConfiguration(
@@ -127,7 +124,6 @@ public class JTAInitializer {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(false);
     buildCommon(junctionTreeData, bayesianNetworkData);
-    junctionTreeData.setConstraintHandlersMap(new HashMap<>());
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
     return junctionTreeData;
   }

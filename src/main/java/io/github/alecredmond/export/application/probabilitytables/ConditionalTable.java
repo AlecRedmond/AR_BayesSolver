@@ -10,9 +10,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class ConditionalTable extends ProbabilityTable {
-
   private final Node networkNode;
 
   public ConditionalTable(

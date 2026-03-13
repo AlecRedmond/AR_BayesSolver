@@ -1,14 +1,13 @@
 package io.github.alecredmond.internal.method.inference;
 
+import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.exceptions.NodeStateConflictException;
-import io.github.alecredmond.internal.method.inference.junctiontree.JTAInitializer;
+import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.inference.junctiontree.JTASolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.sampler.LikelihoodWeightingSampler;
 import io.github.alecredmond.internal.method.sampler.Sampler;
 import java.util.*;
@@ -45,7 +44,7 @@ public class InferenceEngine {
       double newJointProb = junctionTree.getJointProbOfNewEvidence(newEvidence);
       return newJointProb / currentJointProb;
     } catch (NodeStateConflictException e) {
-      log.error("Nodes sharing the same state found in {}", NodeUtils.formatToString(newEvidence));
+      log.error("Conflicting states found in {}", NodeUtils.formatStatesToString(newEvidence));
       return 0.0;
     }
   }
@@ -56,8 +55,7 @@ public class InferenceEngine {
     }
     JTASolver.solveNetwork(this);
     networkData.setSolved(true);
-    junctionTree =
-        new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(networkData));
+    junctionTree = JunctionTreeAlgorithm.buildForInference(networkData);
     observeNetwork(new HashSet<>());
   }
 
@@ -65,24 +63,7 @@ public class InferenceEngine {
     if (!networkData.isSolved()) {
       return;
     }
-    Map<Node, NodeState> observedMap = convertToMap(observed);
-    junctionTree.observeNetwork(observedMap);
+    junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
     junctionTree.writeObservations();
-  }
-
-  public Map<Node, NodeState> convertToMap(Collection<NodeState> evidenceStates) {
-    NodeUtils.generateRequest(evidenceStates);
-    Map<Node, NodeState> evidence = new HashMap<>();
-    for (NodeState state : evidenceStates) {
-      checkNoDuplicates(evidence, state);
-      evidence.put(state.getNode(), state);
-    }
-    return evidence;
-  }
-
-  private void checkNoDuplicates(Map<Node, NodeState> evidence, NodeState state) {
-    if (evidence.containsKey(state.getNode())) {
-      throw new IllegalArgumentException("Tried to observe multiple NodeStates on the same node!");
-    }
   }
 }

@@ -2,11 +2,10 @@ package io.github.alecredmond.internal.method.printer;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import java.util.*;
 import java.util.List;
-
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,7 +23,7 @@ public class NetworkPrinter {
   }
 
   public void printObserved() {
-    printTables(networkData.getObservationMap(), configs.getObservedFileTitle());
+    printTables(networkData.getObservedTablesMap(), configs.getObservedFileTitle());
   }
 
   public <T extends ProbabilityTable> void printTables(
@@ -42,17 +41,6 @@ public class NetworkPrinter {
     if (configs.isPrintToTextFile()) {
       fileExporter.exportLinesToFile(outputLines, tableType, networkData.getNetworkName());
     }
-  }
-
-  public <T extends ProbabilityTable> void printTables(List<T> tableList,String tableType){
-      List<String> outputLines = new ArrayList<>(List.of(tableType, ""));
-      tableList.stream().map(tableFormatter::generateTableLines).forEach(outputLines::addAll);
-      if (configs.isPrintToConsole()) {
-          outputLines.forEach(log::info);
-      }
-      if (configs.isPrintToTextFile()) {
-          fileExporter.exportLinesToFile(outputLines, tableType, networkData.getNetworkName());
-      }
   }
 
   public void printNetwork() {

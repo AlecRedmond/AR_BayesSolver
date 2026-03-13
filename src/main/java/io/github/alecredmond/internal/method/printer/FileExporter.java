@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.printer;
 
-import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import io.github.alecredmond.exceptions.NetworkPrinterException;
+import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileExporter {
   private static final String TXT_EXTENSION = ".txt";
+  private static final String FILE_PATH_FORMAT = "%s%s-%s_%s%s";
+  private static final String DATE_TIME_FORMAT = "yyyy_MMdd/HHmmssSSS";
   private final PrinterConfigs configs;
 
   public FileExporter(PrinterConfigs configs) {
@@ -34,7 +36,7 @@ public class FileExporter {
 
   private String buildFilePath(String networkName, String fileSuffix) {
     String filePath =
-        "%s%s-%s_%s%s"
+        FILE_PATH_FORMAT
             .formatted(
                 configs.getSaveDirectory(),
                 generateDateTimeString(),
@@ -88,6 +90,6 @@ public class FileExporter {
   }
 
   private String generateDateTimeString() {
-    return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MMdd/HHmmssSSS"));
+    return LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
   }
 }

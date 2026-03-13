@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 public class JunctionTreeData {
   private BayesianNetworkData bayesianNetworkData;
   private Clique[] cliques;
-  private Clique[] rootCliques;
   private Separator[] separators;
   private Map<Clique, List<JTAConstraintHandler>> constraintHandlersMap;
   private boolean solverConfig;
@@ -29,7 +28,7 @@ public class JunctionTreeData {
   }
 
   public Map<Node, MarginalTable> getObservationMap() {
-    return bayesianNetworkData.getObservationMap();
+    return bayesianNetworkData.getObservedTablesMap();
   }
 
   public List<ProbabilityConstraint> getConstraints() {
@@ -37,10 +36,10 @@ public class JunctionTreeData {
   }
 
   public Map<Node, NodeState> getObserved() {
-    return this.bayesianNetworkData.getObserved();
+    return this.bayesianNetworkData.getObservedEvidence();
   }
 
   public void setObserved(Map<Node, NodeState> observed) {
-    this.bayesianNetworkData.setObserved(observed);
+    this.bayesianNetworkData.setObservedEvidence(observed);
   }
 }

@@ -33,12 +33,10 @@ public class NetworkConstraintUtils {
       Set<NodeState> conditionStates,
       double probability,
       BayesianNetworkData networkData) {
-    ProbabilityConstraint probabilityConstraint;
-    if (conditionStates.isEmpty()) {
-      probabilityConstraint = new MarginalConstraint(eventState, probability);
-    } else {
-      probabilityConstraint = new ConditionalConstraint(eventState, conditionStates, probability);
-    }
+    ProbabilityConstraint probabilityConstraint =
+        conditionStates.isEmpty()
+            ? new MarginalConstraint(eventState, probability)
+            : new ConditionalConstraint(eventState, conditionStates, probability);
     addConstraint(probabilityConstraint, networkData);
   }
 

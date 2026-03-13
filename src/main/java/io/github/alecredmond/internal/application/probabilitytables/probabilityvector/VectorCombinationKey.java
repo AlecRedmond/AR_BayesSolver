@@ -13,12 +13,4 @@ public class VectorCombinationKey {
   private int[] stateIndexes;
   private boolean[] iterateEvents;
   private boolean[] iterateConditions;
-
-  public boolean[] getIterateCommon() {
-    return iterateConditions;
-  }
-
-  public boolean[] getIterateExclusive() {
-    return iterateEvents;
-  }
 }

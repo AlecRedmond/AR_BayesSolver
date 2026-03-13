@@ -89,7 +89,7 @@ public class NetworkDataUtils {
   private static void marginalizeAllTables(BayesianNetworkData networkData) {
     Stream.concat(
             networkData.getNetworkTablesMap().values().stream(),
-            networkData.getObservationMap().values().stream())
+            networkData.getObservedTablesMap().values().stream())
         .forEach(ProbabilityTable::marginalizeTable);
   }
 
@@ -98,8 +98,8 @@ public class NetworkDataUtils {
     networkData.setNodeIDsMap(new HashMap<>());
     networkData.setNodeStateIDsMap(new HashMap<>());
     networkData.setNetworkTablesMap(new HashMap<>());
-    networkData.setObservationMap(new HashMap<>());
-    networkData.setObserved(new HashMap<>());
+    networkData.setObservedTablesMap(new HashMap<>());
+    networkData.setObservedEvidence(new HashMap<>());
     networkData.setConstraints(new ArrayList<>());
   }
 
@@ -134,11 +134,11 @@ public class NetworkDataUtils {
   }
 
   private static void buildObservedTablesMap(BayesianNetworkData networkData) {
-    networkData.setObservationMap(new HashMap<>());
+    networkData.setObservedTablesMap(new HashMap<>());
     networkData
         .getNodes()
         .forEach(
-            node -> networkData.getObservationMap().put(node, buildMarginalTable(Set.of(node))));
+            node -> networkData.getObservedTablesMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
   private static void buildNetworkTablesMap(
@@ -215,7 +215,7 @@ public class NetworkDataUtils {
     Node toRemove = getNodeByID(nodeID, networkData);
 
     networkData.getNetworkTablesMap().remove(toRemove);
-    networkData.getObservationMap().remove(toRemove);
+    networkData.getObservedTablesMap().remove(toRemove);
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove, networkData);
 

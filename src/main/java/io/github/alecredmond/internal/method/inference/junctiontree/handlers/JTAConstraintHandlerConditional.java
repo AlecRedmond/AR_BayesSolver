@@ -22,7 +22,6 @@ public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
     VectorCombinationKey key =
         new VectorCombinationKeyFactory()
             .buildKey(tableHandler.getTable(), constraint.getConditionStates());
-
     lockAllNonEventNodes(key);
     return key;
   }

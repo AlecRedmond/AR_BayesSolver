@@ -4,21 +4,18 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class JunctionTreeTable extends ProbabilityTable {
   private final ProbabilityVector backupVector;
   private final Set<NodeState> observedStates;
-  @Setter boolean observed;
 
   public <T> JunctionTreeTable(
       T tableID,
@@ -30,7 +27,6 @@ public class JunctionTreeTable extends ProbabilityTable {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
     observedStates = new HashSet<>();
-    observed = false;
   }
 
   @Override

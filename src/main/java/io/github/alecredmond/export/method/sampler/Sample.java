@@ -69,7 +69,7 @@ public class Sample {
   public String toString() {
     return "%s : %d"
         .formatted(
-            NodeUtils.formatToString(sampleData.getStateCollection()), sampleData.getCount());
+            NodeUtils.formatStatesToString(sampleData.getStateCollection()), sampleData.getCount());
   }
 
   void setCount(Integer integer) {

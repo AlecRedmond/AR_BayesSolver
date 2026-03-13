@@ -17,8 +17,8 @@ public class BayesianNetworkData {
   private Map<Object, Node> nodeIDsMap;
   private Map<Object, NodeState> nodeStateIDsMap;
   private Map<Node, ProbabilityTable> networkTablesMap;
-  private Map<Node, MarginalTable> observationMap;
-  private Map<Node, NodeState> observed;
+  private Map<Node, MarginalTable> observedTablesMap;
+  private Map<Node, NodeState> observedEvidence;
   private List<ProbabilityConstraint> constraints;
   private boolean solved;
 
@@ -28,8 +28,8 @@ public class BayesianNetworkData {
     this.nodeIDsMap = new HashMap<>();
     this.nodeStateIDsMap = new HashMap<>();
     this.networkTablesMap = new LinkedHashMap<>();
-    this.observationMap = new LinkedHashMap<>();
-    this.observed = new HashMap<>();
+    this.observedTablesMap = new LinkedHashMap<>();
+    this.observedEvidence = new HashMap<>();
     this.constraints = new ArrayList<>();
     this.solved = false;
   }
@@ -39,6 +39,6 @@ public class BayesianNetworkData {
   }
 
   public <T> MarginalTable getObservedTable(T nodeID) {
-    return observationMap.get(nodeIDsMap.get(nodeID));
+    return observedTablesMap.get(nodeIDsMap.get(nodeID));
   }
 }

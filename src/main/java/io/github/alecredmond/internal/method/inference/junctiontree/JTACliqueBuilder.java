@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
+import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
@@ -34,7 +34,6 @@ class JTACliqueBuilder {
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
     cliques[0] = new Clique(linkedNodes, TableBuilder.buildJunctionTreeTable(linkedNodes, bnd));
     jtd.setCliques(cliques);
-    jtd.setRootCliques(cliques);
   }
 
   private static void buildJtaCliques(JunctionTreeData jtd) {
@@ -42,40 +41,17 @@ class JTACliqueBuilder {
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
     triangulateGraph(edgeGraph, bnd);
-
-    Set<Set<Node>> maximalCliques = findMaximalCliques(edgeGraph);
-
-    Clique[] cliques = arrangeCliques(maximalCliques, bnd);
-    Clique[] rootCliques = findRootCliques(cliques, bnd);
-
-    jtd.setCliques(cliques);
-    jtd.setRootCliques(rootCliques);
+    jtd.setCliques(buildCliqueArray(findMaximalCliques(edgeGraph), bnd));
   }
 
-  private static Clique[] findRootCliques(Clique[] cliques, BayesianNetworkData bnd) {
-    Set<Node> parentless =
-        bnd.getNodes().stream()
-            .filter(node -> node.getParents().isEmpty())
-            .collect(Collectors.toSet());
-
-    return Arrays.stream(cliques)
-        .map(clique -> Map.entry(clique, NodeUtils.getOverlap(clique.getNodes(), parentless)))
-        .filter(entry -> !entry.getValue().isEmpty())
-        .sorted(
-            Comparator.comparingInt((Map.Entry<Clique, Set<Node>> entry) -> entry.getValue().size())
-                .reversed())
-        .map(Map.Entry::getKey)
-        .toArray(Clique[]::new);
-  }
-
-  private static Clique[] arrangeCliques(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
+  private static Clique[] buildCliqueArray(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
     return maximalCliques.stream()
         .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes, bnd)))
         .toArray(Clique[]::new);
   }
 
   static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
-    return setA.stream().filter(setB::contains).collect(Collectors.toCollection(HashSet::new));
+    return NodeUtils.getOverlap(setA, setB);
   }
 
   private static Map<Node, Set<Node>> initializeGraph(BayesianNetworkData data) {

@@ -139,7 +139,7 @@ public class TableFormatter {
     combo.forEach(
         state ->
             sb.append(padRight(toStringMap.get(state), widthMap.get(state.getNode()))).append("|"));
-    sb.deleteCharAt(sb.length() - 1);
+    sb.setLength(sb.length() - 1);
     return sb.toString();
   }
 

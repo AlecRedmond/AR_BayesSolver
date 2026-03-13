@@ -1,5 +1,8 @@
 package io.github.alecredmond.export.method.network;
 
+import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
@@ -8,11 +11,8 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
+import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import java.util.Collection;
 import java.util.Set;
 
@@ -22,12 +22,11 @@ import java.util.Set;
  *
  * <p>Marginal and Conditional probability values are not directly entered into the network, but as
  * <i>constraints</i> on the network. An Iterative Proportional Fitting Procedure (IPFP) is then
- * carried out to find a 'best fit' for the network tables based on the given constraints. This is
- * accelerated using the Junction Tree Algorithm (JTA).
+ * carried out to find a 'best fit' for the network tables based on the given constraints.
  *
  * <p>It is worth noting that for each node on the network linked by a constraint outside its scope
- * (i.e. not linked to a parent or child node), another virtual 'edge' is created on the solver's
- * JTA graph. If enough additional edges are created, the solver will not subdivide the graph into
+ * (i.e. not linked to a parent or child node), another virtual edge is created on the network's
+ * graph. If enough additional edges are created, the solver will not subdivide the graph into
  * cliques, and the algorithm becomes no more efficient than standard IPFP. This does not affect
  * subsequent sampling as a new JTA instance is created upon completion of the solver's run.
  *
@@ -126,14 +125,14 @@ public interface BayesianNetwork {
    */
   <T> Node getNode(T nodeID);
 
-    /**
-     * Returns a set of nodes from their input ID
-     *
-     * @param <T> class of the Node ID
-     * @param nodeIDs the node IDs
-     * @throws IllegalArgumentException if the node IDs are not mapped to a node value
-     * @return the Node object associated with the ID
-     */
+  /**
+   * Returns a set of nodes from their input ID
+   *
+   * @param <T> class of the Node ID
+   * @param nodeIDs the node IDs
+   * @throws IllegalArgumentException if the node IDs are not mapped to a node value
+   * @return the Node object associated with the ID
+   */
   <T> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**

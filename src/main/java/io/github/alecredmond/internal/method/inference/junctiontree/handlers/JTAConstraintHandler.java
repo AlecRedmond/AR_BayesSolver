@@ -4,7 +4,6 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
-
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +58,9 @@ public abstract class JTAConstraintHandler {
   protected abstract void adjustToRatio(double ratioIfEvent, double ratioOtherwise);
 
   protected boolean checkIsEvidence(
-      int[] positionCycler, int[] evidencePositions, boolean[] evidenceLock) {
-    return IntStream.range(0, positionCycler.length)
+      int[] odometerKey, int[] evidencePositions, boolean[] evidenceLock) {
+    return IntStream.range(0, odometerKey.length)
         .filter(i -> evidenceLock[i])
-        .allMatch(i -> positionCycler[i] == evidencePositions[i]);
+        .allMatch(i -> odometerKey[i] == evidencePositions[i]);
   }
 }

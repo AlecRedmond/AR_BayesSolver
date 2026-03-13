@@ -1,9 +1,10 @@
 package io.github.alecredmond.internal.method.inference.junctiontree.separators;
 
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
-import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
 
 public class CliqueJoiner {
@@ -11,16 +12,17 @@ public class CliqueJoiner {
   private CliqueJoiner() {}
 
   public static void join(JunctionTreeData jtd) {
+    if (jtd.getCliques().length == 0) {
+      return;
+    }
     Set<Clique> cliques = new HashSet<>();
     Set<Clique> joined = new HashSet<>();
-    Clique smallest = initializeAndReturnSmallest(jtd, cliques, joined);
-
+    Clique smallest = initializeAndPopSmallest(jtd, cliques, joined);
     recursivelyJoinCliques(smallest, cliques, joined, jtd);
   }
 
   private static void recursivelyJoinCliques(
       Clique current, Set<Clique> available, Set<Clique> joined, JunctionTreeData jtd) {
-
     List<Clique> orderedCandidates = orderAvailableCandidates(current, available);
 
     if (orderedCandidates.isEmpty()) {
@@ -44,14 +46,14 @@ public class CliqueJoiner {
 
   private static List<Clique> orderAvailableCandidates(Clique current, Set<Clique> available) {
     return available.stream()
-        .map(clique -> commonNodes(clique, current))
+        .map(clique -> commonNodeCount(clique, current))
         .filter(connectionSize -> connectionSize.getValue() > 0)
         .sorted(Map.Entry.<Clique, Integer>comparingByValue().reversed())
         .map(Map.Entry::getKey)
         .toList();
   }
 
-  private static Clique initializeAndReturnSmallest(
+  private static Clique initializeAndPopSmallest(
       JunctionTreeData jtd, Set<Clique> cliques, Set<Clique> joined) {
     cliques.addAll(Arrays.asList(jtd.getCliques()));
     Clique smallest =
@@ -61,9 +63,8 @@ public class CliqueJoiner {
     return smallest;
   }
 
-  private static Map.Entry<Clique, Integer> commonNodes(Clique clique, Clique current) {
-    Set<Node> cliqueNodes = new HashSet<>(clique.getNodes());
-    cliqueNodes.retainAll(current.getNodes());
+  private static Map.Entry<Clique, Integer> commonNodeCount(Clique clique, Clique current) {
+    Set<Node> cliqueNodes = TableUtils.getCommonNodes(clique.getTable(), current.getTable());
     return Map.entry(clique, cliqueNodes.size());
   }
 }

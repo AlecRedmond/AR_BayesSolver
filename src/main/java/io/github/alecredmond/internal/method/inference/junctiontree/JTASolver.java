@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.method.inference.InferenceEngine;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.time.Instant;
@@ -66,13 +66,11 @@ public class JTASolver {
       logCycleComplete(cycle, converge, error);
     }
 
-    jta.sumTransfer(jta.getData().getRootCliques()[0]);
     jta.writeTablesToNetwork();
   }
 
   private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {
-    JunctionTreeAlgorithm jta =
-        new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(networkData));
+    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData);
     jta.marginalizeTables();
     return jta;
   }
@@ -98,11 +96,8 @@ public class JTASolver {
   }
 
   private static void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
-    long msDuration = end.toEpochMilli() - start.toEpochMilli();
-    if (thresholdReached) {
-      log.info("SOLVER FOUND A SOLUTION IN {} ms", msDuration);
-    } else {
-      log.info("SOLVER TIMED OUT AFTER {} ms", msDuration);
-    }
+    log.info(
+        thresholdReached ? "SOLVER FOUND A SOLUTION IN {} ms" : "SOLVER TIMED OUT AFTER {} ms",
+        end.toEpochMilli() - start.toEpochMilli());
   }
 }

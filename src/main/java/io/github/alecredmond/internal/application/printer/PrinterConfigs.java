@@ -36,7 +36,7 @@ public class PrinterConfigs {
 
   private void setProbDecimalPlaces(int probDecimalPlaces) {
     if (probDecimalPlaces < 0) {
-      throw new IllegalArgumentException("Printer decimal places must not be negative!");
+      probDecimalPlaces = 0;
     }
     if (probDecimalPlaces <= 1) {
       log.warn(

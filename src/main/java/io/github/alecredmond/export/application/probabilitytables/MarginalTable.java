@@ -2,20 +2,17 @@ package io.github.alecredmond.export.application.probabilitytables;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-
+import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class MarginalTable extends ProbabilityTable {
-
   private final Node networkNode;
 
   public MarginalTable(

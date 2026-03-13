@@ -6,7 +6,6 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
-
 import java.util.*;
 import lombok.Getter;
 
@@ -21,7 +20,6 @@ public class JTATableHandler {
   }
 
   public void setObserved(Set<NodeState> evidenceInTable) {
-    table.setObserved(true);
     table.getObservedStates().clear();
     table.getObservedStates().addAll(evidenceInTable);
     writeFromBackup(evidenceInTable);
@@ -47,7 +45,6 @@ public class JTATableHandler {
   }
 
   public void resetObservations() {
-    table.setObserved(false);
     table.getObservedStates().clear();
     writeFromBackup(new HashSet<>());
   }

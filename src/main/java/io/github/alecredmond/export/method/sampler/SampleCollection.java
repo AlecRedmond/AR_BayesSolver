@@ -4,9 +4,8 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.sampler.SampleCollectionData;
-import io.github.alecredmond.internal.method.sampler.SampleCollectionUtils;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
-
+import io.github.alecredmond.internal.method.sampler.SampleCollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +66,7 @@ public class SampleCollection {
 
   public <R extends Collection<NodeState>> void setSupplier(Supplier<R> supplier) {
     SampleCollectionUtils.applyToSamples(this, s -> s.setSampleSupplier(supplier));
+    collectionData.setSampleSupplier(supplier);
   }
 
   public <T> int countSamplesWithStateIds(Collection<T> stateIds) {

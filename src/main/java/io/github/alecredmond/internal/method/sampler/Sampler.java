@@ -4,7 +4,6 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
-
 import java.util.*;
 
 public abstract class Sampler {
@@ -20,7 +19,7 @@ public abstract class Sampler {
 
   protected <R, E extends Number> R nextRandom(Map<R, E> weights) {
     if (weights.isEmpty()) {
-      throw new IllegalArgumentException("nextRandom received an empty weights map!");
+      return null;
     }
 
     double totalWeight = weights.values().stream().mapToDouble(Number::doubleValue).sum();

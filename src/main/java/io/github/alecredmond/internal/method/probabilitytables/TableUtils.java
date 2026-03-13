@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
@@ -18,6 +17,7 @@ import java.util.stream.IntStream;
 
 public class TableUtils {
   private static final ProbabilityVectorIterator ITERATOR = new ProbabilityVectorIterator();
+  private static final VectorCombinationKeyFactory KEY_FACTORY = new VectorCombinationKeyFactory();
 
   private TableUtils() {}
 
@@ -35,8 +35,7 @@ public class TableUtils {
 
   public static double sumProbabilities(Map<Node, NodeState> request, ProbabilityTable table) {
     List<NodeState> matchedRequest = matchRequestToTable(request, table);
-    VectorCombinationKey comboKey =
-        new VectorCombinationKeyFactory().buildKey(table, matchedRequest);
+    VectorCombinationKey comboKey = KEY_FACTORY.buildKey(table, matchedRequest);
     return sumProbabilities(comboKey, table);
   }
 
@@ -68,10 +67,6 @@ public class TableUtils {
     throw new IllegalArgumentException(
         String.format(
             "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
-  }
-
-  public static double sumAll(JunctionTreeTable junctionTreeTable) {
-    return Arrays.stream(junctionTreeTable.getVector().getProbabilities()).sum();
   }
 
   public static void marginalizeJointTable(ProbabilityTable table) {
@@ -113,13 +108,9 @@ public class TableUtils {
 
   public static void marginalizeConditionalTable(ConditionalTable table) {
     ProbabilityVector vector = table.getVector();
-    VectorCombinationKey marginalizationKey =
-        new VectorCombinationKeyFactory().buildMarginalisationKey(table);
-
+    VectorCombinationKey marginalizationKey = KEY_FACTORY.buildMarginalisationKey(table);
     double[] probs = vector.getProbabilities();
-
     DoubleAdder adder = new DoubleAdder();
-
     ITERATOR.iterateConditions(
         vector,
         marginalizationKey,

@@ -1,12 +1,12 @@
 package io.github.alecredmond.internal.method.constraints;
 
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,19 +58,18 @@ public class ConstraintValidator {
     throw new ConstraintValidationException(
         String.format(
             "Attempted to add a probabilityConstraint C(%s | %s), which already exists!",
-            NodeUtils.formatToString(eventStates), NodeUtils.formatToString(conditionStates)));
+            NodeUtils.formatStatesToString(eventStates),
+            NodeUtils.formatStatesToString(conditionStates)));
   }
 
   private void probabilityWithinBounds() {
     double probability = constraint.getProbability();
     if (probability < 0) {
       throw new ConstraintValidationException(
-          "ProbabilityConstraint %s has probability < 0"
-              .formatted(constraint.toString()));
+          "ProbabilityConstraint %s has probability < 0".formatted(constraint.toString()));
     } else if (probability > 1) {
       throw new ConstraintValidationException(
-          "ProbabilityConstraint %s has probability > 1"
-              .formatted(constraint.toString()));
+          "ProbabilityConstraint %s has probability > 1".formatted(constraint.toString()));
     }
   }
 

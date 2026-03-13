@@ -1,13 +1,15 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
-import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
+import static io.github.alecredmond.internal.method.node.NodeUtils.*;
+
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
+import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
@@ -23,6 +25,14 @@ public class JunctionTreeAlgorithm {
     JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
   }
 
+  public static JunctionTreeAlgorithm buildForSolver(BayesianNetworkData bnd) {
+    return new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(bnd));
+  }
+
+  public static JunctionTreeAlgorithm buildForInference(BayesianNetworkData bnd) {
+    return new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(bnd));
+  }
+
   public void writeObservations() {
     JTANetworkWriter.writeObservations(data);
   }
@@ -34,20 +44,18 @@ public class JunctionTreeAlgorithm {
     data.setObserved(observed);
     resetObservations();
     if (observed.isEmpty()) {
-      Clique rootClique = data.getRootCliques()[0];
-      passMessages(rootClique);
+      passMessages(data.getCliques()[0]);
       setJointProbability();
       return;
     }
     Map<Node, NodeState> observedLeft = new HashMap<>(observed);
     Set<NodeState> evidenceStates = new HashSet<>();
-    Clique rootClique = data.getRootCliques()[0];
+    Set<Node> overlap = new HashSet<>();
     while (!observedLeft.isEmpty()) {
-      Map.Entry<Clique, Set<Node>> largestOverlap = findLargestOverlap(observedLeft);
-      popMapIntoEvidenceStates(largestOverlap.getValue(), observedLeft, evidenceStates);
-      Clique bestClique = largestOverlap.getKey();
-      bestClique.getHandler().setObserved(evidenceStates);
-      passMessages(rootClique);
+      Clique largestOverlap = findLargestOverlap(observedLeft, overlap);
+      popFromMapIntoEvidenceStates(overlap, observedLeft, evidenceStates);
+      largestOverlap.getHandler().setObserved(evidenceStates);
+      passMessages(largestOverlap);
     }
     setJointProbability();
   }
@@ -90,7 +98,7 @@ public class JunctionTreeAlgorithm {
       return new HashMap<>();
     }
     Map<Node, NodeState> observed = data.getObserved();
-    Map<Node, NodeState> request = NodeUtils.generateRequest(newEvidence, observed.values());
+    Map<Node, NodeState> request = generateRequest(newEvidence, observed.values());
     observed.keySet().forEach(request::remove);
     return request;
   }
@@ -102,26 +110,28 @@ public class JunctionTreeAlgorithm {
     Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 
-  private void popMapIntoEvidenceStates(
-      Set<Node> common, Map<Node, NodeState> observedLeft, Set<NodeState> evidenceStates) {
+  private void popFromMapIntoEvidenceStates(
+      Set<Node> overlap, Map<Node, NodeState> observedLeft, Set<NodeState> evidenceStates) {
     evidenceStates.clear();
-    common.forEach(
+    overlap.forEach(
         node -> {
           evidenceStates.add(observedLeft.get(node));
           observedLeft.remove(node);
         });
   }
 
-  private Map.Entry<Clique, Set<Node>> findLargestOverlap(Map<Node, NodeState> observed) {
-    return Arrays.stream(data.getCliques())
-        .map(clique -> Map.entry(clique, getOverlap(clique.getNodes(), observed.keySet())))
-        .filter(entry -> !entry.getValue().isEmpty())
-        .max(Comparator.comparingInt(entry -> entry.getValue().size()))
-        .orElseThrow();
-  }
+  private Clique findLargestOverlap(Map<Node, NodeState> observedLeft, Set<Node> overlap) {
+    overlap.clear();
 
-  private Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {
-    return nodesA.stream().filter(nodesB::contains).collect(Collectors.toSet());
+    Map.Entry<Clique, Set<Node>> largestOverlapWithNodes =
+        Arrays.stream(data.getCliques())
+            .map(clique -> Map.entry(clique, getOverlap(clique.getNodes(), observedLeft.keySet())))
+            .filter(entry -> !entry.getValue().isEmpty())
+            .max(Comparator.comparingInt(entry -> entry.getValue().size()))
+            .orElseThrow();
+
+    overlap.addAll(largestOverlapWithNodes.getValue());
+    return largestOverlapWithNodes.getKey();
   }
 
   void sumTransfer(Clique clique) {
@@ -129,10 +139,6 @@ public class JunctionTreeAlgorithm {
   }
 
   private void passMessages(Clique clique) {
-    collectAndDistributeMessages(clique);
-  }
-
-  private void collectAndDistributeMessages(Clique clique) {
     collectEvidence(clique, new HashSet<>());
     distributeEvidence(clique, new HashSet<>());
   }

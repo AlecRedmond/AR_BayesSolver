@@ -1,9 +1,10 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector;
 
+import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -24,7 +25,6 @@ public class ProbabilityVectorFactory {
     Arrays.fill(probability, 1.0);
     Map<Node, Integer> nodeIndexMap = buildNodeIndexMap(nodesArray);
     Map<NodeState, Integer> stateValueMap = buildStateValueMap(nodesArray);
-
     return new ProbabilityVector(
         nodesArray, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
   }
@@ -45,13 +45,9 @@ public class ProbabilityVectorFactory {
     if (zeroCardinality.isEmpty()) {
       return;
     }
-    String invalidNodes =
-        zeroCardinality.stream()
-            .map(node -> node.getId() + " ")
-            .collect(Collectors.joining("", "[", "]"));
-
     throw new ProbabilityVectorFactoryException(
-        "Attempted to build a ProbabilityVector with stateless nodes: %s".formatted(invalidNodes));
+        "Attempted to build a ProbabilityVector with stateless nodes: %s"
+            .formatted(NodeUtils.formatNodesToString(zeroCardinality)));
   }
 
   private int[] buildMultiplierArray(int[] cardinality, int rank) {

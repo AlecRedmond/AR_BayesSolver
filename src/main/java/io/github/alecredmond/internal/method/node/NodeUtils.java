@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.node;
 
+import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.exceptions.NodeStateConflictException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -26,6 +26,7 @@ public class NodeUtils {
           .map((state -> Map.entry(state.getNode(), state)))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     } catch (IllegalStateException e) {
+      // Thrown when attempting to collect multiple values (NodeState) to the same key (Node)
       throw new NodeStateConflictException(e);
     }
   }
@@ -61,9 +62,16 @@ public class NodeUtils {
     listConsumer.accept(list);
   }
 
-  public static String formatToString(Collection<NodeState> stateCollection) {
+  public static String formatStatesToString(Collection<NodeState> stateCollection) {
     StringBuilder sb = new StringBuilder();
     stateCollection.forEach(state -> sb.append(state.toString()).append(", "));
+    sb.setLength(sb.length() - 2);
+    return sb.toString();
+  }
+
+  public static String formatNodesToString(Collection<Node> nodeCollection) {
+    StringBuilder sb = new StringBuilder();
+    nodeCollection.forEach(node -> sb.append(node.toString()).append(", "));
     sb.setLength(sb.length() - 2);
     return sb.toString();
   }

@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.probabilitytables;
 
+import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
@@ -8,9 +9,8 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.exceptions.TableBuilderException;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,7 +31,6 @@ public class TableBuilder {
   private static ProbabilityTable buildConditionalTable(List<Node> events, List<Node> conditions) {
     List<Node> nodesList = joinEventsAndConditions(events, conditions);
     Set<Node> nodes = new LinkedHashSet<>(nodesList);
-
     ProbabilityVector vector = new ProbabilityVectorFactory().build(nodesList);
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
     Map<Object, Node> nodeIDMap = buildNodeIDMap(nodes);
@@ -76,16 +75,11 @@ public class TableBuilder {
 
   private static String buildTableName(Collection<Node> events, Collection<Node> conditions) {
     StringBuilder sb = new StringBuilder("P(");
-    for (Node event : events) {
-      sb.append(event.getId().toString()).append(",");
+    sb.append(NodeUtils.formatNodesToString(events));
+    if (!conditions.isEmpty()) {
+      sb.append("|");
+      sb.append(NodeUtils.formatNodesToString(conditions));
     }
-    sb.deleteCharAt(sb.length() - 1);
-    if (conditions.isEmpty()) return sb.append(")").toString();
-    sb.append("|");
-    for (Node condition : conditions) {
-      sb.append(condition.getId().toString()).append(",");
-    }
-    sb.deleteCharAt(sb.length() - 1);
     return sb.append(")").toString();
   }
 
