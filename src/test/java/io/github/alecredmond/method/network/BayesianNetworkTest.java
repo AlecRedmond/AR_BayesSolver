@@ -3,6 +3,8 @@ package io.github.alecredmond.method.network;
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
@@ -12,11 +14,10 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.Sample;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
+import java.io.Serializable;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -58,7 +59,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_singleNode_shouldSucceed() {
-      net.addNode("A");
+      net.addNewNode("A");
       BayesianNetworkData data = net.getNetworkData();
       assertNotNull(net.getNode("A"));
       assertEquals(1, data.getNodeIDsMap().size());
@@ -70,8 +71,8 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_duplicateID_shouldThrowException() {
-      net.addNode("A");
-      assertThrows(IllegalArgumentException.class, () -> net.addNode("A"));
+      net.addNewNode("A");
+      assertThrows(IllegalArgumentException.class, () -> net.addNewNode("A"));
       assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
     }
 
@@ -82,7 +83,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withStates_shouldSucceed() {
-      net.addNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
       Node nodeA = net.getNode("A");
 
       assertNotNull(nodeA);
@@ -93,25 +94,25 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withStates_duplicateNodeID_shouldThrowException() {
-      net.addNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
       assertThrows(
-          IllegalArgumentException.class, () -> net.addNode("A", List.of("A_T_2", "A_F_2")));
+          IllegalArgumentException.class, () -> net.addNewNode("A", List.of("A_T_2", "A_F_2")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInNetwork_shouldThrowException() {
-      net.addNode("A", List.of("A_T", "A_F"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNode("B", List.of("A_T", "B_F")));
+      net.addNewNode("A", List.of("A_T", "A_F"));
+      assertThrows(IllegalArgumentException.class, () -> net.addNewNode("B", List.of("A_T", "B_F")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNode("B", List.of("B_T", "B_T")));
+      assertThrows(Exception.class, () -> net.addNewNode("B", List.of("B_T", "B_T")));
     }
 
     @Test
     void addNode_withEmptyStates_shouldSucceed() {
-      net.addNode("A", List.of());
+      net.addNewNode("A", List.of());
       Node nodeA = net.getNode("A");
       assertNotNull(nodeA);
       assertTrue(nodeA.getNodeStates().isEmpty());
@@ -119,43 +120,43 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withNullStatesCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNode("A", null));
+      assertThrows(Exception.class, () -> net.addNewNode("A", null));
     }
 
     @Test
     void removeNode_existingNode_shouldSucceed() {
-      net.addNode("A");
+      net.addNewNode("A");
       assertNotNull(net.getNode("A"));
-      net.removeNode("A");
+      net.removeNodeByID("A");
       assertThrows(IllegalArgumentException.class, () -> net.getNode("A"));
       assertTrue(net.getNetworkData().getNodeIDsMap().isEmpty());
     }
 
     @Test
     void removeNode_nonExistentNode_shouldNotThrowException() {
-      net.addNode("A");
-      assertDoesNotThrow(() -> net.removeNode("B"));
+      net.addNewNode("A");
+      assertDoesNotThrow(() -> net.removeNodeByID("B"));
       assertEquals(1, net.getNetworkData().getNodeIDsMap().size());
     }
 
     @Test
     void removeNode_withNullID_shouldNotThrowException() {
-      net.addNode("A");
+      net.addNewNode("A");
       assertDoesNotThrow(() -> net.removeNode(null));
       assertEquals(1, net.getNetworkData().getNodeIDsMap().size());
     }
 
     @Test
     void removeNode_shouldAlsoRemoveStatesAndEdges() {
-      net.addNode("A", List.of("A_T", "A_F"));
-      net.addNode("B", List.of("B_T", "B_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("B", List.of("B_T", "B_F"));
       net.addParent("B", "A");
 
       assertNotNull(net.getNode("A"));
       assertNotNull(net.getNodeState("A_T"));
       assertTrue(net.getNode("B").getParents().contains(net.getNode("A")));
 
-      net.removeNode("A");
+      net.removeNodeByID("A");
 
       assertThrows(IllegalArgumentException.class, () -> net.getNode("A"));
       assertThrows(IllegalArgumentException.class, () -> net.getNodeState("A_T"));
@@ -164,8 +165,8 @@ class BayesianNetworkTest {
 
     @Test
     void removeAllNodes_shouldSucceed() {
-      net.addNode("A");
-      net.addNode("B");
+      net.addNewNode("A");
+      net.addNewNode("B");
       net.removeAllNodes();
       assertTrue(net.getNetworkData().getNodeIDsMap().isEmpty());
       assertTrue(net.getNetworkData().getNodeStateIDsMap().isEmpty());
@@ -179,7 +180,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNodeState_singleState_shouldSucceed() {
-      net.addNode("A");
+      net.addNewNode("A");
       net.addNodeState("A", "A_T");
       assertEquals(1, net.getNode("A").getNodeStates().size());
       assertNotNull(net.getNodeState("A_T"));
@@ -187,7 +188,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNodeStates_multipleStates_shouldSucceed() {
-      net.addNode("A");
+      net.addNewNode("A");
       net.addNodeStates("A", List.of("A_T", "A_F"));
       assertEquals(2, net.getNode("A").getNodeStates().size());
       assertNotNull(net.getNodeState("A_T"));
@@ -196,14 +197,14 @@ class BayesianNetworkTest {
 
     @Test
     void addNodeState_duplicateState_shouldThrowException() {
-      net.addNode("A", List.of("A_T"));
+      net.addNewNode("A", List.of("A_T"));
       assertThrows(BayesNetIDException.class, () -> net.addNodeState("A", "A_T"));
     }
 
     @Test
     void addNodeState_duplicateStateInNetwork_shouldThrowException() {
-      net.addNode("A", List.of("A_T"));
-      net.addNode("B");
+      net.addNewNode("A", List.of("A_T"));
+      net.addNewNode("B");
       assertThrows(BayesNetIDException.class, () -> net.addNodeState("B", "A_T"));
     }
 
@@ -214,13 +215,13 @@ class BayesianNetworkTest {
 
     @Test
     void addNodeState_nullState_shouldThrowException() {
-      net.addNode("A");
+      net.addNewNode("A");
       assertThrows(Exception.class, () -> net.addNodeState("A", null));
     }
 
     @Test
     void removeNodeState_shouldSucceed() {
-      net.addNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
       assertEquals(2, net.getNode("A").getNodeStates().size());
 
       net.removeNodeState("A", "A_T");
@@ -231,7 +232,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeNodeState_nonExistentState_shouldNotThrow() {
-      net.addNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
       assertDoesNotThrow(() -> net.removeNodeState("A", "A_M"));
       assertEquals(2, net.getNode("A").getNodeStates().size());
     }
@@ -243,7 +244,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeNodeStates_shouldSucceed() {
-      net.addNode("A", List.of("A_T", "A_F"));
+      net.addNewNode("A", List.of("A_T", "A_F"));
       assertFalse(net.getNode("A").getNodeStates().isEmpty());
 
       net.removeNodeStates("A");
@@ -254,7 +255,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeNodeStates_fromNodeWithNoStates_shouldNotThrow() {
-      net.addNode("A");
+      net.addNewNode("A");
       assertDoesNotThrow(() -> net.removeNodeStates("A"));
     }
 
@@ -269,9 +270,9 @@ class BayesianNetworkTest {
 
     @BeforeEach
     void buildNodes() {
-      net.addNode("A");
-      net.addNode("B");
-      net.addNode("C");
+      net.addNewNode("A");
+      net.addNewNode("B");
+      net.addNewNode("C");
     }
 
     @Test
@@ -472,7 +473,7 @@ class BayesianNetworkTest {
           .map(MarginalConstraint.class::cast)
           .forEach(
               marginalConstraint -> {
-                Object eventStateId = marginalConstraint.getEventState().getId();
+                Serializable eventStateId = marginalConstraint.getEventState().getId();
                 assertNotNull(net.getConstraint(eventStateId));
                 assertNotNull(net.getConstraint(eventStateId, List.of()));
                 assertEquals(marginalConstraint, net.getConstraint(eventStateId));
@@ -483,8 +484,8 @@ class BayesianNetworkTest {
           .map(ConditionalConstraint.class::cast)
           .forEach(
               conditionalConstraint -> {
-                Object eventStateId = conditionalConstraint.getEventState().getId();
-                List<Object> conditionStateIDs =
+                Serializable eventStateId = conditionalConstraint.getEventState().getId();
+                List<Serializable> conditionStateIDs =
                     conditionalConstraint.getConditionStates().stream()
                         .map(NodeState::getId)
                         .toList();

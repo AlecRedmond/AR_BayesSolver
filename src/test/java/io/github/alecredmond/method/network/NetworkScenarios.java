@@ -13,10 +13,10 @@ public class NetworkScenarios {
   private static Supplier<BayesianNetwork> buildSimpleLinearGraph() {
     return () ->
         BayesianNetwork.newNetwork("SIMPLE_LINEAR_GRAPH")
-            .addNode("A", List.of("A+", "A-"))
-            .addNode("B", List.of("B+", "B-"))
-            .addNode("C", List.of("C+", "C-"))
-            .addNode("D", List.of("D+", "D-"))
+            .addNewNode("A", List.of("A+", "A-"))
+            .addNewNode("B", List.of("B+", "B-"))
+            .addNewNode("C", List.of("C+", "C-"))
+            .addNewNode("D", List.of("D+", "D-"))
             .addParent("B", "A")
             .addParent("C", "B")
             .addParent("D", "C")
@@ -32,14 +32,14 @@ public class NetworkScenarios {
   private static Supplier<BayesianNetwork> buildFantasyGraph() {
     return () ->
         BayesianNetwork.newNetwork("FANTASY_ELECTION")
-            .addNode(
+            .addNewNode(
                 "DISTRICT_TYPE",
                 List.of(
                     "DISTRICT_TYPE:URBAN",
                     "DISTRICT_TYPE:SUBURBAN",
                     "DISTRICT_TYPE:RURAL",
                     "DISTRICT_TYPE:FRONTIER"))
-            .addNode(
+            .addNewNode(
                 "DISTRICT",
                 List.of(
                     "DISTRICT:CAPITAL_CITY",
@@ -47,13 +47,13 @@ public class NetworkScenarios {
                     "DISTRICT:FARM_TOWN",
                     "DISTRICT:MINING_OUTPOST",
                     "DISTRICT:OTHER"))
-            .addNode(
+            .addNewNode(
                 "RACE",
                 List.of(
                     "RACE:HUMAN", "RACE:ANK", "RACE:ORC", "RACE:GOBLIN", "RACE:DWARF", "RACE:ELF"))
-            .addNode(
+            .addNewNode(
                 "AGE", List.of("AGE:CHILD", "AGE:YOUNG_ADULT", "AGE:MIDDLE_AGE", "AGE:ELDERLY"))
-            .addNode(
+            .addNewNode(
                 "WEALTH",
                 List.of(
                     "WEALTH:MARGINAL",
@@ -61,7 +61,7 @@ public class NetworkScenarios {
                     "WEALTH:MIDDLE",
                     "WEALTH:HIGH",
                     "WEALTH:ULTRA"))
-            .addNode(
+            .addNewNode(
                 "OUTLOOK",
                 List.of(
                     "OUTLOOK:REVOLUTIONARY",
@@ -70,7 +70,7 @@ public class NetworkScenarios {
                     "OUTLOOK:CONSERVATIVE",
                     "OUTLOOK:REACTIONARY",
                     "OUTLOOK:APATHY"))
-            .addNode(
+            .addNewNode(
                 "VOTE",
                 List.of(
                     "VOTE:SDP",
@@ -268,14 +268,14 @@ public class NetworkScenarios {
     // F   G   H
     return () ->
         BayesianNetwork.newNetwork("A_TO_H")
-            .addNode("A", List.of("A+", "A-"))
-            .addNode("B", List.of("B+", "B-"))
-            .addNode("C", List.of("C+", "C-"))
-            .addNode("D", List.of("D+", "D-"))
-            .addNode("E", List.of("E+", "E-"))
-            .addNode("F", List.of("F+", "F-"))
-            .addNode("G", List.of("G+", "G-"))
-            .addNode("H", List.of("H+", "H-"))
+            .addNewNode("A", List.of("A+", "A-"))
+            .addNewNode("B", List.of("B+", "B-"))
+            .addNewNode("C", List.of("C+", "C-"))
+            .addNewNode("D", List.of("D+", "D-"))
+            .addNewNode("E", List.of("E+", "E-"))
+            .addNewNode("F", List.of("F+", "F-"))
+            .addNewNode("G", List.of("G+", "G-"))
+            .addNewNode("H", List.of("H+", "H-"))
             .addParents("D", List.of("A", "B"))
             .addParents("E", List.of("B", "C"))
             .addParents("F", List.of("D"))
@@ -313,9 +313,9 @@ public class NetworkScenarios {
   private static Supplier<BayesianNetwork> buildRainNetwork() {
     return () ->
         BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS")
-            .addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
-            .addNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
-            .addNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
+            .addNewNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
+            .addNewNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
+            .addNewNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
             .addParent("SPRINKLER", "RAIN")
             .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
             .addConstraint("RAIN:TRUE", 0.2)

@@ -5,6 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import java.io.Serializable;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,8 +15,8 @@ import lombok.Data;
 public class BayesianNetworkData {
   private String networkName;
   private List<Node> nodes;
-  private Map<Object, Node> nodeIDsMap;
-  private Map<Object, NodeState> nodeStateIDsMap;
+  private Map<Serializable, Node> nodeIDsMap;
+  private Map<Serializable, NodeState> nodeStateIDsMap;
   private Map<Node, ProbabilityTable> networkTablesMap;
   private Map<Node, MarginalTable> observedTablesMap;
   private Map<Node, NodeState> observedEvidence;
@@ -34,11 +35,11 @@ public class BayesianNetworkData {
     this.solved = false;
   }
 
-  public <T> ProbabilityTable getNetworkTable(T nodeID) {
+  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
   }
 
-  public <T> MarginalTable getObservedTable(T nodeID) {
+  public <T extends Serializable> MarginalTable getObservedTable(T nodeID) {
     return observedTablesMap.get(nodeIDsMap.get(nodeID));
   }
 }

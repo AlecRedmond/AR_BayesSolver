@@ -5,6 +5,8 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -17,13 +19,13 @@ public class JunctionTreeTable extends ProbabilityTable {
   private final ProbabilityVector backupVector;
   private final Set<NodeState> observedStates;
 
-  public <T> JunctionTreeTable(
+  public <T extends Serializable> JunctionTreeTable(
       T tableID,
       ProbabilityVector vector,
       Set<Node> events,
       ProbabilityVector backupVector,
-      Map<Object, NodeState> nodeStateIDMap,
-      Map<Object, Node> nodeIDMap) {
+      Map<Serializable, NodeState> nodeStateIDMap,
+      Map<Serializable, Node> nodeIDMap) {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
     observedStates = new HashSet<>();

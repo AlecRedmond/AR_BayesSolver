@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.sampler.SampleCollectionData;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.sampler.SampleCollectionUtils;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class SampleCollection {
     return collectionData.getTotalSamples();
   }
 
-  public <T> void setExportNodesById(Collection<T> nodeIds) {
+  public <T extends Serializable> void setExportNodesById(Collection<T> nodeIds) {
     Set<Node> nodes = NetworkDataUtils.getNodesByID(nodeIds, networkData);
     setExportNodes(nodes);
   }
@@ -69,7 +70,7 @@ public class SampleCollection {
     collectionData.setSampleSupplier(supplier);
   }
 
-  public <T> int countSamplesWithStateIds(Collection<T> stateIds) {
+  public <T extends Serializable> int countSamplesWithStateIds(Collection<T> stateIds) {
     return countSamplesWithStates(NetworkDataUtils.getStatesByID(stateIds, networkData));
   }
 
@@ -84,7 +85,8 @@ public class SampleCollection {
     return SampleCollectionUtils.buildSampleMapIncludingStates(this, includedStates);
   }
 
-  public <T> Map<Sample, Integer> getSamplesIncludingStateIds(Collection<T> includedStateIds) {
+  public <T extends Serializable> Map<Sample, Integer> getSamplesIncludingStateIds(
+      Collection<T> includedStateIds) {
     return SampleCollectionUtils.buildSampleMapIncludingStates(
         this, NetworkDataUtils.getStatesByID(includedStateIds, networkData));
   }

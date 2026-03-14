@@ -4,32 +4,32 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import java.io.Serializable;
 import java.util.*;
 import lombok.EqualsAndHashCode;
+import lombok.EqualsAndHashCode.Exclude;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode()
 public abstract class ProbabilityTable {
-  @EqualsAndHashCode.Include protected final UUID uuid;
-  protected final Map<Object, NodeState> nodeStateIDMap;
-  protected final Map<Object, Node> nodeIDMap;
+  protected final Map<Serializable, NodeState> nodeStateIDMap;
+  protected final Map<Serializable, Node> nodeIDMap;
   protected final ProbabilityVector vector;
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
-  @Setter protected Object tableName;
+  @Exclude @Setter protected Serializable tableName;
 
-  protected <T> ProbabilityTable(
-      Map<Object, NodeState> nodeStateIDMap,
-      Map<Object, Node> nodeIDMap,
+  protected <T extends Serializable> ProbabilityTable(
+      Map<Serializable, NodeState> nodeStateIDMap,
+      Map<Serializable, Node> nodeIDMap,
       ProbabilityVector vector,
       T tableName,
       Set<Node> nodes,
       Set<Node> events,
       Set<Node> conditions) {
-    this.uuid = UUID.randomUUID();
     this.nodeStateIDMap = nodeStateIDMap;
     this.nodeIDMap = nodeIDMap;
     this.vector = vector;
@@ -39,7 +39,7 @@ public abstract class ProbabilityTable {
     this.conditions = conditions;
   }
 
-  public <T> double getProbabilityFromIDs(Collection<T> stateIDs) {
+  public <T extends Serializable> double getProbabilityFromIDs(Collection<T> stateIDs) {
     return getProbability(stateIDs.stream().map(nodeStateIDMap::get).toList());
   }
 

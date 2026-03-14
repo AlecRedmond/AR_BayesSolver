@@ -1,6 +1,7 @@
 package io.github.alecredmond.export.application.node;
 
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,12 +11,12 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Node {
-  @EqualsAndHashCode.Include private final Object id;
+  @EqualsAndHashCode.Include private final Serializable id;
   private List<NodeState> nodeStates;
   private List<Node> parents;
   private List<Node> children;
 
-  public <T, E> Node(T id, Collection<E> stateIDs) {
+  public <T extends Serializable, E extends Serializable> Node(T id, Collection<E> stateIDs) {
     this.id = id;
     this.parents = new ArrayList<>();
     this.children = new ArrayList<>();
@@ -23,11 +24,11 @@ public class Node {
     stateIDs.forEach(this::addState);
   }
 
-  public <T> NodeState addState(T stateID) {
+  public <T extends Serializable> NodeState addState(T stateID) {
     return NodeUtils.addNodeState(this, stateID);
   }
 
-  public <T> Node(T id) {
+  public <T extends Serializable> Node(T id) {
     this.id = id;
     this.parents = new ArrayList<>();
     this.children = new ArrayList<>();
@@ -42,7 +43,7 @@ public class Node {
     NodeUtils.removeParent(this, parent);
   }
 
-  public <E> void removeState(E stateID) {
+  public <E extends Serializable> void removeState(E stateID) {
     NodeUtils.removeState(this, stateID);
   }
 

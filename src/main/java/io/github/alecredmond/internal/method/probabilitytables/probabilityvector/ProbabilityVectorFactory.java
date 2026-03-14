@@ -60,13 +60,13 @@ public class ProbabilityVectorFactory {
     return multiplier;
   }
 
-  private Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
+  public Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
     return IntStream.range(0, nodes.length)
         .mapToObj(i -> Map.entry(nodes[i], i))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private Map<NodeState, Integer> buildStateValueMap(Node[] nodes) {
+  public Map<NodeState, Integer> buildStateValueMap(Node[] nodes) {
     Map<NodeState, Integer> statePositions = new HashMap<>();
     Arrays.stream(nodes)
         .map(Node::getNodeStates)

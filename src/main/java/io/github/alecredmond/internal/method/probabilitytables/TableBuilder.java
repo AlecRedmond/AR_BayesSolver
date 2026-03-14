@@ -11,6 +11,7 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,8 +34,8 @@ public class TableBuilder {
     Set<Node> nodes = new LinkedHashSet<>(nodesList);
     ProbabilityVector vector = new ProbabilityVectorFactory().build(nodesList);
     Node eventNode = events.size() == 1 ? events.stream().findAny().orElseThrow() : null;
-    Map<Object, Node> nodeIDMap = buildNodeIDMap(nodes);
-    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(nodes);
+    Map<Serializable, Node> nodeIDMap = buildNodeIDMap(nodes);
+    Map<Serializable, NodeState> nodeStateIDMap = buildNodeStateIDMap(nodes);
     return new ConditionalTable(
         buildTableName(events, conditions),
         vector,
@@ -50,8 +51,8 @@ public class TableBuilder {
     Node eventNode = events.stream().findAny().orElseThrow();
     String tableName = buildTableName(Set.of(eventNode), new HashSet<>());
     ProbabilityVector vector = new ProbabilityVectorFactory().build(new ArrayList<>(events));
-    Map<Object, Node> nodeIDMap = buildNodeIDMap(List.of(eventNode));
-    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(List.of(eventNode));
+    Map<Serializable, Node> nodeIDMap = buildNodeIDMap(List.of(eventNode));
+    Map<Serializable, NodeState> nodeStateIDMap = buildNodeStateIDMap(List.of(eventNode));
     return new MarginalTable(vector, tableName, eventNode, nodeStateIDMap, nodeIDMap);
   }
 
@@ -59,13 +60,13 @@ public class TableBuilder {
     return Stream.concat(conditions.stream(), events.stream()).toList();
   }
 
-  private static Map<Object, Node> buildNodeIDMap(Collection<Node> nodes) {
+  private static Map<Serializable, Node> buildNodeIDMap(Collection<Node> nodes) {
     return nodes.stream()
         .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Map<Object, NodeState> buildNodeStateIDMap(Collection<Node> nodes) {
+  private static Map<Serializable, NodeState> buildNodeStateIDMap(Collection<Node> nodes) {
     return nodes.stream()
         .map(Node::getNodeStates)
         .flatMap(Collection::stream)
@@ -88,8 +89,8 @@ public class TableBuilder {
     List<Node> orderedEvents = bnd.getNodes().stream().filter(events::contains).toList();
     ProbabilityVector vector = new ProbabilityVectorFactory().build(orderedEvents);
     ProbabilityVector backupVector = new ProbabilityVectorFactory().build(orderedEvents);
-    Map<Object, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
-    Map<Object, Node> nodeIDMap = buildNodeIDMap(events);
+    Map<Serializable, NodeState> nodeStateIDMap = buildNodeStateIDMap(events);
+    Map<Serializable, Node> nodeIDMap = buildNodeIDMap(events);
     return new JunctionTreeTable(
         buildTableName(orderedEvents, new HashSet<>()),
         vector,
