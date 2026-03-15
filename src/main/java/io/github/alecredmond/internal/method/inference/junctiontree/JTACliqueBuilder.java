@@ -1,5 +1,8 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
+import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_INFERENCE;
+import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_SOLVER;
+
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
@@ -7,19 +10,19 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.utils.AppProperty;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class JTACliqueBuilder {
-  private static final String USE_JTA_SOLVER = "app.inference.useJunctionTreeSolver";
-  private static final String USE_JTA_INFERENCE = "app.inference.useJunctionTreeInference";
 
   private JTACliqueBuilder() {}
 
   static void buildCliques(JunctionTreeData jtd) {
-    String property = jtd.isSolverConfig() ? USE_JTA_SOLVER : USE_JTA_INFERENCE;
+    AppProperty property =
+        jtd.isSolverConfig() ? INFERENCE_USE_JTA_SOLVER : INFERENCE_USE_JTA_INFERENCE;
     boolean useJta = new PropertiesLoader().loadBoolean(property);
     if (useJta) {
       buildJtaCliques(jtd);

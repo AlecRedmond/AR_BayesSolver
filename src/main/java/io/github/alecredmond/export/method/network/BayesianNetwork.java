@@ -13,7 +13,9 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
-
+import io.github.alecredmond.internal.serialization.NetworkFileIO;
+import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
+import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
@@ -56,6 +58,58 @@ public interface BayesianNetwork {
   static BayesianNetwork newNetwork(String networkName) {
     return new BayesianNetworkImpl(networkName);
   }
+
+  /**
+   * Loads a saved BayesianNetwork from a JFileChooser window
+   *
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile() {
+    return new NetworkFileIO(new SerializationMapper()).loadNetwork();
+  }
+
+  /**
+   * Loads a saved BayesianNetwork.
+   *
+   * @param file the selected .bayes file to load
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile(File file) {
+    return new NetworkFileIO(new SerializationMapper()).loadNetwork(file);
+  }
+
+  /**
+   * Loads a saved BayesianNetwork.
+   *
+   * @param filePath the absolute path to a .bayes file
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile(String filePath) {
+    return new NetworkFileIO(new SerializationMapper()).loadNetwork(filePath);
+  }
+
+  /**
+   * Saves the network to the disk
+   *
+   * @param file the new file
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile(File file);
+
+  /**
+   * Saves the network to the disk
+   *
+   * @param filePath path to the new file
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile(String filePath);
+
+  /**
+   * Saves the network to the disk from a JFileChooser window.
+   *
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile();
 
   /**
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
@@ -221,7 +275,8 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(T childID, Collection<E> parentIDs);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(
+      T childID, Collection<E> parentIDs);
 
   /**
    * Defines a parent-child relationship by adding a directed edge from a parent node to a child
@@ -265,7 +320,8 @@ public interface BayesianNetwork {
    * @param <E> the class of the Parent Node ID
    * @return this instance for method chaining.
    */
-  <T extends Serializable, E extends Serializable> BayesianNetwork removeParent(T childID, E parentID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork removeParent(
+      T childID, E parentID);
 
   /**
    * Removes all parent relationships for a given child node, removing all incoming edges from the
@@ -373,7 +429,8 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the states are not found within the data.
    * @return the associated constraint, or null if it does not exist
    */
-  <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
+  <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
+      T eventStateId, Collection<E> conditionStateIds);
 
   /**
    * Removes a constraint from the network.
@@ -403,7 +460,8 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the states are not found within the data.
    * @return true if the constraint existed in the network
    */
-  <T extends Serializable, E extends Serializable> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds);
+  <T extends Serializable, E extends Serializable> boolean removeConstraint(
+      T eventStateId, Collection<E> conditionStateIds);
 
   /**
    * Removes all constraints defined on the network.
@@ -500,7 +558,8 @@ public interface BayesianNetwork {
    * @param <T> class of the NodeState ids.
    * @return a SampleCollection object providing further methods
    */
-  <T extends Serializable> SampleCollection generateSamples(int numberOfSamples, Collection<T> observedStateIDs);
+  <T extends Serializable> SampleCollection generateSamples(
+      int numberOfSamples, Collection<T> observedStateIDs);
 
   /**
    * Calculates the joint probability of a set of events occurring, conditional on the current
@@ -511,7 +570,8 @@ public interface BayesianNetwork {
    * @param <T> Class of the event state IDs
    * @return the calculated joint probability.
    */
-  <T extends Serializable> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs);
+  <T extends Serializable> double getProbabilityFromCurrentObservations(
+      Collection<T> eventStateIDs);
 
   /**
    * Retrieves the Conditional Probability Table (CPT) for a given node.

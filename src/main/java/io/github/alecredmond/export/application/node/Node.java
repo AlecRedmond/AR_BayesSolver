@@ -11,7 +11,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Node {
-  @EqualsAndHashCode.Include private final Serializable id;
+  @EqualsAndHashCode.Include
+  private final Serializable id;
   private List<NodeState> nodeStates;
   private List<Node> parents;
   private List<Node> children;
