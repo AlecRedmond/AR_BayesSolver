@@ -1,7 +1,6 @@
 package io.github.alecredmond.internal.serialization;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
 import io.github.alecredmond.internal.serialization.structure.network.BayesianNetworkDataSTO;
 import java.io.*;
@@ -22,12 +21,13 @@ public class NetworkFileIO {
     JFileChooser fileChooser = new JFileChooser(properties.getDirectory());
     fileChooser.setFileFilter(properties.getFileFilter());
     if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-      return saveNetwork(network, checkAddExtension(fileChooser.getSelectedFile()));
+      return saveNetwork(network, fileChooser.getSelectedFile());
     }
     return false;
   }
 
   public boolean saveNetwork(BayesianNetwork network, File selectedFile) {
+    selectedFile = checkAddExtension(selectedFile);
     try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(selectedFile))) {
       BayesianNetworkDataSTO sto = mapper.serialize(network);
       out.writeObject(sto);
@@ -45,7 +45,7 @@ public class NetworkFileIO {
     return fileName.endsWith(extension) ? file : new File(fileName + extension);
   }
 
-  public boolean saveNetwork(BayesianNetworkImpl bayesianNetwork, String filePath) {
+  public boolean saveNetwork(BayesianNetwork bayesianNetwork, String filePath) {
     return saveNetwork(bayesianNetwork, new File(filePath));
   }
 
