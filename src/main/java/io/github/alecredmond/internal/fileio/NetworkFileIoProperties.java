@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.serialization;
+package io.github.alecredmond.internal.fileio;
 
 import static io.github.alecredmond.internal.method.utils.AppProperty.*;
 

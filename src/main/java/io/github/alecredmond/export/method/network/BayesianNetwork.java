@@ -13,8 +13,8 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
-import io.github.alecredmond.internal.serialization.NetworkFileIO;
-import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
+import io.github.alecredmond.internal.fileio.NetworkFileIO;
+import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
@@ -65,7 +65,7 @@ public interface BayesianNetwork {
    * @return a loaded BayesianNetwork instance
    */
   static BayesianNetwork loadNetworkFromFile() {
-    return new NetworkFileIO(new SerializationMapper()).loadNetwork();
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork();
   }
 
   /**
@@ -75,7 +75,7 @@ public interface BayesianNetwork {
    * @return a loaded BayesianNetwork instance
    */
   static BayesianNetwork loadNetworkFromFile(File file) {
-    return new NetworkFileIO(new SerializationMapper()).loadNetwork(file);
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(file);
   }
 
   /**
@@ -85,7 +85,7 @@ public interface BayesianNetwork {
    * @return a loaded BayesianNetwork instance
    */
   static BayesianNetwork loadNetworkFromFile(String filePath) {
-    return new NetworkFileIO(new SerializationMapper()).loadNetwork(filePath);
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(filePath);
   }
 
   /**

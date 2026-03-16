@@ -6,8 +6,9 @@ import static io.github.alecredmond.method.network.NetworkScenarios.FANTASY_GRAP
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
-import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +22,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 class NetworkFileIOTest {
-  static final boolean SKIP_SAVE_TESTS = true;
+  static final boolean SKIP_SAVE_TESTS = false;
   static final boolean SKIP_J_FILE_CHOOSER = true;
   static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static final PropertiesLoader LOADER = new PropertiesLoader();
   static final String DIRECTORY = LOADER.loadDirectory(DIRECTORY_ROOT, DIRECTORY_SAVE);
   static final String EXTENSION = LOADER.loadString(EXTENSION_FILE_TYPE);
   static List<Supplier<BayesianNetwork>> networkSuppliers;
-  NetworkFileIO test = new NetworkFileIO(new SerializationMapper());
+  NetworkFileIO test = new NetworkFileIO(new BayesianNetworkSerializer());
 
   static Stream<Arguments> provideNetworks() {
     return networkSuppliers.stream()

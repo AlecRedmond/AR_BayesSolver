@@ -1,18 +1,18 @@
-package io.github.alecredmond.internal.serialization;
+package io.github.alecredmond.internal.fileio;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
-import io.github.alecredmond.internal.serialization.structure.network.BayesianNetworkDataSTO;
+import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
+import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
 import java.io.*;
 import javax.swing.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NetworkFileIO {
-  private final SerializationMapper mapper;
+  private final BayesianNetworkSerializer mapper;
   private final NetworkFileIoProperties properties;
 
-  public NetworkFileIO(SerializationMapper mapper) {
+  public NetworkFileIO(BayesianNetworkSerializer mapper) {
     this.mapper = mapper;
     this.properties = new NetworkFileIoProperties();
   }
@@ -29,7 +29,7 @@ public class NetworkFileIO {
   public boolean saveNetwork(BayesianNetwork network, File selectedFile) {
     selectedFile = checkAddExtension(selectedFile);
     try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(selectedFile))) {
-      BayesianNetworkDataSTO sto = mapper.serialize(network);
+      SerializedBayesNetData sto = mapper.serialize(network);
       out.writeObject(sto);
       log.info("Network saved to {}", selectedFile.getPath());
     } catch (IOException e) {
@@ -55,7 +55,7 @@ public class NetworkFileIO {
 
   public BayesianNetwork loadNetwork(File selectedFile) {
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(selectedFile))) {
-      BayesianNetworkDataSTO sto = (BayesianNetworkDataSTO) in.readObject();
+      SerializedBayesNetData sto = (SerializedBayesNetData) in.readObject();
       return mapper.deSerialize(sto);
     } catch (IOException e) {
       log.error("IOException attempting to load network {}", e.getMessage());

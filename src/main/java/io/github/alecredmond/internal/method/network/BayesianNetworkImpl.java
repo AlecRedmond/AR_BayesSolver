@@ -13,8 +13,8 @@ import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.internal.method.inference.InferenceEngine;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
-import io.github.alecredmond.internal.serialization.NetworkFileIO;
-import io.github.alecredmond.internal.serialization.mapper.SerializationMapper;
+import io.github.alecredmond.internal.fileio.NetworkFileIO;
+import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
@@ -42,15 +42,15 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   public boolean saveNetworkToFile(File file) {
-    return new NetworkFileIO(new SerializationMapper()).saveNetwork(this,file);
+    return new NetworkFileIO(new BayesianNetworkSerializer()).saveNetwork(this,file);
   }
 
   public boolean saveNetworkToFile(String filePath) {
-    return new NetworkFileIO(new SerializationMapper()).saveNetwork(this,filePath);
+    return new NetworkFileIO(new BayesianNetworkSerializer()).saveNetwork(this,filePath);
   }
 
   public boolean saveNetworkToFile() {
-    return new NetworkFileIO(new SerializationMapper()).saveNetwork(this);
+    return new NetworkFileIO(new BayesianNetworkSerializer()).saveNetwork(this);
   }
 
   public BayesianNetwork addNode(Node node) {

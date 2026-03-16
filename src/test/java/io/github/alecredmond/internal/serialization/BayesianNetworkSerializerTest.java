@@ -1,11 +1,11 @@
-package io.github.alecredmond.internal.serialization.mapper;
+package io.github.alecredmond.internal.serialization;
 
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.serialization.structure.network.BayesianNetworkDataSTO;
+import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -15,10 +15,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class SerializationMapperTest {
+class BayesianNetworkSerializerTest {
   static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static List<Supplier<BayesianNetwork>> networkSuppliers;
-  SerializationMapper test = new SerializationMapper();
+  BayesianNetworkSerializer test = new BayesianNetworkSerializer();
 
   static Stream<Arguments> provideNetworks() {
     return networkSuppliers.stream()
@@ -52,7 +52,7 @@ class SerializationMapperTest {
   void testDeSerializes_shouldNotThrow(BayesianNetwork network) {
     assertDoesNotThrow(
         () -> {
-          BayesianNetworkDataSTO sto = test.serialize(network);
+          SerializedBayesNetData sto = test.serialize(network);
           test.deSerialize(sto);
         });
   }

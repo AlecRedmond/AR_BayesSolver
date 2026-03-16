@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.serialization.mapper;
+package io.github.alecredmond.internal.serialization;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
