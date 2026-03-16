@@ -48,27 +48,26 @@ class JTANetworkWriter {
     Arrays.stream(jtd.getSeparators()).forEach(Separator::resetSeparator);
   }
 
-  static void writeObservations(JunctionTreeData data) {
+  static void writeObservations(JunctionTreeData jtd) {
     log.info("WRITING OBSERVATIONS...");
 
-    data.getBayesianNetworkData().setObservedEvidence(data.getObservedEvidence());
+    BayesianNetworkData networkData = jtd.getNetworkData();
 
-    Arrays.stream(data.getCliques())
+    networkData.setObservedEvidence(networkData.getObservedEvidence());
+
+    Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
         .forEach(TransferIterator::setToUnityAndTransfer);
 
-    data.getBayesianNetworkData()
-        .getObservedTablesMap()
-        .values()
-        .forEach(ProbabilityTable::marginalizeTable);
+    networkData.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 
-    data.getNodes().forEach(node -> updateTableName(node, data));
+    networkData.getNodes().forEach(node -> updateTableName(node, networkData));
 
     log.info("...OBSERVATIONS WRITTEN!");
   }
 
-  private static void updateTableName(Node node, JunctionTreeData data) {
+  private static void updateTableName(Node node, BayesianNetworkData data) {
     MarginalTable observedTable = data.getObservedTablesMap().get(node);
     Collection<NodeState> states = data.getObservedEvidence().values();
     StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
@@ -83,7 +82,7 @@ class JTANetworkWriter {
   static void writeToNetwork(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
 
-    BayesianNetworkData bnd = data.getBayesianNetworkData();
+    BayesianNetworkData bnd = data.getNetworkData();
 
     Stream.concat(
             Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToCPTs().stream()),
@@ -91,7 +90,8 @@ class JTANetworkWriter {
         .forEach(TransferIterator::transfer);
 
     Stream.concat(
-            bnd.getNetworkTablesMap().values().stream(), bnd.getObservedTablesMap().values().stream())
+            bnd.getNetworkTablesMap().values().stream(),
+            bnd.getObservedTablesMap().values().stream())
         .forEach(ProbabilityTable::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");

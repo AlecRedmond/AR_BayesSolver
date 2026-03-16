@@ -29,7 +29,7 @@ class JTACliqueBuilder {
   }
 
   static void buildIPFPClique(JunctionTreeData jtd) {
-    BayesianNetworkData bnd = jtd.getBayesianNetworkData();
+    BayesianNetworkData bnd = jtd.getNetworkData();
     Clique[] cliques = new Clique[1];
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
     cliques[0] = new Clique(linkedNodes, TableBuilder.buildJunctionTreeTable(linkedNodes, bnd));
@@ -37,7 +37,7 @@ class JTACliqueBuilder {
   }
 
   private static void buildJtaCliques(JunctionTreeData jtd) {
-    BayesianNetworkData bnd = jtd.getBayesianNetworkData();
+    BayesianNetworkData bnd = jtd.getNetworkData();
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
     triangulateGraph(edgeGraph, bnd);
