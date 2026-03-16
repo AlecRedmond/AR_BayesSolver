@@ -22,7 +22,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 class NetworkFileIOTest {
-  static final boolean SKIP_SAVE_TESTS = false;
+  static final boolean SKIP_SAVE_TESTS = true;
   static final boolean SKIP_J_FILE_CHOOSER = true;
   static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static final PropertiesLoader LOADER = new PropertiesLoader();

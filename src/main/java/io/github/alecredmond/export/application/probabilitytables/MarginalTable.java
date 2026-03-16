@@ -33,7 +33,7 @@ public class MarginalTable extends ProbabilityTable {
     this.networkNode = networkNode;
   }
 
-  public <T extends Serializable> double getProbability(T nodeStateID) {
+  public <T extends Serializable> double getProbabilityFromId(T nodeStateID) {
     return super.getProbabilityFromIDs(Set.of(nodeStateID));
   }
 

@@ -534,9 +534,9 @@ class BayesianNetworkTest {
     @Test
     void observeNetwork_shouldUpdateProbabilities() {
       net.solveNetwork().observeMarginals();
-      assertEquals(0.2, net.getObservedTable("RAIN").getProbability("RAIN:TRUE"), 1E-6);
+      assertEquals(0.2, net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      double pRainGivenWet = net.getObservedTable("RAIN").getProbability("RAIN:TRUE");
+      double pRainGivenWet = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
       assertTrue(pRainGivenWet > 0.2);
       // Exact value P(R|W) = P(W|R)P(R)/P(W)
       // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
@@ -560,10 +560,10 @@ class BayesianNetworkTest {
     void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
       net.solveNetwork();
       net.observeMarginals();
-      double pRainMarginal = net.getObservedTable("RAIN").getProbability("RAIN:TRUE");
+      double pRainMarginal = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
 
       net.observeNetwork(List.of());
-      double pRainObservedEmpty = net.getObservedTable("RAIN").getProbability("RAIN:TRUE");
+      double pRainObservedEmpty = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
 
       assertEquals(pRainMarginal, pRainObservedEmpty);
     }
@@ -600,7 +600,7 @@ class BayesianNetworkTest {
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(0.384852, rainTable.getProbability("RAIN:TRUE"), 1E-6);
+      assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
     }
 
     @Test
@@ -614,7 +614,7 @@ class BayesianNetworkTest {
       net.solveNetwork();
       MarginalTable rainTable = net.getObservedTable("RAIN");
       assertNotNull(rainTable);
-      assertEquals(0.2, rainTable.getProbability("RAIN:TRUE"), 1E-6);
+      assertEquals(0.2, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
     }
 
     @Test
