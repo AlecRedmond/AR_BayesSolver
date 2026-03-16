@@ -27,7 +27,7 @@ class BayesianNetworkTest {
   static final int NUMBER_OF_SAMPLES = 100_000;
   static final int STANDARD_DEVIATIONS = 3;
   // Set to false when performing a maven build
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static final boolean PRINT_RESULTS = false;
   BayesianNetwork net;
 
