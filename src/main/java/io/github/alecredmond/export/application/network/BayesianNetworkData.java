@@ -9,31 +9,21 @@ import java.io.Serializable;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class BayesianNetworkData {
-  private String networkName;
-  private List<Node> nodes;
-  private Map<Serializable, Node> nodeIDsMap;
-  private Map<Serializable, NodeState> nodeStateIDsMap;
-  private Map<Node, ProbabilityTable> networkTablesMap;
-  private Map<Node, MarginalTable> observedTablesMap;
-  private Map<Node, NodeState> observedEvidence;
-  private List<ProbabilityConstraint> constraints;
-  private boolean solved;
-
-  public BayesianNetworkData() {
-    this.networkName = "UNNAMED NETWORK";
-    this.nodes = new ArrayList<>();
-    this.nodeIDsMap = new HashMap<>();
-    this.nodeStateIDsMap = new HashMap<>();
-    this.networkTablesMap = new LinkedHashMap<>();
-    this.observedTablesMap = new LinkedHashMap<>();
-    this.observedEvidence = new HashMap<>();
-    this.constraints = new ArrayList<>();
-    this.solved = false;
-  }
+  private String networkName = "UNNAMED NETWORK";
+  private List<Node> nodes = new ArrayList<>();
+  private Map<Serializable, Node> nodeIDsMap = new HashMap<>();
+  private Map<Serializable, NodeState> nodeStateIDsMap = new HashMap<>();
+  private Map<Node, ProbabilityTable> networkTablesMap = new LinkedHashMap<>();
+  private Map<Node, MarginalTable> observedTablesMap = new LinkedHashMap<>();
+  private Map<Node, NodeState> observedEvidence = new HashMap<>();
+  private List<ProbabilityConstraint> constraints = new ArrayList<>();
+  private boolean solved = false;
 
   public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
