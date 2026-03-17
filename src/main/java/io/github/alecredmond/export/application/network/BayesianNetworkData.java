@@ -21,7 +21,6 @@ public class BayesianNetworkData {
   private Map<Serializable, NodeState> nodeStateIDsMap = new HashMap<>();
   private Map<Node, ProbabilityTable> networkTablesMap = new LinkedHashMap<>();
   private Map<Node, MarginalTable> marginalTableMap = new LinkedHashMap<>();
-  private Map<Node, NodeState> observedEvidence = new HashMap<>();
   private List<ProbabilityConstraint> constraints = new ArrayList<>();
   private boolean solved = false;
 

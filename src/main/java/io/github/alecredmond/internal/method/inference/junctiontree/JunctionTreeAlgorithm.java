@@ -68,14 +68,14 @@ public class JunctionTreeAlgorithm {
   }
 
   public void writeTablesToNetwork() {
-    JTANetworkWriter.writeToNetwork(data);
+    JTANetworkWriter.writeBackToCPTs(data);
   }
 
   public double getJointProbability() {
     return data.getJointProbability();
   }
 
-  public double getJointProbOfNewEvidence(Collection<NodeState> newEvidence) {
+  public double getJointProbOfMeasured(Collection<NodeState> newEvidence) {
     Map<Node, NodeState> request = createNewEvidenceRequest(newEvidence);
     return multiplyTableSums(data.getCliques(), Clique::getTable, request)
         / multiplyTableSums(data.getSeparators(), Separator::getTable, request);
@@ -90,14 +90,14 @@ public class JunctionTreeAlgorithm {
   }
 
   private void setJointProbability() {
-    data.setJointProbability(getJointProbOfNewEvidence(new HashSet<>()));
+    data.setJointProbability(getJointProbOfMeasured(new HashSet<>()));
   }
 
   private Map<Node, NodeState> createNewEvidenceRequest(Collection<NodeState> newEvidence) {
     if (newEvidence.isEmpty()) {
       return new HashMap<>();
     }
-    Map<Node, NodeState> observed = data.getNetworkData().getObservedEvidence();
+    Map<Node, NodeState> observed = data.getObservedEvidence();
     Map<Node, NodeState> request = generateRequest(newEvidence, observed.values());
     observed.keySet().forEach(request::remove);
     return request;

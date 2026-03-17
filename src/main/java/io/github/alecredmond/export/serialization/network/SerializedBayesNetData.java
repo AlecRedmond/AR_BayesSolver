@@ -7,7 +7,6 @@ import io.github.alecredmond.export.serialization.probabilitytable.SerializedPro
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
@@ -20,7 +19,6 @@ public class SerializedBayesNetData implements Serializable {
   private List<SerializedNode> serializedNodes;
   private Map<Serializable, SerializedProbabilityTable> networkTableStoMap;
   private Map<Serializable, SerializedMarginalTable> observedTableStoMap;
-  private Map<Serializable, Serializable> observedEvidenceIdMap;
   private List<SerializedProbabilityConstraint> constraintStos;
   private boolean solved;
 }

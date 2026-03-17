@@ -35,7 +35,6 @@ class NetworkFileIOTest {
     return networkSuppliers.stream()
         .map(Supplier::get)
         .map(BayesianNetwork::solveNetwork)
-        .map(BayesianNetwork::observeMarginals)
         .map(Arguments::of);
   }
 

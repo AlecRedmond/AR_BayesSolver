@@ -529,5 +529,10 @@ public interface BayesianNetwork {
    */
   <T extends Serializable> MarginalTable getMarginalTable(T nodeID);
 
+  /**
+   * Builds a new InferenceEngine from the current BayesianNetwork
+   *
+   * @return a new InferenceEngine instance
+   */
   InferenceEngine buildInferenceEngine();
 }

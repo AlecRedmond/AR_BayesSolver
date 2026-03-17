@@ -20,9 +20,11 @@ public interface InferenceEngine {
 
   InferenceEngine observeNetwork(NodeState observedState);
 
-  InferenceEngine observeNetworkFromId(Serializable observedStateId);
+  InferenceEngine observeNetworkFromIds(Serializable observedStateId);
 
   InferenceEngine observeNetworkFromIds(Collection<Serializable> observedStateIDs);
+
+  Map<Node, NodeState> getCurrentObservations();
 
   MarginalTable getObservedTableById(Serializable nodeId);
 
@@ -34,5 +36,7 @@ public interface InferenceEngine {
 
   Map<Node, MarginalTable> getObservedTables();
 
-  double getCurrentProbability(Collection<NodeState> newEvidence);
+  double getCurrentConditionalProbability(Collection<NodeState> measuredStates);
+
+  double getCurrentConditionalProbabilityById(Collection<Serializable> measuredStateIds);
 }

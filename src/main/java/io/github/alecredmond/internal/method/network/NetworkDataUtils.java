@@ -101,7 +101,6 @@ public class NetworkDataUtils {
     networkData.setNodeStateIDsMap(new HashMap<>());
     networkData.setNetworkTablesMap(new HashMap<>());
     networkData.setMarginalTableMap(new HashMap<>());
-    networkData.setObservedEvidence(new HashMap<>());
     networkData.setConstraints(new ArrayList<>());
   }
 

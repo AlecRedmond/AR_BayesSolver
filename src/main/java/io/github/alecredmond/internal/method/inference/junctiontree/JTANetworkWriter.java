@@ -80,7 +80,7 @@ class JTANetworkWriter {
     observedTable.setTableName(sb.toString());
   }
 
-  static void writeToNetwork(JunctionTreeData data) {
+  static void writeBackToCPTs(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
 
     BayesianNetworkData bnd = data.getNetworkData();

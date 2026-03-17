@@ -24,7 +24,6 @@ class BayesianNetworkSerializerTest {
     return networkSuppliers.stream()
         .map(Supplier::get)
         .map(BayesianNetwork::solveNetwork)
-        .map(BayesianNetwork::observeMarginals)
         .map(Arguments::of);
   }
 

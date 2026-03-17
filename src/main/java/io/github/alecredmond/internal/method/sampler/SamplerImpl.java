@@ -27,14 +27,16 @@ public abstract class SamplerImpl implements Sampler {
   @Override
   public SampleCollection generateSamples(
       Collection<NodeState> observedStates, int numberOfSamples) {
-    if (numberOfSamples < 0) {
-      throw new IllegalArgumentException("Attempted to generate a negative number of samples!");
-    }
-    return generateFromRequest(NodeUtils.generateRequest(observedStates), numberOfSamples);
+    return generateSamples(NodeUtils.generateRequest(observedStates), numberOfSamples);
   }
 
-  protected abstract SampleCollection generateFromRequest(
+  public abstract SampleCollection generateSamples(
       Map<Node, NodeState> observations, int numberOfSamples);
+
+  @Override
+  public SampleCollection generateSamples(int numberOfSamples) {
+    return generateSamples(new HashMap<>(), numberOfSamples);
+  }
 
   protected <R, E extends Number> R nextRandom(Map<R, E> weights) {
     if (weights.isEmpty()) {

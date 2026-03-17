@@ -20,8 +20,11 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   }
 
   @Override
-  public SampleCollection generateFromRequest(
-      Map<Node, NodeState> observations, int numberOfSamples) {
+  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
+    if (numberOfSamples < 0) {
+      log.error("Attempted to create fewer than 0 samples!");
+      return null;
+    }
     Node[] nodes = data.getNodes().toArray(new Node[0]);
     return validateSamples(
         numberOfSamples,

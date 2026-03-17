@@ -1,6 +1,5 @@
 package io.github.alecredmond.internal.application.inference.junctiontree;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;

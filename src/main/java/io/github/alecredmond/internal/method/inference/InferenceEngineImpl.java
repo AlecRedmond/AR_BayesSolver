@@ -46,13 +46,18 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public InferenceEngine observeNetworkFromId(Serializable observedStateId) {
+  public InferenceEngine observeNetworkFromIds(Serializable observedStateId) {
     return observeNetworkFromIds(List.of(observedStateId));
   }
 
   @Override
   public InferenceEngine observeNetworkFromIds(Collection<Serializable> observedStateIDs) {
     return observeNetwork(NetworkDataUtils.getStatesByID(observedStateIDs, networkData));
+  }
+
+  @Override
+  public Map<Node, NodeState> getCurrentObservations() {
+    return junctionTree.getData().getObservedEvidence();
   }
 
   @Override
@@ -82,15 +87,21 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public double getCurrentProbability(Collection<NodeState> newEvidence) {
+  public double getCurrentConditionalProbability(Collection<NodeState> measuredStates) {
     try {
       double currentJointProb = junctionTree.getJointProbability();
       if (currentJointProb == 0.0) return 0.0;
-      double newJointProb = junctionTree.getJointProbOfNewEvidence(newEvidence);
+      double newJointProb = junctionTree.getJointProbOfMeasured(measuredStates);
       return newJointProb / currentJointProb;
     } catch (NodeStateConflictException e) {
-      log.warn("Conflicting states found in {}", NodeUtils.formatStatesToString(newEvidence));
+      log.warn("Conflicting states found in {}", NodeUtils.formatStatesToString(measuredStates));
       return 0.0;
     }
+  }
+
+  @Override
+  public double getCurrentConditionalProbabilityById(Collection<Serializable> measuredStateIds) {
+    return getCurrentConditionalProbability(
+        NetworkDataUtils.getStatesByID(measuredStateIds, networkData));
   }
 }

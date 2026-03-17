@@ -12,7 +12,6 @@ import io.github.alecredmond.export.serialization.node.SerializedNode;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedMarginalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedProbabilityTable;
 import io.github.alecredmond.internal.serialization.SerializationData;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +28,6 @@ public class NetworkDataSerializer {
         buildSerializedNodes(data),
         buildSerializedNetworkTables(data),
         buildSerializedObservedTables(data),
-        buildSerializedObservedEvidence(data),
         buildSerializedProbabilityConstraints(data),
         data.isSolved());
   }
@@ -49,11 +47,6 @@ public class NetworkDataSerializer {
       BayesianNetworkData data) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
     return buildMap(data.getMarginalTableMap(), Node::getId, serializer::serializeMarginalTable);
-  }
-
-  private Map<Serializable, Serializable> buildSerializedObservedEvidence(
-      BayesianNetworkData data) {
-    return buildMap(data.getObservedEvidence(), Node::getId, NodeState::getId);
   }
 
   private List<SerializedProbabilityConstraint> buildSerializedProbabilityConstraints(
@@ -80,7 +73,6 @@ public class NetworkDataSerializer {
         nodeStateIDsMap,
         deSerializeNetworkTables(serialized, data, nodeIDsMap),
         deSerializeObservedTables(serialized, data, nodeIDsMap),
-        deSerializeObservedEvidence(serialized, nodeIDsMap, nodeStateIDsMap),
         deSerializeConstraints(serialized.getConstraintStos(), data),
         serialized.isSolved());
   }
@@ -113,13 +105,6 @@ public class NetworkDataSerializer {
         serialized.getObservedTableStoMap(),
         nodeIDsMap::get,
         tableSTO -> serializer.deSerializeMarginal(tableSTO, data));
-  }
-
-  private Map<Node, NodeState> deSerializeObservedEvidence(
-      SerializedBayesNetData serialized,
-      Map<Serializable, Node> nodeIDsMap,
-      Map<Serializable, NodeState> nodeStateIDsMap) {
-    return buildMap(serialized.getObservedEvidenceIdMap(), nodeIDsMap::get, nodeStateIDsMap::get);
   }
 
   private List<ProbabilityConstraint> deSerializeConstraints(

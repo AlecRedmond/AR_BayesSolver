@@ -6,6 +6,7 @@ import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.Set;
 
 import io.github.alecredmond.export.method.sampler.SampleCollection;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import lombok.Data;
 
 @Data
@@ -29,7 +30,7 @@ public class SamplePackage {
       Set<String> measuredStateIds,
       boolean printMarginals) {
     this.printMarginals = printMarginals;
-    this.test = network.observeNetwork(observedStateIds).generateSamples(numberOfSamples);
+    this.test = Sampler.create(network).generateSamples(numberOfSamples);
     this.network = network;
     this.numberOfSamples = numberOfSamples;
     this.observedStateIds = observedStateIds;
