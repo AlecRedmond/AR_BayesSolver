@@ -66,14 +66,18 @@ public class JTAInitializer {
   }
 
   private static void buildExternalMessagePassers(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    boolean writeBackToCPTs = jtd.isSolverConfig();
+    boolean writeBackToNetwork = jtd.isSolverConfig();
     Clique[] cliques = jtd.getCliques();
 
     TransferIteratorBuilder builder = new TransferIteratorBuilder();
 
+    Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
+    Map<Node, MarginalTable> marginalTables =
+        writeBackToNetwork ? bnd.getMarginalTableMap() : jtd.getObservedTablesMap();
+
     for (Node node : bnd.getNodes()) {
-      ProbabilityTable networkTable = bnd.getNetworkTablesMap().get(node);
-      MarginalTable observedTable = bnd.getObservedTablesMap().get(node);
+      ProbabilityTable networkTable = networkTables.get(node);
+      MarginalTable observedTable = marginalTables.get(node);
 
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
@@ -86,7 +90,7 @@ public class JTAInitializer {
           .getWriteToObserved()
           .add(builder.buildMarginalTransferIterator(cliqueTable, observedTable));
 
-      if (writeBackToCPTs) {
+      if (writeBackToNetwork) {
         bestClique
             .getWriteToCPTs()
             .add(builder.buildMarginalTransferIterator(cliqueTable, networkTable));
@@ -123,8 +127,17 @@ public class JTAInitializer {
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(false);
+    buildObserved(junctionTreeData, bayesianNetworkData);
     buildCommon(junctionTreeData, bayesianNetworkData);
     log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
     return junctionTreeData;
+  }
+
+  private static void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    jtd.setObservedEvidence(new HashMap<>());
+    jtd.setObservedTablesMap(
+        bnd.getMarginalTableMap().entrySet().stream()
+            .map(entry -> Map.entry(entry.getKey(), entry.getValue().copyTable()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 }

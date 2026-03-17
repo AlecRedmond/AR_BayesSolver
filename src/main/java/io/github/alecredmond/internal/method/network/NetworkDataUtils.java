@@ -38,7 +38,7 @@ public class NetworkDataUtils {
     Map<Node, Integer> layerMap = orderNodes(networkData);
     rebuildIdMaps(networkData);
     buildNetworkTablesMap(layerMap, networkData);
-    buildObservedTablesMap(networkData);
+    buildMarginalTablesMap(networkData);
     marginalizeAllTables(networkData);
   }
 
@@ -91,7 +91,7 @@ public class NetworkDataUtils {
   private static void marginalizeAllTables(BayesianNetworkData networkData) {
     Stream.concat(
             networkData.getNetworkTablesMap().values().stream(),
-            networkData.getObservedTablesMap().values().stream())
+            networkData.getMarginalTableMap().values().stream())
         .forEach(ProbabilityTable::marginalizeTable);
   }
 
@@ -100,7 +100,7 @@ public class NetworkDataUtils {
     networkData.setNodeIDsMap(new HashMap<>());
     networkData.setNodeStateIDsMap(new HashMap<>());
     networkData.setNetworkTablesMap(new HashMap<>());
-    networkData.setObservedTablesMap(new HashMap<>());
+    networkData.setMarginalTableMap(new HashMap<>());
     networkData.setObservedEvidence(new HashMap<>());
     networkData.setConstraints(new ArrayList<>());
   }
@@ -136,12 +136,12 @@ public class NetworkDataUtils {
         .forEach(state -> networkData.getNodeStateIDsMap().put(state.getId(), state));
   }
 
-  private static void buildObservedTablesMap(BayesianNetworkData networkData) {
-    networkData.setObservedTablesMap(new HashMap<>());
+  private static void buildMarginalTablesMap(BayesianNetworkData networkData) {
+    networkData.setMarginalTableMap(new HashMap<>());
     networkData
         .getNodes()
         .forEach(
-            node -> networkData.getObservedTablesMap().put(node, buildMarginalTable(Set.of(node))));
+            node -> networkData.getMarginalTableMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
   private static void buildNetworkTablesMap(
@@ -220,7 +220,7 @@ public class NetworkDataUtils {
     Node toRemove = getNodeByID(nodeID, networkData);
 
     networkData.getNetworkTablesMap().remove(toRemove);
-    networkData.getObservedTablesMap().remove(toRemove);
+    networkData.getMarginalTableMap().remove(toRemove);
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove, networkData);
 

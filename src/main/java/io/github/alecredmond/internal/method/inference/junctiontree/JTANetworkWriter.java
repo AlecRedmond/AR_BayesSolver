@@ -59,7 +59,7 @@ class JTANetworkWriter {
         .forEach(TransferIterator::setToUnityAndTransfer);
 
     data.getBayesianNetworkData()
-        .getObservedTablesMap()
+        .getMarginalTableMap()
         .values()
         .forEach(ProbabilityTable::marginalizeTable);
 
@@ -91,7 +91,8 @@ class JTANetworkWriter {
         .forEach(TransferIterator::transfer);
 
     Stream.concat(
-            bnd.getNetworkTablesMap().values().stream(), bnd.getObservedTablesMap().values().stream())
+            bnd.getNetworkTablesMap().values().stream(),
+            bnd.getMarginalTableMap().values().stream())
         .forEach(ProbabilityTable::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");

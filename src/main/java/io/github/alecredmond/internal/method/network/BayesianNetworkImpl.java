@@ -8,6 +8,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
@@ -280,5 +281,10 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   public <T extends Serializable> MarginalTable getMarginalTable(T nodeID) {
     if (!networkData.isSolved()) solveNetwork();
     return Optional.ofNullable(networkData.getObservedTable(nodeID)).orElseThrow();
+  }
+
+  @Override
+  public InferenceEngine buildInferenceEngine() {
+    return InferenceEngine.create(this);
   }
 }

@@ -41,7 +41,7 @@ public class JunctionTreeAlgorithm {
     if (data.getNodes().isEmpty()) {
       return;
     }
-    data.setObserved(observed);
+    data.setObservedEvidence(observed);
     resetObservations();
     if (observed.isEmpty()) {
       passMessages(data.getCliques()[0]);

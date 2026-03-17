@@ -11,6 +11,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
@@ -527,4 +528,6 @@ public interface BayesianNetwork {
    * @return the observed marginal table for the specified node.
    */
   <T extends Serializable> MarginalTable getMarginalTable(T nodeID);
+
+  InferenceEngine buildInferenceEngine();
 }

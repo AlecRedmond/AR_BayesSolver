@@ -48,7 +48,7 @@ public class NetworkDataSerializer {
   private Map<Serializable, SerializedMarginalTable> buildSerializedObservedTables(
       BayesianNetworkData data) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
-    return buildMap(data.getObservedTablesMap(), Node::getId, serializer::serializeMarginalTable);
+    return buildMap(data.getMarginalTableMap(), Node::getId, serializer::serializeMarginalTable);
   }
 
   private Map<Serializable, Serializable> buildSerializedObservedEvidence(

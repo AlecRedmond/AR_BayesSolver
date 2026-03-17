@@ -23,7 +23,7 @@ public class NetworkPrinter {
   }
 
   public void printObserved() {
-    printTables(networkData.getObservedTablesMap(), configs.getObservedFileTitle());
+    printTables(networkData.getMarginalTableMap(), configs.getObservedFileTitle());
   }
 
   public <T extends ProbabilityTable> void printTables(
