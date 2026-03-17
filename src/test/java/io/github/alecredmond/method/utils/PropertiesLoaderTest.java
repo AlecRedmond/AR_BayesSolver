@@ -2,6 +2,7 @@ package io.github.alecredmond.method.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
