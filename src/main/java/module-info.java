@@ -5,8 +5,9 @@ module BayesSolver {
   requires java.desktop;
   requires java.sql;
   requires java.rmi;
+    requires org.apache.commons.lang3;
 
-  exports io.github.alecredmond.export.application.constraints;
+    exports io.github.alecredmond.export.application.constraints;
   exports io.github.alecredmond.export.application.network;
   exports io.github.alecredmond.export.application.node;
   exports io.github.alecredmond.export.application.probabilitytables;
@@ -20,4 +21,5 @@ module BayesSolver {
   exports io.github.alecredmond.export.serialization.probabilitytable;
   exports io.github.alecredmond.export.serialization.probabilitytable.probabilityvector;
   exports io.github.alecredmond.exceptions;
+    exports io.github.alecredmond.internal.method.sampler;
 }

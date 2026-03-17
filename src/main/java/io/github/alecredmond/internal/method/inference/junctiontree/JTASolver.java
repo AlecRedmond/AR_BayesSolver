@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.method.inference.InferenceEngine;
+import io.github.alecredmond.internal.method.inference.InferenceEngineImpl;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +16,7 @@ public class JTASolver {
 
   private JTASolver() {}
 
-  public static void solveNetwork(InferenceEngine engine) {
+  public static void solveNetwork(BayesianNetworkData networkData) {
     SolverConfigs configs = new SolverConfigs();
     Instant start = Instant.now();
     boolean writeLogs = configs.isLogSolverProgress();
@@ -25,7 +25,7 @@ public class JTASolver {
       log.info("STARTING SOLVER");
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(engine.getNetworkData());
+    JunctionTreeAlgorithm jta = buildJTA(networkData);
 
     double lastError;
     double error = Double.MAX_VALUE;

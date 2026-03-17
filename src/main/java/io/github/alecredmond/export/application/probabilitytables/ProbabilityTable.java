@@ -3,6 +3,7 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.io.Serializable;
 import java.util.*;
@@ -49,4 +50,10 @@ public abstract class ProbabilityTable {
   }
 
   public abstract void marginalizeTable();
+
+  public abstract ProbabilityTable copyTable();
+
+  public static ProbabilityTable copyOf(ProbabilityTable table) {
+    return new TableCopier().copyTable(table);
+  }
 }

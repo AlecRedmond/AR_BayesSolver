@@ -3,6 +3,7 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -40,5 +41,10 @@ public class MarginalTable extends ProbabilityTable {
   @Override
   public void marginalizeTable() {
     TableUtils.marginalizeJointTable(this);
+  }
+
+  @Override
+  public MarginalTable copyTable() {
+    return new TableCopier().copyMarginal(this);
   }
 }

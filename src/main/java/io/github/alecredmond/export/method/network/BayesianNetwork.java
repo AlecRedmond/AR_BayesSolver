@@ -11,9 +11,8 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
+import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.File;
 import java.io.Serializable;
@@ -485,7 +484,7 @@ public interface BayesianNetwork {
    *
    * @return this instance for method chaining.
    */
-  BayesianNetwork printObserved();
+  BayesianNetwork printMarginals();
 
   /**
    * Prints the results of the most recent observation (posterior probabilities) according to
@@ -494,34 +493,6 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   BayesianNetwork printNetwork();
-
-  /**
-   * Sets evidence in the network by observing one or more node states. This fixes the state of
-   * certain nodes before running inference.
-   *
-   * @param observedNodeStateIDs a collection of node states that are considered evidence.
-   * @param <T> the class of the NodeState IDs
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
-
-  /**
-   * Sets evidence in the network by observing one node state as true. This fixes the state of
-   * certain nodes before running inference.
-   *
-   * @param observedNodeStateID the id of the state fixed as observed
-   * @param <T> the class of the NodeState ID.
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork observeNetwork(T observedNodeStateID);
-
-  /**
-   * Runs the inference algorithm to compute the posterior probabilities (marginals) of all nodes.
-   * This is the equivalent of running the observeNetwork method with an empty collection.
-   *
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork observeMarginals();
 
   /**
    * Builds the underlying data object containing all network information. Only runs if the network
@@ -537,41 +508,6 @@ public interface BayesianNetwork {
    * @return the raw data class associated with the Bayesian network.
    */
   BayesianNetworkData getNetworkData();
-
-  /**
-   * Generates random samples from the joint probability distribution defined by the network. Note
-   * that this method utilizes the most recent result observations on the network, or the base
-   * marginals if no observation has been made.
-   *
-   * @param numberOfSamples the total number of samples to generate.
-   * @return a SampleCollection object providing further methods
-   */
-  SampleCollection generateSamples(int numberOfSamples);
-
-  /**
-   * Generates random samples from the joint probability distribution defined by the network. This
-   * version of the method allows an observation to be sampled <b>without changing the observation
-   * status of the network itself</b>.
-   *
-   * @param numberOfSamples the total number of samples to generate.
-   * @param observedStateIDs ids of the NodeStates to be treated as observed
-   * @param <T> class of the NodeState ids.
-   * @return a SampleCollection object providing further methods
-   */
-  <T extends Serializable> SampleCollection generateSamples(
-      int numberOfSamples, Collection<T> observedStateIDs);
-
-  /**
-   * Calculates the joint probability of a set of events occurring, conditional on the current
-   * observed evidence.
-   *
-   * @param eventStateIDs a collection of node states representing joint events within the current
-   *     conditions.
-   * @param <T> Class of the event state IDs
-   * @return the calculated joint probability.
-   */
-  <T extends Serializable> double getProbabilityFromCurrentObservations(
-      Collection<T> eventStateIDs);
 
   /**
    * Retrieves the Conditional Probability Table (CPT) for a given node.
@@ -590,5 +526,5 @@ public interface BayesianNetwork {
    * @param <T> class of the Node ID
    * @return the observed marginal table for the specified node.
    */
-  <T extends Serializable> MarginalTable getObservedTable(T nodeID);
+  <T extends Serializable> MarginalTable getMarginalTable(T nodeID);
 }

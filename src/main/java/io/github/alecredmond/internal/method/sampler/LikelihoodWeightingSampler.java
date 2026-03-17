@@ -13,14 +13,15 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LikelihoodWeightingSampler extends Sampler {
+public class LikelihoodWeightingSampler extends SamplerImpl {
 
   public LikelihoodWeightingSampler(BayesianNetworkData data) {
     super(data);
   }
 
   @Override
-  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
+  public SampleCollection generateFromRequest(
+      Map<Node, NodeState> observations, int numberOfSamples) {
     Node[] nodes = data.getNodes().toArray(new Node[0]);
     return validateSamples(
         numberOfSamples,

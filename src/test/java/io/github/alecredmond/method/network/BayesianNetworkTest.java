@@ -519,14 +519,14 @@ class BayesianNetworkTest {
     void solveNetwork_withIncompleteConstraints_shouldSucceed() {
       assertDoesNotThrow(() -> net.solveNetwork());
       net.observeMarginals();
-      MarginalTable rainTable = net.getObservedTable("RAIN");
+      MarginalTable rainTable = net.getMarginalTable("RAIN");
       assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
     }
 
     @Test
     void observeMarginals_beforeSolve_shouldImplicitlySolve() {
       assertDoesNotThrow(() -> net.observeMarginals());
-      MarginalTable rainTable = net.getObservedTable("RAIN");
+      MarginalTable rainTable = net.getMarginalTable("RAIN");
       assertNotNull(rainTable);
       assertEquals(0.2, rainTable.getProbabilityFromIDs(List.of("RAIN:TRUE")), 1E-9);
     }
@@ -534,9 +534,9 @@ class BayesianNetworkTest {
     @Test
     void observeNetwork_shouldUpdateProbabilities() {
       net.solveNetwork().observeMarginals();
-      assertEquals(0.2, net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
+      assertEquals(0.2, net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      double pRainGivenWet = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
+      double pRainGivenWet = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
       assertTrue(pRainGivenWet > 0.2);
       // Exact value P(R|W) = P(W|R)P(R)/P(W)
       // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
@@ -560,10 +560,10 @@ class BayesianNetworkTest {
     void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
       net.solveNetwork();
       net.observeMarginals();
-      double pRainMarginal = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
+      double pRainMarginal = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
 
       net.observeNetwork(List.of());
-      double pRainObservedEmpty = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
+      double pRainObservedEmpty = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
 
       assertEquals(pRainMarginal, pRainObservedEmpty);
     }
@@ -598,7 +598,7 @@ class BayesianNetworkTest {
     @Test
     void getObservedTable_shouldReturnTable() {
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      MarginalTable rainTable = net.getObservedTable("RAIN");
+      MarginalTable rainTable = net.getMarginalTable("RAIN");
       assertNotNull(rainTable);
       assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
     }
@@ -606,13 +606,13 @@ class BayesianNetworkTest {
     @Test
     void getObservedTable_nonExistentNode_shouldThrowException() {
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      assertThrows(Exception.class, () -> net.getObservedTable("ZOMBIE"));
+      assertThrows(Exception.class, () -> net.getMarginalTable("ZOMBIE"));
     }
 
     @Test
     void getObservedTable_beforeObserve_shouldReturnMarginals() {
       net.solveNetwork();
-      MarginalTable rainTable = net.getObservedTable("RAIN");
+      MarginalTable rainTable = net.getMarginalTable("RAIN");
       assertNotNull(rainTable);
       assertEquals(0.2, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
     }
@@ -709,7 +709,7 @@ class BayesianNetworkTest {
       net = RAIN_NETWORK.get().solveNetwork();
       if (PRINT_RESULTS) net.printNetwork();
       net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      if (PRINT_RESULTS) net.printObserved();
+      if (PRINT_RESULTS) net.printMarginals();
 
       net.getNetworkData().getNetworkTablesMap().values().stream()
           .map(ProbabilityTable::getVector)
@@ -761,7 +761,7 @@ class BayesianNetworkTest {
     void testNetworkAH_NonLocalConstraints() {
       assertDoesNotThrow(() -> net = AH_NETWORK.get().solveNetwork().observeMarginals());
 
-      if (PRINT_RESULTS) net.printNetwork().printObserved();
+      if (PRINT_RESULTS) net.printNetwork().printMarginals();
 
       String testState = "B+";
       String includedNode = "B";
@@ -773,14 +773,14 @@ class BayesianNetworkTest {
       if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
       net = FANTASY_GRAPH.get();
       assertDoesNotThrow(() -> net.solveNetwork().observeMarginals());
-      if (PRINT_RESULTS) net.printObserved();
+      if (PRINT_RESULTS) net.printMarginals();
       net.observeNetwork(List.of("VOTE:CPK"));
-      if (PRINT_RESULTS) net.printObserved();
+      if (PRINT_RESULTS) net.printMarginals();
       net.observeNetwork(List.of("VOTE:UNF"));
-      if (PRINT_RESULTS) net.printObserved();
+      if (PRINT_RESULTS) net.printMarginals();
       net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
       if (PRINT_RESULTS) {
-        net.printObserved();
+        net.printMarginals();
         net.printNetwork();
       }
 
