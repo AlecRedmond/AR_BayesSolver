@@ -12,7 +12,11 @@ import java.util.Map;
 public interface Sampler {
 
   static Sampler create(BayesianNetwork network) {
-    return new LikelihoodWeightingSampler(network.getNetworkData());
+    return new LikelihoodWeightingSampler(network);
+  }
+
+  static Sampler create(InferenceEngine engine){
+      return new LikelihoodWeightingSampler(engine.getNetwork(), engine);
   }
 
   SampleCollection generateSamplesById(

@@ -1,12 +1,14 @@
 package io.github.alecredmond.method.sampler;
 
+import static io.github.alecredmond.TestConfigs.PRINT_TABLES;
+import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.method.network.NetworkScenarios;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,9 +19,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
-  static final boolean SOLVE_ONLY_PROBLEMATIC = false;
-  static final boolean PRINT_RESULTS = true;
   static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
@@ -38,7 +37,6 @@ class SampleCollectionTest {
             Set.of("C", "E"),
             Set.of("F+"),
             true));
-    if (SOLVE_ONLY_PROBLEMATIC) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.SIMPLE_LINEAR.get(),
@@ -55,7 +53,7 @@ class SampleCollectionTest {
             Set.of("SPRINKLER"),
             Set.of("RAIN:TRUE"),
             false));
-    if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
+    if (!SOLVE_LONG_TESTS) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.FANTASY_GRAPH.get(),
@@ -144,14 +142,15 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
-    if (samplePackage.isPrintMarginals() && PRINT_RESULTS) {
+    if (samplePackage.isPrintMarginals() && PRINT_TABLES) {
       network.printMarginals();
       network.printNetwork();
     }
     SampleCollection test = samplePackage.getTest();
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();
-    double probOfObserved = network.getProbabilityFromCurrentObservations(measuredStateIds);
+    double probOfObserved =
+        samplePackage.getEngine().getCurrentConditionalProbabilityById(measuredStateIds);
     double delta = Math.sqrt(numberOfSamples) * 3;
     double lowerBound = probOfObserved * numberOfSamples - delta;
     double upperBound = probOfObserved * numberOfSamples + delta;

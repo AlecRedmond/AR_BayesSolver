@@ -12,10 +12,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
 import java.io.Serializable;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,11 +20,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
-  static final int NUMBER_OF_SAMPLES = 100_000;
-  static final int STANDARD_DEVIATIONS = 3;
-  // Set to false when performing a maven build
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
-  static final boolean PRINT_RESULTS = false;
   BayesianNetwork net;
 
   @BeforeEach
@@ -498,117 +490,27 @@ class BayesianNetworkTest {
 
   @Nested
   class SolverTest {
-      @BeforeEach
-      void buildNetwork() {
-          net = RAIN_NETWORK.get();
-      }
-
-      @Test
-      void solveNetwork_onValidNetwork_shouldSucceed() {
-          assertDoesNotThrow(() -> net.solveNetwork());
-      }
-
-      @Test
-      void solveNetwork_onEmptyNetwork_shouldSucceed() {
-          BayesianNetwork emptyNet = BayesianNetwork.newNetwork();
-          assertDoesNotThrow(emptyNet::solveNetwork);
-      }
-
-      @Test
-      void solveNetwork_withIncompleteConstraints_shouldSucceed() {
-          assertDoesNotThrow(() -> net.solveNetwork());
-          MarginalTable rainTable = net.getMarginalTable("RAIN");
-          assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
-      }
-  }
-
-  @Nested
-  class ScenarioTests {
-
-    @Test
-    void testSolves_RainSprinkler() {
-      net = RAIN_NETWORK.get().solveNetwork();
-      if (PRINT_RESULTS) net.printNetwork();
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      if (PRINT_RESULTS) net.printMarginals();
-
-      net.getNetworkData().getNetworkTablesMap().values().stream()
-          .map(ProbabilityTable::getVector)
-          .map(ProbabilityVector::getNodeArray)
-          .forEach(
-              nodes -> {
-                StringBuilder sb = new StringBuilder();
-                Arrays.stream(nodes)
-                    .forEach(node -> sb.append(node.getId().toString()).append(" "));
-                System.out.println(sb);
-              });
-
-      net.observeMarginals();
-
-      String testState = "RAIN:TRUE";
-      String includedNode = "RAIN";
-
-      generateSamples(net, includedNode, testState);
-
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
-      generateSamples(net, includedNode, testState);
-    }
-
-    private void generateSamples(BayesianNetwork network, String includedNode, String testState) {
-
-      double observedProb = network.getProbabilityFromCurrentObservations(List.of(testState));
-      double expected = observedProb * NUMBER_OF_SAMPLES;
-      double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * STANDARD_DEVIATIONS;
-      long lowerBound = Math.max(0, (long) (expected - expectedDelta));
-      long upperBound = (long) (expected + expectedDelta);
-
-      SampleCollection sampleCollection = net.generateSamples(NUMBER_OF_SAMPLES);
-      sampleCollection.setExportNodesById(List.of(includedNode));
-      int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
-
-      System.out.printf(
-          "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",
-          testState, observedProb, expected, lowerBound, upperBound, count);
-
-      assertTrue(
-          count >= lowerBound && count <= upperBound,
-          String.format(
-              "Sample count %d for %s is outside expected range [%d, %d]",
-              count, testState, lowerBound, upperBound));
+    @BeforeEach
+    void buildNetwork() {
+      net = RAIN_NETWORK.get();
     }
 
     @Test
-    void testNetworkAH_NonLocalConstraints() {
-      assertDoesNotThrow(() -> net = AH_NETWORK.get().solveNetwork().observeMarginals());
-
-      if (PRINT_RESULTS) net.printNetwork().printMarginals();
-
-      String testState = "B+";
-      String includedNode = "B";
-      generateSamples(net, includedNode, testState);
+    void solveNetwork_onValidNetwork_shouldSucceed() {
+      assertDoesNotThrow(() -> net.solveNetwork());
     }
 
     @Test
-    void testFantasyGraph_ComplexNetwork() {
-      if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
-      net = FANTASY_GRAPH.get();
-      assertDoesNotThrow(() -> net.solveNetwork().observeMarginals());
-      if (PRINT_RESULTS) net.printMarginals();
-      net.observeNetwork(List.of("VOTE:CPK"));
-      if (PRINT_RESULTS) net.printMarginals();
-      net.observeNetwork(List.of("VOTE:UNF"));
-      if (PRINT_RESULTS) net.printMarginals();
-      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
-      if (PRINT_RESULTS) {
-        net.printMarginals();
-        net.printNetwork();
-      }
+    void solveNetwork_onEmptyNetwork_shouldSucceed() {
+      BayesianNetwork emptyNet = BayesianNetwork.newNetwork();
+      assertDoesNotThrow(emptyNet::solveNetwork);
+    }
 
-      String testState = "VOTE:CPK";
-      String includedNode = "VOTE";
-
-      generateSamples(net, includedNode, testState);
+    @Test
+    void solveNetwork_withIncompleteConstraints_shouldSucceed() {
+      assertDoesNotThrow(() -> net.solveNetwork());
+      MarginalTable rainTable = net.getMarginalTable("RAIN");
+      assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
     }
   }
 }

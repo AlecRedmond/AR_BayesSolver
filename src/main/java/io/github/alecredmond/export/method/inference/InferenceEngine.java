@@ -20,17 +20,17 @@ public interface InferenceEngine {
 
   InferenceEngine observeNetwork(NodeState observedState);
 
-  InferenceEngine observeNetworkFromIds(Serializable observedStateId);
+  <T extends Serializable> InferenceEngine observeNetworkFromIds(T observedStateId);
 
-  InferenceEngine observeNetworkFromIds(Collection<Serializable> observedStateIDs);
+  <T extends Serializable> InferenceEngine observeNetworkFromIds(Collection<T> observedStateIDs);
 
   Map<Node, NodeState> getCurrentObservations();
 
-  MarginalTable getObservedTableById(Serializable nodeId);
+  <T extends Serializable> MarginalTable getObservedTableById(T nodeId);
 
   MarginalTable getObservedTable(Node node);
 
-  MarginalTable copyObservedTableById(Serializable nodeId);
+  <T extends Serializable> MarginalTable copyObservedTableById(T nodeId);
 
   MarginalTable copyObservedTable(Node node);
 
@@ -38,5 +38,8 @@ public interface InferenceEngine {
 
   double getCurrentConditionalProbability(Collection<NodeState> measuredStates);
 
-  double getCurrentConditionalProbabilityById(Collection<Serializable> measuredStateIds);
+  <T extends Serializable> double getCurrentConditionalProbabilityById(
+      Collection<T> measuredStateIds);
+
+  BayesianNetwork getNetwork();
 }

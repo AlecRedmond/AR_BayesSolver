@@ -1,11 +1,11 @@
 package io.github.alecredmond.internal.method.inference;
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -17,11 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 public class InferenceEngineImpl implements InferenceEngine {
-  private final BayesianNetworkData networkData;
+  private final BayesianNetwork network;
   private final JunctionTreeAlgorithm junctionTree;
 
-  public InferenceEngineImpl(BayesianNetworkData networkData, JunctionTreeAlgorithm junctionTree) {
-    this.networkData = networkData;
+  public InferenceEngineImpl(BayesianNetwork network, JunctionTreeAlgorithm junctionTree) {
+    this.network = network;
     this.junctionTree = junctionTree;
   }
 
@@ -32,7 +32,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public InferenceEngineImpl observeNetwork(Collection<NodeState> observed) {
-    if (!networkData.isSolved()) {
+    if (!network.getNetworkData().isSolved()) {
       return this;
     }
     junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
@@ -46,13 +46,15 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public InferenceEngine observeNetworkFromIds(Serializable observedStateId) {
+  public <T extends Serializable> InferenceEngine observeNetworkFromIds(T observedStateId) {
     return observeNetworkFromIds(List.of(observedStateId));
   }
 
   @Override
-  public InferenceEngine observeNetworkFromIds(Collection<Serializable> observedStateIDs) {
-    return observeNetwork(NetworkDataUtils.getStatesByID(observedStateIDs, networkData));
+  public <T extends Serializable> InferenceEngine observeNetworkFromIds(
+      Collection<T> observedStateIDs) {
+    return observeNetwork(
+        NetworkDataUtils.getStatesByID(observedStateIDs, network.getNetworkData()));
   }
 
   @Override
@@ -61,8 +63,8 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public MarginalTable getObservedTableById(Serializable nodeId) {
-    Node node = networkData.getNodeIDsMap().get(nodeId);
+  public <T extends Serializable> MarginalTable getObservedTableById(T nodeId) {
+    Node node = network.getNode(nodeId);
     return junctionTree.getData().getObservedTablesMap().get(node);
   }
 
@@ -72,7 +74,7 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public MarginalTable copyObservedTableById(Serializable nodeId) {
+  public <T extends Serializable> MarginalTable copyObservedTableById(T nodeId) {
     return getObservedTableById(nodeId).copyTable();
   }
 
@@ -100,8 +102,9 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public double getCurrentConditionalProbabilityById(Collection<Serializable> measuredStateIds) {
+  public <T extends Serializable> double getCurrentConditionalProbabilityById(
+      Collection<T> measuredStateIds) {
     return getCurrentConditionalProbability(
-        NetworkDataUtils.getStatesByID(measuredStateIds, networkData));
+        NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
   }
 }

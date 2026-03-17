@@ -3,7 +3,6 @@ package io.github.alecredmond.internal.method.node;
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
@@ -28,8 +27,8 @@ public class NodeUtils {
           .map((state -> Map.entry(state.getNode(), state)))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     } catch (IllegalStateException e) {
-      // Thrown when attempting to collect multiple values (NodeState) to the same key (Node)
-      throw new NodeStateConflictException(e);
+      throw new NodeStateConflictException(
+          "Error generating request : Multiple values of NodeState shared the same Node", e);
     }
   }
 

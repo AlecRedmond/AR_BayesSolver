@@ -17,7 +17,7 @@ public class InferenceEngineFactory {
       return null;
     }
     return new InferenceEngineImpl(
-        network.getNetworkData(),
+        network,
         JunctionTreeAlgorithm.buildForInference(network.getNetworkData()));
   }
 

@@ -1,30 +1,30 @@
 package io.github.alecredmond.internal.method.sampler;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.Sample;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class LikelihoodWeightingSampler extends SamplerImpl {
 
-  public LikelihoodWeightingSampler(BayesianNetworkData data) {
-    super(data);
+  public LikelihoodWeightingSampler(BayesianNetwork network) {
+    super(network);
+  }
+
+  public LikelihoodWeightingSampler(BayesianNetwork network, InferenceEngine engine) {
+    super(network, engine);
   }
 
   @Override
-  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
-    if (numberOfSamples < 0) {
-      log.error("Attempted to create fewer than 0 samples!");
-      return null;
-    }
+  public SampleCollection generateSamplesIfValid(
+      Map<Node, NodeState> observations, int numberOfSamples) {
     Node[] nodes = data.getNodes().toArray(new Node[0]);
     return validateSamples(
         numberOfSamples,
