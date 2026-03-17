@@ -38,7 +38,7 @@ public class JunctionTreeAlgorithm {
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
-    if (data.getNodes().isEmpty()) {
+    if (data.getNetworkData().getNodes().isEmpty()) {
       return;
     }
     data.setObservedEvidence(observed);
@@ -97,7 +97,7 @@ public class JunctionTreeAlgorithm {
     if (newEvidence.isEmpty()) {
       return new HashMap<>();
     }
-    Map<Node, NodeState> observed = data.getObservedEvidence();
+    Map<Node, NodeState> observed = data.getNetworkData().getObservedEvidence();
     Map<Node, NodeState> request = generateRequest(newEvidence, observed.values());
     observed.keySet().forEach(request::remove);
     return request;

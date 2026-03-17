@@ -38,7 +38,7 @@ public class JTAInitializer {
 
   private static void buildCommon(
       JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
-    junctionTreeData.setBayesianNetworkData(bayesianNetworkData);
+    junctionTreeData.setNetworkData(bayesianNetworkData);
     JTACliqueBuilder.buildCliques(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);

@@ -21,7 +21,7 @@ public class SeparatorFactory {
     Separator separator = new Separator();
     setConnectedCliques(cliqueA, cliqueB, separator);
     setNodes(cliqueA, cliqueB, separator);
-    buildTable(jtd.getBayesianNetworkData(), separator);
+    buildTable(jtd.getNetworkData(), separator);
     buildMessagePassers(separator, jtd, cliqueA, cliqueB);
     return separator;
   }

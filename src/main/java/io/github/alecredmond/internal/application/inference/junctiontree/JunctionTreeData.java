@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JunctionTreeData {
-  private BayesianNetworkData bayesianNetworkData;
+  private BayesianNetworkData networkData;
   private Clique[] cliques;
   private Separator[] separators;
   private Map<Clique, List<JTAConstraintHandler>> constraintHandlersMap;
@@ -24,12 +24,4 @@ public class JunctionTreeData {
   private Map<Node, NodeState> observedEvidence;
   private boolean solverConfig;
   private double jointProbability;
-
-  public List<Node> getNodes() {
-    return bayesianNetworkData.getNodes();
-  }
-
-  public List<ProbabilityConstraint> getConstraints() {
-    return bayesianNetworkData.getConstraints();
-  }
 }

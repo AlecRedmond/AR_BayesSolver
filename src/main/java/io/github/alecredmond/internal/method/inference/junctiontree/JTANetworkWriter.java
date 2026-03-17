@@ -48,22 +48,22 @@ class JTANetworkWriter {
     Arrays.stream(jtd.getSeparators()).forEach(Separator::resetSeparator);
   }
 
-  static void writeObservations(JunctionTreeData data) {
+  static void writeObservations(JunctionTreeData jtd) {
     log.info("WRITING OBSERVATIONS...");
 
-    data.getBayesianNetworkData().setObservedEvidence(data.getObservedEvidence());
+    BayesianNetworkData networkData = jtd.getNetworkData();
 
-    Arrays.stream(data.getCliques())
+    Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
         .forEach(TransferIterator::setToUnityAndTransfer);
 
-    data.getBayesianNetworkData()
+    networkData
         .getMarginalTableMap()
         .values()
         .forEach(ProbabilityTable::marginalizeTable);
 
-    data.getNodes().forEach(node -> updateTableName(node, data));
+    networkData.getNodes().forEach(node -> updateTableName(node, jtd));
 
     log.info("...OBSERVATIONS WRITTEN!");
   }
@@ -83,7 +83,7 @@ class JTANetworkWriter {
   static void writeToNetwork(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
 
-    BayesianNetworkData bnd = data.getBayesianNetworkData();
+    BayesianNetworkData bnd = data.getNetworkData();
 
     Stream.concat(
             Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToCPTs().stream()),
