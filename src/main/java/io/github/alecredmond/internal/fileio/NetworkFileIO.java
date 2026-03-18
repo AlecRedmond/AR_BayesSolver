@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.fileio;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.*;
 import javax.swing.*;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +60,8 @@ public class NetworkFileIO {
     } catch (IOException e) {
       log.error("IOException attempting to load network {}", e.getMessage());
     } catch (ClassNotFoundException e) {
-      log.error(e.getMessage());
-      log.error("Selected file was not a recognised instance of a Bayesian Network");
+      log.error(
+          "Selected file was not a recognised instance of a Bayesian Network! {}", e.getMessage());
     }
     return null;
   }
