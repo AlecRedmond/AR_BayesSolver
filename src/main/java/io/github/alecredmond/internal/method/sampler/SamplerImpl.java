@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.sampler;
 
+import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
@@ -7,6 +8,9 @@ import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.export.method.sampler.Sampler;
+import io.github.alecredmond.internal.method.network.NetworkDataUtils;
+import io.github.alecredmond.internal.method.node.NodeUtils;
+import java.io.Serializable;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,14 +33,6 @@ public abstract class SamplerImpl implements Sampler {
   protected abstract SampleCollection generateWithEvidence(
       Map<Node, NodeState> observations, int numberOfSamples);
 
-  public BayesianNetwork getNetwork() {
-    return engine.getNetwork();
-  }
-
-  public InferenceEngine getInferenceEngine() {
-    return engine;
-  }
-
   protected <R, E extends Number> R nextRandom(Map<R, E> weights) {
     if (weights.isEmpty()) {
       return null;
@@ -50,5 +46,29 @@ public abstract class SamplerImpl implements Sampler {
       if (randomValue <= 0.0) return entry.getKey();
     }
     return null;
+  }
+
+  @Override
+  public SampleCollection generateSamples(Collection<NodeState> evidence, int numberOfSamples) {
+    try {
+      return generateWithEvidence(NodeUtils.generateRequest(evidence), numberOfSamples);
+    } catch (NodeStateConflictException e) {
+      log.error(e.getMessage());
+      return null;
+    }
+  }
+
+  @Override
+  public <T extends Serializable> SampleCollection generateSamplesById(
+      Collection<T> evidenceIDs, int numberOfSamples) {
+    return generateSamples(NetworkDataUtils.getStatesByID(evidenceIDs, data), numberOfSamples);
+  }
+
+  public BayesianNetwork getNetwork() {
+    return engine.getNetwork();
+  }
+
+  public InferenceEngine getInferenceEngine() {
+    return engine;
   }
 }

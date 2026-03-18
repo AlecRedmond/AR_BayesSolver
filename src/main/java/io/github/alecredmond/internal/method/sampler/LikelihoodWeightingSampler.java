@@ -11,7 +11,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LikelihoodWeightingSampler extends SamplerImpl {
 
   public LikelihoodWeightingSampler(BayesianNetwork network, InferenceEngine engine) {
@@ -21,6 +23,10 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   @Override
   public SampleCollection generateWithEvidence(
       Map<Node, NodeState> observations, int numberOfSamples) {
+    if (numberOfSamples < 0) {
+      log.error("Attempted to generate less than zero samples!");
+      return null;
+    }
     Node[] nodes = data.getNodes().toArray(new Node[0]);
     return validateSamples(
         numberOfSamples,
