@@ -18,7 +18,8 @@ public class NodeUtils {
 
   public static Map<Node, NodeState> generateRequest(
       Collection<NodeState> statesA, Collection<NodeState> statesB) {
-    return generateRequest(Stream.concat(statesA.stream(), statesB.stream()).toList());
+    return generateRequest(
+        Stream.concat(statesA.stream(), statesB.stream()).collect(Collectors.toSet()));
   }
 
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
@@ -73,7 +74,9 @@ public class NodeUtils {
   public static String formatNodesToString(Collection<Node> nodeCollection) {
     StringBuilder sb = new StringBuilder();
     nodeCollection.forEach(node -> sb.append(node.toString()).append(", "));
-    sb.setLength(sb.length() - 2);
+    if (sb.length() > 2) {
+      sb.setLength(sb.length() - 2);
+    }
     return sb.toString();
   }
 

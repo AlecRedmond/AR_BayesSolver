@@ -7,181 +7,262 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
-import java.util.Arrays;
-import java.util.List;
-
 import io.github.alecredmond.export.method.sampler.Sampler;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class InferenceEngineTest {
-  BayesianNetwork net;
-  InferenceEngine test;
 
-  @BeforeEach
-  void init() {
-    net = RAIN_NETWORK.get();
-    test = net.buildInferenceEngine();
+  @Nested
+  class MethodTests {
+    BayesianNetwork net;
+    InferenceEngine test;
+
+    @BeforeEach
+    void init() {
+      net = RAIN_NETWORK.get();
+      test = net.buildInferenceEngine();
+    }
+
+    @Test
+    void observeNetwork_shouldUpdateProbabilities() {
+      assertEquals(0.2, test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
+      test.observeNetworkFromIds("WET_GRASS:TRUE");
+      double pRainGivenWet = test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+      assertTrue(pRainGivenWet > 0.2);
+      // Exact value P(R|W) = P(W|R)P(R)/P(W)
+      // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
+      // P(W|~R) = P(W|~R,S)P(S|~R) + P(W|~R,~S)P(~S|~R) = 0.9*0.4 + 0.0*0.6 = 0.36
+      // P(W) = P(W|R)P(R) + P(W|~R)P(~R) = 0.9009*0.2 + 0.36*0.8 = 0.18018 + 0.288 = 0.46818
+      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485
+      assertEquals(0.384852, pRainGivenWet, 1E-6);
+    }
+
+    @Test
+    void observeNetwork_withConflictingEvidence_shouldThrowException() {
+      assertThrows(
+          Exception.class, () -> test.observeNetworkFromIds(List.of("RAIN:TRUE", "RAIN:FALSE")));
+    }
+
+    @Test
+    void observeNetwork_withNonExistentState_shouldThrowException() {
+      assertThrows(Exception.class, () -> test.observeNetworkFromIds(List.of("ZOMBIE:TRUE")));
+    }
+
+    @Test
+    void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
+      double pRainMarginal = test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+
+      test.observeNetwork(List.of());
+      double pRainObservedEmpty =
+          test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+
+      assertEquals(pRainMarginal, pRainObservedEmpty);
+    }
+
+    @Test
+    void getNetworkTable_shouldReturnTable() {
+      net.solveNetwork();
+      ProbabilityTable rainTable = net.getNetworkTable("RAIN");
+      assertNotNull(rainTable);
+      assertEquals(1, rainTable.getNodes().size());
+
+      ProbabilityTable grassTable = net.getNetworkTable("WET_GRASS");
+      assertNotNull(grassTable);
+      assertEquals(3, grassTable.getNodes().size());
+    }
+
+    @Test
+    void getNetworkTable_nonExistentNode_shouldThrowException() {
+      net.solveNetwork();
+      assertThrows(Exception.class, () -> net.getNetworkTable("ZOMBIE"));
+    }
+
+    @Test
+    void getNetworkTable_beforeSolve_shouldImplicitlySolve() {
+      assertDoesNotThrow(
+          () -> {
+            ProbabilityTable rainTable = net.getNetworkTable("RAIN");
+            assertNotNull(rainTable);
+          });
+    }
+
+    @Test
+    void getObservedTable_shouldReturnTable() {
+      test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
+      MarginalTable rainTable = test.getObservedTableById("RAIN");
+      assertNotNull(rainTable);
+      assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
+    }
+
+    @Test
+    void getObservedTable_nonExistentNode_shouldReturnNull() {
+      test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
+      assertNull(test.getObservedTableById("ZOMBIE"));
+    }
+
+    @Test
+    void observeProbability_singleEvent_shouldReturnCorrectProb() {
+      test.resetObservations();
+      double pRainTrue = test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE"));
+      assertEquals(0.2, pRainTrue, 1E-9);
+    }
+
+    @Test
+    void observeProbability_jointEvent_shouldReturnCorrectProb() {
+      test.resetObservations();
+      // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
+      // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
+      // P(R:T, S:F) = 0.99 * 0.2 = 0.198
+      double pJoint =
+          test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
+      assertEquals(0.198, pJoint, 1E-9);
+    }
+
+    @Test
+    void observeProbability_conflictingEvent_shouldReturnZero() {
+      test.resetObservations();
+      double pConflict =
+          test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "RAIN:FALSE"));
+      assertEquals(0.0, pConflict, 1E-9);
+    }
+
+    @Test
+    void observeProbability_emptyEvent_shouldReturnOne() {
+      double pEmpty = test.getCurrentConditionalProbabilityById(List.of());
+      assertEquals(1.0, pEmpty, 1E-9);
+    }
   }
 
-  @Test
-  void observeNetwork_shouldUpdateProbabilities() {
-    InferenceEngine engine = InferenceEngine.create(net).resetObservations();
-    assertEquals(0.2, engine.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
-    engine.observeNetworkFromIds("WET_GRASS:TRUE");
-    double pRainGivenWet = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
-    assertTrue(pRainGivenWet > 0.2);
-    // Exact value P(R|W) = P(W|R)P(R)/P(W)
-    // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
-    // P(W|~R) = P(W|~R,S)P(S|~R) + P(W|~R,~S)P(~S|~R) = 0.9*0.4 + 0.0*0.6 = 0.36
-    // P(W) = P(W|R)P(R) + P(W|~R)P(~R) = 0.9009*0.2 + 0.36*0.8 = 0.18018 + 0.288 = 0.46818
-    // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485
-    assertEquals(0.384852, pRainGivenWet, 1E-6);
-  }
+  @Nested
+  class CoherenceChecks {
+    static List<ArgumentProvider> providers;
+    InferenceEngine test;
 
-  @Test
-  void observeNetwork_withConflictingEvidence_shouldThrowException() {
-    assertThrows(
-        Exception.class, () -> test.observeNetworkFromIds(List.of("RAIN:TRUE", "RAIN:FALSE")));
-  }
+    @BeforeAll
+    static void initProvider() {
+      providers = new ArrayList<>();
+      providers.add(
+          new ArgumentProvider(
+              RAIN_NETWORK,
+              "SPRINKLER",
+              "WET_GRASS",
+              "CLOUDY",
+              Map.of("CLOUDY", List.of("CLOUDY:TRUE", "CLOUDY:FALSE")),
+              List.of(
+                  new ConstraintAdder("RAIN:TRUE", List.of("CLOUDY:TRUE"), 0.5),
+                  new ConstraintAdder("RAIN:TRUE", List.of("CLOUDY:FALSE"), 0.1)),
+              List.of("SPRINKLER:TRUE"),
+              List.of("CLOUDY:TRUE"),
+              List.of("WET_GRASS:TRUE")));
+    }
 
-  @Test
-  void observeNetwork_withNonExistentState_shouldThrowException() {
-    assertThrows(Exception.class, () -> test.observeNetworkFromIds(List.of("ZOMBIE:TRUE")));
-  }
+    static Stream<Arguments> getArguments() {
+      return providers.stream().map(Arguments::of);
+    }
 
-  @Test
-  void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
-    double pRainMarginal = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
+    @ParameterizedTest
+    @MethodSource("getArguments")
+    void standardInference_shouldSucceed(ArgumentProvider provider) {
+      test = InferenceEngine.create(provider.supplier.get());
+      assertDoesNotThrow(() -> test.getCurrentObservations());
+      assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
+      assertNotNull(test.getObservedTableById(provider.controlNodeId));
+      assertNotNull(test.copyObservedTableById(provider.controlNodeId));
+      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertNull(test.getObservedTableById(provider.addedNodeId));
+    }
 
-    test.observeNetwork(List.of());
-    double pRainObservedEmpty = net.getMarginalTable("RAIN").getProbabilityFromId("RAIN:TRUE");
+    @ParameterizedTest
+    @MethodSource("getArguments")
+    void removingNodes_ShouldSucceed(ArgumentProvider provider) {
+      BayesianNetwork network = provider.supplier.get();
+      test = InferenceEngine.create(network);
+      assertDoesNotThrow(() -> test.getCurrentObservations());
+      assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
+      network.removeNodeByID(provider.removedNodeId);
+      assertDoesNotThrow(() -> test.getCurrentObservations());
+      assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
+      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertNull(test.getObservedTableById(provider.removedNodeId));
+    }
 
-    assertEquals(pRainMarginal, pRainObservedEmpty);
-  }
+    @ParameterizedTest
+    @MethodSource("getArguments")
+    void addingNodes_shouldSucceed(ArgumentProvider provider) {
+      BayesianNetwork network = provider.supplier.get();
+      test = InferenceEngine.create(network);
+      assertDoesNotThrow(() -> test.getCurrentObservations());
+      assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
+      provider.addedNodesMap.forEach(network::addNewNode);
+      provider.addedNodeConstraints.forEach(
+          added -> network.addConstraint(added.eventId, added.conditionIds, added.prob));
+      assertDoesNotThrow(() -> test.getCurrentObservations());
+      assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceWithNewNodes));
+      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceWithNewNodes));
+      assertNotNull(test.getObservedTableById(provider.addedNodeId));
+    }
 
-  @Test
-  void getNetworkTable_shouldReturnTable() {
-    net.solveNetwork();
-    ProbabilityTable rainTable = net.getNetworkTable("RAIN");
-    assertNotNull(rainTable);
-    assertEquals(1, rainTable.getNodes().size());
+    @AllArgsConstructor
+    static class ConstraintAdder {
+      String eventId;
+      List<String> conditionIds;
+      double prob;
+    }
 
-    ProbabilityTable grassTable = net.getNetworkTable("WET_GRASS");
-    assertNotNull(grassTable);
-    assertEquals(3, grassTable.getNodes().size());
-  }
-
-  @Test
-  void getNetworkTable_nonExistentNode_shouldThrowException() {
-    net.solveNetwork();
-    assertThrows(Exception.class, () -> net.getNetworkTable("ZOMBIE"));
-  }
-
-  @Test
-  void getNetworkTable_beforeSolve_shouldImplicitlySolve() {
-    assertDoesNotThrow(
-        () -> {
-          ProbabilityTable rainTable = net.getNetworkTable("RAIN");
-          assertNotNull(rainTable);
-        });
-  }
-
-  @Test
-  void getObservedTable_shouldReturnTable() {
-    test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
-    MarginalTable rainTable = net.getMarginalTable("RAIN");
-    assertNotNull(rainTable);
-    assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
-  }
-
-  @Test
-  void getObservedTable_nonExistentNode_shouldThrowException() {
-    test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
-    assertThrows(Exception.class, () -> net.getMarginalTable("ZOMBIE"));
-  }
-
-  @Test
-  void getObservedTable_beforeObserve_shouldReturnMarginals() {
-    net.solveNetwork();
-    MarginalTable rainTable = net.getMarginalTable("RAIN");
-    assertNotNull(rainTable);
-    assertEquals(0.2, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
-  }
-
-  @Test
-  void observeProbability_singleEvent_shouldReturnCorrectProb() {
-    test.resetObservations();
-    double pRainTrue = test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE"));
-    assertEquals(0.2, pRainTrue, 1E-9);
-  }
-
-  @Test
-  void observeProbability_jointEvent_shouldReturnCorrectProb() {
-    test.resetObservations();
-    // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
-    // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
-    // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-    double pJoint =
-        test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
-    assertEquals(0.198, pJoint, 1E-9);
-  }
-
-  @Test
-  void observeProbability_conflictingEvent_shouldReturnZero() {
-    test.resetObservations();
-    double pConflict =
-        test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "RAIN:FALSE"));
-    assertEquals(0.0, pConflict, 1E-9);
-  }
-
-  @Test
-  void observeProbability_emptyEvent_shouldReturnOne() {
-    double pEmpty = test.getCurrentConditionalProbabilityById(List.of());
-    assertEquals(1.0, pEmpty, 1E-9);
+    @AllArgsConstructor
+    static class ArgumentProvider {
+      Supplier<BayesianNetwork> supplier;
+      String controlNodeId;
+      String removedNodeId;
+      String addedNodeId;
+      Map<String, List<String>> addedNodesMap;
+      List<ConstraintAdder> addedNodeConstraints;
+      List<String> evidenceAlwaysSucceeds;
+      List<String> evidenceWithNewNodes;
+      List<String> evidenceWithRemovedNodes;
+    }
   }
 
   @Nested
   class ScenarioTests {
     static final int NUMBER_OF_SAMPLES = 100_000;
     static final int STANDARD_DEVIATIONS = 3;
-    InferenceEngine engine;
+    InferenceEngine test;
 
     @Test
     void testSolves_RainSprinkler() {
-      engine = RAIN_NETWORK.get().solveNetwork().buildInferenceEngine();
+      BayesianNetwork net = RAIN_NETWORK.get().solveNetwork();
+      test = net.buildInferenceEngine();
       if (PRINT_TABLES) net.printNetwork();
-      engine.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
-      if (PRINT_TABLES) net.printMarginals();
-
-      net.getNetworkData().getNetworkTablesMap().values().stream()
-          .map(ProbabilityTable::getVector)
-          .map(ProbabilityVector::getNodeArray)
-          .forEach(
-              nodes -> {
-                StringBuilder sb = new StringBuilder();
-                Arrays.stream(nodes)
-                    .forEach(node -> sb.append(node.getId().toString()).append(" "));
-                System.out.println(sb);
-              });
-
-      engine.resetObservations();
+      test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
+      if (PRINT_TABLES) test.printObserved();
+      test.resetObservations();
 
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
 
-      generateSamples(engine, net, includedNode, testState);
+      generateSamples(test, includedNode, testState);
 
-      engine.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
+      test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
       System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
-      generateSamples(engine, net, includedNode, testState);
+      generateSamples(test, includedNode, testState);
     }
 
-    private void generateSamples(InferenceEngine engine, BayesianNetwork network, String includedNode, String testState) {
+    private void generateSamples(InferenceEngine engine, String includedNode, String testState) {
 
       double observedProb = engine.getCurrentConditionalProbabilityById(List.of(testState));
       double expected = observedProb * NUMBER_OF_SAMPLES;
@@ -189,9 +270,7 @@ class InferenceEngineTest {
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));
       long upperBound = (long) (expected + expectedDelta);
 
-
-
-      SampleCollection sampleCollection =  Sampler.create(network).generateSamples(NUMBER_OF_SAMPLES);
+      SampleCollection sampleCollection = Sampler.create(engine).generateSamples(NUMBER_OF_SAMPLES);
       sampleCollection.setExportNodesById(List.of(includedNode));
       int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
 
@@ -208,34 +287,39 @@ class InferenceEngineTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-      assertDoesNotThrow(() -> engine = AH_NETWORK.get().solveNetwork().buildInferenceEngine());
+      BayesianNetwork net = AH_NETWORK.get().solveNetwork();
+      assertDoesNotThrow(() -> test = net.buildInferenceEngine());
 
-      if (PRINT_TABLES) net.printNetwork().printMarginals();
+      if (PRINT_TABLES) {
+        net.printNetwork();
+        test.printObserved();
+      }
 
       String testState = "B+";
       String includedNode = "B";
-      generateSamples(engine, net, includedNode, testState);
+      generateSamples(test, includedNode, testState);
     }
 
     @Test
     void testFantasyGraph_ComplexNetwork() {
       if (!SOLVE_LONG_TESTS) return;
-      assertDoesNotThrow(() -> engine = FANTASY_GRAPH.get().buildInferenceEngine());
-      if (PRINT_TABLES) net.printMarginals();
-      engine.observeNetworkFromIds(List.of("VOTE:CPK"));
-      if (PRINT_TABLES) net.printMarginals();
-      engine.observeNetworkFromIds(List.of("VOTE:UNF"));
-      if (PRINT_TABLES) net.printMarginals();
-      engine.observeNetworkFromIds(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
+      BayesianNetwork net = FANTASY_GRAPH.get().solveNetwork();
+      assertDoesNotThrow(() -> test = net.buildInferenceEngine());
+      if (PRINT_TABLES) test.printObserved();
+      test.observeNetworkFromIds(List.of("VOTE:CPK"));
+      if (PRINT_TABLES) test.printObserved();
+      test.observeNetworkFromIds(List.of("VOTE:UNF"));
+      if (PRINT_TABLES) test.printObserved();
+      test.observeNetworkFromIds(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
       if (PRINT_TABLES) {
-        net.printMarginals();
+        test.printObserved();
         net.printNetwork();
       }
 
       String testState = "VOTE:CPK";
       String includedNode = "VOTE";
 
-      generateSamples(engine, net, includedNode, testState);
+      generateSamples(test, includedNode, testState);
     }
   }
 }

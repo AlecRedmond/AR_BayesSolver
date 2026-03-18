@@ -1,6 +1,5 @@
 package io.github.alecredmond.internal.method.network;
 
-import static io.github.alecredmond.internal.method.probabilitytables.TableBuilder.buildMarginalTable;
 import static io.github.alecredmond.internal.method.probabilitytables.TableBuilder.buildNetworkTable;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
@@ -10,11 +9,11 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -38,7 +37,6 @@ public class NetworkDataUtils {
     Map<Node, Integer> layerMap = orderNodes(networkData);
     rebuildIdMaps(networkData);
     buildNetworkTablesMap(layerMap, networkData);
-    buildMarginalTablesMap(networkData);
     marginalizeAllTables(networkData);
   }
 
@@ -89,10 +87,7 @@ public class NetworkDataUtils {
   }
 
   private static void marginalizeAllTables(BayesianNetworkData networkData) {
-    Stream.concat(
-            networkData.getNetworkTablesMap().values().stream(),
-            networkData.getMarginalTableMap().values().stream())
-        .forEach(ProbabilityTable::marginalizeTable);
+    networkData.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
   }
 
   static void resetAllNodeData(BayesianNetworkData networkData) {
@@ -100,7 +95,6 @@ public class NetworkDataUtils {
     networkData.setNodeIDsMap(new HashMap<>());
     networkData.setNodeStateIDsMap(new HashMap<>());
     networkData.setNetworkTablesMap(new HashMap<>());
-    networkData.setMarginalTableMap(new HashMap<>());
     networkData.setConstraints(new ArrayList<>());
   }
 
@@ -133,14 +127,6 @@ public class NetworkDataUtils {
   private static void addStatesToMap(Node node, BayesianNetworkData networkData) {
     node.getNodeStates()
         .forEach(state -> networkData.getNodeStateIDsMap().put(state.getId(), state));
-  }
-
-  private static void buildMarginalTablesMap(BayesianNetworkData networkData) {
-    networkData.setMarginalTableMap(new HashMap<>());
-    networkData
-        .getNodes()
-        .forEach(
-            node -> networkData.getMarginalTableMap().put(node, buildMarginalTable(Set.of(node))));
   }
 
   private static void buildNetworkTablesMap(
@@ -219,7 +205,6 @@ public class NetworkDataUtils {
     Node toRemove = getNodeByID(nodeID, networkData);
 
     networkData.getNetworkTablesMap().remove(toRemove);
-    networkData.getMarginalTableMap().remove(toRemove);
     networkData.getNodeIDsMap().remove(nodeID);
     removeStatesFromMap(toRemove, networkData);
 
@@ -231,6 +216,8 @@ public class NetworkDataUtils {
           node.getParents().remove(toRemove);
           node.getChildren().remove(toRemove);
         });
+
+    NetworkConstraintUtils.removeAllConstraintsContaining(toRemove, networkData);
   }
 
   private static void removeStatesFromMap(Node toRemove, BayesianNetworkData networkData) {
@@ -245,6 +232,7 @@ public class NetworkDataUtils {
     List<Serializable> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     node.setNodeStates(new ArrayList<>());
     stateIDs.forEach(networkData.getNodeStateIDsMap()::remove);
+    NetworkConstraintUtils.removeAllConstraintsContaining(node, networkData);
   }
 
   private static <T extends Serializable> boolean nodeDoesNotExist(
@@ -256,7 +244,10 @@ public class NetworkDataUtils {
       T nodeID, E nodeStateID, BayesianNetworkData networkData) {
     if (nodeDoesNotExist(nodeID, networkData)) return;
     getNodeByID(nodeID, networkData).removeState(nodeStateID);
-    networkData.getNodeStateIDsMap().remove(nodeStateID);
+    Map<Serializable, NodeState> stateIDsMap = networkData.getNodeStateIDsMap();
+    NodeState state = stateIDsMap.get(nodeStateID);
+    stateIDsMap.remove(nodeStateID);
+    NetworkConstraintUtils.removeAllConstraintsContaining(state, networkData);
   }
 
   static void addParents(Node child, Collection<Node> parents) {

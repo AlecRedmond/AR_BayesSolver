@@ -3,7 +3,6 @@ package io.github.alecredmond.export.application.network;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import java.io.Serializable;
 import java.util.*;
@@ -20,15 +19,10 @@ public class BayesianNetworkData {
   private Map<Serializable, Node> nodeIDsMap = new HashMap<>();
   private Map<Serializable, NodeState> nodeStateIDsMap = new HashMap<>();
   private Map<Node, ProbabilityTable> networkTablesMap = new LinkedHashMap<>();
-  private Map<Node, MarginalTable> marginalTableMap = new LinkedHashMap<>();
   private List<ProbabilityConstraint> constraints = new ArrayList<>();
   private boolean solved = false;
 
   public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
-  }
-
-  public <T extends Serializable> MarginalTable getObservedTable(T nodeID) {
-    return marginalTableMap.get(nodeIDsMap.get(nodeID));
   }
 }

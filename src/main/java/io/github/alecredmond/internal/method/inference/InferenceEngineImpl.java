@@ -4,11 +4,13 @@ import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import io.github.alecredmond.internal.method.printer.NetworkPrinter;
 import java.io.Serializable;
 import java.util.*;
 import lombok.Getter;
@@ -18,11 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class InferenceEngineImpl implements InferenceEngine {
   private final BayesianNetwork network;
+  private final BayesSolver solver;
   private final JunctionTreeAlgorithm junctionTree;
 
   public InferenceEngineImpl(BayesianNetwork network, JunctionTreeAlgorithm junctionTree) {
     this.network = network;
     this.junctionTree = junctionTree;
+    this.solver = BayesSolver.create(network);
+    resetObservations();
   }
 
   @Override
@@ -32,12 +37,27 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public InferenceEngineImpl observeNetwork(Collection<NodeState> observed) {
-    if (!network.getNetworkData().isSolved()) {
+    if (!checkSolved()) {
       return this;
     }
     junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
     junctionTree.writeObservations();
     return this;
+  }
+
+  private boolean checkSolved() {
+    if (solver.isSolved()) {
+      return true;
+    }
+    log.info(
+        "Modifications were detected on network {}, solver will be re-run",
+        network.getNetworkData().getNetworkName());
+    if (solver.solve()) {
+      junctionTree.rebuildJTA(network.getNetworkData());
+      return true;
+    }
+    log.error("Could not solve network {}!", network.getNetworkData().getNetworkName());
+    return false;
   }
 
   @Override
@@ -59,7 +79,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public Map<Node, NodeState> getCurrentObservations() {
-    return junctionTree.getData().getObservedEvidence();
+    return checkSolved() ? junctionTree.getData().getObservedEvidence() : new HashMap<>();
   }
 
   @Override
@@ -70,7 +90,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public MarginalTable getObservedTable(Node node) {
-    return junctionTree.getData().getObservedTablesMap().get(node);
+    return checkSolved() ? junctionTree.getData().getObservedTablesMap().get(node) : null;
   }
 
   @Override
@@ -85,11 +105,14 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public Map<Node, MarginalTable> getObservedTables() {
-    return junctionTree.getData().getObservedTablesMap();
+    return checkSolved() ? junctionTree.getData().getObservedTablesMap() : new HashMap<>();
   }
 
   @Override
   public double getCurrentConditionalProbability(Collection<NodeState> measuredStates) {
+    if (!checkSolved()) {
+      return 0.0;
+    }
     try {
       double currentJointProb = junctionTree.getJointProbability();
       if (currentJointProb == 0.0) return 0.0;
@@ -106,5 +129,12 @@ public class InferenceEngineImpl implements InferenceEngine {
       Collection<T> measuredStateIds) {
     return getCurrentConditionalProbability(
         NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
+  }
+
+  @Override
+  public InferenceEngine printObserved() {
+    if (!checkSolved()) return this;
+    new NetworkPrinter(this).printObserved();
+    return this;
   }
 }

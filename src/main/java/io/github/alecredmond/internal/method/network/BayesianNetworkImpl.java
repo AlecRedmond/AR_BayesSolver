@@ -5,11 +5,11 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
@@ -19,8 +19,10 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class BayesianNetworkImpl implements BayesianNetwork {
   private final BayesianNetworkData networkData;
 
@@ -47,6 +49,10 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public boolean saveNetworkToFile() {
     return new NetworkFileIO(new BayesianNetworkSerializer()).saveNetwork(this);
+  }
+
+  public SerializedBayesianNetwork serializeNetwork() {
+    return new BayesianNetworkSerializer().serialize(this);
   }
 
   public BayesianNetwork addNode(Node node) {
@@ -92,7 +98,8 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     if (map.containsKey(nodeID)) {
       return map.get(nodeID);
     }
-    throw new IllegalArgumentException("No node with ID " + nodeID + " found in network");
+    log.error("No node with ID {} found in network {}!", nodeID, networkData.getNetworkName());
+    return null;
   }
 
   public <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs) {
@@ -135,7 +142,9 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     if (map.containsKey(nodeStateID)) {
       return map.get(nodeStateID);
     }
-    throw new IllegalArgumentException("No node with ID " + nodeStateID + " found in network");
+    log.error(
+        "No node state with ID {} found in network {}!", nodeStateID, networkData.getNetworkName());
+    return null;
   }
 
   public BayesianNetwork addParents(Node child, Collection<Node> parents) {
@@ -256,12 +265,6 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetworkImpl printMarginals() {
-    if (!networkData.isSolved()) solveNetwork();
-    new NetworkPrinter(networkData).printObserved();
-    return this;
-  }
-
   public BayesianNetworkImpl printNetwork() {
     if (!networkData.isSolved()) solveNetwork();
     new NetworkPrinter(networkData).printNetwork();
@@ -276,11 +279,6 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
     if (!networkData.isSolved()) solveNetwork();
     return Optional.ofNullable(networkData.getNetworkTable(nodeID)).orElseThrow();
-  }
-
-  public <T extends Serializable> MarginalTable getMarginalTable(T nodeID) {
-    if (!networkData.isSolved()) solveNetwork();
-    return Optional.ofNullable(networkData.getObservedTable(nodeID)).orElseThrow();
   }
 
   @Override

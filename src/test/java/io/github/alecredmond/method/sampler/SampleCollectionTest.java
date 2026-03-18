@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.method.network.NetworkScenarios;
@@ -142,8 +143,9 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
+    InferenceEngine engine = samplePackage.getEngine();
     if (samplePackage.isPrintMarginals() && PRINT_TABLES) {
-      network.printMarginals();
+      engine.printObserved();
       network.printNetwork();
     }
     SampleCollection test = samplePackage.getTest();

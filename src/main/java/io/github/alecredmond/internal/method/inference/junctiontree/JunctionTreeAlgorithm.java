@@ -26,11 +26,16 @@ public class JunctionTreeAlgorithm {
   }
 
   public static JunctionTreeAlgorithm buildForSolver(BayesianNetworkData bnd) {
-    return new JunctionTreeAlgorithm(JTAInitializer.buildSolverConfiguration(bnd));
+    return new JunctionTreeAlgorithm(JTAInitializer.buildNewSolverConfiguration(bnd));
   }
 
   public static JunctionTreeAlgorithm buildForInference(BayesianNetworkData bnd) {
-    return new JunctionTreeAlgorithm(JTAInitializer.buildInferenceConfiguration(bnd));
+    return new JunctionTreeAlgorithm(JTAInitializer.buildNewInferenceConfiguration(bnd));
+  }
+
+  public void rebuildJTA(BayesianNetworkData bnd) {
+    JTAInitializer.buildInferenceConfiguration(data, bnd);
+    JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
   }
 
   public void writeObservations() {

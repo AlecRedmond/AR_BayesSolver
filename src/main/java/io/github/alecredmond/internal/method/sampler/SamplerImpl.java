@@ -18,16 +18,16 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class SamplerImpl implements Sampler {
   protected static final Random RANDOM = new Random();
   protected final BayesianNetworkData data;
-  protected final Map<Node, NodeState> observed;
+  protected final InferenceEngine engine;
 
   protected SamplerImpl(BayesianNetwork network) {
     this.data = network.getNetworkData();
-    this.observed = new HashMap<>();
+    this.engine = InferenceEngine.create(network);
   }
 
   protected SamplerImpl(BayesianNetwork network, InferenceEngine engine) {
     this.data = network.getNetworkData();
-    this.observed = engine.getCurrentObservations();
+    this.engine = engine;
   }
 
   @Override
@@ -51,7 +51,7 @@ public abstract class SamplerImpl implements Sampler {
       return Optional.empty();
     }
     try {
-      return Optional.of(NodeUtils.generateRequest(states, observed.values()));
+      return Optional.of(NodeUtils.generateRequest(states, engine.getCurrentObservations().values()));
     } catch (NodeStateConflictException e) {
       log.error(e.getMessage());
       return Optional.empty();
@@ -74,14 +74,14 @@ public abstract class SamplerImpl implements Sampler {
       if (randomValue <= 0.0) return entry.getKey();
     }
     return null;
-  }
-
-  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
+  }  public SampleCollection generateSamples(Map<Node, NodeState> observations, int numberOfSamples) {
     return generateSamples(observations.values(), numberOfSamples);
   }
 
   @Override
   public SampleCollection generateSamples(int numberOfSamples) {
-    return generateSamples(new HashMap<>(), numberOfSamples);
+    return generateSamples(engine.getCurrentObservations(), numberOfSamples);
   }
+
+
 }

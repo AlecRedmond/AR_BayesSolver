@@ -4,12 +4,10 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.export.serialization.node.SerializedNode;
-import io.github.alecredmond.export.serialization.probabilitytable.SerializedMarginalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedProbabilityTable;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import java.io.Serializable;
@@ -22,12 +20,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NetworkDataSerializer {
 
-  public SerializedBayesNetData serialize(BayesianNetworkData data) {
-    return new SerializedBayesNetData(
+  public SerializedBayesianNetwork serialize(BayesianNetworkData data) {
+    return new SerializedBayesianNetwork(
         data.getNetworkName(),
         buildSerializedNodes(data),
         buildSerializedNetworkTables(data),
-        buildSerializedObservedTables(data),
         buildSerializedProbabilityConstraints(data),
         data.isSolved());
   }
@@ -41,12 +38,6 @@ public class NetworkDataSerializer {
       BayesianNetworkData data) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
     return buildMap(data.getNetworkTablesMap(), Node::getId, serializer::serialize);
-  }
-
-  private Map<Serializable, SerializedMarginalTable> buildSerializedObservedTables(
-      BayesianNetworkData data) {
-    ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
-    return buildMap(data.getMarginalTableMap(), Node::getId, serializer::serializeMarginalTable);
   }
 
   private List<SerializedProbabilityConstraint> buildSerializedProbabilityConstraints(
@@ -63,7 +54,7 @@ public class NetworkDataSerializer {
   }
 
   public BayesianNetworkData deSerialize(
-      SerializedBayesNetData serialized, SerializationData data) {
+      SerializedBayesianNetwork serialized, SerializationData data) {
     Map<Serializable, Node> nodeIDsMap = data.getNodeIdMap();
     Map<Serializable, NodeState> nodeStateIDsMap = data.getNodeStateIdMap();
     return new BayesianNetworkData(
@@ -72,7 +63,6 @@ public class NetworkDataSerializer {
         nodeIDsMap,
         nodeStateIDsMap,
         deSerializeNetworkTables(serialized, data, nodeIDsMap),
-        deSerializeObservedTables(serialized, data, nodeIDsMap),
         deSerializeConstraints(serialized.getConstraintStos(), data),
         serialized.isSolved());
   }
@@ -86,7 +76,7 @@ public class NetworkDataSerializer {
   }
 
   private Map<Node, ProbabilityTable> deSerializeNetworkTables(
-      SerializedBayesNetData serialized,
+      SerializedBayesianNetwork serialized,
       SerializationData data,
       Map<Serializable, Node> nodeIDsMap) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
@@ -94,17 +84,6 @@ public class NetworkDataSerializer {
         serialized.getNetworkTableStoMap(),
         nodeIDsMap::get,
         tableSTO -> serializer.deSerialize(tableSTO, data));
-  }
-
-  private Map<Node, MarginalTable> deSerializeObservedTables(
-      SerializedBayesNetData serialized,
-      SerializationData data,
-      Map<Serializable, Node> nodeIDsMap) {
-    ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
-    return buildMap(
-        serialized.getObservedTableStoMap(),
-        nodeIDsMap::get,
-        tableSTO -> serializer.deSerializeMarginal(tableSTO, data));
   }
 
   private List<ProbabilityConstraint> deSerializeConstraints(

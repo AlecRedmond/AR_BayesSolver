@@ -41,5 +41,7 @@ public interface InferenceEngine {
   <T extends Serializable> double getCurrentConditionalProbabilityById(
       Collection<T> measuredStateIds);
 
+  InferenceEngine printObserved();
+
   BayesianNetwork getNetwork();
 }

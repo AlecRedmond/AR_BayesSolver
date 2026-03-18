@@ -16,6 +16,7 @@ import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTA
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
+import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,7 +28,8 @@ public class JTAInitializer {
 
   private JTAInitializer() {}
 
-  public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
+  public static JunctionTreeData buildNewSolverConfiguration(
+      BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(true);
     buildCommon(junctionTreeData, bayesianNetworkData);
@@ -72,12 +74,10 @@ public class JTAInitializer {
     TransferIteratorBuilder builder = new TransferIteratorBuilder();
 
     Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
-    Map<Node, MarginalTable> marginalTables =
-        writeBackToNetwork ? bnd.getMarginalTableMap() : jtd.getObservedTablesMap();
+    Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
 
     for (Node node : bnd.getNodes()) {
       ProbabilityTable networkTable = networkTables.get(node);
-      MarginalTable observedTable = marginalTables.get(node);
 
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
@@ -86,15 +86,16 @@ public class JTAInitializer {
           .getWriteFromCPTs()
           .add(builder.buildMultiplyTransferIterator(networkTable, cliqueTable));
 
-      bestClique
-          .getWriteToObserved()
-          .add(builder.buildMarginalTransferIterator(cliqueTable, observedTable));
-
       if (writeBackToNetwork) {
         bestClique
             .getWriteToCPTs()
             .add(builder.buildMarginalTransferIterator(cliqueTable, networkTable));
+        continue;
       }
+
+      bestClique
+          .getWriteToObserved()
+          .add(builder.buildMarginalTransferIterator(cliqueTable, marginalTables.get(node)));
     }
   }
 
@@ -123,21 +124,25 @@ public class JTAInitializer {
     };
   }
 
-  public static JunctionTreeData buildInferenceConfiguration(
+  public static JunctionTreeData buildNewInferenceConfiguration(
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
-    junctionTreeData.setSolverConfig(false);
-    buildObserved(junctionTreeData, bayesianNetworkData);
-    buildCommon(junctionTreeData, bayesianNetworkData);
-    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+    buildInferenceConfiguration(junctionTreeData, bayesianNetworkData);
     return junctionTreeData;
+  }
+
+  public static void buildInferenceConfiguration(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    jtd.setSolverConfig(false);
+    buildObserved(jtd, bnd);
+    buildCommon(jtd, bnd);
+    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
   }
 
   private static void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
     jtd.setObservedEvidence(new HashMap<>());
     jtd.setObservedTablesMap(
-        bnd.getMarginalTableMap().entrySet().stream()
-            .map(entry -> Map.entry(entry.getKey(), entry.getValue().copyTable()))
+        bnd.getNodes().stream()
+            .map(node -> Map.entry(node, TableBuilder.buildMarginalTable(Set.of(node))))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 }

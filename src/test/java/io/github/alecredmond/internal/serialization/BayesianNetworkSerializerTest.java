@@ -4,10 +4,9 @@ import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.TestConfigs;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -52,7 +51,7 @@ class BayesianNetworkSerializerTest {
   void testDeSerializes_shouldNotThrow(BayesianNetwork network) {
     assertDoesNotThrow(
         () -> {
-          SerializedBayesNetData sto = test.serialize(network);
+          SerializedBayesianNetwork sto = test.serialize(network);
           test.deSerialize(sto);
         });
   }

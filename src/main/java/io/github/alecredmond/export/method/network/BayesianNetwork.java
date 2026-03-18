@@ -12,6 +12,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
@@ -110,6 +111,13 @@ public interface BayesianNetwork {
    * @return <code>true</code> if the save operation was successful
    */
   boolean saveNetworkToFile();
+
+  /**
+   * Returns a new serialized Bayesian network for IO operations
+   *
+   * @return a serialization of the current bayesian network data
+   */
+  SerializedBayesianNetwork serializeNetwork();
 
   /**
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
@@ -479,15 +487,7 @@ public interface BayesianNetwork {
    */
   BayesianNetwork solveNetwork();
 
-  /**
-   * Prints a representation of the network structure and its probability tables according to
-   * current printer configurations.
-   *
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork printMarginals();
-
-  /**
+    /**
    * Prints the results of the most recent observation (posterior probabilities) according to
    * current printer configurations.
    *
@@ -518,16 +518,6 @@ public interface BayesianNetwork {
    * @return the probability table for the specified node.
    */
   <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID);
-
-  /**
-   * Retrieves the marginal probability table for a node after an observation. This table contains
-   * the posterior probabilities of the node's states.
-   *
-   * @param nodeID the identifier of the node.
-   * @param <T> class of the Node ID
-   * @return the observed marginal table for the specified node.
-   */
-  <T extends Serializable> MarginalTable getMarginalTable(T nodeID);
 
   /**
    * Builds a new InferenceEngine from the current BayesianNetwork

@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.serialization;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
-import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.serialization.structure.NetworkDataSerializer;
 import io.github.alecredmond.internal.serialization.structure.NodeSerializer;
 import lombok.NoArgsConstructor;
@@ -11,17 +11,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BayesianNetworkSerializer {
 
-  public SerializedBayesNetData serialize(BayesianNetwork network) {
+  public SerializedBayesianNetwork serialize(BayesianNetwork network) {
     return new NetworkDataSerializer().serialize(network.getNetworkData());
   }
 
-  public BayesianNetwork deSerialize(SerializedBayesNetData networkDataSTO) {
+  public BayesianNetwork deSerialize(SerializedBayesianNetwork networkDataSTO) {
     SerializationData data = new SerializationData();
     createNodes(networkDataSTO, data);
     return new BayesianNetworkImpl(new NetworkDataSerializer().deSerialize(networkDataSTO, data));
   }
 
-  private void createNodes(SerializedBayesNetData networkDataSTO, SerializationData data) {
+  private void createNodes(SerializedBayesianNetwork networkDataSTO, SerializationData data) {
     NodeSerializer serializer = new NodeSerializer();
     networkDataSTO
         .getSerializedNodes()

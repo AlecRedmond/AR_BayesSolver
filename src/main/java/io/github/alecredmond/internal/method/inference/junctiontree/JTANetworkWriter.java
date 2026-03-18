@@ -11,7 +11,6 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Separat
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
 import java.util.*;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -58,10 +57,7 @@ class JTANetworkWriter {
         .flatMap(Collection::stream)
         .forEach(TransferIterator::setToUnityAndTransfer);
 
-    networkData
-        .getMarginalTableMap()
-        .values()
-        .forEach(ProbabilityTable::marginalizeTable);
+    jtd.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 
     networkData.getNodes().forEach(node -> updateTableName(node, jtd));
 
@@ -85,15 +81,11 @@ class JTANetworkWriter {
 
     BayesianNetworkData bnd = data.getNetworkData();
 
-    Stream.concat(
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToCPTs().stream()),
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToObserved().stream()))
+    Arrays.stream(data.getCliques())
+        .flatMap(c -> c.getWriteToCPTs().stream())
         .forEach(TransferIterator::transfer);
 
-    Stream.concat(
-            bnd.getNetworkTablesMap().values().stream(),
-            bnd.getMarginalTableMap().values().stream())
-        .forEach(ProbabilityTable::marginalizeTable);
+    bnd.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");
   }

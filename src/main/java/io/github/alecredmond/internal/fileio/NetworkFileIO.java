@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.fileio;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
-import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import java.io.*;
 import javax.swing.*;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class NetworkFileIO {
   public boolean saveNetwork(BayesianNetwork network, File selectedFile) {
     selectedFile = checkAddExtension(selectedFile);
     try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(selectedFile))) {
-      SerializedBayesNetData sto = mapper.serialize(network);
+      SerializedBayesianNetwork sto = mapper.serialize(network);
       out.writeObject(sto);
       log.info("Network saved to {}", selectedFile.getPath());
     } catch (IOException e) {
@@ -55,7 +55,7 @@ public class NetworkFileIO {
 
   public BayesianNetwork loadNetwork(File selectedFile) {
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(selectedFile))) {
-      SerializedBayesNetData sto = (SerializedBayesNetData) in.readObject();
+      SerializedBayesianNetwork sto = (SerializedBayesianNetwork) in.readObject();
       return mapper.deSerialize(sto);
     } catch (IOException e) {
       log.error("IOException attempting to load network {}", e.getMessage());

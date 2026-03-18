@@ -4,8 +4,10 @@ import io.github.alecredmond.export.application.constraints.ConditionalConstrain
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class NetworkConstraintUtils {
 
@@ -91,5 +93,21 @@ public class NetworkConstraintUtils {
         .filter(mc -> mc.getEventState().equals(eventState))
         .findFirst()
         .orElse(null);
+  }
+
+  public static boolean removeAllConstraintsContaining(Node node, BayesianNetworkData data) {
+    Set<ProbabilityConstraint> toRemove =
+        data.getConstraints().parallelStream()
+            .filter(constraint -> constraint.getAllNodes().contains(node))
+            .collect(Collectors.toSet());
+    return data.getConstraints().removeAll(toRemove);
+  }
+
+  public static boolean removeAllConstraintsContaining(NodeState state, BayesianNetworkData data) {
+    Set<ProbabilityConstraint> toRemove =
+        data.getConstraints().parallelStream()
+            .filter(constraint -> constraint.getAllStates().contains(state))
+            .collect(Collectors.toSet());
+    return data.getConstraints().removeAll(toRemove);
   }
 }
