@@ -14,16 +14,12 @@ import java.util.stream.IntStream;
 
 public class LikelihoodWeightingSampler extends SamplerImpl {
 
-  public LikelihoodWeightingSampler(BayesianNetwork network) {
-    super(network);
-  }
-
   public LikelihoodWeightingSampler(BayesianNetwork network, InferenceEngine engine) {
     super(network, engine);
   }
 
   @Override
-  public SampleCollection generateSamplesIfValid(
+  public SampleCollection generateWithEvidence(
       Map<Node, NodeState> observations, int numberOfSamples) {
     Node[] nodes = data.getNodes().toArray(new Node[0]);
     return validateSamples(

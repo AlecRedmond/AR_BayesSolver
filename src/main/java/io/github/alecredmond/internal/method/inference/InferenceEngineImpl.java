@@ -7,6 +7,7 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -136,5 +137,10 @@ public class InferenceEngineImpl implements InferenceEngine {
     if (!checkSolved()) return this;
     new NetworkPrinter(this).printObserved();
     return this;
+  }
+
+  @Override
+  public Sampler createSampler() {
+    return Sampler.create(this);
   }
 }

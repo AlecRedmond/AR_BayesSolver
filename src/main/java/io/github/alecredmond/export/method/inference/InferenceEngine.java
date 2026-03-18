@@ -4,6 +4,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.internal.method.inference.InferenceEngineFactory;
 import java.io.Serializable;
 import java.util.Collection;
@@ -44,4 +45,6 @@ public interface InferenceEngine {
   InferenceEngine printObserved();
 
   BayesianNetwork getNetwork();
+
+  Sampler createSampler();
 }
