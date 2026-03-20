@@ -116,14 +116,14 @@ class InferenceEngineTest {
 
     @Test
     void observeProbability_singleEvent_shouldReturnCorrectProb() {
-      test.resetObservations();
+      test.observeMarginals();
       double pRainTrue = test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE"));
       assertEquals(0.2, pRainTrue, 1E-9);
     }
 
     @Test
     void observeProbability_jointEvent_shouldReturnCorrectProb() {
-      test.resetObservations();
+      test.observeMarginals();
       // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
       // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
       // P(R:T, S:F) = 0.99 * 0.2 = 0.198
@@ -134,7 +134,7 @@ class InferenceEngineTest {
 
     @Test
     void observeProbability_conflictingEvent_shouldReturnZero() {
-      test.resetObservations();
+      test.observeMarginals();
       double pConflict =
           test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "RAIN:FALSE"));
       assertEquals(0.0, pConflict, 1E-9);
@@ -250,7 +250,7 @@ class InferenceEngineTest {
       if (PRINT_TABLES) net.printNetwork();
       test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
       if (PRINT_TABLES) test.printObserved();
-      test.resetObservations();
+      test.observeMarginals();
 
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";

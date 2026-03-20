@@ -5,20 +5,19 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Collection;
 import java.util.Set;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
 @Getter
-@ToString
+@ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode
 public abstract class ProbabilityConstraint {
-  protected final Set<NodeState> eventStates;
-  protected final Set<NodeState> conditionStates;
+  @ToString.Include protected final Set<NodeState> eventStates;
+  @ToString.Include protected final Set<NodeState> conditionStates;
   protected final Set<NodeState> allStates;
-  protected final double probability;
+  @ToString.Include protected final double probability;
   protected final Set<Node> eventNodes;
   protected final Set<Node> conditionNodes;
   protected final Set<Node> allNodes;

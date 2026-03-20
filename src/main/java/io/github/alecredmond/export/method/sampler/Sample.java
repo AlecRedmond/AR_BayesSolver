@@ -21,7 +21,7 @@ public class Sample {
   }
 
   public int size() {
-    return sampleData.getExportArray().length;
+    return sampleData.getCount();
   }
 
   public <T extends Collection<NodeState>, S extends T> T getSampleCollection(

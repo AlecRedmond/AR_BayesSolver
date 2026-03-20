@@ -15,7 +15,7 @@ public interface InferenceEngine {
     return new InferenceEngineFactory().create(network);
   }
 
-  InferenceEngine resetObservations();
+  InferenceEngine observeMarginals();
 
   InferenceEngine observeNetwork(Collection<NodeState> observedStates);
 

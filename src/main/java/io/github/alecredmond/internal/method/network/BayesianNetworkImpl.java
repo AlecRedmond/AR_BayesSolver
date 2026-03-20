@@ -93,6 +93,35 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
+  public BayesianNetworkImpl solveNetwork() {
+    if (networkData.isSolved()) {
+      return this;
+    }
+    BayesSolver.create(this).solve();
+    return this;
+  }
+
+  public BayesianNetworkImpl printNetwork() {
+    if (!networkData.isSolved()) solveNetwork();
+    new NetworkPrinter(networkData).printNetwork();
+    return this;
+  }
+
+  public BayesianNetwork buildNetworkData() {
+    NetworkDataUtils.buildNetworkData(networkData);
+    return this;
+  }
+
+  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
+    if (!networkData.isSolved()) solveNetwork();
+    return Optional.ofNullable(networkData.getNetworkTable(nodeID)).orElseThrow();
+  }
+
+  @Override
+  public InferenceEngine buildInferenceEngine() {
+    return InferenceEngine.create(this);
+  }
+
   public <T extends Serializable> Node getNode(T nodeID) {
     Map<Serializable, Node> map = networkData.getNodeIDsMap();
     if (map.containsKey(nodeID)) {
@@ -255,34 +284,5 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   public boolean removeAllConstraints() {
     networkData.setSolved(false);
     return NetworkConstraintUtils.removeAllConstraints(networkData);
-  }
-
-  public BayesianNetworkImpl solveNetwork() {
-    if (networkData.isSolved()) {
-      return this;
-    }
-    BayesSolver.create(this).solve();
-    return this;
-  }
-
-  public BayesianNetworkImpl printNetwork() {
-    if (!networkData.isSolved()) solveNetwork();
-    new NetworkPrinter(networkData).printNetwork();
-    return this;
-  }
-
-  public BayesianNetwork buildNetworkData() {
-    NetworkDataUtils.buildNetworkData(networkData);
-    return this;
-  }
-
-  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
-    if (!networkData.isSolved()) solveNetwork();
-    return Optional.ofNullable(networkData.getNetworkTable(nodeID)).orElseThrow();
-  }
-
-  @Override
-  public InferenceEngine buildInferenceEngine() {
-    return InferenceEngine.create(this);
   }
 }

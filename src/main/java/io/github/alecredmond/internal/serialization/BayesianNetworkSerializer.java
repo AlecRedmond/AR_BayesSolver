@@ -2,8 +2,8 @@ package io.github.alecredmond.internal.serialization;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.structure.NetworkDataSerializer;
 import io.github.alecredmond.internal.serialization.structure.NodeSerializer;
 import lombok.NoArgsConstructor;
@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class BayesianNetworkSerializer {
 
   public SerializedBayesianNetwork serialize(BayesianNetwork network) {
+    if (!network.getNetworkData().isSolved()) network.solveNetwork();
     return new NetworkDataSerializer().serialize(network.getNetworkData());
   }
 

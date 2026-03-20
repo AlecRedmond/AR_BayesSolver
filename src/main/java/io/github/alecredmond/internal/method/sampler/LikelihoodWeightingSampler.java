@@ -28,33 +28,24 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
       return null;
     }
     Node[] nodes = data.getNodes().toArray(new Node[0]);
-    return validateSamples(
-        numberOfSamples,
-        distributeSamples(
-            generateWeightedRawSamples(nodes, observations, numberOfSamples), numberOfSamples),
-        observations,
-        nodes);
-  }
-
-  private SampleCollection validateSamples(
-      int numberOfSamples,
-      Map<Sample, Integer> sampleMap,
-      Map<Node, NodeState> observations,
-      Node[] nodeArray) {
-    return new SampleValidator(
-            new SampleCollection(numberOfSamples, sampleMap, observations, nodeArray, data))
-        .validateSamples();
+    return new SampleBuilder()
+        .build(
+            numberOfSamples,
+            distributeSamples(
+                generateWeightedSamples(nodes, observations, numberOfSamples), numberOfSamples),
+            observations,
+            nodes,
+            data);
   }
 
   private Map<Sample, Integer> distributeSamples(
-      Map<Set<NodeState>, Double> weightedSamples, int numberOfSamples) {
+      Map<Sample, Double> weightedSamples, int numberOfSamples) {
     Map<Sample, Integer> distributedSamples = new HashMap<>();
     Map<Sample, Double> remainderSamples = new HashMap<>();
     double ratio = getRatio(weightedSamples, numberOfSamples);
     AtomicInteger tally = new AtomicInteger(0);
     weightedSamples.forEach(
-        (rawSample, weight) -> {
-          Sample sample = new Sample(rawSample.toArray(NodeState[]::new));
+        (sample, weight) -> {
           double adjusted = weight * ratio;
           int distributed = (int) adjusted;
           tally.addAndGet(distributed);
@@ -65,19 +56,23 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     return distributedSamples;
   }
 
-  private Map<Set<NodeState>, Double> generateWeightedRawSamples(
+  private Map<Sample, Double> generateWeightedSamples(
       Node[] nodes, Map<Node, NodeState> observations, int numberOfSamples) {
-    Map<Set<NodeState>, Double> weightedSamples = new HashMap<>();
+    Map<Set<NodeState>, Double> weightedStateSets = new HashMap<>();
     ProbabilityTable[] cptArray = createCptArray(nodes, data.getNetworkTablesMap());
     int[][] cptRequestIndexes = createCptRequestIndexes(nodes, cptArray);
     NodeState[] defaultSample = createDefaultSample(nodes, observations);
     IntStream.range(0, numberOfSamples)
         .forEach(
-            i -> addNewSample(weightedSamples, nodes, cptArray, cptRequestIndexes, defaultSample));
+            i ->
+                addNewSample(weightedStateSets, nodes, cptArray, cptRequestIndexes, defaultSample));
+
+    Map<Sample, Double> weightedSamples = new HashMap<>();
+    weightedStateSets.forEach((set, weight) -> addWeightedSample(weightedSamples, set, weight));
     return weightedSamples;
   }
 
-  private double getRatio(Map<Set<NodeState>, Double> weightedSamples, int numberOfSamples) {
+  private double getRatio(Map<Sample, Double> weightedSamples, int numberOfSamples) {
     double sum = weightedSamples.values().stream().mapToDouble(Double::doubleValue).sum();
     return sum != 0.0 ? numberOfSamples / sum : 0.0;
   }
@@ -135,6 +130,11 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
         Arrays.stream(sample).collect(Collectors.toCollection(LinkedHashSet::new));
     sampleWeights.putIfAbsent(sampleSet, 0.0);
     sampleWeights.put(sampleSet, sampleWeights.get(sampleSet) + weight);
+  }
+
+  private void addWeightedSample(
+      Map<Sample, Double> weightedSamples, Set<NodeState> set, Double weight) {
+    weightedSamples.put(new Sample(set.toArray(new NodeState[0])), weight);
   }
 
   private double selectNextState(

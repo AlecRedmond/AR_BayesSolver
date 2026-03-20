@@ -44,11 +44,10 @@ public class SampleUtils {
   @SuppressWarnings("unchecked")
   public static <T extends Collection<NodeState>, S extends T> T getSampleCollection(
       SampleData sampleData, Supplier<S> supplier) {
-    try {
-      return (S) sampleData.getStateCollection();
-    } catch (ClassCastException e) {
-      return rebuildStateCollection(sampleData, supplier);
+    if (sampleData.getSupplier().equals(supplier)) {
+      return (T) sampleData.getStateCollection();
     }
+    return rebuildStateCollection(sampleData, supplier);
   }
 
   public static void setExportArrayFromNodes(

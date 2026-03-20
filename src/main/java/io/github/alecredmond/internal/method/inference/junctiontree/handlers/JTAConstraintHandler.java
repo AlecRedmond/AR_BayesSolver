@@ -4,6 +4,10 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +19,7 @@ public abstract class JTAConstraintHandler {
   protected final ProbabilityVectorIterator iterator;
   protected VectorCombinationKey eventKey;
   protected VectorCombinationKey conditionKey;
+  protected List<Double> errors;
 
   protected JTAConstraintHandler(JTATableHandler tableHandler, ProbabilityConstraint constraint) {
     this.tableHandler = tableHandler;
@@ -22,6 +27,7 @@ public abstract class JTAConstraintHandler {
     this.iterator = new ProbabilityVectorIterator();
     this.eventKey = buildEventKey();
     this.conditionKey = buildConditionKey();
+    this.errors = new ArrayList<>();
   }
 
   protected VectorCombinationKey buildEventKey() {
@@ -45,7 +51,9 @@ public abstract class JTAConstraintHandler {
     double compRatio = getRatio((1 - expectedProb), complementProb);
 
     adjustToRatio(adjustmentRatio, compRatio);
-    return Math.pow(actualProb - expectedProb, 2);
+    double error = Math.pow(actualProb - expectedProb, 2);
+    errors.add(error);
+    return error;
   }
 
   protected abstract void calculateProbability(
@@ -56,6 +64,17 @@ public abstract class JTAConstraintHandler {
   }
 
   protected abstract void adjustToRatio(double ratioIfEvent, double ratioOtherwise);
+
+  public void updateResults(Map<ProbabilityConstraint, double[]> results) {
+    if (results.containsKey(constraint)) {
+      double[] existing = results.get(constraint);
+      double thisSum = errors.stream().mapToDouble(Double::doubleValue).sum();
+      double existingSum = Arrays.stream(existing).sum();
+      if (existingSum >= thisSum) return;
+    }
+    double[] newArray = errors.stream().mapToDouble(Double::doubleValue).toArray();
+    results.put(constraint, newArray);
+  }
 
   protected boolean checkIsEvidence(
       int[] odometerKey, int[] evidencePositions, boolean[] evidenceLock) {

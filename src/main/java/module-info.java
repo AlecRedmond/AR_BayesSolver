@@ -8,6 +8,7 @@ module BayesSolver {
   requires org.apache.commons.lang3;
 
   exports io.github.alecredmond.export.application.constraints;
+  exports io.github.alecredmond.export.application.inference;
   exports io.github.alecredmond.export.application.network;
   exports io.github.alecredmond.export.application.node;
   exports io.github.alecredmond.export.application.probabilitytables;

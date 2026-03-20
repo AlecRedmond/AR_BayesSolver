@@ -28,11 +28,11 @@ public class InferenceEngineImpl implements InferenceEngine {
     this.network = network;
     this.junctionTree = junctionTree;
     this.solver = BayesSolver.create(network);
-    resetObservations();
+    observeMarginals();
   }
 
   @Override
-  public InferenceEngineImpl resetObservations() {
+  public InferenceEngineImpl observeMarginals() {
     return observeNetwork(List.of());
   }
 

@@ -114,7 +114,7 @@ class SampleCollectionTest {
             .filter(n -> !samplePackage.getExportNodes().contains(n))
             .collect(Collectors.toSet());
 
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(
             sample ->
                 Arrays.stream(sample.getExportArray())
@@ -132,10 +132,10 @@ class SampleCollectionTest {
   void setSupplier(SamplePackage samplePackage) {
     SampleCollection test = samplePackage.getTest();
     test.setSupplier(HashSet::new);
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(sample -> assertInstanceOf(HashSet.class, sample.getSampleCollection()));
     test.setSupplier(ArrayList::new);
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(sample -> assertInstanceOf(ArrayList.class, sample.getSampleCollection()));
   }
 
