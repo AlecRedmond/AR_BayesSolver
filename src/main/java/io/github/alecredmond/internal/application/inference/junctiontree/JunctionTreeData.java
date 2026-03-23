@@ -2,6 +2,8 @@ package io.github.alecredmond.internal.application.inference.junctiontree;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
+
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;

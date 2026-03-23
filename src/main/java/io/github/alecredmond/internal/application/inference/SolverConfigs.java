@@ -1,5 +1,7 @@
 package io.github.alecredmond.internal.application.inference;
 
+import static io.github.alecredmond.internal.method.utils.AppProperty.*;
+
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,11 +19,11 @@ public class SolverConfigs {
 
   public SolverConfigs() {
     PropertiesLoader loader = new PropertiesLoader();
-    setCyclesLimit(loader.loadInt("app.solver.cyclesLimit"));
-    setTimeLimitSeconds(loader.loadInt("app.solver.timeLimitSeconds"));
-    setLogIntervalSeconds(loader.loadInt("app.solver.logIntervalSeconds"));
-    setConvergeThreshold(loader.loadDouble("app.solver.convergeThreshold"));
-    setLogSolverProgress(loader.loadBoolean("app.solver.logSolverProgress"));
+    setCyclesLimit(loader.loadInt(SOLVER_CYCLES_LIMIT));
+    setTimeLimitSeconds(loader.loadInt(SOLVER_TIME_LIMIT_SECONDS));
+    setLogIntervalSeconds(loader.loadInt(SOLVER_LOG_INTERVAL_SECONDS));
+    setConvergeThreshold(loader.loadDouble(SOLVER_CONVERGE_THRESHOLD));
+    setLogSolverProgress(loader.loadBoolean(SOLVER_LOG_PROGRESS));
   }
 
   private void setCyclesLimit(int cyclesLimit) {

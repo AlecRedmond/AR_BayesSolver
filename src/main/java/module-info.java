@@ -14,5 +14,10 @@ module BayesSolver {
   exports io.github.alecredmond.export.application.sampler;
   exports io.github.alecredmond.export.method.network;
   exports io.github.alecredmond.export.method.sampler;
+  exports io.github.alecredmond.export.serialization.constraint;
+  exports io.github.alecredmond.export.serialization.network;
+  exports io.github.alecredmond.export.serialization.node;
+  exports io.github.alecredmond.export.serialization.probabilitytable;
+  exports io.github.alecredmond.export.serialization.probabilitytable.probabilityvector;
   exports io.github.alecredmond.exceptions;
 }

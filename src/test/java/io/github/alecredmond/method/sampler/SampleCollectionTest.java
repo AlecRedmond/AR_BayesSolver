@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = true;
+  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static final boolean SOLVE_ONLY_PROBLEMATIC = false;
   static final boolean PRINT_RESULTS = true;
   static final int NUMBER_OF_SAMPLES = 100_000;

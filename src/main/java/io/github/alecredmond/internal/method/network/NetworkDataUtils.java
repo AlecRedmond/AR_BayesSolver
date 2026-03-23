@@ -3,13 +3,14 @@ package io.github.alecredmond.internal.method.network;
 import static io.github.alecredmond.internal.method.probabilitytables.TableBuilder.buildMarginalTable;
 import static io.github.alecredmond.internal.method.probabilitytables.TableBuilder.buildNetworkTable;
 
+import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.exceptions.NetworkStructureException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,12 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 public class NetworkDataUtils {
   private NetworkDataUtils() {}
 
-  public static <E> Set<Node> getNodesByID(Collection<E> nodeIDs, BayesianNetworkData networkData) {
+  public static <E extends Serializable> Set<Node> getNodesByID(
+      Collection<E> nodeIDs, BayesianNetworkData networkData) {
     if (Optional.ofNullable(nodeIDs).isEmpty()) return new HashSet<>();
     return nodeIDs.stream().map(networkData.getNodeIDsMap()::get).collect(Collectors.toSet());
   }
 
-  public static <T> Set<NodeState> getStatesByID(
+  public static <T extends Serializable> Set<NodeState> getStatesByID(
       Collection<T> nodeStateIDs, BayesianNetworkData networkData) {
     return nodeStateIDs.stream()
         .map(networkData.getNodeStateIDsMap()::get)
@@ -73,13 +75,13 @@ public class NetworkDataUtils {
     networkData.setNodeStateIDsMap(createNodeStateIdMap(nodes));
   }
 
-  private static Map<Object, Node> createNodeIdMap(List<Node> nodes) {
+  private static Map<Serializable, Node> createNodeIdMap(List<Node> nodes) {
     return nodes.stream()
         .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Map<Object, NodeState> createNodeStateIdMap(List<Node> nodes) {
+  private static Map<Serializable, NodeState> createNodeStateIdMap(List<Node> nodes) {
     return nodes.stream()
         .flatMap(n -> n.getNodeStates().stream())
         .map(ns -> Map.entry(ns.getId(), ns))
@@ -104,15 +106,16 @@ public class NetworkDataUtils {
   }
 
   static void addNode(Node node, BayesianNetworkData networkData) {
-    Object id = node.getId();
+    Serializable id = node.getId();
     checkForExistingIDs(List.of(id), networkData);
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
+    List<Serializable> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     checkForExistingIDs(stateIDs, networkData);
     networkData.getNodeIDsMap().put(node.getId(), node);
     addStatesToMap(node, networkData);
   }
 
-  private static <T> void checkForExistingIDs(Collection<T> ids, BayesianNetworkData networkData) {
+  private static <T extends Serializable> void checkForExistingIDs(
+      Collection<T> ids, BayesianNetworkData networkData) {
     List<T> dupes = new ArrayList<>();
     for (T id : ids) {
       if (networkData.getNodeIDsMap().containsKey(id)
@@ -164,31 +167,32 @@ public class NetworkDataUtils {
         .toList();
   }
 
-  static <T> void addNode(T nodeID, BayesianNetworkData networkData) {
+  static <T extends Serializable> void addNode(T nodeID, BayesianNetworkData networkData) {
     checkForExistingIDs(List.of(nodeID), networkData);
     networkData.getNodeIDsMap().put(nodeID, new Node(nodeID));
   }
 
-  static <T, E> void addNodeStates(
+  static <T extends Serializable, E extends Serializable> void addNodeStates(
       T nodeID, Collection<E> nodeStateIDs, BayesianNetworkData networkData) {
     checkForExistingIDs(nodeStateIDs, networkData);
     nodeStateIDs.forEach(sID -> addNodeState(nodeID, sID, networkData));
   }
 
-  static <T, E> void addNodeState(T nodeID, E nodeStateID, BayesianNetworkData networkData) {
+  static <T extends Serializable, E extends Serializable> void addNodeState(
+      T nodeID, E nodeStateID, BayesianNetworkData networkData) {
     checkForExistingIDs(List.of(nodeStateID), networkData);
     Node node = getNodeByID(nodeID, networkData);
     NodeState state = node.addState(nodeStateID);
     networkData.getNodeStateIDsMap().put(nodeStateID, state);
   }
 
-  static <E> Node getNodeByID(E nodeID, BayesianNetworkData networkData) {
+  static <E extends Serializable> Node getNodeByID(E nodeID, BayesianNetworkData networkData) {
     return networkData.getNodeIDsMap().get(nodeID);
   }
 
-  static <T, E> void addNode(
+  static <T extends Serializable, E extends Serializable> void addNode(
       T nodeID, Collection<E> nodeStateIDs, BayesianNetworkData networkData) {
-    List<Object> dupesCheckList = new ArrayList<>(nodeStateIDs);
+    List<Serializable> dupesCheckList = new ArrayList<>(nodeStateIDs);
     checkNoDuplicateStateIDs(nodeID, dupesCheckList);
     dupesCheckList.add(nodeID);
     checkForExistingIDs(dupesCheckList, networkData);
@@ -197,7 +201,8 @@ public class NetworkDataUtils {
     addStatesToMap(newNode, networkData);
   }
 
-  private static void checkNoDuplicateStateIDs(Object nodeID, List<Object> dupesCheckList) {
+  private static void checkNoDuplicateStateIDs(
+      Serializable nodeID, List<Serializable> dupesCheckList) {
     Set<Object> objectSet = new HashSet<>(dupesCheckList);
     if (objectSet.size() == dupesCheckList.size()) {
       return;
@@ -206,7 +211,7 @@ public class NetworkDataUtils {
         String.format("Duplicate state IDs found when building node %s", nodeID.toString()));
   }
 
-  static <T> void removeNode(T nodeID, BayesianNetworkData networkData) {
+  static <T extends Serializable> void removeNode(T nodeID, BayesianNetworkData networkData) {
     if (!networkData.getNodeIDsMap().containsKey(nodeID)) {
       log.error("No node ID '{}' found!", nodeID);
       return;
@@ -235,19 +240,21 @@ public class NetworkDataUtils {
         .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getId()));
   }
 
-  static <T> void removeNodeStates(T nodeID, BayesianNetworkData networkData) {
+  static <T extends Serializable> void removeNodeStates(T nodeID, BayesianNetworkData networkData) {
     if (nodeDoesNotExist(nodeID, networkData)) return;
     Node node = getNodeByID(nodeID, networkData);
-    List<Object> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
+    List<Serializable> stateIDs = node.getNodeStates().stream().map(NodeState::getId).toList();
     node.setNodeStates(new ArrayList<>());
     stateIDs.forEach(networkData.getNodeStateIDsMap()::remove);
   }
 
-  private static <T> boolean nodeDoesNotExist(T nodeID, BayesianNetworkData networkData) {
+  private static <T extends Serializable> boolean nodeDoesNotExist(
+      T nodeID, BayesianNetworkData networkData) {
     return !networkData.getNodeIDsMap().containsKey(nodeID);
   }
 
-  static <T, E> void removeNodeState(T nodeID, E nodeStateID, BayesianNetworkData networkData) {
+  static <T extends Serializable, E extends Serializable> void removeNodeState(
+      T nodeID, E nodeStateID, BayesianNetworkData networkData) {
     if (nodeDoesNotExist(nodeID, networkData)) return;
     getNodeByID(nodeID, networkData).removeState(nodeStateID);
     networkData.getNodeStateIDsMap().remove(nodeStateID);
@@ -294,18 +301,19 @@ public class NetworkDataUtils {
     return false;
   }
 
-  static <T, E> void addParents(
+  static <T extends Serializable, E extends Serializable> void addParents(
       T childID, Collection<E> parentIDs, BayesianNetworkData networkData) {
     parentIDs.forEach(pID -> addParent(childID, pID, networkData));
   }
 
-  static <T, E> void addParent(T childID, E parentID, BayesianNetworkData networkData) {
+  static <T extends Serializable, E extends Serializable> void addParent(
+      T childID, E parentID, BayesianNetworkData networkData) {
     Node parent = getNodeByID(parentID, networkData);
     Node child = getNodeByID(childID, networkData);
     addParent(child, parent);
   }
 
-  static <T> void removeParents(T childID, BayesianNetworkData networkData) {
+  static <T extends Serializable> void removeParents(T childID, BayesianNetworkData networkData) {
     Node child = getNodeByID(childID, networkData);
     removeParents(child);
   }
@@ -316,7 +324,8 @@ public class NetworkDataUtils {
     parents.forEach(parent -> parent.getChildren().remove(child));
   }
 
-  static <T, E> void removeParent(T childID, E parentID, BayesianNetworkData networkData) {
+  static <T extends Serializable, E extends Serializable> void removeParent(
+      T childID, E parentID, BayesianNetworkData networkData) {
     Node parent = getNodeByID(parentID, networkData);
     Node child = getNodeByID(childID, networkData);
     removeParent(child, parent);

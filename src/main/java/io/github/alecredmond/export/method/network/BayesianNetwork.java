@@ -13,6 +13,10 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
+import io.github.alecredmond.internal.fileio.NetworkFileIO;
+import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
+import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -56,6 +60,58 @@ public interface BayesianNetwork {
   }
 
   /**
+   * Loads a saved BayesianNetwork from a JFileChooser window
+   *
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile() {
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork();
+  }
+
+  /**
+   * Loads a saved BayesianNetwork.
+   *
+   * @param file the selected .bayes file to load
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile(File file) {
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(file);
+  }
+
+  /**
+   * Loads a saved BayesianNetwork.
+   *
+   * @param filePath the absolute path to a .bayes file
+   * @return a loaded BayesianNetwork instance
+   */
+  static BayesianNetwork loadNetworkFromFile(String filePath) {
+    return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(filePath);
+  }
+
+  /**
+   * Saves the network to the disk
+   *
+   * @param file the new file
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile(File file);
+
+  /**
+   * Saves the network to the disk
+   *
+   * @param filePath path to the new file
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile(String filePath);
+
+  /**
+   * Saves the network to the disk from a JFileChooser window.
+   *
+   * @return <code>true</code> if the save operation was successful
+   */
+  boolean saveNetworkToFile();
+
+  /**
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
    * (CPT) of the form P(N|Parents(N)).
    *
@@ -74,7 +130,7 @@ public interface BayesianNetwork {
    * @throws BayesNetIDException if the nodeID is not unique
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork addNode(T nodeID);
+  <T extends Serializable> BayesianNetwork addNewNode(T nodeID);
 
   /**
    * Adds a node (N) with a specified set of possible states. The states represent the mutually
@@ -89,7 +145,8 @@ public interface BayesianNetwork {
    * @throws BayesNetIDException if the nodeID or each nodeStateID is not unique
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addNode(T nodeID, Collection<E> nodeStateIDs);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addNewNode(
+      T nodeID, Collection<E> nodeStateIDs);
 
   /**
    * Removes a node and all associated edges from the network.
@@ -106,7 +163,7 @@ public interface BayesianNetwork {
    * @param <T> the class of the Node ID
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork removeNode(T nodeID);
+  <T extends Serializable> BayesianNetwork removeNodeByID(T nodeID);
 
   /**
    * Removes all nodes from the network, resetting it to an empty state.
@@ -123,7 +180,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the node ID is not mapped to a node value
    * @return the Node object associated with the ID
    */
-  <T> Node getNode(T nodeID);
+  <T extends Serializable> Node getNode(T nodeID);
 
   /**
    * Returns a set of nodes from their input ID
@@ -133,7 +190,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the node IDs are not mapped to a node value
    * @return the Node object associated with the ID
    */
-  <T> Set<Node> getNodes(Collection<T> nodeIDs);
+  <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
    * Adds a collection of states to an existing node.
@@ -143,7 +200,8 @@ public interface BayesianNetwork {
    * @throws BayesNetIDException if each nodeStateID is not unique
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addNodeStates(T nodeID, Collection<E> nodeStateIDs);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeStates(
+      T nodeID, Collection<E> nodeStateIDs);
 
   /**
    * Adds a single state to an existing node.
@@ -155,7 +213,8 @@ public interface BayesianNetwork {
    * @throws BayesNetIDException if the nodeStateID is not unique
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addNodeState(T nodeID, E nodeStateID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeState(
+      T nodeID, E nodeStateID);
 
   /**
    * Removes all states from a specified node.
@@ -164,7 +223,7 @@ public interface BayesianNetwork {
    * @param <T> the class of the Node ID
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork removeNodeStates(T nodeID);
+  <T extends Serializable> BayesianNetwork removeNodeStates(T nodeID);
 
   /**
    * Removes a specific state from a node.
@@ -175,7 +234,8 @@ public interface BayesianNetwork {
    * @param <E> the class of the NodeState ID
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork removeNodeState(T nodeID, E nodeStateID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork removeNodeState(
+      T nodeID, E nodeStateID);
 
   /**
    * Returns a Node State from its input ID
@@ -185,7 +245,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the Node State ID is not mapped to a Node State value
    * @return the Node State object associated with the ID
    */
-  <E> NodeState getNodeState(E nodeStateID);
+  <E extends Serializable> NodeState getNodeState(E nodeStateID);
 
   /**
    * Returns a set of NodeStates from their input IDs
@@ -195,7 +255,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the Node State IDs are not mapped to a Node State value
    * @return a set of Node State objects associated with their IDs
    */
-  <E> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
+  <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
 
   /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
@@ -215,7 +275,8 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addParents(T childID, Collection<E> parentIDs);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(
+      T childID, Collection<E> parentIDs);
 
   /**
    * Defines a parent-child relationship by adding a directed edge from a parent node to a child
@@ -239,7 +300,7 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addParent(T childID, E parentID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addParent(T childID, E parentID);
 
   /**
    * Removes a directed edge between a parent and a child node.
@@ -259,7 +320,8 @@ public interface BayesianNetwork {
    * @param <E> the class of the Parent Node ID
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork removeParent(T childID, E parentID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork removeParent(
+      T childID, E parentID);
 
   /**
    * Removes all parent relationships for a given child node, removing all incoming edges from the
@@ -278,7 +340,7 @@ public interface BayesianNetwork {
    * @param <T> the class of the Child Node ID
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork removeParents(T childID);
+  <T extends Serializable> BayesianNetwork removeParents(T childID);
 
   /**
    * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
@@ -299,7 +361,7 @@ public interface BayesianNetwork {
    *     - if probability p is outwith 0 <= p <= 1
    * @return this instance for method chaining.
    */
-  <T, E> BayesianNetwork addConstraint(
+  <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability);
 
   /**
@@ -316,7 +378,7 @@ public interface BayesianNetwork {
    *     - if the state is not found within the data.
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork addConstraint(T eventStateID, double probability);
+  <T extends Serializable> BayesianNetwork addConstraint(T eventStateID, double probability);
 
   /**
    * Adds a probability constraint to the network This constraint doesn't have to be within the
@@ -356,7 +418,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the state is not found within the data.
    * @return the associated MarginalConstraint, or null if it does not exist
    */
-  <T> MarginalConstraint getConstraint(T eventStateId);
+  <T extends Serializable> MarginalConstraint getConstraint(T eventStateId);
 
   /**
    * Searches the network for a conditional or marginal constraint with event and condition
@@ -367,7 +429,8 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the states are not found within the data.
    * @return the associated constraint, or null if it does not exist
    */
-  <T, E> ProbabilityConstraint getConstraint(T eventStateId, Collection<E> conditionStateIds);
+  <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
+      T eventStateId, Collection<E> conditionStateIds);
 
   /**
    * Removes a constraint from the network.
@@ -385,7 +448,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the state is not found within the data.
    * @return true if the constraint existed in the network
    */
-  <T> boolean removeConstraint(T eventStateId);
+  <T extends Serializable> boolean removeConstraint(T eventStateId);
 
   /**
    * Removes a constraint from the network.
@@ -397,7 +460,8 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the states are not found within the data.
    * @return true if the constraint existed in the network
    */
-  <T, E> boolean removeConstraint(T eventStateId, Collection<E> conditionStateIds);
+  <T extends Serializable, E extends Serializable> boolean removeConstraint(
+      T eventStateId, Collection<E> conditionStateIds);
 
   /**
    * Removes all constraints defined on the network.
@@ -439,7 +503,7 @@ public interface BayesianNetwork {
    * @param <T> the class of the NodeState IDs
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
+  <T extends Serializable> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
 
   /**
    * Sets evidence in the network by observing one node state as true. This fixes the state of
@@ -449,7 +513,7 @@ public interface BayesianNetwork {
    * @param <T> the class of the NodeState ID.
    * @return this instance for method chaining.
    */
-  <T> BayesianNetwork observeNetwork(T observedNodeStateID);
+  <T extends Serializable> BayesianNetwork observeNetwork(T observedNodeStateID);
 
   /**
    * Runs the inference algorithm to compute the posterior probabilities (marginals) of all nodes.
@@ -494,7 +558,8 @@ public interface BayesianNetwork {
    * @param <T> class of the NodeState ids.
    * @return a SampleCollection object providing further methods
    */
-  <T> SampleCollection generateSamples(int numberOfSamples, Collection<T> observedStateIDs);
+  <T extends Serializable> SampleCollection generateSamples(
+      int numberOfSamples, Collection<T> observedStateIDs);
 
   /**
    * Calculates the joint probability of a set of events occurring, conditional on the current
@@ -505,7 +570,8 @@ public interface BayesianNetwork {
    * @param <T> Class of the event state IDs
    * @return the calculated joint probability.
    */
-  <T> double getProbabilityFromCurrentObservations(Collection<T> eventStateIDs);
+  <T extends Serializable> double getProbabilityFromCurrentObservations(
+      Collection<T> eventStateIDs);
 
   /**
    * Retrieves the Conditional Probability Table (CPT) for a given node.
@@ -514,7 +580,7 @@ public interface BayesianNetwork {
    * @param <T> class of the Node ID
    * @return the probability table for the specified node.
    */
-  <T> ProbabilityTable getNetworkTable(T nodeID);
+  <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID);
 
   /**
    * Retrieves the marginal probability table for a node after an observation. This table contains
@@ -524,5 +590,5 @@ public interface BayesianNetwork {
    * @param <T> class of the Node ID
    * @return the observed marginal table for the specified node.
    */
-  <T> MarginalTable getObservedTable(T nodeID);
+  <T extends Serializable> MarginalTable getObservedTable(T nodeID);
 }

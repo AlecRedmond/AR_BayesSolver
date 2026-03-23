@@ -22,9 +22,9 @@ public class PropertiesLoader {
     }
   }
 
-  public int loadInt(String propertyName) {
+  public int loadInt(AppProperty property) {
     try {
-      return loadProperty(propertyName, Integer::parseInt);
+      return loadProperty(property.get(), Integer::parseInt);
     } catch (NumberFormatException e) {
       throw new PropertiesLoaderException(e);
     }
@@ -34,32 +34,36 @@ public class PropertiesLoader {
     return parser.apply(properties.getProperty(propName));
   }
 
-  public double loadDouble(String propertyName) {
+  public double loadDouble(AppProperty property) {
     try {
-      return loadProperty(propertyName, Double::parseDouble);
+      return loadProperty(property.get(), Double::parseDouble);
     } catch (NumberFormatException e) {
       throw new PropertiesLoaderException(e);
     }
   }
 
-  public String loadString(String propertyName) {
-    return properties.getProperty(propertyName);
+  public String loadDirectory(AppProperty directoryProp, AppProperty extensionProp) {
+    return loadDirectory(directoryProp) + loadString(extensionProp);
   }
 
-  public String loadDirectory(String propertyName) {
-    String raw = properties.getProperty(propertyName);
+  public String loadDirectory(AppProperty property) {
+    String raw = properties.getProperty(property.get());
     Matcher matcher = SYSTEM_PROPS_REGEX.matcher(raw);
     StringBuilder sb = new StringBuilder();
     while (matcher.find()) {
-      Optional<String> property = Optional.ofNullable(System.getProperty(matcher.group(1)));
-      String replacement = property.orElseGet(matcher::group);
+      Optional<String> propertyOpt = Optional.ofNullable(System.getProperty(matcher.group(1)));
+      String replacement = propertyOpt.orElseGet(matcher::group);
       matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
     }
     matcher.appendTail(sb);
     return sb.toString();
   }
 
-  public boolean loadBoolean(String propertyName) {
-    return loadProperty(propertyName, Boolean::parseBoolean);
+  public String loadString(AppProperty property) {
+    return properties.getProperty(property.get());
+  }
+
+  public boolean loadBoolean(AppProperty property) {
+    return loadProperty(property.get(), Boolean::parseBoolean);
   }
 }

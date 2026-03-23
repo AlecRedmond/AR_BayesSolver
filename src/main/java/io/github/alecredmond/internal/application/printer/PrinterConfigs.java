@@ -1,5 +1,7 @@
 package io.github.alecredmond.internal.application.printer;
 
+import static io.github.alecredmond.internal.method.utils.AppProperty.*;
+
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +24,14 @@ public class PrinterConfigs {
 
   public PrinterConfigs() {
     PropertiesLoader loader = new PropertiesLoader();
-    setSaveDirectory(loader.loadDirectory("app.printer.saveDirectory"));
-    setOpenFileOnCreation(loader.loadBoolean("app.printer.openFileOnCreation"));
-    setOpenFolderOnCreation(loader.loadBoolean("app.printer.openFolderOnCreation"));
-    setPrintToConsole(loader.loadBoolean("app.printer.printToConsole"));
-    setProbDecimalPlaces(loader.loadInt("app.printer.probDecimalPlaces"));
-    setPrintToTextFile(loader.loadBoolean("app.printer.printToTextFile"));
-    setObservedFileTitle(loader.loadString("app.printer.observedFileTitle"));
-    setNetworkFileTitle(loader.loadString("app.printer.networkFileTitle"));
+    setSaveDirectory(loader.loadDirectory(DIRECTORY_ROOT, DIRECTORY_PRINTER));
+    setOpenFileOnCreation(loader.loadBoolean(PRINTER_OPEN_FILE_ON_CREATION));
+    setOpenFolderOnCreation(loader.loadBoolean(PRINTER_OPEN_FOLDER_ON_CREATION));
+    setPrintToConsole(loader.loadBoolean(PRINTER_PRINT_TO_CONSOLE));
+    setProbDecimalPlaces(loader.loadInt(PRINTER_PROB_DECIMAL_PLACES));
+    setPrintToTextFile(loader.loadBoolean(PRINTER_PRINT_TO_TEXT_FILE));
+    setObservedFileTitle(loader.loadString(PRINTER_OBSERVED_FILE_TITLE));
+    setNetworkFileTitle(loader.loadString(PRINTER_NETWORK_FILE_TITLE));
     probabilityCharLength = probDecimalPlaces + 2; // Two extra places for "0." or "1."
     probabilityFormatter = "%." + probDecimalPlaces + "f";
   }

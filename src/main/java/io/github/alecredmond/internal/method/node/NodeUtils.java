@@ -3,6 +3,8 @@ package io.github.alecredmond.internal.method.node;
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -76,13 +78,13 @@ public class NodeUtils {
     return sb.toString();
   }
 
-  public static <T> NodeState addNodeState(Node node, T stateID) {
+  public static <T extends Serializable> NodeState addNodeState(Node node, T stateID) {
     NodeState state = new NodeState(stateID, node);
     addToList(node.getNodeStates(), state, node::setNodeStates);
     return state;
   }
 
-  public static <E> void removeState(Node node, E stateID) {
+  public static <E extends Serializable> void removeState(Node node, E stateID) {
     removeFromList(node.getNodeStates(), s -> s.getId().equals(stateID), node::setNodeStates);
   }
 

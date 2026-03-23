@@ -5,6 +5,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.sampler.SampleData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.sampler.SampleUtils;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.function.Supplier;
 import lombok.Data;
@@ -50,7 +51,7 @@ public class Sample {
     return sampleData.getRawArray();
   }
 
-  public <T extends Collection<R>, S extends T, R> T getSampledStateIds(
+  public <T extends Collection<R>, S extends T, R extends Serializable> T getSampledStateIds(
       Supplier<S> supplier, Class<R> idClass) {
     try {
       return SampleUtils.getStateIdCollection(getExportArray(), supplier, idClass);
