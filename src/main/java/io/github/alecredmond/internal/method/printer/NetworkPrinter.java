@@ -47,12 +47,22 @@ public class NetworkPrinter {
         .map(tableFormatter::generateTableLines)
         .forEach(outputLines::addAll);
 
+    printLines(outputLines, tableType);
+  }
+
+  public void printLines(List<String> outputLines, String documentTitle) {
     if (configs.isPrintToConsole()) {
       outputLines.forEach(log::info);
     }
     if (configs.isPrintToTextFile()) {
-      fileExporter.exportLinesToFile(outputLines, tableType, networkData.getNetworkName());
+      fileExporter.exportLinesToFile(outputLines, documentTitle, networkData.getNetworkName());
     }
+  }
+
+  public <T extends ProbabilityTable> void printTable(T table) {
+    List<String> outputLines = new ArrayList<>(List.of("TABLE", ""));
+    outputLines.addAll(tableFormatter.generateTableLines(table));
+    printLines(outputLines, "TABLE");
   }
 
   public void printNetwork() {

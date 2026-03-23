@@ -3,12 +3,14 @@ package io.github.alecredmond.internal.method.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Supplier;
@@ -69,6 +71,68 @@ public class TableUtils {
             "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
   }
 
+  public static Map<NodeState, Double> buildMarginalMap(MarginalTable marginalTable) {
+    return setToStateMap(buildProbabilityMap(marginalTable));
+  }
+
+  private static Map<NodeState, Double> setToStateMap(Map<Set<NodeState>, Double> setMap) {
+    Map<NodeState, Double> map = new LinkedHashMap<>();
+    setMap.forEach((set, prob) -> map.put(set.stream().findFirst().orElseThrow(), prob));
+    return map;
+  }
+
+  public static Map<Set<NodeState>, Double> buildProbabilityMap(ProbabilityTable table) {
+    return buildProbabilityMapInclusive(table, new ArrayList<>(), table.getNodes());
+  }
+
+  public static Map<Set<NodeState>, Double> buildProbabilityMapInclusive(
+      ProbabilityTable table, Collection<NodeState> includedStates, Set<Node> includedNodes) {
+    ProbabilityVector vector = table.getVector();
+    double[] probabilities = vector.getProbabilities();
+    Node[] nodeArray = vector.getNodeArray();
+
+    Map<Set<NodeState>, Double> map = new LinkedHashMap<>();
+    ITERATOR.iterateEvents(
+        includedStates,
+        table,
+        (key, index) -> {
+          Set<NodeState> stateSet = keyToStates(includedNodes, LinkedHashSet::new, key, nodeArray);
+          double prob = probabilities[index];
+          map.put(stateSet, prob);
+        });
+    return map;
+  }
+
+  private static <T extends Collection<NodeState>, R extends T> R keyToStates(
+      Set<Node> includedNodes, Supplier<R> supplier, int[] k, Node[] nodeArray) {
+    return IntStream.range(0, k.length)
+        .mapToObj(i -> nodeArray[i].getNodeStates().get(k[i]))
+        .filter(state -> includedNodes.contains(state.getNode()))
+        .collect(Collectors.toCollection(supplier));
+  }
+
+  public static <T extends Serializable> Collection<NodeState> convertIDsToStates(
+      Collection<T> ids, ProbabilityTable table) {
+    Map<Serializable, NodeState> stateIdMap = table.getNodeStateIDMap();
+    return ids.stream().filter(stateIdMap::containsKey).map(stateIdMap::get).distinct().toList();
+  }
+
+  public static Map<NodeState, Double> getMapForConditions(
+      Collection<NodeState> conditionStates, ConditionalTable conditionalTable) {
+    Set<Node> conditions = conditionalTable.getConditions();
+    boolean allConditionsIncluded =
+        conditionStates.stream()
+            .map(NodeState::getNode)
+            .collect(Collectors.toSet())
+            .equals(conditions);
+    if (!allConditionsIncluded) {
+      return new HashMap<>();
+    }
+    return setToStateMap(
+        buildProbabilityMapInclusive(
+            conditionalTable, conditionStates, conditionalTable.getEvents()));
+  }
+
   public static void marginalizeJointTable(ProbabilityTable table) {
     double[] probabilities = table.getVector().getProbabilities();
     double tableSum = Arrays.stream(probabilities).sum();
@@ -88,12 +152,7 @@ public class TableUtils {
     ITERATOR.iterateEvents(
         lockExcludedNodesFirstState(includedNodes, nodeArray),
         table,
-        (k, index) ->
-            combos.add(
-                IntStream.range(0, k.length)
-                    .mapToObj(i -> nodeArray[i].getNodeStates().get(k[i]))
-                    .filter(state -> includedNodes.contains(state.getNode()))
-                    .collect(Collectors.toCollection(supplier))));
+        (k, index) -> combos.add(keyToStates(includedNodes, supplier, k, nodeArray)));
 
     return combos;
   }
