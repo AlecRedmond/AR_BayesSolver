@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface InferenceEngine {
+    //TODO - Documentantion
   static InferenceEngine create(BayesianNetwork network) {
     return new InferenceEngineFactory().create(network);
   }
