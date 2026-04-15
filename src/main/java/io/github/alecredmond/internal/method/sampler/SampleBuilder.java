@@ -4,28 +4,38 @@ import io.github.alecredmond.exceptions.SampleValidationException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.sampler.SampleCollectionData;
 import io.github.alecredmond.export.method.sampler.Sample;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
+import java.util.stream.IntStream;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @NoArgsConstructor
 public class SampleBuilder {
-  private SampleCollection collection;
 
   public SampleCollection build(
       int numberOfSamples,
       Map<Sample, Integer> sampleMap,
       Map<Node, NodeState> observations,
       Node[] nodeArray,
-      BayesianNetworkData data) {
+      BayesianNetworkData networkData) {
+
     removeEmpty(sampleMap);
     setCounts(sampleMap);
-    List<Sample> samples = radixSort(sampleMap, observations, nodeArray);
-    collection = new SampleCollection(numberOfSamples, samples, observations, nodeArray, data);
-    return validateSamples();
+
+    SampleCollectionData collectionData =
+        SampleCollectionData.builder()
+            .totalSamples(numberOfSamples)
+            .samples(radixSort(sampleMap.keySet(), observations, nodeArray))
+            .networkObservations(observations)
+            .nodes(nodeArray)
+            .build();
+
+    return new SampleCollection(collectionData, networkData);
   }
 
   private void removeEmpty(Map<Sample, Integer> sampleMap) {
@@ -37,49 +47,22 @@ public class SampleBuilder {
   }
 
   private List<Sample> radixSort(
-      Map<Sample, Integer> sampleMap, Map<Node, NodeState> observations, Node[] nodeArray) {
-    List<Sample> samples = new ArrayList<>(sampleMap.keySet());
-    for (int r = nodeArray.length - 1; r >= 0; r--) {
-      samples = bucketSortByIndex(samples, observations, nodeArray[r], r);
-    }
-    return samples;
-  }
-
-  public SampleCollection validateSamples() {
+      Collection<Sample> samples, Map<Node, NodeState> observations, Node[] nodeArray) {
     try {
-      sampleCountCorrect();
-      return collection;
+      return samples.stream().sorted(radixComparator(nodeArray, observations)).toList();
     } catch (SampleValidationException e) {
-      log.error(e.getMessage());
-      return null;
+      log.warn("{}, USING RANDOM ORDER...", e.getMessage());
+      return samples.stream().toList();
     }
   }
 
-  private List<Sample> bucketSortByIndex(
-      List<Sample> samples, Map<Node, NodeState> observations, Node node, int stateIndex) {
-    if (observations.containsKey(node)) return samples;
-    Map<NodeState, List<Sample>> buckets = new HashMap<>();
-    samples.forEach(
-        sample -> {
-          NodeState state = sample.getRawArray()[stateIndex];
-          buckets.putIfAbsent(state, new ArrayList<>());
-          buckets.get(state).add(sample);
-        });
-    return node.getNodeStates().stream()
-        .filter(buckets::containsKey)
-        .flatMap(state -> buckets.get(state).stream())
-        .toList();
-  }
-
-  private void sampleCountCorrect() {
-    int totalSamples = collection.size();
-    List<Sample> samples = collection.getSamples();
-    int sampleMapCount = samples.isEmpty() ? 0 : samples.stream().mapToInt(Sample::size).sum();
-    if (totalSamples == sampleMapCount) {
-      return;
-    }
-    throw new SampleValidationException(
-        "Mismatch between expected total samples %d and counted samples %d"
-            .formatted(totalSamples, sampleMapCount));
+  private Comparator<Sample> radixComparator(Node[] nodeArray, Map<Node, NodeState> observations) {
+    Map<NodeState, Integer> stateIndexes = NodeUtils.buildStateIndexMap(nodeArray);
+    return IntStream.range(0, nodeArray.length)
+        .filter(i -> !observations.containsKey(nodeArray[i]))
+        .mapToObj(
+            i -> Comparator.comparing((Sample s) -> stateIndexes.get(s.getRawStateArray()[i])))
+        .reduce(Comparator::thenComparing)
+        .orElseThrow(() -> new SampleValidationException("SAMPLES COULD NOT BE ORDERED"));
   }
 }

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +49,7 @@ public class NodeUtils {
     addToList(parent.getChildren(), node, parent::setChildren);
   }
 
-  private static <E> void addToList(List<E> list, E element, Consumer<List<E>> setter) {
+    private static <E> void addToList(List<E> list, E element, Consumer<List<E>> setter) {
     actOnList(
         list,
         l -> l.add(element),
@@ -63,6 +64,23 @@ public class NodeUtils {
     }
     listConsumer.accept(list);
   }
+
+    public static Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
+      return IntStream.range(0, nodes.length)
+          .mapToObj(i -> Map.entry(nodes[i], i))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    public static Map<NodeState, Integer> buildStateIndexMap(Node[] nodes) {
+      Map<NodeState, Integer> statePositions = new HashMap<>();
+      Arrays.stream(nodes)
+          .map(Node::getNodeStates)
+          .forEach(
+              states ->
+                  IntStream.range(0, states.size())
+                      .forEach(i -> statePositions.put(states.get(i), i)));
+      return statePositions;
+    }
 
   public static String formatStatesToString(Collection<NodeState> stateCollection) {
     StringBuilder sb = new StringBuilder();

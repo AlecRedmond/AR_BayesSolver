@@ -22,7 +22,7 @@ public class BayesianNetworkData {
   private List<ProbabilityConstraint> constraints = new ArrayList<>();
   private boolean solved = false;
 
-  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
+  public <T extends Serializable> ProbabilityTable getNetworkTableById(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
   }
 }

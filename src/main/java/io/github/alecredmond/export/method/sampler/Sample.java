@@ -47,8 +47,8 @@ public class Sample {
     SampleUtils.setSampleSupplier(sampleData, supplier);
   }
 
-  public NodeState[] getRawArray() {
-    return sampleData.getRawArray();
+  public NodeState[] getRawStateArray() {
+    return sampleData.getRawStateArray();
   }
 
   public <T extends Collection<R>, S extends T, R extends Serializable> T getSampledStateIds(
@@ -63,7 +63,7 @@ public class Sample {
   }
 
   public NodeState[] getExportArray() {
-    return sampleData.getExportArray();
+    return sampleData.getExportStateArray();
   }
 
   @Override

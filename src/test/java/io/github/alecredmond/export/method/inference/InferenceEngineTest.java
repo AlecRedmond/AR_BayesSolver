@@ -1,7 +1,6 @@
 package io.github.alecredmond.export.method.inference;
 
-import static io.github.alecredmond.TestConfigs.PRINT_TABLES;
-import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
+import static io.github.alecredmond.TestConfigs.*;
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -86,9 +85,9 @@ class InferenceEngineTest {
     }
 
     @Test
-    void getNetworkTable_nonExistentNode_shouldThrowException() {
+    void getNetworkTable_nonExistentNode_shouldReturnNull() {
       net.solveNetwork();
-      assertThrows(Exception.class, () -> net.getNetworkTable("ZOMBIE"));
+      assertNull(net.getNetworkTable("ZOMBIE"));
     }
 
     @Test
@@ -239,8 +238,6 @@ class InferenceEngineTest {
 
   @Nested
   class ScenarioTests {
-    static final int NUMBER_OF_SAMPLES = 100_000;
-    static final int STANDARD_DEVIATIONS = 3;
     InferenceEngine test;
 
     @Test
@@ -266,7 +263,7 @@ class InferenceEngineTest {
 
       double observedProb = engine.getCurrentConditionalProbabilityById(List.of(testState));
       double expected = observedProb * NUMBER_OF_SAMPLES;
-      double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * STANDARD_DEVIATIONS;
+      double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * ALLOWED_STDEV;
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));
       long upperBound = (long) (expected + expectedDelta);
 

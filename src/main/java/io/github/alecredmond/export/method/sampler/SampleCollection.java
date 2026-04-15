@@ -20,14 +20,8 @@ public class SampleCollection {
   private final SampleCollectionData collectionData;
   private final BayesianNetworkData networkData;
 
-  public SampleCollection(
-      int totalSamples,
-      List<Sample> samples,
-      Map<Node, NodeState> networkObservations,
-      Node[] nodes,
-      BayesianNetworkData networkData) {
-    this.collectionData =
-        new SampleCollectionData(totalSamples, samples, networkObservations, nodes);
+  public SampleCollection(SampleCollectionData collectionData, BayesianNetworkData networkData) {
+    this.collectionData = collectionData;
     this.networkData = networkData;
   }
 

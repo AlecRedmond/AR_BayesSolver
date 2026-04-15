@@ -22,7 +22,7 @@ public class SampleUtils {
 
   public static <T extends Collection<NodeState>, R extends T> T rebuildStateCollection(
       SampleData sampleData, Supplier<R> supplier) {
-    T newCollection = getStateCollectionCommon(sampleData.getExportArray(), supplier, s -> s);
+    T newCollection = getStateCollectionCommon(sampleData.getExportStateArray(), supplier, s -> s);
     sampleData.setStateCollection(newCollection);
     return newCollection;
   }
@@ -57,14 +57,14 @@ public class SampleUtils {
       return;
     }
     Set<Node> nodes = new HashSet<>(nodeCollection);
-    sampleData.setExportArray(
-        Arrays.stream(sampleData.getRawArray())
+    sampleData.setExportStateArray(
+        Arrays.stream(sampleData.getRawStateArray())
             .filter(nodeState -> nodes.contains(nodeState.getNode()))
             .toArray(NodeState[]::new));
   }
 
   public static void resetExportArray(SampleData sampleData) {
-    sampleData.setExportArray(Arrays.stream(sampleData.getRawArray()).toArray(NodeState[]::new));
+    sampleData.setExportStateArray(Arrays.stream(sampleData.getRawStateArray()).toArray(NodeState[]::new));
   }
 
   public static <F extends E, E extends Collection<R>, R> E getStateIdCollection(

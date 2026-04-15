@@ -1,7 +1,6 @@
 package io.github.alecredmond.method.sampler;
 
-import static io.github.alecredmond.TestConfigs.PRINT_TABLES;
-import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
+import static io.github.alecredmond.TestConfigs.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
@@ -20,7 +19,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
   public static Stream<Arguments> provideSamplePackages() {
@@ -153,12 +151,12 @@ class SampleCollectionTest {
     int numberOfSamples = samplePackage.getNumberOfSamples();
     double probOfObserved =
         samplePackage.getEngine().getCurrentConditionalProbabilityById(measuredStateIds);
-    double delta = Math.sqrt(numberOfSamples) * 3;
+    double delta = Math.sqrt(numberOfSamples) * ALLOWED_STDEV;
     double lowerBound = probOfObserved * numberOfSamples - delta;
     double upperBound = probOfObserved * numberOfSamples + delta;
     int counted = test.countSamplesWithStateIds(measuredStateIds);
     System.out.printf(
-        "EXPECTED LOWER : %d%nEXPECTED UPPER: %d%nACTUAL: %d",
+        "EXPECTED LOWER : %d%nEXPECTED UPPER: %d%nACTUAL: %d%n",
         (int) lowerBound, (int) upperBound, counted);
     assertTrue(counted >= lowerBound);
     assertTrue(counted <= upperBound);

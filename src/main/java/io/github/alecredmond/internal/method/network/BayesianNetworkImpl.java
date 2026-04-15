@@ -114,7 +114,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
 
   public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
     if (!networkData.isSolved()) solveNetwork();
-    return Optional.ofNullable(networkData.getNetworkTable(nodeID)).orElseThrow();
+    return networkData.getNetworkTableById(nodeID);
   }
 
   @Override

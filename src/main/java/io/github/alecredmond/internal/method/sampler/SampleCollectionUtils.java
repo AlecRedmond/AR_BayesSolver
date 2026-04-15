@@ -27,7 +27,7 @@ public class SampleCollectionUtils {
   }
 
   private static boolean sampleContainsAll(Set<NodeState> stateSet, Sample sample) {
-    return SampleUtils.getStateCollection(sample.getRawArray(), HashSet::new).containsAll(stateSet);
+    return SampleUtils.getStateCollection(sample.getRawStateArray(), HashSet::new).containsAll(stateSet);
   }
 
   public static List<Sample> listSamplesIncludingStates(
