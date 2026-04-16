@@ -34,11 +34,11 @@ public class ConstraintSerializer {
   }
 
   public ProbabilityConstraint deSerialize(
-          SerializedProbabilityConstraint sto, SerializationData data) {
-    return switch (sto) {
+          SerializedProbabilityConstraint spc, SerializationData data) {
+    return switch (spc) {
       case SerializedMarginalConstraint marginal -> deSerializeMarginal(marginal, data);
       case SerializedConditionalConstraint conditional -> deSerializeConditional(conditional, data);
-      default -> throw new IllegalStateException("Unexpected value: " + sto);
+      default -> throw new IllegalStateException("Unexpected value: " + spc);
     };
   }
 

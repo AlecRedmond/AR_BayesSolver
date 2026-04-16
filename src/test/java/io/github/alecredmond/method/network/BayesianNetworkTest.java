@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
@@ -62,13 +63,13 @@ class BayesianNetworkTest {
     @Test
     void addNode_duplicateID_shouldThrowException() {
       net.addNewNode("A");
-      assertThrows(IllegalArgumentException.class, () -> net.addNewNode("A"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A"));
+      assertThrows(BayesNetIDException.class, () -> net.addNode(new Node("A")));
     }
 
     @Test
     void addNode_nullID_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNode(null));
+      assertThrows(BayesNetIDException.class, () -> net.addNode(null));
     }
 
     @Test
@@ -85,20 +86,18 @@ class BayesianNetworkTest {
     @Test
     void addNode_withStates_duplicateNodeID_shouldThrowException() {
       net.addNewNode("A", List.of("A_T", "A_F"));
-      assertThrows(
-          IllegalArgumentException.class, () -> net.addNewNode("A", List.of("A_T_2", "A_F_2")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A", List.of("A_T_2", "A_F_2")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInNetwork_shouldThrowException() {
       net.addNewNode("A", List.of("A_T", "A_F"));
-      assertThrows(
-          IllegalArgumentException.class, () -> net.addNewNode("B", List.of("A_T", "B_F")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("B", List.of("A_T", "B_F")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNewNode("B", List.of("B_T", "B_T")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("B", List.of("B_T", "B_T")));
     }
 
     @Test
@@ -111,7 +110,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withNullStatesCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNewNode("A", null));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A", null));
     }
 
     @Test
@@ -201,13 +200,13 @@ class BayesianNetworkTest {
 
     @Test
     void addNodeState_toNonExistentNode_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNodeState("Z", "Z_T"));
+      assertThrows(BayesNetIDException.class, () -> net.addNodeState("Z", "Z_T"));
     }
 
     @Test
     void addNodeState_nullState_shouldThrowException() {
       net.addNewNode("A");
-      assertThrows(Exception.class, () -> net.addNodeState("A", null));
+      assertThrows(BayesNetIDException.class, () -> net.addNodeState("A", null));
     }
 
     @Test
@@ -288,23 +287,23 @@ class BayesianNetworkTest {
 
     @Test
     void addParent_toNonExistentChild_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("Z", "A"));
+      assertThrows(BayesNetIDException.class, () -> net.addParent("Z", "A"));
     }
 
     @Test
     void addParent_nonExistentParent_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("A", "Z"));
+      assertThrows(BayesNetIDException.class, () -> net.addParent("A", "Z"));
     }
 
     @Test
     void addParent_createCycle_shouldThrowException() {
       net.addParent("B", "A");
-      assertThrows(Exception.class, () -> net.addParent("A", "B"));
+      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "B"));
     }
 
     @Test
     void addParent_addSelfAsParent_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("A", "A"));
+      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "A"));
     }
 
     @Test
@@ -343,7 +342,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeParents_fromNonExistentNode_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.removeParents("Z"));
+      assertThrows(BayesNetIDException.class, () -> net.removeParents("Z"));
     }
   }
 

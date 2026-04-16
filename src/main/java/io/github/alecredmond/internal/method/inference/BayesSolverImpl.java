@@ -5,7 +5,9 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.junctiontree.JTASolver;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class BayesSolverImpl implements BayesSolver {
   private final BayesianNetwork network;
   private SolverResults results;
@@ -17,12 +19,10 @@ public class BayesSolverImpl implements BayesSolver {
 
   @Override
   public boolean solve() {
-    BayesianNetworkData data = network.getNetworkData();
-    if (data.isSolved()) return false;
-    network.buildNetworkData();
-    results = JTASolver.solveNetwork(data);
-    data.setSolved(true);
-    return true;
+    if (isSolved()) {
+      return true;
+    }
+    return forceSolve();
   }
 
   @Override
@@ -31,7 +31,26 @@ public class BayesSolverImpl implements BayesSolver {
   }
 
   @Override
+  public boolean forceSolve() {
+    BayesianNetworkData data = network.getNetworkData();
+    data.setSolved(false);
+    results = null;
+    try {
+      network.buildNetworkData();
+      results = JTASolver.solveNetwork(data);
+      data.setSolved(true);
+      return true;
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      return false;
+    }
+  }
+
+  @Override
   public SolverResults getResults() {
+    if (results == null) {
+      log.warn("NO RESULTS FROM CURRENT SOLVER");
+    }
     return results;
   }
 }

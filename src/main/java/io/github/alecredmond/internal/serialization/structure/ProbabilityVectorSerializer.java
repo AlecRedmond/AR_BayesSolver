@@ -6,29 +6,29 @@ import io.github.alecredmond.export.serialization.probabilitytable.probabilityve
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
-
 import java.io.Serializable;
 import java.util.Map;
 
 public class ProbabilityVectorSerializer {
 
   public SerializedProbabilityVector serialize(ProbabilityVector vector) {
-    SerializedProbabilityVector sto = new SerializedProbabilityVector();
-    sto.setNodeIdArray(SerializerUtils.serializeArray(vector.getNodeArray(), Node::getId));
-    sto.setNumberOfStates(vector.getNumberOfStates());
-    sto.setStepMultiplier(vector.getStepMultiplier());
-    sto.setProbabilities(vector.getProbabilities());
-    return sto;
+    SerializedProbabilityVector sv = new SerializedProbabilityVector();
+    sv.setNodeIdArray(SerializerUtils.serializeArray(vector.getNodeArray(), Node::getId));
+    sv.setNumberOfStates(vector.getNumberOfStates());
+    sv.setStepMultiplier(vector.getStepMultiplier());
+    sv.setProbabilities(vector.getProbabilities());
+    return sv;
   }
 
-  public ProbabilityVector deSerialize(SerializedProbabilityVector sto, SerializationData data) {
+  public ProbabilityVector deSerialize(SerializedProbabilityVector sv, SerializationData data) {
     Map<Serializable, Node> nodeIdMap = data.getNodeIdMap();
-    Node[] nodeArray = SerializerUtils.deserializeArray(sto.getNodeIdArray(), nodeIdMap::get, Node[]::new);
+    Node[] nodeArray =
+        SerializerUtils.deserializeArray(sv.getNodeIdArray(), nodeIdMap::get, Node[]::new);
     return new ProbabilityVector(
         nodeArray,
-        sto.getNumberOfStates(),
-        sto.getStepMultiplier(),
-        sto.getProbabilities(),
+        sv.getNumberOfStates(),
+        sv.getStepMultiplier(),
+        sv.getProbabilities(),
         NodeUtils.buildNodeIndexMap(nodeArray),
         NodeUtils.buildStateIndexMap(nodeArray));
   }

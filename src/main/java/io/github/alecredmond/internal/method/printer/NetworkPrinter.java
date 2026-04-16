@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.printer;
 
+import io.github.alecredmond.exceptions.NetworkPrinterException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
@@ -47,7 +48,11 @@ public class NetworkPrinter {
         .map(tableFormatter::generateTableLines)
         .forEach(outputLines::addAll);
 
-    printLines(outputLines, tableType);
+    try {
+      printLines(outputLines, tableType);
+    } catch (NetworkPrinterException e) {
+      log.error(e.getMessage());
+    }
   }
 
   public void printLines(List<String> outputLines, String documentTitle) {

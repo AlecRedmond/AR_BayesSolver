@@ -16,7 +16,7 @@ import lombok.ToString;
 public class SerializedBayesianNetwork implements Serializable {
   private String networkName;
   private List<SerializedNode> serializedNodes;
-  private Map<Serializable, SerializedProbabilityTable> networkTableStoMap;
-  private List<SerializedProbabilityConstraint> constraintStos;
+  private Map<Serializable, SerializedProbabilityTable> serializedCptMap;
+  private List<SerializedProbabilityConstraint> serializedProbabilityConstraints;
   private boolean solved;
 }

@@ -38,7 +38,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public InferenceEngineImpl observeNetwork(Collection<NodeState> observed) {
-    if (!checkSolved()) {
+    if (!ensureSolved()) {
       return this;
     }
     junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
@@ -46,7 +46,7 @@ public class InferenceEngineImpl implements InferenceEngine {
     return this;
   }
 
-  private boolean checkSolved() {
+  private boolean ensureSolved() {
     if (solver.isSolved()) {
       return true;
     }
@@ -80,7 +80,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public Map<Node, NodeState> getCurrentObservations() {
-    return checkSolved() ? junctionTree.getData().getObservedEvidence() : new HashMap<>();
+    return ensureSolved() ? junctionTree.getData().getObservedEvidence() : new HashMap<>();
   }
 
   @Override
@@ -91,7 +91,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public MarginalTable getObservedTable(Node node) {
-    return checkSolved() ? junctionTree.getData().getObservedTablesMap().get(node) : null;
+    return ensureSolved() ? junctionTree.getData().getObservedTablesMap().get(node) : null;
   }
 
   @Override
@@ -106,12 +106,12 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public Map<Node, MarginalTable> getObservedTables() {
-    return checkSolved() ? junctionTree.getData().getObservedTablesMap() : new HashMap<>();
+    return ensureSolved() ? junctionTree.getData().getObservedTablesMap() : new HashMap<>();
   }
 
   @Override
   public double getCurrentConditionalProbability(Collection<NodeState> measuredStates) {
-    if (!checkSolved()) {
+    if (!ensureSolved()) {
       return 0.0;
     }
     try {
@@ -134,7 +134,7 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public InferenceEngine printObserved() {
-    if (!checkSolved()) return this;
+    if (!ensureSolved()) return this;
     new NetworkPrinter(this).printObserved();
     return this;
   }

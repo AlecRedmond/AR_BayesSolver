@@ -11,6 +11,8 @@ public interface BayesSolver {
 
   boolean solve();
 
+  boolean forceSolve();
+
   boolean isSolved();
 
   SolverResults getResults();

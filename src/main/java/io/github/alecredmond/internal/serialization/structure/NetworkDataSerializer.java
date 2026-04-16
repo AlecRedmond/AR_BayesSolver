@@ -37,7 +37,7 @@ public class NetworkDataSerializer {
   private Map<Serializable, SerializedProbabilityTable> buildSerializedNetworkTables(
       BayesianNetworkData data) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
-    return buildMap(data.getNetworkTablesMap(), Node::getId, serializer::serialize);
+    return convertMap(data.getNetworkTablesMap(), Node::getId, serializer::serialize);
   }
 
   private List<SerializedProbabilityConstraint> buildSerializedProbabilityConstraints(
@@ -46,11 +46,11 @@ public class NetworkDataSerializer {
     return data.getConstraints().stream().map(serializer::serialize).toList();
   }
 
-  private <R, S, T, U> Map<R, S> buildMap(
-      Map<T, U> input, Function<T, R> keyFunc, Function<U, S> valFunc) {
-    Map<R, S> map = new HashMap<>();
-    input.forEach((t, u) -> map.put(keyFunc.apply(t), valFunc.apply(u)));
-    return map;
+  private <R, S, T, U> Map<R, S> convertMap(
+      Map<T, U> input, Function<T, R> keyConverter, Function<U, S> valConverter) {
+    Map<R, S> converted = new HashMap<>();
+    input.forEach((t, u) -> converted.put(keyConverter.apply(t), valConverter.apply(u)));
+    return converted;
   }
 
   public BayesianNetworkData deSerialize(
@@ -63,7 +63,7 @@ public class NetworkDataSerializer {
         nodeIDsMap,
         nodeStateIDsMap,
         deSerializeNetworkTables(serialized, data, nodeIDsMap),
-        deSerializeConstraints(serialized.getConstraintStos(), data),
+        deSerializeConstraints(serialized.getSerializedProbabilityConstraints(), data),
         serialized.isSolved());
   }
 
@@ -80,10 +80,10 @@ public class NetworkDataSerializer {
       SerializationData data,
       Map<Serializable, Node> nodeIDsMap) {
     ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
-    return buildMap(
-        serialized.getNetworkTableStoMap(),
+    return convertMap(
+        serialized.getSerializedCptMap(),
         nodeIDsMap::get,
-        tableSTO -> serializer.deSerialize(tableSTO, data));
+        serializedTable -> serializer.deSerialize(serializedTable, data));
   }
 
   private List<ProbabilityConstraint> deSerializeConstraints(

@@ -16,22 +16,23 @@ public class BayesianNetworkSerializer {
     return new NetworkDataSerializer().serialize(network.getNetworkData());
   }
 
-  public BayesianNetwork deSerialize(SerializedBayesianNetwork networkDataSTO) {
-    SerializationData data = new SerializationData();
-    createNodes(networkDataSTO, data);
-    return new BayesianNetworkImpl(new NetworkDataSerializer().deSerialize(networkDataSTO, data));
+  public BayesianNetwork deSerialize(SerializedBayesianNetwork serializedBayesianNetwork) {
+    SerializationData serializationData = new SerializationData();
+    createNodes(serializedBayesianNetwork, serializationData);
+    return new BayesianNetworkImpl(
+        new NetworkDataSerializer().deSerialize(serializedBayesianNetwork, serializationData));
   }
 
-  private void createNodes(SerializedBayesianNetwork networkDataSTO, SerializationData data) {
+  private void createNodes(SerializedBayesianNetwork sbn, SerializationData serializationData) {
     NodeSerializer serializer = new NodeSerializer();
-    networkDataSTO
-        .getSerializedNodes()
+    sbn.getSerializedNodes()
         .forEach(
-            nodeSTO -> {
-              Node node = serializer.createNewBase(nodeSTO);
-              data.getNodeIdMap().put(node.getId(), node);
+            serializedNode -> {
+              Node node = serializer.createNewBase(serializedNode);
+              serializationData.getNodeIdMap().put(node.getId(), node);
               node.getNodeStates()
-                  .forEach(state -> data.getNodeStateIdMap().put(state.getId(), state));
+                  .forEach(
+                      state -> serializationData.getNodeStateIdMap().put(state.getId(), state));
             });
   }
 }

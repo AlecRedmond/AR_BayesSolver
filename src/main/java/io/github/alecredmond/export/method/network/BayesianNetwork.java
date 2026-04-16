@@ -9,8 +9,8 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
@@ -160,25 +160,25 @@ public interface BayesianNetwork {
    * Removes a node and all associated edges from the network.
    *
    * @param node the node to remove.
-   * @return this instance for method chaining.
+   * @return true if the network contained the specified Node.
    */
-  BayesianNetwork removeNode(Node node);
+  boolean removeNode(Node node);
 
   /**
    * Removes a node and all associated edges from the network.
    *
    * @param nodeID the identifier of the node to remove.
    * @param <T> the class of the Node ID
-   * @return this instance for method chaining.
+   * @return true if the network contained the specified Node
    */
-  <T extends Serializable> BayesianNetwork removeNodeByID(T nodeID);
+  <T extends Serializable> boolean removeNodeByID(T nodeID);
 
   /**
    * Removes all nodes from the network, resetting it to an empty state.
    *
-   * @return this instance for method chaining.
+   * @return true if the network contained any nodes.
    */
-  BayesianNetwork removeAllNodes();
+  boolean removeAllNodes();
 
   /**
    * Returns a node from its input ID
@@ -479,15 +479,16 @@ public interface BayesianNetwork {
   boolean removeAllConstraints();
 
   /**
-   * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other
-   * methods that involve sampling, observing, and printing from the network implicitly run this
-   * method
+   * Runs a BayesSolver instance to find the best fit for the constraints provided. Other methods
+   * that involve sampling, observing, and printing from the network implicitly run this method. If
+   * analysis of the solver convergence is required, consider creating a new {@link BayesSolver}
+   * instance using {@code BayesSolver.create(network)}
    *
    * @return this instance for method chaining.
    */
   BayesianNetwork solveNetwork();
 
-    /**
+  /**
    * Prints the results of the most recent observation (posterior probabilities) according to
    * current printer configurations.
    *

@@ -1,0 +1,97 @@
+package io.github.alecredmond.internal.method.network;
+
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.Data;
+
+@Data
+public class NetworkDataBuilder {
+  private final BayesianNetworkData networkData;
+
+  public void build() {
+    Map<Node, Integer> layerMap = orderNodes();
+    rebuildIdMaps();
+    buildNetworkTablesMap(layerMap);
+    marginalizeAllTables();
+  }
+
+  public Map<Node, Integer> orderNodes() {
+    Map<Node, Integer> layerMap = new HashMap<>();
+    networkData.getNodeIDsMap().values().forEach(node -> calculateNodeLayer(node, layerMap));
+
+    List<Node> nodesOrdered =
+        layerMap.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .toList();
+
+    networkData.setNodes(nodesOrdered);
+    return layerMap;
+  }
+
+  public static int calculateNodeLayer(Node node, Map<Node, Integer> layerMap) {
+    if (layerMap.containsKey(node)) return layerMap.get(node);
+
+    int layer =
+        node.getParents().stream()
+            .mapToInt(parent -> calculateNodeLayer(parent, layerMap) + 1)
+            .max()
+            .orElse(0);
+
+    layerMap.put(node, layer);
+    return layer;
+  }
+
+  public void rebuildIdMaps() {
+    List<Node> nodes = networkData.getNodes();
+    networkData.setNodeIDsMap(createNodeIdMap(nodes));
+    networkData.setNodeStateIDsMap(createNodeStateIdMap(nodes));
+  }
+
+  public static Map<Serializable, Node> createNodeIdMap(List<Node> nodes) {
+    return nodes.stream()
+        .map(n -> Map.entry(n.getId(), n))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public static Map<Serializable, NodeState> createNodeStateIdMap(List<Node> nodes) {
+    return nodes.stream()
+        .flatMap(n -> n.getNodeStates().stream())
+        .map(ns -> Map.entry(ns.getId(), ns))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public void marginalizeAllTables() {
+    networkData.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
+  }
+
+  public void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
+    networkData.setNetworkTablesMap(new HashMap<>());
+    networkData
+        .getNodes()
+        .forEach(
+            node -> {
+              List<Node> events = List.of(node);
+              List<Node> conditions = orderConditions(node.getParents(), layerMap);
+              ProbabilityTable table = TableBuilder.buildNetworkTable(events, conditions);
+              table.marginalizeTable();
+              networkData.getNetworkTablesMap().put(node, table);
+            });
+  }
+
+  public List<Node> orderConditions(List<Node> parents, Map<Node, Integer> layerMap) {
+    return parents.stream()
+        .map(node -> Map.entry(node, layerMap.get(node)))
+        .sorted(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .toList();
+  }
+}

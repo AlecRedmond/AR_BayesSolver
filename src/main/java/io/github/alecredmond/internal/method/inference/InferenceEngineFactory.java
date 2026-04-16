@@ -17,8 +17,7 @@ public class InferenceEngineFactory {
       return null;
     }
     return new InferenceEngineImpl(
-        network,
-        JunctionTreeAlgorithm.buildForInference(network.getNetworkData()));
+        network, JunctionTreeAlgorithm.buildForInference(network.getNetworkData()));
   }
 
   private boolean checkSolved(BayesianNetwork network) {

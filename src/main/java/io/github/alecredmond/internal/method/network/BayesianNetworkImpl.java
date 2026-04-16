@@ -1,5 +1,7 @@
 package io.github.alecredmond.internal.method.network;
 
+import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -55,42 +57,41 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return new BayesianNetworkSerializer().serialize(this);
   }
 
-  public BayesianNetwork addNode(Node node) {
+  public BayesianNetwork addNode(Node node) throws BayesNetIDException {
     networkData.setSolved(false);
     NetworkDataUtils.addNode(node, networkData);
     return this;
   }
 
-  public <T extends Serializable> BayesianNetworkImpl addNewNode(T nodeID) {
+  public <T extends Serializable> BayesianNetworkImpl addNewNode(T nodeID)
+      throws BayesNetIDException {
     networkData.setSolved(false);
-    NetworkDataUtils.addNode(nodeID, networkData);
+    NetworkDataUtils.addNode(new Node(nodeID), networkData);
     return this;
   }
 
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addNewNode(
-      T nodeID, Collection<E> nodeStateIDs) {
+      T nodeID, Collection<E> nodeStateIDs) throws BayesNetIDException {
     networkData.setSolved(false);
     NetworkDataUtils.addNode(nodeID, nodeStateIDs, networkData);
     return this;
   }
 
-  public BayesianNetwork removeNode(Node node) {
+  public boolean removeNode(Node node) {
+    if (Optional.ofNullable(node).isEmpty()) return false;
     networkData.setSolved(false);
-    if (Optional.ofNullable(node).isEmpty()) return this;
-    NetworkDataUtils.removeNode(node.getId(), networkData);
-    return null;
+    return NetworkDataUtils.removeNode(node.getId(), networkData);
   }
 
-  public <T extends Serializable> BayesianNetworkImpl removeNodeByID(T nodeID) {
+  public <T extends Serializable> boolean removeNodeByID(T nodeID) {
+    if (Optional.ofNullable(nodeID).isEmpty()) return false;
     networkData.setSolved(false);
-    NetworkDataUtils.removeNode(nodeID, networkData);
-    return this;
+    return NetworkDataUtils.removeNode(nodeID, networkData);
   }
 
-  public BayesianNetworkImpl removeAllNodes() {
+  public boolean removeAllNodes() {
     networkData.setSolved(false);
-    NetworkDataUtils.resetAllNodeData(networkData);
-    return this;
+    return NetworkDataUtils.resetAllNodeData(networkData);
   }
 
   public BayesianNetworkImpl solveNetwork() {
@@ -108,7 +109,7 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   public BayesianNetwork buildNetworkData() {
-    NetworkDataUtils.buildNetworkData(networkData);
+    new NetworkDataBuilder(networkData).build();
     return this;
   }
 
@@ -136,14 +137,14 @@ public class BayesianNetworkImpl implements BayesianNetwork {
   }
 
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addNodeStates(
-      T nodeID, Collection<E> nodeStateIDs) {
+      T nodeID, Collection<E> nodeStateIDs) throws BayesNetIDException {
     networkData.setSolved(false);
     NetworkDataUtils.addNodeStates(nodeID, nodeStateIDs, networkData);
     return this;
   }
 
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addNodeState(
-      T nodeID, E nodeStateID) {
+      T nodeID, E nodeStateID) throws BayesNetIDException {
     networkData.setSolved(false);
     NetworkDataUtils.addNodeState(nodeID, nodeStateID, networkData);
     return this;
@@ -176,7 +177,8 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return null;
   }
 
-  public BayesianNetwork addParents(Node child, Collection<Node> parents) {
+  public BayesianNetwork addParents(Node child, Collection<Node> parents)
+      throws NetworkStructureException {
     networkData.setSolved(false);
     NetworkDataUtils.addParents(child, parents);
     return this;
@@ -189,14 +191,14 @@ public class BayesianNetworkImpl implements BayesianNetwork {
     return this;
   }
 
-  public BayesianNetwork addParent(Node child, Node parent) {
+  public BayesianNetwork addParent(Node child, Node parent) throws NetworkStructureException {
     networkData.setSolved(false);
     NetworkDataUtils.addParent(child, parent);
     return this;
   }
 
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addParent(
-      T childID, E parentID) {
+      T childID, E parentID) throws NetworkStructureException {
     networkData.setSolved(false);
     NetworkDataUtils.addParent(childID, parentID, networkData);
     return this;
