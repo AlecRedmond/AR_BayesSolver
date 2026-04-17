@@ -14,7 +14,7 @@ import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
-import io.github.alecredmond.internal.method.node.NetworkPropertyChangeEvent;
+import io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.beans.PropertyChangeEvent;
@@ -136,22 +136,25 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return networkData.getNetworkTableById(nodeID);
   }
 
-  @Override
   public InferenceEngine buildInferenceEngine() {
     return InferenceEngine.create(this);
   }
 
+  public void resetAllData() {
+    removeAllNodes();
+    networkData.setNodes(new ArrayList<>());
+    networkData.setNodeIDsMap(new HashMap<>());
+    networkData.setNodeStateIDsMap(new HashMap<>());
+    networkData.setNetworkTablesMap(new HashMap<>());
+    networkData.setConstraints(new ArrayList<>());
+  }
+
   public <T extends Serializable> Node getNode(T nodeID) {
-    Map<Serializable, Node> map = networkData.getNodeIDsMap();
-    if (map.containsKey(nodeID)) {
-      return map.get(nodeID);
-    }
-    log.error("No node with ID {} found in network {}!", nodeID, networkData.getNetworkName());
-    return null;
+    return NetworkDataUtils.getNodeById(nodeID, networkData);
   }
 
   public <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs) {
-    return nodeIDs.stream().map(this::getNode).collect(Collectors.toSet());
+    return NetworkDataUtils.getNodesByID(nodeIDs, networkData);
   }
 
   public <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs) {
@@ -163,13 +166,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   }
 
   public <E extends Serializable> NodeState getNodeState(E nodeStateID) {
-    Map<Serializable, NodeState> map = networkData.getNodeStateIDsMap();
-    if (map.containsKey(nodeStateID)) {
-      return map.get(nodeStateID);
-    }
-    log.error(
-        "No node state with ID {} found in network {}!", nodeStateID, networkData.getNetworkName());
-    return null;
+    return NetworkDataUtils.getStateById(nodeStateID, networkData);
   }
 
   public BayesianNetwork addParents(Node child, Collection<Node> parents)
@@ -220,8 +217,8 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getNodeStateByIdOrThrow(eventStateID, networkData),
-        NetworkDataUtils.getNodeStatesByIdOrThrow(conditionStateIDs, networkData),
+        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
+        NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
         probability,
         networkData);
     return this;
@@ -231,9 +228,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
       T eventStateID, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getNodeStateByIdOrThrow(eventStateID, networkData),
-        probability,
-        networkData);
+        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData), probability, networkData);
     return this;
   }
 

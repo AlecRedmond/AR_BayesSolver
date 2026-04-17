@@ -1,6 +1,5 @@
-package io.github.alecredmond.internal.method.node;
+package io.github.alecredmond.internal.method.network.changehandlers;
 
-import io.github.alecredmond.internal.method.network.changehandlers.*;
 import java.util.function.Supplier;
 import lombok.Getter;
 

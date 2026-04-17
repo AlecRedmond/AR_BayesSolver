@@ -1,6 +1,6 @@
 package io.github.alecredmond.export.application.node;
 
-import static io.github.alecredmond.internal.method.node.NetworkPropertyChangeEvent.*;
+import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
 
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.beans.PropertyChangeListener;

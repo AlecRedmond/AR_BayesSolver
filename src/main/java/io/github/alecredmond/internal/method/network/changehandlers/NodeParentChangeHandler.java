@@ -4,12 +4,10 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.method.network.NetworkStructureValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-
+import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
-
-import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -23,10 +21,6 @@ public class NodeParentChangeHandler implements NetworkChangeHandler {
     List<Node> newParents = (List<Node>) evt.getNewValue();
     CollectionChangeAnalyzer<Node> analyzer =
         new CollectionChangeAnalyzer<>(oldParents, newParents);
-
-    if (analyzer.getRemoved().isEmpty() && analyzer.getAdded().isEmpty()) {
-      return;
-    }
 
     networkData.setSolved(false);
     networkData.setNetworkTablesMap(new HashMap<>());

@@ -30,10 +30,6 @@ public class NodeStateChangeHandler implements NetworkChangeHandler {
     CollectionChangeAnalyzer<NodeState> analyzer =
         new CollectionChangeAnalyzer<>(oldStates, newStates);
 
-    if (analyzer.getRemoved().isEmpty() && analyzer.getAdded().isEmpty()) {
-      return;
-    }
-
     networkData.setSolved(false);
 
     log.warn(

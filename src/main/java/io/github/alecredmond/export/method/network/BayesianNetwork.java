@@ -479,4 +479,7 @@ public interface BayesianNetwork {
    * @return a new InferenceEngine instance
    */
   InferenceEngine buildInferenceEngine();
+
+  /** resets all data in the network, excluding the network name */
+  void resetAllData();
 }

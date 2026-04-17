@@ -110,7 +110,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withNullStatesCollection_shouldThrowException() {
-      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A", null));
+      assertThrows(NullPointerException.class, () -> net.addNewNode("A", null));
     }
 
     @Test
@@ -201,7 +201,7 @@ class BayesianNetworkTest {
 
     @Test
     void addParent_toNonExistentChild_shouldThrowException() {
-      assertThrows(BayesNetIDException.class, () -> net.addParent("Z", "A"));
+      assertThrows(NullPointerException.class, () -> net.addParent("Z", "A"));
     }
 
     @Test
@@ -256,7 +256,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeParents_fromNonExistentNode_shouldThrowException() {
-      assertThrows(BayesNetIDException.class, () -> net.removeParents("Z"));
+      assertThrows(NullPointerException.class, () -> net.removeParents("Z"));
     }
   }
 

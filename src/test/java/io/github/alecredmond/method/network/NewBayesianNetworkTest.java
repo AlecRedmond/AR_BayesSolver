@@ -1,0 +1,426 @@
+package io.github.alecredmond.method.network;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
+import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
+import java.beans.PropertyChangeListener;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+class NewBayesianNetworkTest {
+  static final List<Serializable> NODE_IDS = List.of("A", "B", "C", "D");
+  BayesianNetwork test;
+
+  static List<Serializable> listWithNull(List<Serializable> list) {
+    List<Serializable> s = new ArrayList<>();
+    s.add(null);
+    s.addAll(list);
+    return s;
+  }
+
+  @BeforeEach
+  void setUp() {
+    test = BayesianNetwork.newNetwork("TestNetwork");
+    NODE_IDS.forEach(id -> test.addNewNode(id, List.of(id + "+", id + "-")));
+  }
+
+  @Nested
+  class NodeCreationTests {
+
+    static Stream<Arguments> nodeInputArgs_successExpected() {
+      return Stream.of(
+          Arguments.of("E", List.of("E+", "E-")),
+          Arguments.of("F", List.of("F+", "F-")),
+          Arguments.of("G", List.of("G+", "G-")),
+          Arguments.of("H", List.of()),
+          Arguments.of('A', List.of('B', 'C')), // <- char 'A' != string "A"
+          Arguments.of(-1, List.of(2.0, (long) 3)),
+          Arguments.of('E', List.of("Q", 7)),
+          Arguments.of(new SerializableClass(), List.of("HELLO", "WORLD")));
+    }
+
+    static Stream<Arguments> nodeInputArgs_allErrors() {
+      return Stream.concat(nodeInputArgs_nodeIdErrors(), nodeInputArgs_stateIdErrors());
+    }
+
+    static Stream<Arguments> nodeInputArgs_nodeIdErrors() {
+      return Stream.of(
+          Arguments.of("A", List.of("A+", "A-"), BayesNetIDException.class),
+          Arguments.of("B", List.of("G+", "G-"), BayesNetIDException.class),
+          Arguments.of(null, List.of("G+", "G-"), NullPointerException.class));
+    }
+
+    static Stream<Arguments> nodeInputArgs_stateIdErrors() {
+      return Stream.of(
+          Arguments.of("F", List.of("A+", "F-"), BayesNetIDException.class),
+          Arguments.of("G", listWithNull(List.of("G+", "G-")), NullPointerException.class),
+          Arguments.of("H", List.of("H+", "H+", "H-"), BayesNetIDException.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_successExpected")
+    void addNode_fromNodeObject_shouldSucceed(Serializable id, List<Serializable> stateIds) {
+      assertDoesNotThrow(
+          () -> {
+            Node node = new Node(id, stateIds);
+            test.addNode(node);
+          });
+      validateExistence(id, stateIds);
+    }
+
+    private void validateExistence(Serializable id, List<Serializable> stateIds) {
+      Node node = test.getNode(id);
+      assertNotNull(node);
+      Set<Serializable> idSet = new HashSet<>(stateIds);
+      node.getNodeStates().forEach(state -> assertTrue(idSet.contains(state.getId())));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_allErrors")
+    void addNode_fromNodeObject_shouldThrowError(
+        Serializable id, List<Serializable> stateIds, Class<Exception> exceptionClass) {
+      assertThrows(
+          exceptionClass,
+          () -> {
+            Node node = new Node(id, stateIds);
+            test.addNode(node);
+          });
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_successExpected")
+    void addNewNode_fromNodeArgs_shouldSucceed(Serializable id, List<Serializable> stateIds) {
+      assertDoesNotThrow(
+          () -> {
+            test.addNewNode(id, stateIds);
+          });
+      validateExistence(id, stateIds);
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_allErrors")
+    void addNewNode_fromNodeArgs_shouldThrowError(
+        Serializable id, List<Serializable> stateIds, Class<Exception> exceptionClass) {
+      assertThrows(exceptionClass, () -> test.addNewNode(id, stateIds));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_successExpected")
+    void addNewNode_onlyId_shouldSucceed(Serializable id) {
+      assertDoesNotThrow(() -> test.addNewNode(id));
+      assertNotNull(test.getNode(id));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeInputArgs_nodeIdErrors")
+    void addNewNode_onlyId_shouldThrowError(Serializable id) {
+      assertThrows(BayesNetIDException.class, () -> test.addNewNode(id));
+    }
+
+    @NoArgsConstructor
+    static class SerializableClass implements Serializable {}
+  }
+
+  @Nested
+  class NodeRemovalTests {
+
+    static Stream<Arguments> nodeRemovalArgs() {
+      Stream<Arguments> expectedTrue = NODE_IDS.stream().map(id -> Arguments.of(id, true));
+      Stream<Arguments> expectedFalse =
+          Stream.of(
+              Arguments.of("E", false),
+              Arguments.of("F", false),
+              Arguments.of('A', false),
+              Arguments.of(3, false));
+      return Stream.concat(expectedTrue, expectedFalse);
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeRemovalArgs")
+    void removeById_shouldSucceed(Serializable id, boolean expected) {
+      assertEquals(expected, test.removeNodeByID(id));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeRemovalArgs")
+    void removeByNode_shouldSucceed(Serializable id, boolean expected) {
+      assertEquals(expected, test.removeNode(test.getNode(id)));
+    }
+
+    @Test
+    void removeAllNodes_shouldSucceed() {
+      assertTrue(test.removeAllNodes());
+    }
+
+    @Test
+    void removeAllNodes_emptyNetwork_shouldReturnFalse() {
+      test.removeAllNodes();
+      assertFalse(test.removeAllNodes());
+    }
+  }
+
+  @Nested
+  class NodeStateModificationTests {
+
+    static Stream<Arguments> provideSuccessfulStateChanges() {
+      return Stream.of(
+          Arguments.of("A", List.of("A+", "A-"), 4),
+          Arguments.of("A", List.of("A+", "A-", "A++"), 4),
+          Arguments.of("A", List.of("A+"), 3),
+          Arguments.of("A", List.of(5, 'A'), 0),
+          Arguments.of("A", List.of(), 0));
+    }
+
+    @BeforeEach
+    void addConstraints() {
+      test.addConstraint("A+", 0.5)
+          .addConstraint("A-", 0.5)
+          .addConstraint("A+", List.of("B+"), 0.5)
+          .addConstraint("B+", List.of("A+"), 0.5);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulStateChanges")
+    void changeNodeStates_shouldSucceed(
+        Serializable nodeId, List<Serializable> newStateIds, int expectedConstraints) {
+      Node node = test.getNode(nodeId);
+      List<NodeState> oldStates = new ArrayList<>(node.getNodeStates());
+      List<NodeState> states = newStateIds.stream().map(id -> new NodeState(id, node)).toList();
+      assertDoesNotThrow(() -> node.setNodeStates(states));
+      CollectionChangeAnalyzer<NodeState> analyzer =
+          new CollectionChangeAnalyzer<>(oldStates, states);
+
+      BayesianNetworkData networkData = test.getNetworkData();
+
+      Set<NodeState> networkStates = new HashSet<>(networkData.getNodeStateIDsMap().values());
+      analyzer.getAdded().forEach(added -> assertTrue(networkStates.contains(added)));
+      analyzer.getRemoved().forEach(removed -> assertFalse(networkStates.contains(removed)));
+
+      assertEquals(expectedConstraints, networkData.getConstraints().size());
+    }
+  }
+
+  @Nested
+  class ParentChildTests {
+    static Stream<Arguments> provideSuccessfulRelations() {
+      return successfulRelationsMaps().stream().map(Arguments::of);
+    }
+
+    static List<Map<Serializable, List<Serializable>>> successfulRelationsMaps() {
+      Map<Serializable, List<Serializable>> mapA = new HashMap<>();
+      mapA.put("A", List.of());
+      mapA.put("B", List.of("A"));
+      mapA.put("C", List.of("A"));
+      mapA.put("D", List.of("B", "C"));
+
+      Map<Serializable, List<Serializable>> mapB = new HashMap<>();
+      mapB.put("A", List.of("B"));
+      mapB.put("B", List.of("C"));
+      mapB.put("C", List.of("D"));
+      mapB.put("D", List.of());
+
+      Map<Serializable, List<Serializable>> mapC = new HashMap<>();
+      mapC.put("A", List.of());
+      mapC.put("B", List.of("A"));
+      mapC.put("C", List.of("B", "A"));
+      mapC.put("D", List.of("C", "B", "A"));
+
+      Map<Serializable, List<Serializable>> mapD = new HashMap<>();
+      mapD.put("A", List.of());
+      mapD.put("B", List.of("A", "C", "D"));
+      mapD.put("C", List.of());
+      mapD.put("D", List.of());
+
+      return List.of(mapA, mapB, mapC, mapD);
+    }
+
+    static Stream<Arguments> provideSuccessfulNodeDeletionArguments() {
+      List<Arguments> args = new ArrayList<>();
+      NODE_IDS.forEach(
+          id -> successfulRelationsMaps().forEach(map -> args.add(Arguments.of(map, id))));
+      return args.stream();
+    }
+
+    static Stream<Arguments> provideSuccessfulParentRemovals() {
+      List<Map<Serializable, List<Serializable>>> add = successfulRelationsMaps();
+      List<Map<Serializable, List<Serializable>>> rem = successfulParentRemovalsMaps();
+      return IntStream.range(0, add.size()).mapToObj(i -> Arguments.of(add.get(i), rem.get(i)));
+    }
+
+    static List<Map<Serializable, List<Serializable>>> successfulParentRemovalsMaps() {
+      Map<Serializable, List<Serializable>> mapA = new HashMap<>();
+      mapA.put("A", List.of());
+      mapA.put("B", List.of("A"));
+      mapA.put("C", List.of("A"));
+      mapA.put("D", List.of("B", "C"));
+
+      Map<Serializable, List<Serializable>> mapB = new HashMap<>();
+      mapB.put("A", List.of("B"));
+      mapB.put("C", List.of("D"));
+      mapB.put("D", List.of());
+
+      Map<Serializable, List<Serializable>> mapC = new HashMap<>();
+      mapC.put("A", List.of());
+      mapC.put("B", List.of("B"));
+      mapC.put("C", List.of("B", "A"));
+      mapC.put("D", List.of("C", "B", "A"));
+
+      Map<Serializable, List<Serializable>> mapD = new HashMap<>();
+      mapD.put("A", List.of("A", "C", "D"));
+      mapD.put("B", List.of("A", "C", "D"));
+      mapD.put("C", List.of("A", "C", "D"));
+      mapD.put("D", List.of("A", "C", "D"));
+
+      return List.of(mapA, mapB, mapC, mapD);
+    }
+
+    static Stream<Arguments> provideErrorRelations() {
+      Map<Serializable, List<Serializable>> mapA = new HashMap<>();
+      mapA.put("A", List.of("D"));
+      mapA.put("B", List.of("A"));
+      mapA.put("C", List.of("A"));
+      mapA.put("D", List.of("B", "C"));
+
+      Map<Serializable, List<Serializable>> mapB = new HashMap<>();
+      mapB.put("A", List.of("B"));
+      mapB.put("B", List.of("B"));
+      mapB.put("C", List.of("B"));
+      mapB.put("D", List.of("B"));
+
+      Map<Serializable, List<Serializable>> mapC = new HashMap<>();
+      mapC.put("A", List.of());
+      mapC.put("B", List.of("Q"));
+      mapC.put("C", List.of('A'));
+      mapC.put("D", List.of(3));
+
+      Map<Serializable, List<Serializable>> mapD = new HashMap<>();
+      mapD.put("A", List.of());
+      mapD.put("B", listWithNull(List.of("A")));
+      mapD.put("C", List.of("A"));
+      mapD.put("D", List.of("B", "C"));
+
+      return Stream.of(
+          Arguments.of(mapA, NetworkStructureException.class),
+          Arguments.of(mapB, NetworkStructureException.class),
+          Arguments.of(mapC, NullPointerException.class),
+          Arguments.of(mapD, NullPointerException.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulRelations")
+    void addParents_withNetwork_fromNode_shouldSucceed(Map<Serializable, List<Serializable>> map) {
+      map.forEach(
+          (childId, parentIds) -> {
+            Node child = test.getNode(childId);
+            Set<Node> parents = test.getNodes(parentIds);
+            assertDoesNotThrow(() -> test.addParents(child, parents));
+          });
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulRelations")
+    void addParents_withNetwork_FromIds_shouldSucceed(Map<Serializable, List<Serializable>> map) {
+      map.forEach(
+          (childId, parentIds) -> assertDoesNotThrow(() -> test.addParents(childId, parentIds)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulRelations")
+    void addParents_fromNode_shouldSucceed(Map<Serializable, List<Serializable>> map) {
+      map.forEach(
+          (childId, parentIds) -> {
+            Node child = test.getNode(childId);
+            Set<Node> parents = test.getNodes(parentIds);
+            assertDoesNotThrow(() -> child.setParents(new ArrayList<>(parents)));
+            assertTrue(
+                parents.stream()
+                    .allMatch(
+                        p -> {
+                          boolean parentContainsChild = p.getChildren().contains(child);
+                          boolean childContainsParent = child.getParents().contains(p);
+                          return parentContainsChild && childContainsParent;
+                        }));
+          });
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideErrorRelations")
+    void addParents_withNetwork_FromIds_shouldThrowError(
+        Map<Serializable, List<Serializable>> map, Class<Exception> exceptionClass) {
+      assertThrows(
+          exceptionClass,
+          () -> map.forEach((childId, parentIds) -> test.addParents(childId, parentIds)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulParentRemovals")
+    void removeParents_withNetwork_fromIds_shouldSucceed(
+        Map<Serializable, List<Serializable>> add, Map<Serializable, List<Serializable>> remove) {
+      add.forEach(
+          (childId, parentIds) -> assertDoesNotThrow(() -> test.addParents(childId, parentIds)));
+      remove.forEach(
+          (childId, parentIds) ->
+              parentIds.forEach(
+                  parentId -> assertDoesNotThrow(() -> test.removeParent(childId, parentId))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulParentRemovals")
+    void removeParents_fromNode_shouldSucceed(
+        Map<Serializable, List<Serializable>> add, Map<Serializable, List<Serializable>> remove) {
+      add.forEach(
+          (childId, parentIds) -> assertDoesNotThrow(() -> test.addParents(childId, parentIds)));
+      remove.forEach(
+          (childId, parentIds) -> {
+            Node child = test.getNode(childId);
+            Set<Node> parents = test.getNodes(parentIds);
+            parents.forEach(
+                parent -> {
+                  assertDoesNotThrow(() -> child.removeParent(parent));
+                  assertFalse(child.getParents().contains(parent));
+                  assertFalse(parent.getChildren().contains(child));
+                });
+          });
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulNodeDeletionArguments")
+    void removeNodes_shouldNotThrowErrors(
+        Map<Serializable, List<Serializable>> add, Serializable deletionId) {
+      add.forEach(
+          (childId, parentIds) -> assertDoesNotThrow(() -> test.addParents(childId, parentIds)));
+      Node deleted = test.getNode(deletionId);
+      assertDoesNotThrow(() -> test.removeNodeByID(deletionId));
+
+      Set<PropertyChangeListener> listeners =
+          Arrays.stream(deleted.getSupport().getPropertyChangeListeners())
+              .collect(Collectors.toSet());
+      assertFalse(listeners.contains((BayesianNetworkImpl) test));
+
+      Set<Node> remainingNodes =
+          test.getNodes(NODE_IDS.stream().filter(id -> !deletionId.equals(id)).toList());
+      remainingNodes.forEach(
+          remaining -> {
+            assertFalse(remaining.getParents().contains(deleted));
+            assertFalse(remaining.getChildren().contains(deleted));
+          });
+    }
+  }
+}
