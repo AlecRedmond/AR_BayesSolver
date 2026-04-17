@@ -1,5 +1,7 @@
 package io.github.alecredmond.export.method.inference;
 
+import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
+import static io.github.alecredmond.method.network.NetworkScenarios.AH_NETWORK;
 import static io.github.alecredmond.method.network.NetworkScenarios.FANTASY_GRAPH;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +16,7 @@ class BayesSolverTest {
 
   @Test
   void getResults() {
-    BayesianNetwork network = FANTASY_GRAPH.get();
+    BayesianNetwork network = SOLVE_LONG_TESTS ? FANTASY_GRAPH.get() : AH_NETWORK.get();
     test = BayesSolver.create(network);
     assertTrue(test.solve());
     SolverResults results = test.getResults();
