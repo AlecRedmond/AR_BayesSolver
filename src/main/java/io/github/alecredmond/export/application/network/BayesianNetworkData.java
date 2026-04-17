@@ -4,6 +4,9 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.*;
 import lombok.AllArgsConstructor;

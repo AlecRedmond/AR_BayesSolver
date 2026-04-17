@@ -12,23 +12,23 @@ import java.util.Map;
 public class ProbabilityVectorSerializer {
 
   public SerializedProbabilityVector serialize(ProbabilityVector vector) {
-    SerializedProbabilityVector sv = new SerializedProbabilityVector();
-    sv.setNodeIdArray(SerializerUtils.serializeArray(vector.getNodeArray(), Node::getId));
-    sv.setNumberOfStates(vector.getNumberOfStates());
-    sv.setStepMultiplier(vector.getStepMultiplier());
-    sv.setProbabilities(vector.getProbabilities());
-    return sv;
+    SerializedProbabilityVector spv = new SerializedProbabilityVector();
+    spv.setNodeIdArray(SerializerUtils.serializeArray(vector.getNodeArray(), Node::getId));
+    spv.setNumberOfStates(vector.getNumberOfStates());
+    spv.setStepMultiplier(vector.getStepMultiplier());
+    spv.setProbabilities(vector.getProbabilities());
+    return spv;
   }
 
-  public ProbabilityVector deSerialize(SerializedProbabilityVector sv, SerializationData data) {
+  public ProbabilityVector deSerialize(SerializedProbabilityVector spv, SerializationData data) {
     Map<Serializable, Node> nodeIdMap = data.getNodeIdMap();
     Node[] nodeArray =
-        SerializerUtils.deserializeArray(sv.getNodeIdArray(), nodeIdMap::get, Node[]::new);
+        SerializerUtils.deserializeArray(spv.getNodeIdArray(), nodeIdMap::get, Node[]::new);
     return new ProbabilityVector(
         nodeArray,
-        sv.getNumberOfStates(),
-        sv.getStepMultiplier(),
-        sv.getProbabilities(),
+        spv.getNumberOfStates(),
+        spv.getStepMultiplier(),
+        spv.getProbabilities(),
         NodeUtils.buildNodeIndexMap(nodeArray),
         NodeUtils.buildStateIndexMap(nodeArray));
   }

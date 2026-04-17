@@ -44,43 +44,42 @@ public class NodeUtils {
     return states.stream().map(NodeState::getNode).collect(Collectors.toSet());
   }
 
-  public static void addParent(Node node, Node parent) {
-    addToList(node.getParents(), parent, node::setParents);
-    addToList(parent.getChildren(), node, parent::setChildren);
+  public static void addParent(Node child, Node parent) {
+    if (!child.getParents().contains(parent)) {
+      addToList(child.getParents(), parent, child::setParents);
+    }
+    if (!parent.getChildren().contains(child)) {
+      addToList(parent.getChildren(), child, parent::setChildren);
+    }
   }
 
-    private static <E> void addToList(List<E> list, E element, Consumer<List<E>> setter) {
-    actOnList(
-        list,
-        l -> l.add(element),
-        l -> setter.accept(Stream.concat(l.stream(), Stream.of(element)).distinct().toList()));
+  private static <E> List<E> addToList(List<E> list, E element, Consumer<List<E>> setter) {
+    return addAllToList(list, List.of(element), setter);
   }
 
-  private static <E> void actOnList(
-      List<E> list, Consumer<List<E>> arrayListConsumer, Consumer<List<E>> listConsumer) {
-    if (list instanceof ArrayList<E> arrayList) {
-      arrayListConsumer.accept(arrayList);
-      return;
-    }
-    listConsumer.accept(list);
+  private static <E> List<E> addAllToList(
+      List<E> list, Collection<E> elements, Consumer<List<E>> setter) {
+    List<E> newList = Stream.concat(list.stream(), elements.stream()).toList();
+    setter.accept(newList);
+    return newList;
   }
 
-    public static Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
-      return IntStream.range(0, nodes.length)
-          .mapToObj(i -> Map.entry(nodes[i], i))
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
+  public static Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
+    return IntStream.range(0, nodes.length)
+        .mapToObj(i -> Map.entry(nodes[i], i))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
 
-    public static Map<NodeState, Integer> buildStateIndexMap(Node[] nodes) {
-      Map<NodeState, Integer> statePositions = new HashMap<>();
-      Arrays.stream(nodes)
-          .map(Node::getNodeStates)
-          .forEach(
-              states ->
-                  IntStream.range(0, states.size())
-                      .forEach(i -> statePositions.put(states.get(i), i)));
-      return statePositions;
-    }
+  public static Map<NodeState, Integer> buildStateIndexMap(Node[] nodes) {
+    Map<NodeState, Integer> statePositions = new HashMap<>();
+    Arrays.stream(nodes)
+        .map(Node::getNodeStates)
+        .forEach(
+            states ->
+                IntStream.range(0, states.size())
+                    .forEach(i -> statePositions.put(states.get(i), i)));
+    return statePositions;
+  }
 
   public static String formatStatesToString(Collection<NodeState> stateCollection) {
     StringBuilder sb = new StringBuilder();
@@ -98,10 +97,22 @@ public class NodeUtils {
     return sb.toString();
   }
 
+  public static List<Serializable> getNodeIds(Collection<Node> nodes) {
+    return nodes.stream().map(Node::getId).toList();
+  }
+
+  public static List<Serializable> getNodeStateIds(Collection<Node> nodes) {
+    return nodes.stream().flatMap(n -> n.getNodeStates().stream()).map(NodeState::getId).toList();
+  }
+
   public static <T extends Serializable> NodeState addNodeState(Node node, T stateID) {
-    NodeState state = new NodeState(stateID, node);
-    addToList(node.getNodeStates(), state, node::setNodeStates);
-    return state;
+    return addToList(node.getNodeStates(), new NodeState(stateID, node), node::setNodeStates)
+        .getLast();
+  }
+
+  public static <E extends Serializable> void addNodeStates(Node node, Collection<E> stateIDs) {
+    List<NodeState> newStates = stateIDs.stream().map(id -> new NodeState(id, node)).toList();
+    addAllToList(node.getNodeStates(), newStates, node::setNodeStates);
   }
 
   public static <E extends Serializable> void removeState(Node node, E stateID) {
@@ -110,15 +121,16 @@ public class NodeUtils {
 
   private static <E> void removeFromList(
       List<E> list, Predicate<E> predicate, Consumer<List<E>> setter) {
-    actOnList(
-        list,
-        l -> l.removeIf(predicate),
-        l -> setter.accept(l.stream().filter(predicate).toList()));
+    setter.accept(list.stream().filter(predicate.negate()).toList());
   }
 
   public static void removeParent(Node node, Node parent) {
-    removeFromList(node.getParents(), parent::equals, node::setParents);
-    removeFromList(parent.getChildren(), node::equals, parent::setChildren);
+    if (node.getParents().contains(parent)) {
+      removeFromList(node.getParents(), parent::equals, node::setParents);
+    }
+    if (parent.getChildren().contains(node)) {
+      removeFromList(parent.getChildren(), node::equals, parent::setChildren);
+    }
   }
 
   public static Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {

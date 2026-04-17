@@ -25,7 +25,7 @@ class PropertiesLoaderTest {
   @Test
   void loadProperty() {
     boolean openFileOnCreation =
-        test.loadProperty(PRINTER_OPEN_FILE_ON_CREATION.get(), Boolean::parseBoolean);
+        test.loadProperty(PRINTER_OPEN_FILE_ON_CREATION.getKey(), Boolean::parseBoolean);
     assertTrue(openFileOnCreation);
   }
 

@@ -6,10 +6,7 @@ import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +19,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 class BayesianNetworkTestNew {
   static final List<Serializable> NODE_IDS = List.of("A", "B", "C", "D");
   BayesianNetwork test;
+
+  static List<Serializable> listWithNull(List<Serializable> list) {
+    List<Serializable> s = new ArrayList<>();
+    s.add(null);
+    s.addAll(list);
+    return s;
+  }
 
   @BeforeEach
   void setUp() {
@@ -50,23 +54,16 @@ class BayesianNetworkTestNew {
 
     static Stream<Arguments> nodeInputArgs_nodeIdErrors() {
       return Stream.of(
-          Arguments.of("A", List.of("A+", "A-")),
-          Arguments.of("B", List.of("G+", "G-")),
-          Arguments.of(null, List.of("G+", "G-")));
+          Arguments.of("A", List.of("A+", "A-"), BayesNetIDException.class),
+          Arguments.of("B", List.of("G+", "G-"), BayesNetIDException.class),
+          Arguments.of(null, List.of("G+", "G-"), NullPointerException.class));
     }
 
     static Stream<Arguments> nodeInputArgs_stateIdErrors() {
       return Stream.of(
-          Arguments.of("F", List.of("A+", "F-")),
-          Arguments.of("H", List.of("H+", "H+", "H-")),
-          Arguments.of("G", listWithNull(List.of("G+", "G-"))));
-    }
-
-    private static List<String> listWithNull(List<String> strings) {
-      List<String> s = new ArrayList<>();
-      s.add(null);
-      s.addAll(strings);
-      return s;
+          Arguments.of("F", List.of("A+", "F-"), BayesNetIDException.class),
+          Arguments.of("G", listWithNull(List.of("G+", "G-")), NullPointerException.class),
+          Arguments.of("H", List.of("H+", "H+", "H-"), BayesNetIDException.class));
     }
 
     @ParameterizedTest
@@ -89,9 +86,10 @@ class BayesianNetworkTestNew {
 
     @ParameterizedTest
     @MethodSource("nodeInputArgs_allErrors")
-    void addNode_fromNodeObject_shouldThrowError(Serializable id, List<Serializable> stateIds) {
+    void addNode_fromNodeObject_shouldThrowError(
+        Serializable id, List<Serializable> stateIds, Class<Exception> exceptionClass) {
       assertThrows(
-          BayesNetIDException.class,
+          exceptionClass,
           () -> {
             Node node = new Node(id, stateIds);
             test.addNode(node);
@@ -110,8 +108,9 @@ class BayesianNetworkTestNew {
 
     @ParameterizedTest
     @MethodSource("nodeInputArgs_allErrors")
-    void addNewNode_fromNodeArgs_shouldThrowError(Serializable id, List<Serializable> stateIds) {
-      assertThrows(BayesNetIDException.class, () -> test.addNewNode(id, stateIds));
+    void addNewNode_fromNodeArgs_shouldThrowError(
+        Serializable id, List<Serializable> stateIds, Class<Exception> exceptionClass) {
+      assertThrows(exceptionClass, () -> test.addNewNode(id, stateIds));
     }
 
     @ParameterizedTest

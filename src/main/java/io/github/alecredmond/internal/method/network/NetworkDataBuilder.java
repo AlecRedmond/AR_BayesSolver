@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ public class NetworkDataBuilder {
 
   public void build() {
     Map<Node, Integer> layerMap = orderNodes();
-    rebuildIdMaps();
+    rebuildIdMaps(networkData.getNodes());
     buildNetworkTablesMap(layerMap);
     marginalizeAllTables();
   }
@@ -50,19 +51,19 @@ public class NetworkDataBuilder {
     return layer;
   }
 
-  public void rebuildIdMaps() {
-    List<Node> nodes = networkData.getNodes();
+  public void rebuildIdMaps(Collection<Node> nodes) {
+    new NetworkIdValidator(networkData).validateRebuild(nodes);
     networkData.setNodeIDsMap(createNodeIdMap(nodes));
     networkData.setNodeStateIDsMap(createNodeStateIdMap(nodes));
   }
 
-  public static Map<Serializable, Node> createNodeIdMap(List<Node> nodes) {
+  public static Map<Serializable, Node> createNodeIdMap(Collection<Node> nodes) {
     return nodes.stream()
         .map(n -> Map.entry(n.getId(), n))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  public static Map<Serializable, NodeState> createNodeStateIdMap(List<Node> nodes) {
+  public static Map<Serializable, NodeState> createNodeStateIdMap(Collection<Node> nodes) {
     return nodes.stream()
         .flatMap(n -> n.getNodeStates().stream())
         .map(ns -> Map.entry(ns.getId(), ns))

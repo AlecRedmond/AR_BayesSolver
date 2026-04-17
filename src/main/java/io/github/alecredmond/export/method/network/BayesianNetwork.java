@@ -201,56 +201,10 @@ public interface BayesianNetwork {
   <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
-   * Adds a collection of states to an existing node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateIDs a collection of state identifiers to add.
-   * @throws BayesNetIDException if each nodeStateID is not unique
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeStates(
-      T nodeID, Collection<E> nodeStateIDs);
-
-  /**
-   * Adds a single state to an existing node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateID the state identifier to add.
-   * @param <T> the class of the Node ID
-   * @param <E> the class of the NodeState ID
-   * @throws BayesNetIDException if the nodeStateID is not unique
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeState(
-      T nodeID, E nodeStateID);
-
-  /**
-   * Removes all states from a specified node.
-   *
-   * @param nodeID the identifier of the node whose states will be removed.
-   * @param <T> the class of the Node ID
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork removeNodeStates(T nodeID);
-
-  /**
-   * Removes a specific state from a node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateID the identifier of the state to remove.
-   * @param <T> the class of the Node ID
-   * @param <E> the class of the NodeState ID
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork removeNodeState(
-      T nodeID, E nodeStateID);
-
-  /**
    * Returns a Node State from its input ID
    *
    * @param <E> class of the Node State ID
    * @param nodeStateID the Node State ID
-   * @throws IllegalArgumentException if the Node State ID is not mapped to a Node State value
    * @return the Node State object associated with the ID
    */
   <E extends Serializable> NodeState getNodeState(E nodeStateID);
@@ -260,7 +214,6 @@ public interface BayesianNetwork {
    *
    * @param <E> class of the Node State IDs
    * @param nodeStateIDs the Node State IDs
-   * @throws IllegalArgumentException if the Node State IDs are not mapped to a Node State value
    * @return a set of Node State objects associated with their IDs
    */
   <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);

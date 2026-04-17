@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,5 +31,12 @@ public class NetworkStructureValidator {
       currentSet = nextSet;
     }
     return false;
+  }
+
+  public void checkExists(Node node, BayesianNetworkData networkData) {
+    if (networkData.getNodeIDsMap().containsKey(node.getId())) {
+      return;
+    }
+    throw new NetworkStructureException("Node %s does not exist!".formatted(node.getId()));
   }
 }
