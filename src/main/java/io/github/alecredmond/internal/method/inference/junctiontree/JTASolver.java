@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.ConstraintHandler;
+import io.github.alecredmond.internal.method.constraints.handlers.ConstraintHandler;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;

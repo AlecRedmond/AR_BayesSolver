@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
+package io.github.alecredmond.internal.method.constraints.handlers;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import java.util.Map;

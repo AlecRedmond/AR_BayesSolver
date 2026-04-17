@@ -1,7 +1,8 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
+package io.github.alecredmond.internal.method.constraints.handlers;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import java.util.ArrayList;

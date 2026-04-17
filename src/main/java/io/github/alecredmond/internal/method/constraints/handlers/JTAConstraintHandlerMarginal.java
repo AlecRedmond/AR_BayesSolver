@@ -1,8 +1,9 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
+package io.github.alecredmond.internal.method.constraints.handlers;
 
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -12,7 +13,7 @@ public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
   private final int[] positionKey;
 
   public JTAConstraintHandlerMarginal(
-      JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
+          JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
     this.positionKey = new int[eventKey.getStateIndexes().length];
   }

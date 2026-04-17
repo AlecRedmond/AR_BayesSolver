@@ -1,9 +1,10 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
+package io.github.alecredmond.internal.method.constraints.handlers;
 
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.function.ObjIntConsumer;
 public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
 
   public JTAConstraintHandlerConditional(
-      JTATableHandler jtaTableHandler, ConditionalConstraint constraint) {
+          JTATableHandler jtaTableHandler, ConditionalConstraint constraint) {
     super(jtaTableHandler, constraint);
   }
 
