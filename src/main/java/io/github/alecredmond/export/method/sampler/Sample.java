@@ -72,8 +72,4 @@ public class Sample {
         .formatted(
             NodeUtils.formatStatesToString(sampleData.getStateCollection()), sampleData.getCount());
   }
-
-  void setCount(Integer integer) {
-    sampleData.setCount(integer);
-  }
 }

@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class JTAConstraintHandler {
+public abstract class JTAConstraintHandler implements ConstraintHandler {
   protected final JTATableHandler tableHandler;
   protected final ProbabilityConstraint constraint;
   protected final ProbabilityVectorIterator iterator;

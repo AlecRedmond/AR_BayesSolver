@@ -11,10 +11,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
@@ -48,7 +45,7 @@ public class JTAInitializer {
 
   private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
-    Map<Clique, List<JTAConstraintHandler>> map =
+    Map<Clique, List<ConstraintHandler>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -99,7 +96,7 @@ public class JTAInitializer {
     }
   }
 
-  private static List<JTAConstraintHandler> matchConstraints(
+  private static List<ConstraintHandler> matchConstraints(
       Clique clique, List<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
@@ -114,7 +111,7 @@ public class JTAInitializer {
         .orElseThrow();
   }
 
-  private static JTAConstraintHandler buildConstraintHandler(
+  private static ConstraintHandler buildConstraintHandler(
       @NonNull ProbabilityConstraint constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
     return switch (constraint) {

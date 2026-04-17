@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.ConstraintHandler;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -36,8 +36,7 @@ public class JTASolver {
     long endTime = now + configs.getTimeLimitSeconds();
     long nextLogTime = now + configs.getLogIntervalSeconds();
 
-    Map<Clique, List<JTAConstraintHandler>> constraintMap =
-        jta.getData().getConstraintHandlersMap();
+    Map<Clique, List<ConstraintHandler>> constraintMap = jta.getData().getConstraintHandlersMap();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -78,7 +77,7 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<JTAConstraintHandler>> constraintHandlers) {
+      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintHandler>> constraintHandlers) {
 
     DoubleAdder error = new DoubleAdder();
 
@@ -104,11 +103,11 @@ public class JTASolver {
   }
 
   private static SolverResults writeResults(
-      Map<Clique, List<JTAConstraintHandler>> constraintMap, int cycle) {
+      Map<Clique, List<ConstraintHandler>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)
         .forEach(handler -> handler.updateResults(resultsMap));
-    return new SolverResultsBuilder().buildResults(cycle,resultsMap);
+    return new SolverResultsBuilder().buildResults(cycle, resultsMap);
   }
 }

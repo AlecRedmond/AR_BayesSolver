@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.ToString;
 
 @Getter
@@ -23,8 +22,10 @@ public abstract class ProbabilityConstraint {
   protected final Set<Node> allNodes;
 
   protected ProbabilityConstraint(
-      @NonNull NodeState eventState, Collection<NodeState> conditionStates, double probability) {
-    this.eventStates = Set.of(eventState);
+      Collection<NodeState> eventStates,
+      Collection<NodeState> conditionStates,
+      double probability) {
+    this.eventStates = Set.copyOf(eventStates);
     this.conditionStates = Set.copyOf(conditionStates);
     this.allStates = NodeUtils.combineStates(eventStates, conditionStates);
     this.probability = probability;
