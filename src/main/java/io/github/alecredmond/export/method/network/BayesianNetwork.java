@@ -41,6 +41,10 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public interface BayesianNetwork {
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRUCTORS------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
   /**
    * Creates a new, empty Bayesian Network with the default name "UNNAMED NETWORK".
    *
@@ -89,6 +93,10 @@ public interface BayesianNetwork {
     return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(filePath);
   }
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NETWORK FILE IO---------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
   /**
    * Saves the network to the disk
    *
@@ -118,6 +126,10 @@ public interface BayesianNetwork {
    * @return a serialization of the current bayesian network data
    */
   SerializedBayesianNetwork serializeNetwork();
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NODE IN/OUT-------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   /**
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
@@ -180,6 +192,10 @@ public interface BayesianNetwork {
    */
   boolean removeAllNodes();
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NODE/STATE GETTERS------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
   /**
    * Returns a node from its input ID
    *
@@ -217,6 +233,10 @@ public interface BayesianNetwork {
    * @return a set of Node State objects associated with their IDs
    */
   <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
+
+  // ----------------------------------------------------------------------------------------------
+  // ---------------------------------NODE PARENT/CHILD RELATIONS----------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   /**
    * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
@@ -303,6 +323,10 @@ public interface BayesianNetwork {
    */
   <T extends Serializable> BayesianNetwork removeParents(T childID);
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT ADDERS-------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
 
@@ -373,6 +397,10 @@ public interface BayesianNetwork {
    */
   BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints);
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT GETTERS------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
   /**
    * Searches the network for a marginal constraint with an event NodeState matching the given ID.
    *
@@ -394,6 +422,10 @@ public interface BayesianNetwork {
    */
   <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
       T eventStateId, Collection<E> conditionStateIds);
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT REMOVERS-----------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   /**
    * Removes a constraint from the network.
@@ -432,6 +464,10 @@ public interface BayesianNetwork {
    * @return true if any constraints existed in the network
    */
   boolean removeAllConstraints();
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NETWORK FUNCTIONS-------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   /**
    * Runs a BayesSolver instance to find the best fit for the constraints provided. Other methods
