@@ -13,10 +13,10 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode
 public abstract class ProbabilityConstraint {
-  @ToString.Include protected final Set<NodeState> eventStates;
-  @ToString.Include protected final Set<NodeState> conditionStates;
+  @EqualsAndHashCode.Include @ToString.Include protected final Set<NodeState> eventStates;
+  @EqualsAndHashCode.Include @ToString.Include protected final Set<NodeState> conditionStates;
   protected final Set<NodeState> allStates;
-  @ToString.Include protected final double probability;
+  @EqualsAndHashCode.Include @ToString.Include protected final double probability;
   protected final Set<Node> eventNodes;
   protected final Set<Node> conditionNodes;
   protected final Set<Node> allNodes;

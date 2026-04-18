@@ -1,17 +1,10 @@
 package io.github.alecredmond.export.serialization.constraint;
 
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import java.io.Serializable;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-public abstract class SerializedProbabilityConstraint implements Serializable {
-  protected Serializable eventStateId;
-  protected double probability;
+public interface SerializedProbabilityConstraint<T extends ProbabilityConstraint>
+    extends Serializable {
 
-  protected SerializedProbabilityConstraint(Serializable eventStateId, double probability) {
-    this.eventStateId = eventStateId;
-    this.probability = probability;
-  }
+    Class<T> getConstraintClass();
 }

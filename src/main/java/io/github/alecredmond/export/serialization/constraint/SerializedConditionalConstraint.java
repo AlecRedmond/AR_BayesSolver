@@ -1,20 +1,28 @@
 package io.github.alecredmond.export.serialization.constraint;
 
+import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import java.io.Serializable;
 import java.util.List;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class SerializedConditionalConstraint extends SerializedProbabilityConstraint implements Serializable {
+public class SerializedConditionalConstraint
+    implements SerializedProbabilityConstraint<ConditionalConstraint> {
+  private Serializable eventStateId;
   private List<Serializable> conditionStateIds;
+  private double probability;
 
   public SerializedConditionalConstraint(
       Serializable eventStateId, List<Serializable> conditionStateIds, double probability) {
-    super(eventStateId, probability);
+    this.eventStateId = eventStateId;
     this.conditionStateIds = conditionStateIds;
+    this.probability = probability;
+  }
+
+  @Override
+  public Class<ConditionalConstraint> getConstraintClass() {
+    return ConditionalConstraint.class;
   }
 }

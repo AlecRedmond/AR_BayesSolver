@@ -1,19 +1,21 @@
-package io.github.alecredmond.internal.method.constraints.handlers;
+package io.github.alecredmond.internal.method.constraints.types.marginalconstraint;
 
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandler;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.Arrays;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.ObjIntConsumer;
 
-public class JTAConstraintHandlerMarginal extends JTAConstraintHandler {
+public class MarginalConstraintSolverHandler extends BaseConstraintSolverHandler
+    implements ConstraintSolverHandler<MarginalConstraint> {
   private final int[] positionKey;
 
-  public JTAConstraintHandlerMarginal(
-          JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
+  public MarginalConstraintSolverHandler(JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
     super(jtaTableHandler, constraint);
     this.positionKey = new int[eventKey.getStateIndexes().length];
   }

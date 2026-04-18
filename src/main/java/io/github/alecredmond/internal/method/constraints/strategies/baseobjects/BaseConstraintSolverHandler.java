@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.handlers;
+package io.github.alecredmond.internal.method.constraints.strategies.baseobjects;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class JTAConstraintHandler implements ConstraintHandler {
+public abstract class BaseConstraintSolverHandler {
   protected final JTATableHandler tableHandler;
   protected final ProbabilityConstraint constraint;
   protected final ProbabilityVectorIterator iterator;
@@ -22,7 +22,7 @@ public abstract class JTAConstraintHandler implements ConstraintHandler {
   protected VectorCombinationKey conditionKey;
   protected List<Double> errors;
 
-  protected JTAConstraintHandler(JTATableHandler tableHandler, ProbabilityConstraint constraint) {
+  protected BaseConstraintSolverHandler(JTATableHandler tableHandler, ProbabilityConstraint constraint) {
     this.tableHandler = tableHandler;
     this.constraint = constraint;
     this.iterator = new ProbabilityVectorIterator();
@@ -52,9 +52,7 @@ public abstract class JTAConstraintHandler implements ConstraintHandler {
     double compRatio = getRatio((1 - expectedProb), complementProb);
 
     adjustToRatio(adjustmentRatio, compRatio);
-    double error = Math.pow(actualProb - expectedProb, 2);
-    errors.add(error);
-    return error;
+    return Math.pow(actualProb - expectedProb, 2);
   }
 
   protected abstract void calculateProbability(
@@ -65,6 +63,10 @@ public abstract class JTAConstraintHandler implements ConstraintHandler {
   }
 
   protected abstract void adjustToRatio(double ratioIfEvent, double ratioOtherwise);
+
+  public void storeError(double error) {
+    errors.add(error);
+  }
 
   public void updateResults(Map<ProbabilityConstraint, double[]> results) {
     if (results.containsKey(constraint)) {

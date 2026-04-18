@@ -303,6 +303,9 @@ public interface BayesianNetwork {
    */
   <T extends Serializable> BayesianNetwork removeParents(T childID);
 
+  <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
+      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
+
   /**
    * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
    * This constraint doesn't have to be within the scope of the network's structure, but each
@@ -316,7 +319,6 @@ public interface BayesianNetwork {
    * @param probability the conditional probability value.
    * @param <T> the class of the event state ID
    * @param <E> the class of the condition state IDs
-   * @throws IllegalArgumentException if a state is not found within the data
    * @throws ConstraintValidationException <br>
    *     - if attempting to make a state conditional on another state from the same node <br>
    *     - if probability p is outwith 0 <= p <= 1

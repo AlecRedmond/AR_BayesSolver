@@ -11,6 +11,7 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.network.NetworkErrorPolicy;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
@@ -31,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListener {
   private final BayesianNetworkData networkData;
+  private final NetworkErrorPolicy policy = new NetworkErrorPolicy();
 
   public BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
@@ -213,14 +215,27 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
-  public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
+    @Override
+    public <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
+        networkData.setSolved(false);
+        NetworkConstraintUtils.addConstraint(
+                        NetworkDataUtils.getStatesByIdOrThrow(eventStateIDs, networkData),
+                        NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
+                        probability,
+                        networkData)
+                .ifPresent(policy.getConstraintValidationExceptionPolicy());
+      return this;
+    }
+
+    public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
-        NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
-        probability,
-        networkData);
+            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
+            NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
+            probability,
+            networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
@@ -228,19 +243,24 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
       T eventStateID, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData), probability, networkData);
+            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
+            probability,
+            networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
   public BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData);
+    NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
   public BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraints(probabilityConstraints, networkData);
+    NetworkConstraintUtils.addConstraints(probabilityConstraints, networkData)
+        .forEach(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
