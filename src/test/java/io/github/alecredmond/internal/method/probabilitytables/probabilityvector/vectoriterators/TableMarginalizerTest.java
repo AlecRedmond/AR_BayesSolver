@@ -1,0 +1,58 @@
+package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
+
+import static io.github.alecredmond.method.network.NetworkScenarios.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+class TableMarginalizerTest {
+  static final List<BayesianNetwork> NETWORKS =
+      List.of(FANTASY_GRAPH.get(), AH_NETWORK.get(), RAIN_NETWORK.get(), SIMPLE_LINEAR.get());
+  TableMarginalizer test;
+
+  static Stream<Arguments> getNetworkTables() {
+    return NETWORKS.stream()
+        .flatMap(
+            net ->
+                net.getNetworkData().getNodeIDsMap().keySet().stream()
+                    .map(s -> Arguments.of(net, s)));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getNetworkTables")
+  void performRun(BayesianNetwork network, Serializable nodeId) {
+    Node node = network.getNode(nodeId);
+    List<Node> conds = node.getParents();
+    ProbabilityTable table = TableBuilder.buildNetworkTable(List.of(node), conds);
+    double[] probs = table.getVector().getProbabilities();
+    assertTrue(Arrays.stream(probs).allMatch(p -> p == 1.0));
+
+    test = TableMarginalizer.build(table);
+    test.performRun();
+
+    int blockSize = node.getNodeStates().size();
+    double average = 1.0 / blockSize;
+    Arrays.stream(probs).forEach(p -> assertEquals(average, p, 1e-6));
+
+    IntStream.range(0, blockSize).forEach(i -> probs[i] = 1);
+    probs[0] = blockSize - 1;
+
+    test.performRun();
+
+    assertEquals(1, Arrays.stream(probs, 0, blockSize).sum(), 1e-6);
+    assertEquals(0.5, probs[0], 1e-6);
+    IntStream.range(1, blockSize).forEach(i -> assertEquals(0.5 / (blockSize - 1), probs[i], 1e-6));
+    IntStream.range(blockSize, probs.length).forEach(i -> assertEquals(average, probs[i], 1e-6));
+  }
+}

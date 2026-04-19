@@ -67,6 +67,7 @@ public class TableCopier {
   private ProbabilityVector copyVector(ProbabilityVector vector) {
     return new ProbabilityVector(
         copy(vector.getNodeArray()),
+        copy(vector.getStateArrays()),
         copy(vector.getNumberOfStates()),
         copy(vector.getStepMultiplier()),
         copy(vector.getProbabilities()),

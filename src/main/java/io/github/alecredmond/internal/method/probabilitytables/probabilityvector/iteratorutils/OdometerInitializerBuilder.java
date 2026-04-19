@@ -1,0 +1,60 @@
+package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils;
+
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.OdometerInitializer;
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import java.util.stream.IntStream;
+import lombok.Data;
+
+@Data
+public class OdometerInitializerBuilder {
+
+  public static OdometerInitializer initIterateEvents(VectorOdometer odometer) {
+    return initialize(odometer, odometer.getConditionStatePosition());
+  }
+
+  private static OdometerInitializer initialize(VectorOdometer odometer, boolean[] positionLocked) {
+    OdometerInitializer tracker = new OdometerInitializer();
+    tracker.setLockedPositions(positionLocked);
+    int fastestPos = findFastestPosition(positionLocked);
+    boolean fireOnlyOnce = fastestPos < 0;
+    tracker.setFastestPosition(fastestPos);
+    tracker.setFireOnlyOnce(fireOnlyOnce);
+    int[] stepMultiplier = odometer.getStepMultiplier();
+    tracker.setInitialIndex(computeStartIndex(odometer.getOdometerValues(), stepMultiplier));
+    if (fireOnlyOnce) return tracker;
+    tracker.setBaseStride(stepMultiplier[fastestPos]);
+    tracker.setLockedPositionIndexStrides(
+        computeIndexCorrections(positionLocked, odometer.getNumberOfStates(), stepMultiplier));
+    return tracker;
+  }
+
+  private static int findFastestPosition(boolean[] positionLocked) {
+    int fastestPosition = -1;
+    for (int i = positionLocked.length - 1; i >= 0; i--) {
+      if (!positionLocked[i]) {
+        fastestPosition = i;
+        break;
+      }
+    }
+    return fastestPosition;
+  }
+
+  private static int computeStartIndex(int[] odometerValues, int[] stepMultiplier) {
+    return IntStream.range(0, odometerValues.length)
+        .map(i -> odometerValues[i] * stepMultiplier[i])
+        .sum();
+  }
+
+  private static int[] computeIndexCorrections(
+      boolean[] positionLocked, int[] numberOfStates, int[] stepMultiplier) {
+    int[] corrections = new int[positionLocked.length];
+    IntStream.range(0, positionLocked.length)
+        .filter(i -> positionLocked[i])
+        .forEach(i -> corrections[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
+    return corrections;
+  }
+
+  public static OdometerInitializer initIterateConditions(VectorOdometer odometer) {
+    return initialize(odometer, odometer.getEventStatePosition());
+  }
+}

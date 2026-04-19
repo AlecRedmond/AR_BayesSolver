@@ -10,6 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ProbabilityVector {
   private final Node[] nodeArray;
+  private final NodeState[][] stateArrays;
   private final int[] numberOfStates;
   private final int[] stepMultiplier;
   private final double[] probabilities;

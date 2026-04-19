@@ -16,6 +16,7 @@ public class ProbabilityVectorFactory {
 
   public ProbabilityVector build(List<Node> nodes) {
     Node[] nodesArray = nodes.toArray(new Node[0]);
+    NodeState[][] stateArrays = buildStateArrays(nodesArray);
     int[] cardinality = buildCardinalityArray(nodesArray);
     cardinalitySanityCheck(cardinality, nodesArray);
     int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
@@ -25,7 +26,14 @@ public class ProbabilityVectorFactory {
     Map<Node, Integer> nodeIndexMap = NodeUtils.buildNodeIndexMap(nodesArray);
     Map<NodeState, Integer> stateValueMap = NodeUtils.buildStateIndexMap(nodesArray);
     return new ProbabilityVector(
-        nodesArray, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
+        nodesArray, stateArrays, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
+  }
+
+  public static NodeState[][] buildStateArrays(Node[] nodesArray) {
+    NodeState[][] arrays = new NodeState[nodesArray.length][];
+    IntStream.range(0, nodesArray.length)
+        .forEach(i -> arrays[i] = nodesArray[i].getNodeStates().toArray(NodeState[]::new));
+    return arrays;
   }
 
   private int[] buildCardinalityArray(Node[] nodes) {
