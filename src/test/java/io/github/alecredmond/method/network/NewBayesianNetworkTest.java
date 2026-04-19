@@ -423,4 +423,7 @@ class NewBayesianNetworkTest {
           });
     }
   }
+
+  @Nested
+  class ParameterConstraintTests {}
 }

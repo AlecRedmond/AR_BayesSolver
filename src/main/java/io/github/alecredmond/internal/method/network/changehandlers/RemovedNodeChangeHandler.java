@@ -6,16 +6,21 @@ import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class RemovedNodeChangeHandler implements NetworkChangeHandler {
 
   @Override
   public void applyChange(PropertyChangeEvent evt, BayesianNetworkData networkData) {
-    networkData.setSolved(false);
-    networkData.setNetworkTablesMap(new HashMap<>());
+    if (networkData.isSolved()) {
+      networkData.setSolved(false);
+    }
+    if (!networkData.getNetworkTablesMap().isEmpty()) {
+      networkData.setNetworkTablesMap(new HashMap<>());
+    }
 
     Node toRemove = (Node) evt.getOldValue();
-    networkData.getNetworkTablesMap().remove(toRemove);
     networkData.getNodeIDsMap().remove(toRemove.getId());
 
     toRemove
@@ -27,10 +32,14 @@ public class RemovedNodeChangeHandler implements NetworkChangeHandler {
 
     newNodes.forEach(
         node -> {
-          node.setParents(node.getParents().stream().filter(n -> !n.equals(toRemove)).toList());
-          node.setChildren(node.getChildren().stream().filter(n -> !n.equals(toRemove)).toList());
+          removeNode(node::setParents, node::getParents, toRemove);
+          removeNode(node::setChildren, node::getChildren, toRemove);
         });
 
     NetworkConstraintUtils.removeAllConstraintsContaining(toRemove, networkData);
+  }
+
+  private void removeNode(Consumer<List<Node>> setter, Supplier<List<Node>> getter, Node toRemove) {
+    setter.accept(getter.get().stream().filter(n -> !n.equals(toRemove)).toList());
   }
 }
