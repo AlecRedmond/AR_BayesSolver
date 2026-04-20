@@ -8,6 +8,7 @@ import io.github.alecredmond.internal.method.probabilitytables.probabilityvector
 
 public abstract class BaseVectorIteratorFactory<T> implements VectorIteratorFactory<T> {
   protected VectorOdometer vectorOdometer;
+  protected ProbabilityVector vector;
 
   protected BaseVectorIteratorFactory() {
     vectorOdometer = new VectorOdometer();
@@ -15,20 +16,21 @@ public abstract class BaseVectorIteratorFactory<T> implements VectorIteratorFact
 
   @Override
   public VectorIterator build(ProbabilityVector vector, T requestItem) {
-    buildBlank(vector);
+    this.vector = vector;
+    buildBlank();
     performRequestItemLogic(requestItem);
     return constructIterator();
   }
 
-  private void buildBlank(ProbabilityVector vector) {
+  private void buildBlank() {
     int keyLength = vector.getNodeArray().length;
     vectorOdometer.setProbabilities(vector.getProbabilities());
     vectorOdometer.setNodeArray(vector.getNodeArray());
     vectorOdometer.setStateArrays(vector.getStateArrays());
     vectorOdometer.setNumberOfStates(vector.getNumberOfStates());
     vectorOdometer.setStepMultiplier(vector.getStepMultiplier());
-    vectorOdometer.setOdometerStates(new NodeState[keyLength]);
-    vectorOdometer.setOdometerValues(new int[keyLength]);
+    vectorOdometer.setStates(new NodeState[keyLength]);
+    vectorOdometer.setStateIndexes(new int[keyLength]);
     vectorOdometer.setEventStatePosition(new boolean[keyLength]);
     vectorOdometer.setConditionStatePosition(new boolean[keyLength]);
     vectorOdometer.setStateIsEvent(new boolean[keyLength][]);
@@ -37,8 +39,8 @@ public abstract class BaseVectorIteratorFactory<T> implements VectorIteratorFact
   protected void performRequestItemLogic(T requestItem) {
     initializeOdometer(
         requestItem,
-        vectorOdometer.getOdometerStates(),
-        vectorOdometer.getOdometerValues(),
+        vectorOdometer.getStates(),
+        vectorOdometer.getStateIndexes(),
         vectorOdometer.getNodeArray());
     initializeEventAndConditionStates(
         requestItem,
@@ -55,7 +57,7 @@ public abstract class BaseVectorIteratorFactory<T> implements VectorIteratorFact
   protected abstract VectorIterator constructIterator();
 
   protected abstract void initializeOdometer(
-      T requestItem, NodeState[] odometer, int[] odometerIndexes, Node[] nodeArray);
+      T requestItem, NodeState[] states, int[] stateIndexes, Node[] nodeArray);
 
   protected abstract void initializeEventAndConditionStates(
       T requestItem,

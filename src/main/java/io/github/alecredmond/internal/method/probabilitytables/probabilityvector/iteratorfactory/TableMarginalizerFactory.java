@@ -36,19 +36,19 @@ public class TableMarginalizerFactory extends BaseVectorIteratorFactory<Probabil
   }
 
   @Override
-  protected VectorIterator constructIterator() {
+  protected TableMarginalizer constructIterator() {
     return new TableMarginalizer(vectorOdometer);
   }
 
   @Override
   protected void initializeOdometer(
-      ProbabilityTable requestItem, NodeState[] odometer, int[] odometerIndexes, Node[] nodeArray) {
+          ProbabilityTable requestItem, NodeState[] states, int[] stateIndexes, Node[] nodeArray) {
     IntStream.range(0, nodeArray.length)
         .forEach(
             i -> {
               Node node = nodeArray[i];
-              int stateIndex = odometerIndexes[i];
-              odometer[i] = node.getNodeStates().get(stateIndex);
+              int stateIndex = stateIndexes[i];
+              states[i] = node.getNodeStates().get(stateIndex);
             });
   }
 

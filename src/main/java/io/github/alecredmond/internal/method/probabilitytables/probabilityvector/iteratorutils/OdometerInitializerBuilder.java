@@ -20,10 +20,10 @@ public class OdometerInitializerBuilder {
     tracker.setFastestPosition(fastestPos);
     tracker.setFireOnlyOnce(fireOnlyOnce);
     int[] stepMultiplier = odometer.getStepMultiplier();
-    tracker.setInitialIndex(computeStartIndex(odometer.getOdometerValues(), stepMultiplier));
+    tracker.setInitialIndex(computeStartIndex(odometer.getStateIndexes(), stepMultiplier));
     if (fireOnlyOnce) return tracker;
     tracker.setBaseStride(stepMultiplier[fastestPos]);
-    tracker.setLockedPositionIndexStrides(
+    tracker.setStrideIfLocked(
         computeIndexCorrections(positionLocked, odometer.getNumberOfStates(), stepMultiplier));
     return tracker;
   }

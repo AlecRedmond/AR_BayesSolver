@@ -8,6 +8,6 @@ public class OdometerInitializer {
     private int fastestPosition;
     private boolean fireOnlyOnce;
     private int baseStride;
-    private int[] lockedPositionIndexStrides;
+    private int[] strideIfLocked;
     private int initialIndex;
 }

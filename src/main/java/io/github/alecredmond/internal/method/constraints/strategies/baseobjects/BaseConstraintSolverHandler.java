@@ -2,9 +2,11 @@ package io.github.alecredmond.internal.method.constraints.strategies.baseobjects
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BaseConstraintSolverHandler {
+public abstract class BaseConstraintSolverHandler extends BaseVectorIterator {
   protected final JTATableHandler tableHandler;
   protected final ProbabilityConstraint constraint;
   protected final ProbabilityVectorIterator iterator;
@@ -22,7 +24,11 @@ public abstract class BaseConstraintSolverHandler {
   protected VectorCombinationKey conditionKey;
   protected List<Double> errors;
 
-  protected BaseConstraintSolverHandler(JTATableHandler tableHandler, ProbabilityConstraint constraint) {
+  protected BaseConstraintSolverHandler(
+      JTATableHandler tableHandler,
+      ProbabilityConstraint constraint,
+      VectorOdometer vectorOdometer) {
+    this.vectorOdometer = vectorOdometer;
     this.tableHandler = tableHandler;
     this.constraint = constraint;
     this.iterator = new ProbabilityVectorIterator();

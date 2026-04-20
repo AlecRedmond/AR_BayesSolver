@@ -41,8 +41,8 @@ public abstract class BaseVectorIterator {
     int fastestPosition = tracker.getFastestPosition();
     int baseStride = tracker.getBaseStride();
     int[] numberOfStates = odometer.getNumberOfStates();
-    int[] lockedPositionCorrections = tracker.getLockedPositionIndexStrides();
-    int[] odometerValues = odometer.getOdometerValues();
+    int[] strideIfLocked = tracker.getStrideIfLocked();
+    int[] stateIndexes = odometer.getStateIndexes();
     boolean[] positionLocked = tracker.getLockedPositions();
     boolean overflow = false;
 
@@ -51,11 +51,11 @@ public abstract class BaseVectorIterator {
       currentIndex += baseStride;
       for (int position = fastestPosition; position >= 0; position--) {
         if (positionLocked[position]) {
-          currentIndex += lockedPositionCorrections[position];
+          currentIndex += strideIfLocked[position];
           continue;
         }
-        odometerValues[position] = (odometerValues[position] + 1) % numberOfStates[position];
-        overflow = odometerValues[position] == 0;
+        stateIndexes[position] = (stateIndexes[position] + 1) % numberOfStates[position];
+        overflow = stateIndexes[position] == 0;
         updateConsumer.update(currentIndex, overflow, odometer);
         if (!overflow) {
           break;

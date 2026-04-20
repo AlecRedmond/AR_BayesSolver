@@ -117,7 +117,7 @@ public class JTAInitializer {
     JTATableHandler jtaTableHandler = clique.getHandler();
     return (ConstraintSolverHandler<T>)
         ConstraintRegistry.getStrategy(constraint.getClass())
-            .buildConstraintHandler(jtaTableHandler, constraint);
+            .buildSolverHandler(jtaTableHandler, constraint);
   }
 
   public static JunctionTreeData buildNewInferenceConfiguration(

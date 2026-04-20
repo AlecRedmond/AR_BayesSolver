@@ -4,6 +4,7 @@ import io.github.alecredmond.export.application.constraints.JointProbabilityCons
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandler;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
@@ -16,8 +17,8 @@ public class JointConstraintSolverHandler extends BaseConstraintSolverHandler
     implements ConstraintSolverHandler<JointProbabilityConstraint> {
 
   public JointConstraintSolverHandler(
-      JTATableHandler tableHandler, JointProbabilityConstraint constraint) {
-    super(tableHandler, constraint);
+          JTATableHandler tableHandler, JointProbabilityConstraint constraint, VectorOdometer vectorOdometer) {
+    super(tableHandler, constraint, vectorOdometer);
   }
 
   @Override

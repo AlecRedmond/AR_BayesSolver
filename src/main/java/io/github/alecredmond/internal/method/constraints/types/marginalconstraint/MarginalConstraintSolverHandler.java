@@ -3,8 +3,9 @@ package io.github.alecredmond.internal.method.constraints.types.marginalconstrai
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandler;
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
+import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.Arrays;
@@ -15,12 +16,20 @@ public class MarginalConstraintSolverHandler extends BaseConstraintSolverHandler
     implements ConstraintSolverHandler<MarginalConstraint> {
   private final int[] positionKey;
 
-  public MarginalConstraintSolverHandler(JTATableHandler jtaTableHandler, MarginalConstraint constraint) {
-    super(jtaTableHandler, constraint);
+  public MarginalConstraintSolverHandler(
+      JTATableHandler jtaTableHandler,
+      MarginalConstraint constraint,
+      VectorOdometer vectorOdometer) {
+    super(jtaTableHandler, constraint, vectorOdometer);
     this.positionKey = new int[eventKey.getStateIndexes().length];
   }
 
-  @Override
+    @Override
+    public void performRun() {
+
+    }
+
+    @Override
   protected VectorCombinationKey buildConditionKey() {
     return null;
   }

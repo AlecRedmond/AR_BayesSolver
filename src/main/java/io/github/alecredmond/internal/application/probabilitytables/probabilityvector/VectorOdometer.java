@@ -11,8 +11,8 @@ public class VectorOdometer {
   private NodeState[][] stateArrays;
   private int[] numberOfStates;
   private int[] stepMultiplier;
-  private int[] odometerValues;
-  private NodeState[] odometerStates;
+  private int[] stateIndexes;
+  private NodeState[] states;
   private boolean[] eventStatePosition;
   private boolean[] conditionStatePosition;
   private boolean[][] stateIsEvent;
