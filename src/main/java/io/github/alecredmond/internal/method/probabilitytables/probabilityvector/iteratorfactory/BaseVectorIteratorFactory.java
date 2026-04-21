@@ -5,69 +5,75 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
-public abstract class BaseVectorIteratorFactory<T> implements VectorIteratorFactory<T> {
+public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
+    implements VectorIteratorFactory<T> {
   protected VectorOdometer vectorOdometer;
   protected ProbabilityVector vector;
 
-  protected BaseVectorIteratorFactory() {
-    vectorOdometer = new VectorOdometer();
-  }
+  protected BaseVectorIteratorFactory() {}
 
-  @Override
-  public VectorIterator build(ProbabilityVector vector, T requestItem) {
+  public T buildIterator(ProbabilityVector vector) {
     this.vector = vector;
-    buildBlank();
-    performRequestItemLogic(requestItem);
-    return constructIterator();
+    this.vectorOdometer = VectorIteratorFactory.blankOdometer(vector);
+    fillOdometer();
+    return supplyIterator().get();
   }
 
-  private void buildBlank() {
-    int keyLength = vector.getNodeArray().length;
-    vectorOdometer.setProbabilities(vector.getProbabilities());
-    vectorOdometer.setNodeArray(vector.getNodeArray());
-    vectorOdometer.setStateArrays(vector.getStateArrays());
-    vectorOdometer.setNumberOfStates(vector.getNumberOfStates());
-    vectorOdometer.setStepMultiplier(vector.getStepMultiplier());
-    vectorOdometer.setStates(new NodeState[keyLength]);
-    vectorOdometer.setStateIndexes(new int[keyLength]);
-    vectorOdometer.setEventStatePosition(new boolean[keyLength]);
-    vectorOdometer.setConditionStatePosition(new boolean[keyLength]);
-    vectorOdometer.setStateIsEvent(new boolean[keyLength][]);
+  protected void fillOdometer() {
+    Node[] nodes = vectorOdometer.getNodeArray();
+    initializeStates(nodes);
+    lockPositions(nodes);
+    initStateIsEventMap(nodes);
   }
 
-  protected void performRequestItemLogic(T requestItem) {
-    initializeOdometer(
-        requestItem,
-        vectorOdometer.getStates(),
-        vectorOdometer.getStateIndexes(),
-        vectorOdometer.getNodeArray());
-    initializeEventAndConditionStates(
-        requestItem,
-        vectorOdometer.getEventStatePosition(),
-        vectorOdometer.getConditionStatePosition(),
-        vectorOdometer.getNodeArray());
-    initializeStateIsEvent(
-        requestItem,
-        vectorOdometer.getStateIsEvent(),
-        vectorOdometer.getEventStatePosition(),
-        vectorOdometer.getStateArrays());
+  protected abstract Supplier<T> supplyIterator();
+
+  protected void initializeStates(Node[] nodeArray) {
+    int[] stateIndexes = vectorOdometer.getStateIndexes();
+    NodeState[] states = vectorOdometer.getStates();
+    Map<NodeState, Integer> stateValueMap = vector.getStateValueMap();
+    Function<Node, NodeState> initialStateMapper = initialStatePositionSetter();
+    IntStream.range(0, nodeArray.length)
+        .forEach(
+            i -> {
+              Node node = nodeArray[i];
+              NodeState state = initialStateMapper.apply(node);
+              states[i] = state;
+              stateIndexes[i] = stateValueMap.get(state);
+            });
   }
 
-  protected abstract VectorIterator constructIterator();
+  protected void lockPositions(Node[] nodes) {
+    boolean[] outerIteratorLocks = vectorOdometer.getOuterIteratorLocks();
+    boolean[] innerIteratorLocks = vectorOdometer.getInnerIteratorLocks();
+    Predicate<Node> outerFn = checkLockOuter();
+    Predicate<Node> innerFn = checkLockInner();
+    IntStream.range(0, nodes.length)
+        .forEach(
+            x -> {
+              Node node = nodes[x];
+              outerIteratorLocks[x] = outerFn.test(node);
+              innerIteratorLocks[x] = innerFn.test(node);
+            });
+  }
 
-  protected abstract void initializeOdometer(
-      T requestItem, NodeState[] states, int[] stateIndexes, Node[] nodeArray);
+  protected void initStateIsEventMap(Node[] nodes) {
+    boolean[][] isEvidenceArray = vectorOdometer.getNodeStateEvidenceArray();
+    Function<Node, boolean[]> function = checkStateIsEvidence();
+    IntStream.range(0, nodes.length).forEach(x -> isEvidenceArray[x] = function.apply(nodes[x]));
+  }
 
-  protected abstract void initializeEventAndConditionStates(
-      T requestItem,
-      boolean[] eventStatePosition,
-      boolean[] conditionStatePosition,
-      Node[] nodeArray);
+  protected abstract Function<Node, NodeState> initialStatePositionSetter();
 
-  protected abstract void initializeStateIsEvent(
-      T requestItem,
-      boolean[][] complementStateIndexes,
-      boolean[] eventStatePosition,
-      NodeState[][] stateArrays);
+  protected abstract Predicate<Node> checkLockOuter();
+
+  protected abstract Predicate<Node> checkLockInner();
+
+  protected abstract Function<Node, boolean[]> checkStateIsEvidence();
 }

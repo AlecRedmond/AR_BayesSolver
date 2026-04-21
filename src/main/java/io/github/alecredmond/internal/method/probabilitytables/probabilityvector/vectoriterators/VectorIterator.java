@@ -2,4 +2,6 @@ package io.github.alecredmond.internal.method.probabilitytables.probabilityvecto
 
 public interface VectorIterator {
     void performRun();
+
+    void preRunLogic();
 }

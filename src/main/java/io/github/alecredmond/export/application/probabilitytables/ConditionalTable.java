@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.TableMarginalizer;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class ConditionalTable extends ProbabilityTable {
 
   @Override
   public void marginalizeTable() {
-    TableUtils.marginalizeConditionalTable(this);
+    TableMarginalizer.build(this).performRun();
   }
 
   @Override

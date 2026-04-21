@@ -11,7 +11,7 @@ public class MarginalConstraintStrategy implements ConstraintStrategy<MarginalCo
   @Override
   public MarginalConstraintSolverHandler buildSolverHandler(
       JTATableHandler tableHandler, ProbabilityConstraint constraint) {
-    return new MarginalConstraintSolverHandler(tableHandler, (MarginalConstraint) constraint);
+    return new MarginalSolverHandlerFactory(tableHandler, (MarginalConstraint) constraint).build();
   }
 
   @Override
@@ -23,5 +23,4 @@ public class MarginalConstraintStrategy implements ConstraintStrategy<MarginalCo
   public MarginalConstraintSerializer buildConstraintSerializer() {
     return new MarginalConstraintSerializer();
   }
-
 }

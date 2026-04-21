@@ -1,11 +1,8 @@
 package io.github.alecredmond.internal.method.constraints.strategies.baseobjects;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,30 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BaseConstraintSolverHandler extends BaseVectorIterator {
   protected final JTATableHandler tableHandler;
   protected final ProbabilityConstraint constraint;
-  protected final ProbabilityVectorIterator iterator;
-  protected VectorCombinationKey eventKey;
-  protected VectorCombinationKey conditionKey;
   protected List<Double> errors;
 
   protected BaseConstraintSolverHandler(
       JTATableHandler tableHandler,
       ProbabilityConstraint constraint,
       VectorOdometer vectorOdometer) {
-    this.vectorOdometer = vectorOdometer;
+    super(vectorOdometer);
     this.tableHandler = tableHandler;
     this.constraint = constraint;
-    this.iterator = new ProbabilityVectorIterator();
-    this.eventKey = buildEventKey();
-    this.conditionKey = buildConditionKey();
     this.errors = new ArrayList<>();
   }
-
-  protected VectorCombinationKey buildEventKey() {
-    return new VectorCombinationKeyFactory()
-        .buildKey(tableHandler.getTable(), constraint.getAllStates());
-  }
-
-  protected abstract VectorCombinationKey buildConditionKey();
 
   public double adjustAndReturnError() {
     double expectedProb = constraint.getProbability();
@@ -61,14 +45,47 @@ public abstract class BaseConstraintSolverHandler extends BaseVectorIterator {
     return Math.pow(actualProb - expectedProb, 2);
   }
 
-  protected abstract void calculateProbability(
-      DoubleAdder eventJointProb, DoubleAdder complementJointProb, DoubleAdder conditionJointProb);
+  private void calculateProbability(
+      DoubleAdder eventJointProb, DoubleAdder complementJointProb, DoubleAdder conditionJointProb) {
+    int[] stateIndexes = vectorOdometer.getStateIndexes();
+    boolean[][] stateIsEvent = vectorOdometer.getNodeStateEvidenceArray();
+    double[] probs = vectorOdometer.getProbabilities();
+
+    iterateOuter(
+        () -> {
+          boolean isEvidence = checkIsEvidence(stateIndexes, stateIsEvent);
+          DoubleAdder correctAdder = isEvidence ? eventJointProb : complementJointProb;
+          iterateInner(
+              (o, i) -> {
+                double prob = probs[i];
+                conditionJointProb.add(prob);
+                correctAdder.add(prob);
+              });
+        });
+  }
 
   protected double getRatio(double targetProb, double actualProb) {
     return actualProb == 0 ? 0.0 : targetProb / actualProb;
   }
 
-  protected abstract void adjustToRatio(double ratioIfEvent, double ratioOtherwise);
+  protected void adjustToRatio(double ratioIfEvent, double ratioOtherwise) {
+    int[] stateIndexes = vectorOdometer.getStateIndexes();
+    boolean[][] stateIsEvent = vectorOdometer.getNodeStateEvidenceArray();
+    double[] probs = vectorOdometer.getProbabilities();
+
+    iterateOuter(
+        () -> {
+          double ratio =
+              checkIsEvidence(stateIndexes, stateIsEvent) ? ratioIfEvent : ratioOtherwise;
+          iterateInner((o, i) -> probs[i] = probs[i] * ratio);
+        });
+  }
+
+  protected boolean checkIsEvidence(int[] stateIndexes, boolean[][] stateIsEvent) {
+    return IntStream.range(0, stateIsEvent.length)
+        .filter(x -> stateIsEvent[x].length != 0)
+        .allMatch(x -> stateIsEvent[x][stateIndexes[x]]);
+  }
 
   public void storeError(double error) {
     errors.add(error);
@@ -85,10 +102,7 @@ public abstract class BaseConstraintSolverHandler extends BaseVectorIterator {
     results.put(constraint, newArray);
   }
 
-  protected boolean checkIsEvidence(
-      int[] odometerKey, int[] evidencePositions, boolean[] evidenceLock) {
-    return IntStream.range(0, odometerKey.length)
-        .filter(i -> evidenceLock[i])
-        .allMatch(i -> odometerKey[i] == evidencePositions[i]);
+  public void performRun() {
+    // UNUSED FOR CONSTRAINT SOLVER HANDLERS
   }
 }

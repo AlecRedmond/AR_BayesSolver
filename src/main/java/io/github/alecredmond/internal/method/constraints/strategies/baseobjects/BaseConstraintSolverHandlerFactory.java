@@ -5,15 +5,18 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.BaseVectorIteratorFactory;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.VectorIteratorFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-public abstract class BaseConstraintSolverHandlerFactory<T extends ProbabilityConstraint>
-    extends BaseVectorIteratorFactory<T> implements VectorIteratorFactory<T> {
+public abstract class BaseConstraintSolverHandlerFactory<
+        T extends ProbabilityConstraint, R extends ConstraintSolverHandler<T>>
+    extends BaseVectorIteratorFactory<R> {
   protected T constraint;
   protected JTATableHandler tableHandler;
 
@@ -22,72 +25,51 @@ public abstract class BaseConstraintSolverHandlerFactory<T extends ProbabilityCo
     this.tableHandler = tableHandler;
   }
 
-  public abstract ConstraintSolverHandler<T> build();
-
-  protected <R extends ConstraintSolverHandler<T>> R superBuild(Class<R> rClass) {
-    return rClass.cast(build(tableHandler.getVector(), constraint));
+  public R build() {
+    return buildIterator(tableHandler.getVector());
   }
 
-  protected void initializeOdometer(
-      T constraint, NodeState[] statesArray, int[] stateIndexes, Node[] nodeArray) {
+  @Override
+  protected Function<Node, NodeState> initialStatePositionSetter() {
+    Map<Node, NodeState> condMap = NodeUtils.generateRequest(constraint.getConditionStates());
+    return node -> condMap.containsKey(node) ? condMap.get(node) : node.getNodeStates().getFirst();
+  }
+
+  /**
+   * For constraint handlers, the outer iterator should ONLY cycle the event state(s), meaning all
+   * values except the event states will be true.
+   */
+  @Override
+  protected Predicate<Node> checkLockOuter() {
+    Set<Node> events = constraint.getEventNodes();
+    return node -> !events.contains(node);
+  }
+
+  /**
+   * The inner iterator will cycle values not within any of the constraint states, meaning all
+   * states in the constraint will be true.
+   */
+  @Override
+  protected Predicate<Node> checkLockInner() {
     Set<Node> allNodes = constraint.getAllNodes();
-    Map<NodeState, Integer> nodeStateIndexMap = vector.getStateValueMap();
-    IntStream.range(0, nodeArray.length)
-        .forEach(
-            i -> {
-              Node node = nodeArray[i];
-              List<NodeState> states = node.getNodeStates();
-              if (!allNodes.contains(node)) {
-                statesArray[i] = states.getFirst();
-                return;
-              }
-              NodeState initialState = getInitialState(constraint, node);
-              statesArray[i] = initialState;
-              stateIndexes[i] = nodeStateIndexMap.get(initialState);
-            });
+    return allNodes::contains;
   }
 
-  protected NodeState getInitialState(T constraint, Node node) {
-    return node.getNodeStates().stream()
-        .filter(constraint.getAllStates()::contains)
-        .findFirst()
-        .orElseThrow();
-  }
-
-  protected void initializeEventAndConditionStates(
-      T constraint,
-      boolean[] eventStatePosition,
-      boolean[] conditionStatePosition,
-      Node[] nodeArray) {
+  @Override
+  protected Function<Node, boolean[]> checkStateIsEvidence() {
     Set<Node> eventNodes = constraint.getEventNodes();
-    Set<Node> conditionNodes = constraint.getConditionNodes();
-    IntStream.range(0, nodeArray.length)
-        .forEach(
-            i -> {
-              Node node = nodeArray[i];
-              eventStatePosition[i] = eventNodes.contains(node);
-              conditionStatePosition[i] = conditionNodes.contains(node);
-            });
-  }
-
-  protected void initializeStateIsEvent(
-      T requestItem,
-      boolean[][] stateIsEvent,
-      boolean[] eventStatePosition,
-      NodeState[][] stateArrays) {
-    Set<NodeState> eventStates = requestItem.getEventStates();
-    IntStream.range(0, eventStatePosition.length)
-        .filter(i -> eventStatePosition[i])
-        .forEach(
-            x -> {
-              boolean[] isEventArray = stateIsEvent[x];
-              NodeState[] states = stateArrays[x];
-              IntStream.range(0, isEventArray.length)
-                  .forEach(
-                      y -> {
-                        boolean setAsEvent = eventStates.contains(states[y]);
-                        stateIsEvent[x][y] = setAsEvent;
-                      });
-            });
+    Set<NodeState> eventStates = constraint.getEventStates();
+    return node -> {
+      if (!eventNodes.contains(node)) {
+        return new boolean[0];
+      }
+      List<NodeState> states = node.getNodeStates();
+      boolean[] isEvidence = new boolean[states.size()];
+      IntStream.range(0, states.size())
+          .filter(y -> eventStates.contains(states.get(y)))
+          .forEach(y -> isEvidence[y] = true);
+      return isEvidence;
+      // Java pls give BooleanStream functions T^T
+    };
   }
 }

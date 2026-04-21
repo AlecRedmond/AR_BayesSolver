@@ -9,12 +9,12 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -68,7 +68,7 @@ public class JTAInitializer {
     boolean writeBackToNetwork = jtd.isSolverConfig();
     Clique[] cliques = jtd.getCliques();
 
-    TransferIteratorBuilder builder = new TransferIteratorBuilder();
+    TransferIteratorFactory builder = new TransferIteratorFactory();
 
     Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
     Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
@@ -79,20 +79,16 @@ public class JTAInitializer {
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
 
-      bestClique
-          .getWriteFromCPTs()
-          .add(builder.buildMultiplyTransferIterator(networkTable, cliqueTable));
+      bestClique.getWriteFromCPTs().add(builder.buildMultiplyInTransfer(networkTable, cliqueTable));
 
       if (writeBackToNetwork) {
-        bestClique
-            .getWriteToCPTs()
-            .add(builder.buildMarginalTransferIterator(cliqueTable, networkTable));
+        bestClique.getWriteToCPTs().add(builder.buildMarginalTransfer(cliqueTable, networkTable));
         continue;
       }
 
       bestClique
           .getWriteToObserved()
-          .add(builder.buildMarginalTransferIterator(cliqueTable, marginalTables.get(node)));
+          .add(builder.buildMarginalTransfer(cliqueTable, marginalTables.get(node)));
     }
   }
 
@@ -112,8 +108,8 @@ public class JTAInitializer {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T extends ProbabilityConstraint> ConstraintSolverHandler<T> buildConstraintHandler(
-      @NonNull T constraint, Clique clique) {
+  private static <T extends ProbabilityConstraint>
+      ConstraintSolverHandler<T> buildConstraintHandler(@NonNull T constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
     return (ConstraintSolverHandler<T>)
         ConstraintRegistry.getStrategy(constraint.getClass())

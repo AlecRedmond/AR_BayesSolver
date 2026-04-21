@@ -1,0 +1,65 @@
+package io.github.alecredmond.internal.method.probabilitytables.transfer.factory;
+
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.BaseVectorIteratorFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+public abstract class TransferReadWriteFactory<T extends VectorIterator>
+    extends BaseVectorIteratorFactory<T> {
+  protected ProbabilityTable readTable;
+  protected ProbabilityTable writeTable;
+  protected double[] transferArray;
+  protected Set<Node> commonNodes;
+
+  protected TransferReadWriteFactory(ProbabilityTable readTable, ProbabilityTable writeTable) {
+    super();
+    this.readTable = readTable;
+    this.writeTable = writeTable;
+    this.commonNodes = TableUtils.getCommonNodes(readTable, writeTable);
+    this.transferArray = new double[calculateTransferArrayLength()];
+  }
+
+  private int calculateTransferArrayLength() {
+    return commonNodes.stream().map(node -> node.getNodeStates().size()).reduce(1, (x, y) -> x * y);
+  }
+
+  protected TransferReadWriteFactory(
+      ProbabilityTable readTable, ProbabilityTable writeTable, double[] transferArray) {
+    this.readTable = readTable;
+    this.writeTable = writeTable;
+    this.commonNodes = TableUtils.getCommonNodes(readTable, writeTable);
+    this.transferArray = transferArray;
+  }
+
+  public T build() {
+    return super.buildIterator(selectTable().getVector());
+  }
+
+  protected abstract ProbabilityTable selectTable();
+
+  @Override
+  protected Function<Node, NodeState> initialStatePositionSetter() {
+    return node -> node.getNodeStates().getFirst();
+  }
+
+  @Override
+  protected Predicate<Node> checkLockOuter() {
+    return node -> !commonNodes.contains(node);
+  }
+
+  @Override
+  protected Predicate<Node> checkLockInner() {
+    return commonNodes::contains;
+  }
+
+  @Override
+  protected Function<Node, boolean[]> checkStateIsEvidence() {
+    return node -> new boolean[0];
+  }
+}

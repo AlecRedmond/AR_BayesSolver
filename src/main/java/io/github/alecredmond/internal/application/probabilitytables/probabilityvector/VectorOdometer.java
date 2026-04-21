@@ -13,7 +13,7 @@ public class VectorOdometer {
   private int[] stepMultiplier;
   private int[] stateIndexes;
   private NodeState[] states;
-  private boolean[] eventStatePosition;
-  private boolean[] conditionStatePosition;
-  private boolean[][] stateIsEvent;
+  private boolean[] outerIteratorLocks; //IS EVENT - ITERATE CONDITIONS
+  private boolean[] innerIteratorLocks; //IS CONDITION - ITERATE EVENTS
+  private boolean[][] nodeStateEvidenceArray;
 }

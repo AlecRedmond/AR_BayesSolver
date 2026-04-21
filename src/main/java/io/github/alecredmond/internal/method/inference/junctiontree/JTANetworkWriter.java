@@ -55,7 +55,7 @@ class JTANetworkWriter {
     Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
-        .forEach(TransferIterator::setToUnityAndTransfer);
+        .forEach(TransferIterator::transfer);
 
     jtd.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 

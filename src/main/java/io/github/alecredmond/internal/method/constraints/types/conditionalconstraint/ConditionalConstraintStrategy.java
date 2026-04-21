@@ -10,8 +10,7 @@ public class ConditionalConstraintStrategy implements ConstraintStrategy<Conditi
   @Override
   public ConditionalConstraintSolverHandler buildSolverHandler(
       JTATableHandler tableHandler, ProbabilityConstraint constraint) {
-
-    return new ConditionalConstraintSolverHandler(tableHandler, (ConditionalConstraint) constraint);
+      return new ConditionalSolverHandlerFactory(tableHandler, (ConditionalConstraint) constraint).build();
   }
 
   @Override

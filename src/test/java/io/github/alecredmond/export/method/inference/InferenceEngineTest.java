@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -23,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@Slf4j
 class InferenceEngineTest {
 
   @Nested
@@ -300,7 +302,8 @@ class InferenceEngineTest {
     @Test
     void testFantasyGraph_ComplexNetwork() {
       if (!SOLVE_LONG_TESTS) return;
-      BayesianNetwork net = FANTASY_GRAPH.get().solveNetwork();
+      BayesianNetwork net = FANTASY_GRAPH.get();
+      net.solveNetwork();
       assertDoesNotThrow(() -> test = net.buildInferenceEngine());
       if (PRINT_TABLES) test.printObserved();
       test.observeNetworkFromIds(List.of("VOTE:CPK"));

@@ -28,7 +28,7 @@ public class JunctionTreeTable extends ProbabilityTable {
       Map<Serializable, Node> nodeIDMap) {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
-    observedStates = new HashSet<>();
+    this.observedStates = new HashSet<>();
   }
 
   @Override

@@ -165,28 +165,7 @@ public class TableUtils {
         .toList();
   }
 
-  public static void marginalizeConditionalTable(ConditionalTable table) {
-    ProbabilityVector vector = table.getVector();
-    VectorCombinationKey marginalizationKey = KEY_FACTORY.buildMarginalisationKey(table);
-    double[] probs = vector.getProbabilities();
-    DoubleAdder adder = new DoubleAdder();
-    ITERATOR.iterateConditions(
-        vector,
-        marginalizationKey,
-        (conditionKey, conditionIndex) -> {
-          ITERATOR.iterateEvents(
-              vector, marginalizationKey, (eventKey, eventIndex) -> adder.add(probs[eventIndex]));
-          double sumAcrossConditions = adder.sumThenReset();
-          if (sumAcrossConditions == 0) return;
-          double ratio = 1 / sumAcrossConditions;
-          ITERATOR.iterateEvents(
-              vector,
-              marginalizationKey,
-              (eventKey, eventIndex) -> probs[eventIndex] = ratio * probs[eventIndex]);
-        });
-  }
-
-  public static void confirmAllNodesQueried(Collection<NodeState> request, ProbabilityTable table) {
+    public static void confirmAllNodesQueried(Collection<NodeState> request, ProbabilityTable table) {
     Set<Node> nodeSet = new HashSet<>(table.getNodes());
     boolean duplicateNodes;
     for (NodeState state : request) {

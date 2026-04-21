@@ -13,7 +13,7 @@ public class JointConstraintStrategy implements ConstraintStrategy<JointProbabil
   @Override
   public ConstraintSolverHandler<JointProbabilityConstraint> buildSolverHandler(
       JTATableHandler tableHandler, ProbabilityConstraint constraint) {
-    return new JointConstraintSolverHandler(tableHandler, (JointProbabilityConstraint) constraint);
+    return new JointSolverHandlerFactory(tableHandler, (JointProbabilityConstraint) constraint).build();
   }
 
   @Override

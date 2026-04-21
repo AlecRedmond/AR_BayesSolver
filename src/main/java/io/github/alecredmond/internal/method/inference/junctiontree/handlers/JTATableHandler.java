@@ -3,20 +3,18 @@ package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.ObservationCopierFactory;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
 public class JTATableHandler {
   protected final JunctionTreeTable table;
-  protected final ProbabilityVectorIterator iterator;
+  protected final ObservationCopierFactory copierFactory;
 
   public JTATableHandler(JunctionTreeTable table) {
     this.table = table;
-    this.iterator = new ProbabilityVectorIterator();
+    this.copierFactory = new ObservationCopierFactory(table.getVector(), table.getBackupVector());
   }
 
   public void setObserved(Set<NodeState> evidenceInTable) {
@@ -26,22 +24,13 @@ public class JTATableHandler {
   }
 
   private void writeFromBackup(Set<NodeState> evidenceInTable) {
-    double[] backup = table.getBackupVector().getProbabilities();
-    double[] observed = table.getVector().getProbabilities();
-
-    if (evidenceInTable.isEmpty()) {
-      System.arraycopy(backup, 0, observed, 0, backup.length);
+    if (!evidenceInTable.isEmpty()) {
+      copierFactory.build(evidenceInTable).performRun();
       return;
     }
-
-    Arrays.fill(observed, 0.0);
-
-    VectorCombinationKey observedKey =
-        new VectorCombinationKeyFactory().buildKey(table, evidenceInTable);
-
-    ProbabilityVector vector = table.getVector();
-
-    iterator.iterateEvents(vector, observedKey, (k, i) -> observed[i] = backup[i]);
+    double[] backup = table.getBackupVector().getProbabilities();
+    double[] observed = table.getVector().getProbabilities();
+    System.arraycopy(backup, 0, observed, 0, backup.length);
   }
 
   public void resetObservations() {

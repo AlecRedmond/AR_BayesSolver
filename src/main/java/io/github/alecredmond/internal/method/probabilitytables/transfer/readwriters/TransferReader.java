@@ -1,0 +1,30 @@
+package io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters;
+
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.DoubleAdder;
+import lombok.Getter;
+
+@Getter
+public class TransferReader extends BaseVectorIterator implements VectorIterator {
+  private final double[] transferArray;
+
+  public TransferReader(VectorOdometer odometer, double[] transferArray) {
+    super(odometer);
+    this.transferArray = transferArray;
+  }
+
+  @Override
+  public void performRun() {
+    AtomicInteger tIndex = new AtomicInteger();
+    DoubleAdder adder = new DoubleAdder();
+    double[] probabilities = vectorOdometer.getProbabilities();
+    iterateOuter(
+        () -> {
+          iterateInner((o, i) -> adder.add(probabilities[i]));
+          transferArray[tIndex.getAndAdd(1)] = adder.sumThenReset();
+        });
+  }
+}

@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class OdometerInitializerBuilder {
 
-  public static OdometerInitializer initIterateEvents(VectorOdometer odometer) {
-    return initialize(odometer, odometer.getConditionStatePosition());
+  public static OdometerInitializer initIterateInner(VectorOdometer odometer) {
+    return initialize(odometer, odometer.getInnerIteratorLocks());
   }
 
   private static OdometerInitializer initialize(VectorOdometer odometer, boolean[] positionLocked) {
@@ -54,7 +54,7 @@ public class OdometerInitializerBuilder {
     return corrections;
   }
 
-  public static OdometerInitializer initIterateConditions(VectorOdometer odometer) {
-    return initialize(odometer, odometer.getEventStatePosition());
+  public static OdometerInitializer initIterateOuter(VectorOdometer odometer) {
+    return initialize(odometer, odometer.getOuterIteratorLocks());
   }
 }
