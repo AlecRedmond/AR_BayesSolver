@@ -3,8 +3,9 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.export.method.probabilitytables.MarginalTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.MarginalTableHelperImpl;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,21 +35,13 @@ public class MarginalTable extends ProbabilityTable {
     this.networkNode = networkNode;
   }
 
-  public <T extends Serializable> Double getProbabilityFromId(T nodeStateID) {
-    return super.getProbabilityFromIDs(Set.of(nodeStateID));
+    @Override
+  protected TableHelper<MarginalTable> buildHelper() {
+    return new MarginalTableHelperImpl(this);
   }
 
   @Override
-  public void marginalizeTable() {
-    TableUtils.marginalizeJointTable(this);
-  }
-
-  @Override
-  public MarginalTable copyTable() {
-    return new TableCopier().copyMarginal(this);
-  }
-
-  public Map<NodeState, Double> buildMarginalMap() {
-    return TableUtils.buildMarginalMap(this);
+  public MarginalTableHelper getHelper() {
+    return (MarginalTableHelperImpl) helper;
   }
 }

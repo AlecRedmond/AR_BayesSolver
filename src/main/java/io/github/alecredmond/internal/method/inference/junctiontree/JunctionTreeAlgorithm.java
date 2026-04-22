@@ -6,9 +6,11 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
+import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
@@ -68,7 +70,8 @@ public class JunctionTreeAlgorithm {
   public void marginalizeTables() {
     Arrays.stream(data.getCliques())
         .map(Clique::getTable)
-        .forEach(ProbabilityTable::marginalizeTable);
+        .map(JunctionTreeTable::getHelper)
+        .forEach(TableHelper::marginalizeTable);
     Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 

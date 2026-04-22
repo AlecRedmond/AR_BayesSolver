@@ -96,12 +96,12 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public <T extends Serializable> MarginalTable copyObservedTableById(T nodeId) {
-    return getObservedTableById(nodeId).copyTable();
+    return getObservedTableById(nodeId).getHelper().copyTable();
   }
 
   @Override
   public MarginalTable copyObservedTable(Node node) {
-    return getObservedTable(node).copyTable();
+    return getObservedTable(node).getHelper().copyTable();
   }
 
   @Override

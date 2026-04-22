@@ -40,9 +40,11 @@ class InferenceEngineTest {
 
     @Test
     void observeNetwork_shouldUpdateProbabilities() {
-      assertEquals(0.2, test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
+      assertEquals(
+          0.2, test.getObservedTableById("RAIN").getHelper().getProbabilityById("RAIN:TRUE"), 1E-6);
       test.observeNetworkFromIds("WET_GRASS:TRUE");
-      double pRainGivenWet = test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+      double pRainGivenWet =
+          test.getObservedTableById("RAIN").getHelper().getProbabilityById("RAIN:TRUE");
       assertTrue(pRainGivenWet > 0.2);
       // Exact value P(R|W) = P(W|R)P(R)/P(W)
       // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
@@ -65,11 +67,12 @@ class InferenceEngineTest {
 
     @Test
     void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
-      double pRainMarginal = test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+      double pRainMarginal =
+          test.getObservedTableById("RAIN").getHelper().getProbabilityById("RAIN:TRUE");
 
       test.observeNetwork(List.of());
       double pRainObservedEmpty =
-          test.getObservedTableById("RAIN").getProbabilityFromId("RAIN:TRUE");
+          test.getObservedTableById("RAIN").getHelper().getProbabilityById("RAIN:TRUE");
 
       assertEquals(pRainMarginal, pRainObservedEmpty);
     }
@@ -106,7 +109,7 @@ class InferenceEngineTest {
       test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
       MarginalTable rainTable = test.getObservedTableById("RAIN");
       assertNotNull(rainTable);
-      assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
+      assertEquals(0.384852, rainTable.getHelper().getProbabilityById("RAIN:TRUE"), 1E-6);
     }
 
     @Test

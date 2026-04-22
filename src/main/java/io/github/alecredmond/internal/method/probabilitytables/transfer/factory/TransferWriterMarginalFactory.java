@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.factory
 
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferWriterMarginal;
-import java.util.function.Supplier;
 
 public class TransferWriterMarginalFactory
     extends TransferReadWriteFactory<TransferWriterMarginal> {
@@ -17,7 +16,7 @@ public class TransferWriterMarginalFactory
   }
 
   @Override
-  protected Supplier<TransferWriterMarginal> supplyIterator() {
-    return () -> new TransferWriterMarginal(vectorOdometer, transferArray);
+  protected TransferWriterMarginal constructIterator() {
+    return new TransferWriterMarginal(vectorOdometer, transferArray);
   }
 }

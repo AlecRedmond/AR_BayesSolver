@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class ObservationCopierFactory extends BaseVectorIteratorFactory<ObservationCopier> {
   private final ProbabilityVector backupVector;
@@ -29,8 +28,8 @@ public class ObservationCopierFactory extends BaseVectorIteratorFactory<Observat
   }
 
   @Override
-  protected Supplier<ObservationCopier> supplyIterator() {
-    return () -> new ObservationCopier(vectorOdometer, backupVector);
+  protected ObservationCopier constructIterator() {
+    return new ObservationCopier(vectorOdometer, backupVector);
   }
 
   @Override
@@ -46,10 +45,5 @@ public class ObservationCopierFactory extends BaseVectorIteratorFactory<Observat
   @Override
   protected Predicate<Node> checkLockInner() {
     return observations::containsKey;
-  }
-
-  @Override
-  protected Function<Node, boolean[]> checkStateIsEvidence() {
-    return node -> new boolean[0];
   }
 }

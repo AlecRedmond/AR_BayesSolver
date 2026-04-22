@@ -4,15 +4,29 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator.UpdateConsumer;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     implements VectorIteratorFactory<T> {
+  protected static final UpdateConsumer UPDATE_STATES =
+      (currentIndex, overflow, odometer) -> {
+        NodeState[][] stateArrays = odometer.getStateArrays();
+        NodeState[] states = odometer.getStates();
+        int[] stateIndexes = odometer.getStateIndexes();
+        IntStream.range(0, states.length)
+            .forEach(
+                x -> {
+                  int y = stateIndexes[x];
+                  states[x] = stateArrays[x][y];
+                });
+      };
+
   protected VectorOdometer vectorOdometer;
   protected ProbabilityVector vector;
 
@@ -22,7 +36,11 @@ public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     this.vector = vector;
     this.vectorOdometer = VectorIteratorFactory.blankOdometer(vector);
     fillOdometer();
-    return supplyIterator().get();
+    T t = constructIterator();
+    if (t instanceof BaseVectorIterator b) {
+      b.setConsumer(updateConsumer());
+    }
+    return t;
   }
 
   protected void fillOdometer() {
@@ -32,7 +50,11 @@ public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     initStateIsEventMap(nodes);
   }
 
-  protected abstract Supplier<T> supplyIterator();
+  protected abstract T constructIterator();
+
+  protected UpdateConsumer updateConsumer() {
+    return (currentIndex, overflow, odometer) -> {};
+  }
 
   protected void initializeStates(Node[] nodeArray) {
     int[] stateIndexes = vectorOdometer.getStateIndexes();
@@ -69,11 +91,15 @@ public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     IntStream.range(0, nodes.length).forEach(x -> isEvidenceArray[x] = function.apply(nodes[x]));
   }
 
-  protected abstract Function<Node, NodeState> initialStatePositionSetter();
+  protected Function<Node, NodeState> initialStatePositionSetter() {
+    return node -> node.getNodeStates().getFirst();
+  }
 
   protected abstract Predicate<Node> checkLockOuter();
 
   protected abstract Predicate<Node> checkLockInner();
 
-  protected abstract Function<Node, boolean[]> checkStateIsEvidence();
+  protected Function<Node, boolean[]> checkStateIsEvidence() {
+    return node -> new boolean[0];
+  }
 }

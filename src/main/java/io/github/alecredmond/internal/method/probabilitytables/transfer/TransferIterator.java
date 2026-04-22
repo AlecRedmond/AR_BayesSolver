@@ -13,7 +13,6 @@ public class TransferIterator {
   }
 
   public void transfer() {
-    writer.preRunLogic();
     reader.performRun();
     writer.performRun();
   }

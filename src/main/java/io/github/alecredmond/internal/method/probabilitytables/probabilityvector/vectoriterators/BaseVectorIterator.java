@@ -1,36 +1,26 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
-import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.OdometerInitializer;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerInitializerBuilder;
 import java.util.function.ObjIntConsumer;
-import java.util.stream.IntStream;
+import lombok.Setter;
 
 public abstract class BaseVectorIterator {
-  protected static final UpdateConsumer BLANK_CONSUMER = (currentIndex, overflow, odometer) -> {};
-  protected static final UpdateConsumer UPDATE_CONSUMER =
-      (currentIndex, overflow, odometer) -> {
-        NodeState[][] stateArrays = odometer.getStateArrays();
-        NodeState[] states = odometer.getStates();
-        int[] stateIndexes = odometer.getStateIndexes();
-        IntStream.range(0, states.length)
-            .forEach(
-                x -> {
-                  int y = stateIndexes[x];
-                  states[x] = stateArrays[x][y];
-                });
-      };
   protected VectorOdometer vectorOdometer;
+  @Setter protected UpdateConsumer consumer;
 
   protected BaseVectorIterator(VectorOdometer vectorOdometer) {
     this.vectorOdometer = vectorOdometer;
   }
 
-  public void preRunLogic() {}
+  protected BaseVectorIterator(VectorOdometer vectorOdometer, UpdateConsumer consumer) {
+    this.vectorOdometer = vectorOdometer;
+    this.consumer = consumer;
+  }
 
   protected void iterateInner(ObjIntConsumer<VectorOdometer> indexConsumer) {
-    iterateInner(indexConsumer, BLANK_CONSUMER);
+    iterateInner(indexConsumer, consumer);
   }
 
   protected void iterateInner(
@@ -80,8 +70,8 @@ public abstract class BaseVectorIterator {
     }
   }
 
-  protected void iterateOuter(Runnable consumer) {
-    iterateOuter((o, i) -> consumer.run(), BLANK_CONSUMER);
+  protected void iterateOuter(Runnable runnable) {
+    iterateOuter((o, i) -> runnable.run(), consumer);
   }
 
   protected void iterateOuter(
@@ -94,7 +84,7 @@ public abstract class BaseVectorIterator {
   }
 
   @FunctionalInterface
-  protected interface UpdateConsumer {
+  public interface UpdateConsumer {
     void update(int currentIndex, boolean overflow, VectorOdometer odometer);
   }
 }

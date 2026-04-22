@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.factory
 
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferWriterMultiplyIn;
-import java.util.function.Supplier;
 
 public class TransferWriterMultiplyInFactory
     extends TransferReadWriteFactory<TransferWriterMultiplyIn> {
@@ -17,7 +16,7 @@ public class TransferWriterMultiplyInFactory
   }
 
   @Override
-  protected Supplier<TransferWriterMultiplyIn> supplyIterator() {
-    return () -> new TransferWriterMultiplyIn(vectorOdometer, transferArray);
+  protected TransferWriterMultiplyIn constructIterator() {
+    return new TransferWriterMultiplyIn(vectorOdometer, transferArray);
   }
 }

@@ -19,7 +19,6 @@ public class TableMarginalizer extends BaseVectorIterator implements VectorItera
   public void performRun() {
     double[] probabilities = vectorOdometer.getProbabilities();
     DoubleAdder adder = new DoubleAdder();
-
     iterateOuter(
         () -> {
           iterateInner((o, i) -> adder.add(probabilities[i]));

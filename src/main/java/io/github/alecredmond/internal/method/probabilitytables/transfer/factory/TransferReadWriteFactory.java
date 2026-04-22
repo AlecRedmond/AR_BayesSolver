@@ -1,13 +1,11 @@
 package io.github.alecredmond.internal.method.probabilitytables.transfer.factory;
 
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.BaseVectorIteratorFactory;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class TransferReadWriteFactory<T extends VectorIterator>
@@ -44,11 +42,6 @@ public abstract class TransferReadWriteFactory<T extends VectorIterator>
   protected abstract ProbabilityTable selectTable();
 
   @Override
-  protected Function<Node, NodeState> initialStatePositionSetter() {
-    return node -> node.getNodeStates().getFirst();
-  }
-
-  @Override
   protected Predicate<Node> checkLockOuter() {
     return node -> !commonNodes.contains(node);
   }
@@ -56,10 +49,5 @@ public abstract class TransferReadWriteFactory<T extends VectorIterator>
   @Override
   protected Predicate<Node> checkLockInner() {
     return commonNodes::contains;
-  }
-
-  @Override
-  protected Function<Node, boolean[]> checkStateIsEvidence() {
-    return node -> new boolean[0];
   }
 }

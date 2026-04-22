@@ -3,7 +3,6 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.factory
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferWriterMessagePass;
-import java.util.function.Supplier;
 
 public class TransferWriterMessagePassFactory
     extends TransferReadWriteFactory<TransferWriterMessagePass> {
@@ -24,7 +23,7 @@ public class TransferWriterMessagePassFactory
   }
 
   @Override
-  protected Supplier<TransferWriterMessagePass> supplyIterator() {
-    return () -> new TransferWriterMessagePass(vectorOdometer, transferArray, separatorVector);
+  protected TransferWriterMessagePass constructIterator() {
+    return new TransferWriterMessagePass(vectorOdometer, transferArray, separatorVector);
   }
 }

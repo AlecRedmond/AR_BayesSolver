@@ -5,6 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
@@ -57,7 +58,9 @@ class JTANetworkWriter {
         .flatMap(Collection::stream)
         .forEach(TransferIterator::transfer);
 
-    jtd.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
+    jtd.getObservedTablesMap().values().stream()
+        .map(ProbabilityTable::getHelper)
+        .forEach(TableHelper::marginalizeTable);
 
     networkData.getNodes().forEach(node -> updateTableName(node, jtd));
 
@@ -85,7 +88,9 @@ class JTANetworkWriter {
         .flatMap(c -> c.getWriteToCPTs().stream())
         .forEach(TransferIterator::transfer);
 
-    bnd.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
+    bnd.getNetworkTablesMap().values().stream()
+        .map(ProbabilityTable::getHelper)
+        .forEach(TableHelper::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");
   }

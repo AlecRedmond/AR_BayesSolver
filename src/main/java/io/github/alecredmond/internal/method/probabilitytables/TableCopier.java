@@ -12,11 +12,12 @@ import org.apache.commons.lang3.SerializationUtils;
 
 public class TableCopier {
 
-  public ProbabilityTable copyTable(ProbabilityTable table) {
+  @SuppressWarnings("unchecked")
+  public <T extends ProbabilityTable> T copyTable(ProbabilityTable table) {
     return switch (table) {
-      case MarginalTable mt -> copyMarginal(mt);
-      case ConditionalTable ct -> copyConditional(ct);
-      case JunctionTreeTable jtt -> copyJTT(jtt);
+      case MarginalTable mt -> (T) copyMarginal(mt);
+      case ConditionalTable ct -> (T) copyConditional(ct);
+      case JunctionTreeTable jtt -> (T) copyJTT(jtt);
       default -> throw new IllegalStateException("Unexpected value: " + table);
     };
   }

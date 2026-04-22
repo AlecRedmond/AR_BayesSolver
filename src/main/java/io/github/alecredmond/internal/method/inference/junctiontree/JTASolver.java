@@ -19,8 +19,8 @@ public class JTASolver {
 
   public static SolverResults solveNetwork(BayesianNetworkData networkData) {
     SolverConfigs configs = new SolverConfigs();
-    Instant start = Instant.now();
     boolean writeLogs = configs.isLogSolverProgress();
+    Instant start = Instant.now();
 
     if (writeLogs) {
       log.info("STARTING SOLVER");
@@ -107,7 +107,7 @@ public class JTASolver {
   }
 
   private static SolverResults writeResults(
-          Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> constraintMap, int cycle) {
+      Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)

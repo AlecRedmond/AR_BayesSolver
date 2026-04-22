@@ -3,21 +3,14 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.readwri
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TransferWriterMultiplyIn extends BaseVectorIterator implements VectorIterator {
   private final double[] transferArray;
 
-  public TransferWriterMultiplyIn(
-      VectorOdometer vectorOdometer, double[] transferArray) {
+  public TransferWriterMultiplyIn(VectorOdometer vectorOdometer, double[] transferArray) {
     super(vectorOdometer);
     this.transferArray = transferArray;
-  }
-
-  @Override
-  public void preRunLogic() {
-    // Arrays.fill(vectorOdometer.getProbabilities(), 1.0);
   }
 
   @Override

@@ -88,6 +88,13 @@ public class NodeUtils {
     return sb.toString();
   }
 
+  public static String formatIDsToString(Collection<Serializable> ids) {
+    StringBuilder sb = new StringBuilder();
+    ids.forEach(id -> sb.append(id.toString()).append(", "));
+    sb.setLength(sb.length() - 2);
+    return sb.toString();
+  }
+
   public static String formatNodesToString(Collection<Node> nodeCollection) {
     StringBuilder sb = new StringBuilder();
     nodeCollection.forEach(node -> sb.append(node.toString()).append(", "));

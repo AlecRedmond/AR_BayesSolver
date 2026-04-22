@@ -3,7 +3,6 @@ package io.github.alecredmond.internal.method.constraints.types.conditionalconst
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandlerFactory;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
-import java.util.function.Supplier;
 
 public class ConditionalSolverHandlerFactory
     extends BaseConstraintSolverHandlerFactory<
@@ -14,7 +13,7 @@ public class ConditionalSolverHandlerFactory
   }
 
   @Override
-  protected Supplier<ConditionalConstraintSolverHandler> supplyIterator() {
-    return () -> new ConditionalConstraintSolverHandler(tableHandler, constraint, vectorOdometer);
+  protected ConditionalConstraintSolverHandler constructIterator() {
+    return new ConditionalConstraintSolverHandler(tableHandler, constraint, vectorOdometer);
   }
 }

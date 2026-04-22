@@ -3,12 +3,9 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.TableMarginalizer;
+import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableHelperImpl;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
@@ -35,28 +32,12 @@ public class ConditionalTable extends ProbabilityTable {
   }
 
   @Override
-  public void marginalizeTable() {
-    TableMarginalizer.build(this).performRun();
+  protected ConditionalTableHelper buildHelper() {
+    return new ConditionalTableHelperImpl(this);
   }
 
   @Override
-  public ConditionalTable copyTable() {
-    return new TableCopier().copyConditional(this);
-  }
-
-  public <T extends Serializable> Map<NodeState, Double> getEventProbsWithConditionById(
-      Collection<T> conditionStateIds) {
-    return getEventProbsWithCondition(TableUtils.convertIDsToStates(conditionStateIds, this));
-  }
-
-  public Map<NodeState, Double> getEventProbsWithCondition(Collection<NodeState> conditionStates) {
-    Map<NodeState, Double> map = TableUtils.getMapForConditions(conditionStates, this);
-    if (map.isEmpty()) {
-      log.error(
-          "Error in getEventProbsWithCondition - request {} was not an exact match for all conditions in table {}",
-          NodeUtils.formatStatesToString(conditionStates),
-          this);
-    }
-    return map;
+  public ConditionalTableHelper getHelper() {
+    return (ConditionalTableHelperImpl) helper;
   }
 }
