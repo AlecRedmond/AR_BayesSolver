@@ -48,8 +48,8 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
       List<NodeState> events = table.getNetworkNode().getNodeStates();
       double[] probs = table.getVector().getProbabilities();
       int firstIndex = TableUtils.getIndex(conditionStates, table);
-      IntStream.range(firstIndex, firstIndex + events.size())
-          .forEach(i -> map.put(events.get(i), probs[i]));
+      IntStream.range(0, events.size())
+          .forEach(i -> map.put(events.get(i), probs[firstIndex + i]));
       return map;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
