@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
-import static io.github.alecredmond.method.network.NetworkScenarios.*;
+import static io.github.alecredmond.method.network.NetworkScenario.*;
+import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;

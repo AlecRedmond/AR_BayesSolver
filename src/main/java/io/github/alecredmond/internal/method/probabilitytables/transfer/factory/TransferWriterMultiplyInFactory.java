@@ -16,7 +16,7 @@ public class TransferWriterMultiplyInFactory
   }
 
   @Override
-  protected TransferWriterMultiplyIn constructIterator() {
+  protected TransferWriterMultiplyIn supplyIterator() {
     return new TransferWriterMultiplyIn(vectorOdometer, transferArray);
   }
 }

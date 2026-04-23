@@ -21,11 +21,6 @@ public class ConstraintBuilderIteratorFactory
   }
 
   @Override
-  protected ConstraintBuilderIterator constructIterator() {
-    return new ConstraintBuilderIterator(vectorOdometer);
-  }
-
-  @Override
   protected BaseVectorIterator.UpdateConsumer updateConsumer() {
     return UPDATE_STATES;
   }
@@ -40,5 +35,10 @@ public class ConstraintBuilderIteratorFactory
   protected Predicate<Node> checkLockInner() {
     Set<Node> conditions = table.getConditions();
     return conditions::contains;
+  }
+
+  @Override
+  public ConstraintBuilderIterator supplyIterator() {
+    return new ConstraintBuilderIterator(vectorOdometer);
   }
 }

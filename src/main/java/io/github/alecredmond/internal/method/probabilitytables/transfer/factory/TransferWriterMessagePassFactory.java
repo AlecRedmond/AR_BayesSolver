@@ -23,7 +23,7 @@ public class TransferWriterMessagePassFactory
   }
 
   @Override
-  protected TransferWriterMessagePass constructIterator() {
+  protected TransferWriterMessagePass supplyIterator() {
     return new TransferWriterMessagePass(vectorOdometer, transferArray, separatorVector);
   }
 }

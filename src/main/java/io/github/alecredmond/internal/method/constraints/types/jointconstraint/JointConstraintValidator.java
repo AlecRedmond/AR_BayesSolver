@@ -3,11 +3,9 @@ package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
 
-public class JointConstraintValidator extends BaseConstraintValidator<JointProbabilityConstraint>
-    implements ConstraintValidator<JointProbabilityConstraint> {
+public class JointConstraintValidator extends ConstraintValidator<JointProbabilityConstraint> {
 
   public JointConstraintValidator() {
     super();
@@ -15,7 +13,8 @@ public class JointConstraintValidator extends BaseConstraintValidator<JointProba
 
   @Override
   public boolean validateInputs(ConstraintBuilderData data) {
-    return data.getEventStates().size() > 1;
+    return data.getEventStates().size() > 1
+        && data.getEventNodes().size() == data.getEventStates().size();
   }
 
   @Override

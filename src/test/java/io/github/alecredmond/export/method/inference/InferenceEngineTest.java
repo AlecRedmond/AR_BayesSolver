@@ -1,7 +1,9 @@
 package io.github.alecredmond.export.method.inference;
 
 import static io.github.alecredmond.TestConfigs.*;
-import static io.github.alecredmond.method.network.NetworkScenarios.*;
+import static io.github.alecredmond.method.network.NetworkScenario.*;
+import static io.github.alecredmond.method.network.NetworkScenario.RAIN_NETWORK;
+import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
@@ -14,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import io.github.alecredmond.method.network.NetworkScenario;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,7 +38,7 @@ class InferenceEngineTest {
 
     @BeforeEach
     void init() {
-      net = RAIN_NETWORK.get();
+      net = RAIN_NETWORK.getSupplier().get();
       test = net.buildInferenceEngine();
     }
 
@@ -161,7 +165,7 @@ class InferenceEngineTest {
       providers = new ArrayList<>();
       providers.add(
           new ArgumentProvider(
-              RAIN_NETWORK,
+              RAIN_NETWORK.getSupplier(),
               "SPRINKLER",
               "WET_GRASS",
               "CLOUDY",

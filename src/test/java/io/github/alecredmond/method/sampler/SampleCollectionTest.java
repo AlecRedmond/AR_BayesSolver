@@ -1,6 +1,7 @@
 package io.github.alecredmond.method.sampler;
 
 import static io.github.alecredmond.TestConfigs.*;
+import static io.github.alecredmond.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
@@ -8,7 +9,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.method.network.NetworkScenarios;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,7 +30,7 @@ class SampleCollectionTest {
     packages = new ArrayList<>();
     packages.add(
         new SamplePackage(
-            NetworkScenarios.AH_NETWORK.get(),
+            AH_NETWORK.get(),
             NUMBER_OF_SAMPLES,
             Set.of("H+"),
             Set.of("C", "E"),
@@ -38,7 +38,7 @@ class SampleCollectionTest {
             true));
     packages.add(
         new SamplePackage(
-            NetworkScenarios.SIMPLE_LINEAR.get(),
+            SIMPLE_LINEAR.get(),
             NUMBER_OF_SAMPLES,
             Set.of(),
             Set.of("B", "C"),
@@ -46,7 +46,7 @@ class SampleCollectionTest {
             true));
     packages.add(
         new SamplePackage(
-            NetworkScenarios.RAIN_NETWORK.get(),
+            RAIN_NETWORK.get(),
             NUMBER_OF_SAMPLES,
             Set.of("WET_GRASS:TRUE"),
             Set.of("SPRINKLER"),
@@ -55,7 +55,7 @@ class SampleCollectionTest {
     if (!SOLVE_LONG_TESTS) return;
     packages.add(
         new SamplePackage(
-            NetworkScenarios.FANTASY_GRAPH.get(),
+            FANTASY_GRAPH.get(),
             NUMBER_OF_SAMPLES,
             Set.of("DISTRICT:OTHER"),
             Set.of("RACE", "WEALTH"),

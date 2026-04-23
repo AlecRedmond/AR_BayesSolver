@@ -1,15 +1,10 @@
 package io.github.alecredmond.internal.method.constraints.types.conditionalconstraint;
 
-import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintValidator;
-import java.util.Set;
+import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
 
-public class ConditionalConstraintValidator extends BaseConstraintValidator<ConditionalConstraint>
-    implements ConstraintValidator<ConditionalConstraint> {
+public class ConditionalConstraintValidator extends ConstraintValidator<ConditionalConstraint> {
 
   public ConditionalConstraintValidator() {
     super();
@@ -27,13 +22,7 @@ public class ConditionalConstraintValidator extends BaseConstraintValidator<Cond
 
   @Override
   protected void constraintSpecificValidation() {
-    Node eventNode = constraint.getEventNode();
-    Set<Node> conditionNodes = constraint.getConditionNodes();
-    if (!conditionNodes.contains(eventNode)) {
-      return;
-    }
-    throw new ConstraintValidationException(
-        "ProbabilityConstraint %s is conditional upon itself!".formatted(constraint));
+    // No extra requirements
   }
 
   @Override

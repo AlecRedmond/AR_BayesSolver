@@ -4,13 +4,9 @@ import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class NetworkScenarios {
-  public static final Supplier<BayesianNetwork> RAIN_NETWORK = buildRainNetwork();
-  public static final Supplier<BayesianNetwork> AH_NETWORK = buildAhNetwork();
-  public static final Supplier<BayesianNetwork> FANTASY_GRAPH = buildFantasyGraph();
-  public static final Supplier<BayesianNetwork> SIMPLE_LINEAR = buildSimpleLinearGraph();
+public class NetworkScenarioBuilder {
 
-  private static Supplier<BayesianNetwork> buildSimpleLinearGraph() {
+  public static Supplier<BayesianNetwork> buildSimpleLinearGraph() {
     return () ->
         BayesianNetwork.newNetwork("SIMPLE_LINEAR_GRAPH")
             .addNewNode("A", List.of("A+", "A-"))
@@ -29,7 +25,7 @@ public class NetworkScenarios {
             .addConstraint("D+", List.of("C-"), 0.3);
   }
 
-  private static Supplier<BayesianNetwork> buildFantasyGraph() {
+  public static Supplier<BayesianNetwork> buildFantasyGraph() {
     return () ->
         BayesianNetwork.newNetwork("FANTASY_ELECTION")
             .addNewNode(
@@ -169,10 +165,12 @@ public class NetworkScenarios {
             .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.29)
             .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
             .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
-            ////.addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
-            ////.addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
-            ////.addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"), 0.003)
-            ////.addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.000)
+            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
+            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
+            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"),
+            // 0.003)
+            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"),
+            // 0.000)
             // Outlook|Race,Wealth,Age,DISTRICT_TYPE
             .addConstraint(
                 "OUTLOOK:REACTIONARY",
@@ -261,7 +259,7 @@ public class NetworkScenarios {
             .addConstraint("VOTE:CPK", List.of("RACE:ANK", "AGE:YOUNG_ADULT"), 0.22);
   }
 
-  private static Supplier<BayesianNetwork> buildAhNetwork() {
+  public static Supplier<BayesianNetwork> buildAhNetwork() {
     // A   B   C
     //  \ / \ /
     //   D   E
@@ -311,7 +309,7 @@ public class NetworkScenarios {
             .addConstraint("H+", List.of("E-"), 0.55);
   }
 
-  private static Supplier<BayesianNetwork> buildRainNetwork() {
+  public static Supplier<BayesianNetwork> buildRainNetwork() {
     return () ->
         BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS")
             .addNewNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
@@ -326,5 +324,19 @@ public class NetworkScenarios {
             .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
             .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
             .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
+  }
+
+  public static Supplier<BayesianNetwork> buildDiamondNetwork() {
+    return () ->
+        BayesianNetwork.newNetwork("DIAMOND NETWORK")
+            .addNewNode("A", List.of("A+", "A-", "Ax"))
+            .addNewNode("B", List.of("B+", "B-", "Bx"))
+            .addNewNode("C", List.of("C+", "C-", "Cx"))
+            // .addNewNode("D", List.of("D+", "D-"))
+            .addParents("B", List.of("A"))
+            .addParents("C", List.of("A"))
+            // .addParents("D", List.of("B", "C"))
+            // .addConstraint("A+", 0.25)
+            .addConstraint(List.of("B+", "B-"), List.of(), 0.5);
   }
 }

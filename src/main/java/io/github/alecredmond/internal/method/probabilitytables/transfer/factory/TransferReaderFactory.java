@@ -14,7 +14,7 @@ public class TransferReaderFactory extends TransferReadWriteFactory<TransferRead
   }
 
   @Override
-  protected TransferReader constructIterator() {
+  protected TransferReader supplyIterator() {
     return new TransferReader(vectorOdometer, transferArray);
   }
 }

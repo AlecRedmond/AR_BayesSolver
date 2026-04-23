@@ -7,8 +7,8 @@ import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class ExclusiveConstraint extends ProbabilityConstraint {
-  protected ExclusiveConstraint(
+public class SumProbabilityConstraint extends ProbabilityConstraint {
+  public SumProbabilityConstraint(
       Collection<NodeState> eventStates,
       Collection<NodeState> conditionStates,
       double probability) {

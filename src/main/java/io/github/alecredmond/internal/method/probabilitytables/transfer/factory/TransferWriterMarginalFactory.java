@@ -16,7 +16,7 @@ public class TransferWriterMarginalFactory
   }
 
   @Override
-  protected TransferWriterMarginal constructIterator() {
+  protected TransferWriterMarginal supplyIterator() {
     return new TransferWriterMarginal(vectorOdometer, transferArray);
   }
 }

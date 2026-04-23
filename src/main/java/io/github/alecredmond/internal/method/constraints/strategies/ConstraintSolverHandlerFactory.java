@@ -1,9 +1,9 @@
-package io.github.alecredmond.internal.method.constraints.strategies.baseobjects;
+package io.github.alecredmond.internal.method.constraints.strategies;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
+import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.BaseVectorIteratorFactory;
@@ -14,19 +14,27 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-public abstract class BaseConstraintSolverHandlerFactory<
+public class ConstraintSolverHandlerFactory<
         T extends ProbabilityConstraint, R extends ConstraintSolverHandler<T>>
     extends BaseVectorIteratorFactory<R> {
   protected T constraint;
   protected JTATableHandler tableHandler;
+  protected SolverHandlerConstructor<T, R> constructor;
 
-  protected BaseConstraintSolverHandlerFactory(JTATableHandler tableHandler, T constraint) {
+  public ConstraintSolverHandlerFactory(
+      JTATableHandler tableHandler, T constraint, SolverHandlerConstructor<T, R> constructor) {
     this.constraint = constraint;
     this.tableHandler = tableHandler;
+    this.constructor = constructor;
   }
 
   public R build() {
     return buildIterator(tableHandler.getVector());
+  }
+
+  @Override
+  protected R supplyIterator() {
+    return constructor.construct(tableHandler, constraint, vectorOdometer);
   }
 
   @Override
@@ -71,5 +79,14 @@ public abstract class BaseConstraintSolverHandlerFactory<
       return isEvidence;
       // Java pls give BooleanStream functions T^T
     };
+  }
+
+  @FunctionalInterface
+  public interface SolverHandlerConstructor<
+      T extends ProbabilityConstraint, R extends ConstraintSolverHandler<T>> {
+    R construct(
+        JTATableHandler tableHandler,
+        ProbabilityConstraint constraint,
+        VectorOdometer vectorOdometer);
   }
 }

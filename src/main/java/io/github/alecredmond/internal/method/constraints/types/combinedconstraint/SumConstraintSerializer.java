@@ -1,30 +1,29 @@
-package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
+package io.github.alecredmond.internal.method.constraints.types.combinedconstraint;
 
-import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedJointProbabilityConstraint;
+import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
+import io.github.alecredmond.export.serialization.constraint.SerializedSumConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;
 
-public class JointConstraintSerializer implements ConstraintSerializer<JointProbabilityConstraint> {
-
+public class SumConstraintSerializer implements ConstraintSerializer<SumProbabilityConstraint> {
   @Override
-  public SerializedProbabilityConstraint<JointProbabilityConstraint> serialize(
-      JointProbabilityConstraint constraint) {
-    return new SerializedJointProbabilityConstraint(
+  public SerializedProbabilityConstraint<SumProbabilityConstraint> serialize(
+      SumProbabilityConstraint constraint) {
+    return new SerializedSumConstraint(
         SerializerUtils.serializeNodeStates(constraint.getEventStates()),
         SerializerUtils.serializeNodeStates(constraint.getConditionStates()),
         constraint.getProbability());
   }
 
   @Override
-  public JointProbabilityConstraint deSerialize(
-      SerializedProbabilityConstraint<JointProbabilityConstraint> serialized,
+  public SumProbabilityConstraint deSerialize(
+      SerializedProbabilityConstraint<SumProbabilityConstraint> serialized,
       SerializationData serializationData) {
-    SerializedJointProbabilityConstraint sc = (SerializedJointProbabilityConstraint) serialized;
-    return new JointProbabilityConstraint(
+    SerializedSumConstraint sc = (SerializedSumConstraint) serialized;
+    return new SumProbabilityConstraint(
         SerializerUtils.deSerializeNodeStates(sc.getEventIds(), ArrayList::new, serializationData),
         SerializerUtils.deSerializeNodeStates(
             sc.getConditionIds(), ArrayList::new, serializationData),

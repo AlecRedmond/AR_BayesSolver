@@ -13,15 +13,13 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BaseConstraintSolverHandler extends BaseVectorIterator {
+public abstract class BaseConstraintSolver extends BaseVectorIterator {
   protected final JTATableHandler tableHandler;
   protected final ProbabilityConstraint constraint;
   protected List<Double> errors;
 
-  protected BaseConstraintSolverHandler(
-      JTATableHandler tableHandler,
-      ProbabilityConstraint constraint,
-      VectorOdometer vectorOdometer) {
+  protected BaseConstraintSolver(
+      JTATableHandler tableHandler, ProbabilityConstraint constraint, VectorOdometer vectorOdometer) {
     super(vectorOdometer);
     this.tableHandler = tableHandler;
     this.constraint = constraint;

@@ -28,7 +28,7 @@ public class ObservationCopierFactory extends BaseVectorIteratorFactory<Observat
   }
 
   @Override
-  protected ObservationCopier constructIterator() {
+  public ObservationCopier supplyIterator() {
     return new ObservationCopier(vectorOdometer, backupVector);
   }
 

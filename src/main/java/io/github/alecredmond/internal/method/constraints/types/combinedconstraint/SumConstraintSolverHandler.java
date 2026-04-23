@@ -1,19 +1,18 @@
-package io.github.alecredmond.internal.method.constraints.types.marginalconstraint;
+package io.github.alecredmond.internal.method.constraints.types.combinedconstraint;
 
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 
-public class MarginalConstraintSolverHandler extends BaseConstraintSolver
-    implements ConstraintSolverHandler<MarginalConstraint> {
-
-  public MarginalConstraintSolverHandler(
-      JTATableHandler jtaTableHandler,
+public class SumConstraintSolverHandler extends BaseConstraintSolver
+    implements ConstraintSolverHandler<SumProbabilityConstraint> {
+  protected SumConstraintSolverHandler(
+      JTATableHandler tableHandler,
       ProbabilityConstraint constraint,
       VectorOdometer vectorOdometer) {
-    super(jtaTableHandler, constraint, vectorOdometer);
+    super(tableHandler, constraint, vectorOdometer);
   }
 }

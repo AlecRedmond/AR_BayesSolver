@@ -15,11 +15,6 @@ public class ProbabilityMapperFactory extends BaseVectorIteratorFactory<Probabil
   }
 
   @Override
-  protected ProbabilityMapper constructIterator() {
-    return new ProbabilityMapper(vectorOdometer);
-  }
-
-  @Override
   protected UpdateConsumer updateConsumer() {
     return UPDATE_STATES;
   }
@@ -32,5 +27,10 @@ public class ProbabilityMapperFactory extends BaseVectorIteratorFactory<Probabil
   @Override
   protected Predicate<Node> checkLockInner() {
     return n -> false;
+  }
+
+  @Override
+  public ProbabilityMapper supplyIterator() {
+    return new ProbabilityMapper(vectorOdometer);
   }
 }

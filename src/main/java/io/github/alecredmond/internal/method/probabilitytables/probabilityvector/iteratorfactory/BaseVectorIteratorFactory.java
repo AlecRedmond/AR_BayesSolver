@@ -36,7 +36,7 @@ public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     this.vector = vector;
     this.vectorOdometer = VectorIteratorFactory.blankOdometer(vector);
     fillOdometer();
-    T t = constructIterator();
+    T t = supplyIterator();
     if (t instanceof BaseVectorIterator b) {
       b.setConsumer(updateConsumer());
     }
@@ -50,7 +50,7 @@ public abstract class BaseVectorIteratorFactory<T extends VectorIterator>
     initStateIsEventMap(nodes);
   }
 
-  protected abstract T constructIterator();
+  protected abstract T supplyIterator();
 
   protected UpdateConsumer updateConsumer() {
     return (currentIndex, overflow, odometer) -> {};

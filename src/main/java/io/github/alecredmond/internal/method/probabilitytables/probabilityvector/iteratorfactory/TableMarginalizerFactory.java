@@ -20,11 +20,6 @@ public class TableMarginalizerFactory extends BaseVectorIteratorFactory<TableMar
   }
 
   @Override
-  protected TableMarginalizer constructIterator() {
-    return new TableMarginalizer(vectorOdometer);
-  }
-
-  @Override
   protected Predicate<Node> checkLockOuter() {
     Set<Node> events = table.getEvents();
     return events::contains;
@@ -34,5 +29,10 @@ public class TableMarginalizerFactory extends BaseVectorIteratorFactory<TableMar
   protected Predicate<Node> checkLockInner() {
     Set<Node> conditions = table.getConditions();
     return conditions::contains;
+  }
+
+  @Override
+  public TableMarginalizer supplyIterator() {
+    return new TableMarginalizer(vectorOdometer);
   }
 }

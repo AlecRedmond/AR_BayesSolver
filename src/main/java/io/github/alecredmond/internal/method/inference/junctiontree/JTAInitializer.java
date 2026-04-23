@@ -11,6 +11,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Separat
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
@@ -111,9 +112,8 @@ public class JTAInitializer {
   private static <T extends ProbabilityConstraint>
       ConstraintSolverHandler<T> buildConstraintHandler(@NonNull T constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
-    return (ConstraintSolverHandler<T>)
-        ConstraintRegistry.getStrategy(constraint.getClass())
-            .buildSolverHandler(jtaTableHandler, constraint);
+    return ((ConstraintStrategy<T>) ConstraintRegistry.getStrategy(constraint.getClass()))
+    .buildSolverHandler(jtaTableHandler,constraint);
   }
 
   public static JunctionTreeData buildNewInferenceConfiguration(
