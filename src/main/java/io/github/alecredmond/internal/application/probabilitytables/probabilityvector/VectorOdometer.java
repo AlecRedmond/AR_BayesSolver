@@ -4,6 +4,8 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class VectorOdometer {
   private double[] probabilities;
@@ -16,4 +18,5 @@ public class VectorOdometer {
   private boolean[] outerIteratorLocks;
   private boolean[] innerIteratorLocks;
   private boolean[][] nodeStateEvidenceArray;
+  private Map<NodeState,Integer> stateValueMap;
 }

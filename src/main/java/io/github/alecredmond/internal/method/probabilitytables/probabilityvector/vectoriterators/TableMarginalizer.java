@@ -1,30 +1,42 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.TableMarginalizerFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
+import java.util.Set;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.function.Predicate;
 
-public class TableMarginalizer extends BaseVectorIterator implements VectorIterator {
+public class TableMarginalizer implements OdometerResetLogic {
+  private final ProbabilityTable table;
+  private final BaseVectorIterator iterator;
 
-  public TableMarginalizer(VectorOdometer vectorOdometer) {
-    super(vectorOdometer);
+  public TableMarginalizer(ProbabilityTable table) {
+    this.table = table;
+    this.iterator = new BaseVectorIterator(table.getVector(), this);
   }
 
-  public static TableMarginalizer build(ProbabilityTable table) {
-    return new TableMarginalizerFactory().build(table);
+  public void marginalize() {
+    double[] probabilities = iterator.getVectorOdometer().getProbabilities();
+    DoubleAdder adder = new DoubleAdder();
+    iterator.iterateOuter(
+        () -> {
+          iterator.iterateInner((o, i) -> adder.add(probabilities[i]));
+          double sum = adder.sumThenReset();
+          double ratio = sum == 0.0 ? 0.0 : 1.0 / sum;
+          iterator.iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+        });
   }
 
   @Override
-  public void performRun() {
-    double[] probabilities = vectorOdometer.getProbabilities();
-    DoubleAdder adder = new DoubleAdder();
-    iterateOuter(
-        () -> {
-          iterateInner((o, i) -> adder.add(probabilities[i]));
-          double sum = adder.sumThenReset();
-          double ratio = sum == 0.0 ? 0.0 : 1.0 / sum;
-          iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
-        });
+  public Predicate<Node> checkLockOuter() {
+    Set<Node> events = table.getEvents();
+    return events::contains;
+  }
+
+  @Override
+  public Predicate<Node> checkLockInner() {
+    Set<Node> conditions = table.getConditions();
+    return conditions::contains;
   }
 }

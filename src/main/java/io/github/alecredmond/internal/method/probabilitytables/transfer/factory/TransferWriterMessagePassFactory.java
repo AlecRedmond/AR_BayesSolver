@@ -18,12 +18,8 @@ public class TransferWriterMessagePassFactory
   }
 
   @Override
-  protected ProbabilityTable selectTable() {
-    return writeTable;
-  }
-
-  @Override
-  protected TransferWriterMessagePass supplyIterator() {
-    return new TransferWriterMessagePass(vectorOdometer, transferArray, separatorVector);
+  public TransferWriterMessagePass build() {
+    return new TransferWriterMessagePass(
+        writeTable.getVector(), transferArray, this, separatorVector);
   }
 }

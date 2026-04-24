@@ -7,8 +7,8 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.ConstraintBuilderIteratorFactory;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.ProbabilityMapperFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.ConstraintBuilderIterator;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.ProbabilityMapper;
 import java.io.Serializable;
 import java.util.*;
 import lombok.Setter;
@@ -84,10 +84,10 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
   }
 
   public Map<Set<NodeState>, Double> buildProbabilitySetMap() {
-    return new ProbabilityMapperFactory().build(table).getProbabilityMap();
+    return new ProbabilityMapper(table).getProbabilityMap();
   }
 
   public List<ProbabilityConstraint> generateConstraints() {
-    return new ConstraintBuilderIteratorFactory().build(table).getBuilt();
+    return new ConstraintBuilderIterator(table).getBuilt();
   }
 }

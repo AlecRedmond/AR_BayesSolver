@@ -6,7 +6,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.TableMarginalizerFactory;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.TableMarginalizer;
 import java.io.Serializable;
 import java.util.*;
@@ -20,12 +19,12 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
 
   public ConditionalTableHelperImpl(ConditionalTable table) {
     super(table);
-    this.marginalizer = new TableMarginalizerFactory().build(table);
+    this.marginalizer = new TableMarginalizer(table);
   }
 
   @Override
   public void marginalizeTable() {
-    marginalizer.performRun();
+    marginalizer.marginalize();
   }
 
   @Override
@@ -48,8 +47,7 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
       List<NodeState> events = table.getNetworkNode().getNodeStates();
       double[] probs = table.getVector().getProbabilities();
       int firstIndex = TableUtils.getIndex(conditionStates, table);
-      IntStream.range(0, events.size())
-          .forEach(i -> map.put(events.get(i), probs[firstIndex + i]));
+      IntStream.range(0, events.size()).forEach(i -> map.put(events.get(i), probs[firstIndex + i]));
       return map;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());

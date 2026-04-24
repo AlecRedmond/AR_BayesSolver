@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelperImpl;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -42,7 +43,7 @@ public class JunctionTreeTable extends ProbabilityTable {
   }
 
   @Override
-  public TableHelper<JunctionTreeTable> getHelper() {
+  public JunctionTreeTableHelper getHelper() {
     return (JunctionTreeTableHelperImpl) helper;
   }
 }

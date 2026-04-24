@@ -1,28 +1,45 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
+import static io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator.UPDATE_STATES;
+
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
-public class ProbabilityMapper extends BaseVectorIterator implements VectorIterator {
+public class ProbabilityMapper implements OdometerResetLogic {
   private final Map<Set<NodeState>, Double> probabilityMap = new LinkedHashMap<>();
+  private final BaseVectorIterator iterator;
 
-  public ProbabilityMapper(VectorOdometer vectorOdometer) {
-    super(vectorOdometer);
+  public ProbabilityMapper(ProbabilityTable table) {
+    this.iterator = new BaseVectorIterator(table.getVector(), this, UPDATE_STATES);
     performRun();
   }
 
-  @Override
   public void performRun() {
-    double[] p = vectorOdometer.getProbabilities();
-    iterateInner(
-        (odometer, index) -> probabilityMap.put(getStateSet(odometer.getStates()), p[index]));
+    VectorOdometer odometer = iterator.getVectorOdometer();
+    double[] p = odometer.getProbabilities();
+    NodeState[] states = odometer.getStates();
+    iterator.iterateInner((o, i) -> probabilityMap.put(getStateSet(states), p[i]));
   }
 
   private Set<NodeState> getStateSet(NodeState[] states) {
     return Arrays.stream(states).collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  @Override
+  public Predicate<Node> checkLockOuter() {
+    return n -> true;
+  }
+
+  @Override
+  public Predicate<Node> checkLockInner() {
+    return n -> false;
   }
 }

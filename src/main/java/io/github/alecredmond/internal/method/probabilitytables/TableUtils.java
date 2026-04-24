@@ -9,6 +9,7 @@ import io.github.alecredmond.internal.application.probabilitytables.probabilityv
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.StateCombinationGenerator;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -137,31 +138,7 @@ public class TableUtils {
     if (includedNodes.isEmpty()) {
       return new ArrayList<>();
     }
-    List<T> combos = new ArrayList<>();
-    Node[] nodeArray = table.getVector().getNodeArray();
-
-    ITERATOR.iterateEvents(
-        lockExcludedNodesFirstState(includedNodes, nodeArray),
-        table,
-        (k, index) -> combos.add(keyToStates(includedNodes, supplier, k, nodeArray)));
-
-    return combos;
-  }
-
-  private static List<NodeState> lockExcludedNodesFirstState(
-      Set<Node> includedNodes, Node[] nodes) {
-    return Arrays.stream(nodes)
-        .filter(n -> !includedNodes.contains(n))
-        .map(n -> n.getNodeStates().getFirst())
-        .toList();
-  }
-
-    private static <T extends Collection<NodeState>, R extends T> R keyToStates(
-      Set<Node> includedNodes, Supplier<R> supplier, int[] k, Node[] nodeArray) {
-    return IntStream.range(0, k.length)
-        .mapToObj(i -> nodeArray[i].getNodeStates().get(k[i]))
-        .filter(state -> includedNodes.contains(state.getNode()))
-        .collect(Collectors.toCollection(supplier));
+    return new StateCombinationGenerator(table).generateCombos(includedNodes, supplier);
   }
 
   public static void confirmAllNodesQueried(Collection<NodeState> request, ProbabilityTable table) {

@@ -11,12 +11,7 @@ public class TransferWriterMultiplyInFactory
   }
 
   @Override
-  protected ProbabilityTable selectTable() {
-    return writeTable;
-  }
-
-  @Override
-  protected TransferWriterMultiplyIn supplyIterator() {
-    return new TransferWriterMultiplyIn(vectorOdometer, transferArray);
+  public TransferWriterMultiplyIn build() {
+    return new TransferWriterMultiplyIn(writeTable.getVector(), transferArray, this);
   }
 }

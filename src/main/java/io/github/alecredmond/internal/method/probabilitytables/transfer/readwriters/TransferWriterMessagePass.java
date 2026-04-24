@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters;
 
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,8 +13,11 @@ public class TransferWriterMessagePass extends BaseVectorIterator implements Vec
   private final double[] separatorProbs;
 
   public TransferWriterMessagePass(
-      VectorOdometer odometer, double[] transferArray, ProbabilityVector separatorVector) {
-    super(odometer);
+      ProbabilityVector write,
+      double[] transferArray,
+      OdometerResetLogic logic,
+      ProbabilityVector separatorVector) {
+    super(write, logic);
     this.transferArray = transferArray;
     this.ratioArray = new double[transferArray.length];
     this.separatorProbs = separatorVector.getProbabilities();

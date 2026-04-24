@@ -11,12 +11,7 @@ public class TransferWriterMarginalFactory
   }
 
   @Override
-  protected ProbabilityTable selectTable() {
-    return writeTable;
-  }
-
-  @Override
-  protected TransferWriterMarginal supplyIterator() {
-    return new TransferWriterMarginal(vectorOdometer, transferArray);
+  public TransferWriterMarginal build() {
+    return new TransferWriterMarginal(writeTable.getVector(), transferArray, this);
   }
 }

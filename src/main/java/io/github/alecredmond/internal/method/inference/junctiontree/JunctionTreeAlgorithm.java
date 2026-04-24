@@ -5,14 +5,12 @@ import static io.github.alecredmond.internal.method.node.NodeUtils.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -90,10 +88,11 @@ public class JunctionTreeAlgorithm {
   }
 
   private <T> double multiplyTableSums(
-      T[] array, Function<T, ProbabilityTable> tableFunction, Map<Node, NodeState> request) {
+      T[] array, Function<T, JunctionTreeTable> tableFunction, Map<Node, NodeState> request) {
     return Arrays.stream(array)
         .map(tableFunction)
-        .mapToDouble(pt -> TableUtils.sumProbabilities(request, pt))
+        .map(JunctionTreeTable::getHelper)
+        .mapToDouble(helper -> helper.sumProbabilities(request))
         .reduce(1.0, (x, y) -> x * y);
   }
 

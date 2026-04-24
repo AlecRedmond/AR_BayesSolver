@@ -1,10 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector;
 
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
-import java.util.*;
+
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
 import lombok.NoArgsConstructor;
@@ -12,15 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProbabilityVectorIterator {
 
-  public void iterateEvents(
-      Collection<NodeState> lockedStates,
-      ProbabilityTable table,
-      ObjIntConsumer<int[]> iterativeConsumer) {
-    VectorCombinationKey key = new VectorCombinationKeyFactory().buildKey(table, lockedStates);
-    iterateEvents(table.getVector(), key, iterativeConsumer);
-  }
-
-  public void iterateEvents(
+    public void iterateEvents(
       ProbabilityVector vector, VectorCombinationKey key, ObjIntConsumer<int[]> iterativeConsumer) {
     iterateKeyCombos(vector, key.getStateIndexes(), key.getIterateEvents(), iterativeConsumer);
   }

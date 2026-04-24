@@ -3,18 +3,19 @@ package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.ObservationCopierFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.ObservationCopier;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
 public class JTATableHandler {
   protected final JunctionTreeTable table;
-  protected final ObservationCopierFactory copierFactory;
+  protected final ObservationCopier copier;
 
+  // TODO - fold into JunctionTreeHelperImpl
   public JTATableHandler(JunctionTreeTable table) {
     this.table = table;
-    this.copierFactory = new ObservationCopierFactory(table.getVector(), table.getBackupVector());
+    this.copier = new ObservationCopier(table);
   }
 
   public void setObserved(Set<NodeState> evidenceInTable) {
@@ -25,7 +26,7 @@ public class JTATableHandler {
 
   private void writeFromBackup(Set<NodeState> evidenceInTable) {
     if (!evidenceInTable.isEmpty()) {
-      copierFactory.build(evidenceInTable).performRun();
+      copier.observeTable(evidenceInTable);
       return;
     }
     double[] backup = table.getBackupVector().getProbabilities();

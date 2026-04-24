@@ -9,12 +9,7 @@ public class TransferReaderFactory extends TransferReadWriteFactory<TransferRead
   }
 
   @Override
-  protected ProbabilityTable selectTable() {
-    return readTable;
-  }
-
-  @Override
-  protected TransferReader supplyIterator() {
-    return new TransferReader(vectorOdometer, transferArray);
+  public TransferReader build() {
+    return new TransferReader(readTable.getVector(), transferArray, this);
   }
 }

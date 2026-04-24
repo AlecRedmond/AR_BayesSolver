@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters;
 
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,8 +10,9 @@ import java.util.concurrent.atomic.DoubleAdder;
 public class TransferWriterMarginal extends BaseVectorIterator implements VectorIterator {
   private final double[] transferArray;
 
-  public TransferWriterMarginal(VectorOdometer odometer, double[] transferArray) {
-    super(odometer);
+  public TransferWriterMarginal(
+      ProbabilityVector write, double[] transferArray, OdometerResetLogic logic) {
+    super(write, logic);
     this.transferArray = transferArray;
   }
 

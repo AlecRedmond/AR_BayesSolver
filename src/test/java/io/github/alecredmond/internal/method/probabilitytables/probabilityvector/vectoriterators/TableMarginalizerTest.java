@@ -1,7 +1,6 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
 import static io.github.alecredmond.method.network.NetworkScenario.*;
-import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
@@ -32,15 +31,15 @@ class TableMarginalizerTest {
 
   @ParameterizedTest
   @MethodSource("getNetworkTables")
-  void performRun(BayesianNetwork network, Serializable nodeId) {
+  void marginalize(BayesianNetwork network, Serializable nodeId) {
     Node node = network.getNode(nodeId);
     List<Node> conds = node.getParents();
     ProbabilityTable table = TableBuilder.buildNetworkTable(List.of(node), conds);
     double[] probs = table.getVector().getProbabilities();
     assertTrue(Arrays.stream(probs).allMatch(p -> p == 1.0));
 
-    test = TableMarginalizer.build(table);
-    test.performRun();
+    test = new TableMarginalizer(table);
+    test.marginalize();
 
     int blockSize = node.getNodeStates().size();
     double average = 1.0 / blockSize;
@@ -49,7 +48,7 @@ class TableMarginalizerTest {
     IntStream.range(0, blockSize).forEach(i -> probs[i] = 1);
     probs[0] = blockSize - 1;
 
-    test.performRun();
+    test.marginalize();
 
     assertEquals(1, Arrays.stream(probs, 0, blockSize).sum(), 1e-6);
     assertEquals(0.5, probs[0], 1e-6);

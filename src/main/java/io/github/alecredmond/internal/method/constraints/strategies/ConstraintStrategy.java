@@ -5,11 +5,11 @@ import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 
 public interface ConstraintStrategy<T extends ProbabilityConstraint> {
-  ConstraintSolverHandler<T> buildSolverHandler(
-      JTATableHandler tableHandler, T constraint);
+  default ConstraintSolver buildSolverHandler(JTATableHandler tableHandler, T constraint) {
+    return new ConstraintSolver(constraint, tableHandler.getTable());
+  }
 
   ConstraintValidator<T> buildConstraintValidator();
 
   ConstraintSerializer<T> buildConstraintSerializer();
-
 }

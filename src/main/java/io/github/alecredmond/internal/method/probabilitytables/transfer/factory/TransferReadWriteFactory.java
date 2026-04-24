@@ -3,13 +3,13 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.factory
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorfactory.BaseVectorIteratorFactory;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.Set;
 import java.util.function.Predicate;
 
 public abstract class TransferReadWriteFactory<T extends VectorIterator>
-    extends BaseVectorIteratorFactory<T> {
+    implements OdometerResetLogic {
   protected ProbabilityTable readTable;
   protected ProbabilityTable writeTable;
   protected double[] transferArray;
@@ -35,19 +35,16 @@ public abstract class TransferReadWriteFactory<T extends VectorIterator>
     this.transferArray = transferArray;
   }
 
-  public T build() {
-    return super.buildIterator(selectTable().getVector());
-  }
-
-  protected abstract ProbabilityTable selectTable();
+  public abstract T build();
 
   @Override
-  protected Predicate<Node> checkLockOuter() {
+  public Predicate<Node> checkLockOuter() {
     return node -> !commonNodes.contains(node);
   }
 
   @Override
-  protected Predicate<Node> checkLockInner() {
+  public Predicate<Node> checkLockInner() {
     return commonNodes::contains;
   }
+
 }
