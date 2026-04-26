@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.constraints.types.marginalconstrai
 
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
 public class MarginalConstraintStrategy implements ConstraintStrategy<MarginalConstraint> {
 

@@ -16,14 +16,14 @@ import java.util.function.Predicate;
 public class ObservationCopier implements OdometerResetLogic {
   private final ProbabilityVector mainVector;
   private final ProbabilityVector backupVector;
-  private final BaseVectorIterator iterator;
+  private final VectorIterator iterator;
   private Map<Node, NodeState> observations;
 
   public ObservationCopier(JunctionTreeTable table) {
     this.observations = new HashMap<>();
     this.backupVector = table.getBackupVector();
     this.mainVector = table.getVector();
-    this.iterator = new BaseVectorIterator(mainVector, this);
+    this.iterator = new VectorIterator(mainVector, this);
   }
 
   public void observeTable(Collection<NodeState> observedStates) {

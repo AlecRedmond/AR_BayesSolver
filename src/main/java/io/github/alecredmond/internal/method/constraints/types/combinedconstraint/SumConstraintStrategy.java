@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.constraints.types.combinedconstrai
 import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
 public class SumConstraintStrategy implements ConstraintStrategy<SumProbabilityConstraint> {
 

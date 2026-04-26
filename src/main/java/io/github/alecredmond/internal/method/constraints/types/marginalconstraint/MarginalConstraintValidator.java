@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.constraints.types.marginalconstrai
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
 public class MarginalConstraintValidator extends ConstraintValidator<MarginalConstraint> {
 

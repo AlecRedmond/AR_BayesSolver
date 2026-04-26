@@ -10,7 +10,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,7 @@ class JTANetworkWriter {
   static void initializeJunctionTreeFromNetwork(JunctionTreeData jtd) {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
-      clique.getWriteFromCPTs().forEach(TransferIterator::transfer);
+      clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
       clique.getTable().marginalizeTable();
     }
     backupUnobservedData(jtd);
@@ -56,7 +56,7 @@ class JTANetworkWriter {
     Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
-        .forEach(TransferIterator::transfer);
+        .forEach(TableTransfer::transfer);
 
     jtd.getObservedTablesMap().values().stream()
         .map(ProbabilityTable::getHelper)
@@ -86,7 +86,7 @@ class JTANetworkWriter {
 
     Arrays.stream(data.getCliques())
         .flatMap(c -> c.getWriteToCPTs().stream())
-        .forEach(TransferIterator::transfer);
+        .forEach(TableTransfer::transfer);
 
     bnd.getNetworkTablesMap().values().stream()
         .map(ProbabilityTable::getHelper)

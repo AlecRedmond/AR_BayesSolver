@@ -327,8 +327,42 @@ public interface BayesianNetwork {
   // ----------------------------------CONSTRAINT ADDERS-------------------------------------------
   // ----------------------------------------------------------------------------------------------
 
+  /**
+   * Adds a marginal probability constraint on the network, P(event) = probability. This can be
+   * either a prior probability on a node which has no parents, or a known marginal outcome on a
+   * child node.
+   *
+   * @param eventStateID the state of the root node.
+   * @param probability the prior probability value.
+   * @param <T> the class of the event state ID
+   * @throws IllegalArgumentException if the state is not found within the data.
+   * @throws ConstraintValidationException <br>
+   *     - if probability p is outwith 0 <= p <= 1 <br>
+   *     - if the state is not found within the data.
+   * @return this instance for method chaining.
+   */
+  <T extends Serializable> BayesianNetwork addConstraint(T eventStateID, double probability);
+
+  /**
+   * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
+   * This constraint doesn't have to be within the scope of the network's structure, but each
+   * conditional constraint will add another virtual "edge" to the graph during the solving process.
+   * This may prevent the Junction Tree solver from decomposing the graph into cliques, potentially
+   * increasing the time complexity from its base of {@code O(2^Max(Parents/Node))} up to a maximum
+   * of {@code O(2^Nodes)}.
+   *
+   * @param eventStateID the id of the event NodeState.
+   * @param conditionStateId the id Condition NodeState.
+   * @param probability the conditional probability value.
+   * @param <T> the class of the event state ID
+   * @param <E> the class of the condition state IDs
+   * @throws ConstraintValidationException <br>
+   *     - if attempting to make a state conditional on another state from the same node <br>
+   *     - if probability p is outwith 0 <= p <= 1
+   * @return this instance for method chaining.
+   */
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
-      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
+      T eventStateID, E conditionStateId, double probability);
 
   /**
    * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
@@ -351,21 +385,8 @@ public interface BayesianNetwork {
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability);
 
-  /**
-   * Adds a marginal probability constraint on the network, P(event) = probability. This can be
-   * either a prior probability on a node which has no parents, or a known marginal outcome on a
-   * child node.
-   *
-   * @param eventStateID the state of the root node.
-   * @param probability the prior probability value.
-   * @param <T> the class of the event state ID
-   * @throws IllegalArgumentException if the state is not found within the data.
-   * @throws ConstraintValidationException <br>
-   *     - if probability p is outwith 0 <= p <= 1 <br>
-   *     - if the state is not found within the data.
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork addConstraint(T eventStateID, double probability);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
+      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
 
   /**
    * Adds a probability constraint to the network This constraint doesn't have to be within the

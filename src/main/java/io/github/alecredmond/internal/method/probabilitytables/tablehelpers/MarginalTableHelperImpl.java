@@ -22,6 +22,25 @@ public class MarginalTableHelperImpl extends TableHelperBase<MarginalTable>
   }
 
   @Override
+  public Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition) {
+    return buildProbabilityMap();
+  }
+
+  @Override
+  public Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs) {
+    return buildProbabilityMap();
+  }
+
+  @Override
+  public Map<NodeState, Double> buildProbabilityMap() {
+    List<NodeState> states = table.getNetworkNode().getNodeStates();
+    double[] prob = table.getVector().getProbabilities();
+    return IntStream.range(0, prob.length)
+        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  @Override
   public Double getProbability(NodeState state) {
     return super.getProbability(List.of(state));
   }
@@ -39,14 +58,5 @@ public class MarginalTableHelperImpl extends TableHelperBase<MarginalTable>
   @Override
   public boolean setProbabilityById(Serializable id, double probability) {
     return super.setProbabilityById(List.of(id), probability);
-  }
-
-  @Override
-  public Map<NodeState, Double> buildProbabilityMap() {
-    List<NodeState> states = table.getNetworkNode().getNodeStates();
-    double[] prob = table.getVector().getProbabilities();
-    return IntStream.range(0, prob.length)
-        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

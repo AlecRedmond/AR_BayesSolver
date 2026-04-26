@@ -10,7 +10,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -82,17 +82,16 @@ public class JunctionTreeAlgorithm {
   }
 
   public double getJointProbOfMeasured(Collection<NodeState> newEvidence) {
-    Map<Node, NodeState> request = createNewEvidenceRequest(newEvidence);
-    return multiplyTableSums(data.getCliques(), Clique::getTable, request)
-        / multiplyTableSums(data.getSeparators(), Separator::getTable, request);
+    return multiplyTableSums(data.getCliques(), Clique::getTable, newEvidence)
+        / multiplyTableSums(data.getSeparators(), Separator::getTable, newEvidence);
   }
 
   private <T> double multiplyTableSums(
-      T[] array, Function<T, JunctionTreeTable> tableFunction, Map<Node, NodeState> request) {
+      T[] array, Function<T, JunctionTreeTable> tableFunction, Collection<NodeState> newEvidence) {
     return Arrays.stream(array)
         .map(tableFunction)
         .map(JunctionTreeTable::getHelper)
-        .mapToDouble(helper -> helper.sumProbabilities(request))
+        .mapToDouble(helper -> helper.sumProbabilities(newEvidence))
         .reduce(1.0, (x, y) -> x * y);
   }
 
@@ -100,20 +99,10 @@ public class JunctionTreeAlgorithm {
     data.setJointProbability(getJointProbOfMeasured(new HashSet<>()));
   }
 
-  private Map<Node, NodeState> createNewEvidenceRequest(Collection<NodeState> newEvidence) {
-    if (newEvidence.isEmpty()) {
-      return new HashMap<>();
-    }
-    Map<Node, NodeState> observed = data.getObservedEvidence();
-    Map<Node, NodeState> request = generateRequest(newEvidence, observed.values());
-    observed.keySet().forEach(request::remove);
-    return request;
-  }
-
   private void resetObservations() {
     Arrays.stream(data.getCliques())
         .map(Clique::getHandler)
-        .forEach(JTATableHandler::resetObservations);
+        .forEach(JunctionTreeTableHelper::resetObservations);
     Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 

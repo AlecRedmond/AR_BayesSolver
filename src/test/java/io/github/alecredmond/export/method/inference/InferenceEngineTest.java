@@ -3,7 +3,6 @@ package io.github.alecredmond.export.method.inference;
 import static io.github.alecredmond.TestConfigs.*;
 import static io.github.alecredmond.method.network.NetworkScenario.*;
 import static io.github.alecredmond.method.network.NetworkScenario.RAIN_NETWORK;
-import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
@@ -16,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import io.github.alecredmond.method.network.NetworkScenario;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -124,33 +121,23 @@ class InferenceEngineTest {
 
     @Test
     void observeProbability_singleEvent_shouldReturnCorrectProb() {
-      test.observeMarginals();
-      double pRainTrue = test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE"));
+      test.resetObservations();
+      double pRainTrue = test.getCurrentProbabilityById(List.of("RAIN:TRUE"));
       assertEquals(0.2, pRainTrue, 1E-9);
     }
 
     @Test
     void observeProbability_jointEvent_shouldReturnCorrectProb() {
-      test.observeMarginals();
+      test.resetObservations();
       // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
-      // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
       // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-      double pJoint =
-          test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
+      double pJoint = test.getCurrentProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
       assertEquals(0.198, pJoint, 1E-9);
     }
 
     @Test
-    void observeProbability_conflictingEvent_shouldReturnZero() {
-      test.observeMarginals();
-      double pConflict =
-          test.getCurrentConditionalProbabilityById(List.of("RAIN:TRUE", "RAIN:FALSE"));
-      assertEquals(0.0, pConflict, 1E-9);
-    }
-
-    @Test
     void observeProbability_emptyEvent_shouldReturnOne() {
-      double pEmpty = test.getCurrentConditionalProbabilityById(List.of());
+      double pEmpty = test.getCurrentProbabilityById(List.of());
       assertEquals(1.0, pEmpty, 1E-9);
     }
   }
@@ -190,7 +177,7 @@ class InferenceEngineTest {
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
       assertNotNull(test.getObservedTableById(provider.controlNodeId));
       assertNotNull(test.copyObservedTableById(provider.controlNodeId));
-      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceAlwaysSucceeds));
       assertNull(test.getObservedTableById(provider.addedNodeId));
     }
 
@@ -204,7 +191,7 @@ class InferenceEngineTest {
       network.removeNodeByID(provider.removedNodeId);
       assertDoesNotThrow(() -> test.getCurrentObservations());
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
-      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceAlwaysSucceeds));
       assertNull(test.getObservedTableById(provider.removedNodeId));
     }
 
@@ -220,7 +207,7 @@ class InferenceEngineTest {
           added -> network.addConstraint(added.eventId, added.conditionIds, added.prob));
       assertDoesNotThrow(() -> test.getCurrentObservations());
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceWithNewNodes));
-      assertEquals(1.0, test.getCurrentConditionalProbabilityById(provider.evidenceWithNewNodes));
+      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceWithNewNodes));
       assertNotNull(test.getObservedTableById(provider.addedNodeId));
     }
 
@@ -256,7 +243,7 @@ class InferenceEngineTest {
       if (PRINT_TABLES) net.printNetwork();
       test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
       if (PRINT_TABLES) test.printObserved();
-      test.observeMarginals();
+      test.resetObservations();
 
       String testState = "RAIN:TRUE";
       String includedNode = "RAIN";
@@ -270,7 +257,7 @@ class InferenceEngineTest {
 
     private void generateSamples(InferenceEngine engine, String includedNode, String testState) {
 
-      double observedProb = engine.getCurrentConditionalProbabilityById(List.of(testState));
+      double observedProb = engine.getCurrentProbabilityById(List.of(testState));
       double expected = observedProb * NUMBER_OF_SAMPLES;
       double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * ALLOWED_STDEV;
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));

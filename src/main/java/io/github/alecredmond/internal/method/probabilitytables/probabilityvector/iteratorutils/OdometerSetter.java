@@ -26,7 +26,7 @@ public class OdometerSetter {
     Map<NodeState, Integer> stateIndexMap = vectorOdometer.getStateValueMap();
 
     Function<Node, NodeState> initialStateMapper = resetLogic.initialStatePositionSetter();
-    Function<Node, boolean[]> evidenceMapper = resetLogic.checkStateIsEvidence();
+    Function<Node, boolean[]> evidenceMapper = resetLogic.buildEvidenceMaps();
     Predicate<Node> outerFn = resetLogic.checkLockOuter();
     Predicate<Node> innerFn = resetLogic.checkLockInner();
 

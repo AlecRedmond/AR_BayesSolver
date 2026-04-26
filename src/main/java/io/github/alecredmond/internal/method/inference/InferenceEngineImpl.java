@@ -1,6 +1,5 @@
 package io.github.alecredmond.internal.method.inference;
 
-import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
@@ -28,11 +27,11 @@ public class InferenceEngineImpl implements InferenceEngine {
     this.network = network;
     this.junctionTree = junctionTree;
     this.solver = BayesSolver.create(network);
-    observeMarginals();
+    resetObservations();
   }
 
   @Override
-  public InferenceEngineImpl observeMarginals() {
+  public InferenceEngineImpl resetObservations() {
     return observeNetwork(List.of());
   }
 
@@ -110,25 +109,19 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public double getCurrentConditionalProbability(Collection<NodeState> measuredStates) {
+  public double getCurrentProbability(Collection<NodeState> measuredStates) {
     if (!ensureSolved()) {
       return 0.0;
     }
-    try {
-      double currentJointProb = junctionTree.getJointProbability();
-      if (currentJointProb == 0.0) return 0.0;
-      double newJointProb = junctionTree.getJointProbOfMeasured(measuredStates);
-      return newJointProb / currentJointProb;
-    } catch (NodeStateConflictException e) {
-      log.warn("Conflicting states found in {}", NodeUtils.formatStatesToString(measuredStates));
-      return 0.0;
-    }
+    double currentJointProb = junctionTree.getJointProbability();
+    if (currentJointProb == 0.0) return 0.0;
+    double newJointProb = junctionTree.getJointProbOfMeasured(measuredStates);
+    return newJointProb / currentJointProb;
   }
 
   @Override
-  public <T extends Serializable> double getCurrentConditionalProbabilityById(
-      Collection<T> measuredStateIds) {
-    return getCurrentConditionalProbability(
+  public <T extends Serializable> double getCurrentProbabilityById(Collection<T> measuredStateIds) {
+    return getCurrentProbability(
         NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
   }
 

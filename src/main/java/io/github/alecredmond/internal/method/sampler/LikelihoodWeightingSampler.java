@@ -140,13 +140,13 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   private double selectNextState(
       NodeState[] states, int index, Node node, ProbabilityTable cpt, int[] requestIndexes) {
     if (states[index] != null) {
-      return cpt.getProbability(createRequest(requestIndexes, states));
+      return cpt.getHelper().getProbability(createRequest(requestIndexes, states));
     }
     List<NodeState> request = createRequest(requestIndexes, states);
     Map<NodeState, Double> probabilityMap = new HashMap<>();
     for (NodeState state : node.getNodeStates()) {
       request.add(state);
-      probabilityMap.put(state, cpt.getProbability(request));
+      probabilityMap.put(state, cpt.getHelper().getProbability(request));
       request.removeLast();
     }
     states[index] = nextRandom(probabilityMap);

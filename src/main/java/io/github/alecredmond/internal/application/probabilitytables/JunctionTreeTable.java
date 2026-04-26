@@ -31,6 +31,12 @@ public class JunctionTreeTable extends ProbabilityTable {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
     this.observedStates = new HashSet<>();
+    ((JunctionTreeTableHelperImpl) getHelper()).initHelper();
+  }
+
+  @Override
+  public JunctionTreeTableHelper getHelper() {
+    return (JunctionTreeTableHelperImpl) helper;
   }
 
   public void marginalizeTable() {
@@ -40,10 +46,5 @@ public class JunctionTreeTable extends ProbabilityTable {
   @Override
   protected TableHelper<JunctionTreeTable> buildHelper() {
     return new JunctionTreeTableHelperImpl(this);
-  }
-
-  @Override
-  public JunctionTreeTableHelper getHelper() {
-    return (JunctionTreeTableHelperImpl) helper;
   }
 }

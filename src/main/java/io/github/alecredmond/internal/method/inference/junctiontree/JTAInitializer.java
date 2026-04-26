@@ -10,11 +10,11 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Junctio
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -111,9 +111,9 @@ public class JTAInitializer {
   @SuppressWarnings("unchecked")
   private static <T extends ProbabilityConstraint> ConstraintSolver buildConstraintHandler(
       @NonNull T constraint, Clique clique) {
-    JTATableHandler jtaTableHandler = clique.getHandler();
+    JunctionTreeTableHelper tableHelper = clique.getHandler();
     return ((ConstraintStrategy<T>) ConstraintRegistry.getStrategy(constraint.getClass()))
-        .buildSolverHandler(jtaTableHandler, constraint);
+        .buildSolverHandler(tableHelper, constraint);
   }
 
   public static JunctionTreeData buildNewInferenceConfiguration(

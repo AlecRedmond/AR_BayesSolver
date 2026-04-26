@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Arrays;
 import java.util.List;

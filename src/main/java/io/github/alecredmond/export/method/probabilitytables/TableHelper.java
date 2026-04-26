@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface TableHelper<T extends ProbabilityTable> {
 
@@ -20,4 +21,8 @@ public interface TableHelper<T extends ProbabilityTable> {
   void marginalizeTable();
 
   List<ProbabilityConstraint> generateConstraints();
+
+  Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition);
+
+  Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs);
 }

@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
 public class JointConstraintValidator extends ConstraintValidator<JointProbabilityConstraint> {
 

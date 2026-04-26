@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.utils;
+package io.github.alecredmond.internal.method.network.changehandlers;
 
 import java.util.Collection;
 import java.util.Collections;

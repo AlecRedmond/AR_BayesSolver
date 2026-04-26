@@ -5,14 +5,10 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorIterator;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.StateCombinationGenerator;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -20,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TableUtils {
-  private static final ProbabilityVectorIterator ITERATOR = new ProbabilityVectorIterator();
-  private static final VectorCombinationKeyFactory KEY_FACTORY = new VectorCombinationKeyFactory();
 
   private TableUtils() {}
 
@@ -80,42 +74,6 @@ public class TableUtils {
     return assertAllNodesPresent(states, table.getNodes());
   }
 
-  public static double sumProbabilities(Map<Node, NodeState> request, ProbabilityTable table) {
-    List<NodeState> matchedRequest = matchRequestToTable(request, table);
-    VectorCombinationKey comboKey = KEY_FACTORY.buildKey(table, matchedRequest);
-    return sumProbabilities(comboKey, table);
-  }
-
-  private static List<NodeState> matchRequestToTable(
-      Map<Node, NodeState> request, ProbabilityTable table) {
-    return request.entrySet().stream()
-        .filter(entry -> table.getNodes().contains(entry.getKey()))
-        .map(Map.Entry::getValue)
-        .toList();
-  }
-
-  public static double sumProbabilities(VectorCombinationKey comboKey, ProbabilityTable table) {
-    ProbabilityVector vector = table.getVector();
-    double[] probability = vector.getProbabilities();
-    DoubleAdder adder = new DoubleAdder();
-    ITERATOR.iterateEvents(vector, comboKey, (key, index) -> adder.add(probability[index]));
-    double sum = adder.sum();
-    if (Double.isNaN(sum)) {
-      throwQueryError(
-          "matched probabilities summing to NaN", comboKey.getRequest().values(), table);
-    }
-    return sum;
-  }
-
-  private static void throwQueryError(
-      String endMessage, Collection<NodeState> request, ProbabilityTable table) {
-    StringBuilder requestString = new StringBuilder();
-    request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
-    throw new IllegalArgumentException(
-        String.format(
-            "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
-  }
-
   public static <T extends ProbabilityTable> void setProbability(
       Collection<NodeState> states, double probability, T table) {
     double[] probs = table.getVector().getProbabilities();
@@ -154,6 +112,15 @@ public class TableUtils {
     if (!allNodesQueried) {
       throwQueryError("did not query all nodes", request, table);
     }
+  }
+
+  private static void throwQueryError(
+      String endMessage, Collection<NodeState> request, ProbabilityTable table) {
+    StringBuilder requestString = new StringBuilder();
+    request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
+    throw new IllegalArgumentException(
+        String.format(
+            "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
   }
 
   public static Set<Node> getCommonNodes(ProbabilityTable tableA, ProbabilityTable tableB) {

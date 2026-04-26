@@ -3,13 +3,15 @@ package io.github.alecredmond.method.network;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.export.application.constraints.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
-import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
+import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.*;
@@ -38,7 +40,7 @@ class NewBayesianNetworkTest {
   @BeforeEach
   void setUp() {
     test = BayesianNetwork.newNetwork("TestNetwork");
-    NODE_IDS.forEach(id -> test.addNewNode(id, List.of(id + "+", id + "-")));
+    NODE_IDS.forEach(id -> test.addNewNode(id, List.of(id + "+", id + "-", id + "x")));
   }
 
   @Nested
@@ -425,5 +427,50 @@ class NewBayesianNetworkTest {
   }
 
   @Nested
-  class ParameterConstraintTests {}
+  class ParameterConstraintAdditionTests {
+
+    static Stream<Arguments> successfulBuilds() {
+      return Stream.of(
+          Arguments.of(List.of("A+"), List.of(), 0.5, MarginalConstraint.class),
+          Arguments.of(List.of("A+"), List.of("B+"), 0.5, ConditionalConstraint.class),
+          Arguments.of(List.of("A+", "C+"), List.of(), 0.5, JointProbabilityConstraint.class),
+          Arguments.of(List.of("A+", "A-"), List.of(), 0.5, SumProbabilityConstraint.class),
+          Arguments.of(List.of("A+", "C+"), List.of("B+"), 0.5, JointProbabilityConstraint.class),
+          Arguments.of(List.of("A+", "A-"), List.of("B+"), 0.5, SumProbabilityConstraint.class),
+          Arguments.of(List.of("A+", "C+", "D+"), List.of(), 0.5, JointProbabilityConstraint.class),
+          Arguments.of(List.of("A+", "A-", "D+"), List.of(), 0.5, SumProbabilityConstraint.class));
+    }
+
+    static Stream<Arguments> unsuccessfulBuilds() {
+      return Stream.of(
+          Arguments.of(List.of("An"), List.of(), 0.5, BayesNetIDException.class),
+          Arguments.of(List.of("A+"), List.of("A-"), 0.5, ConstraintValidationException.class),
+          Arguments.of(
+              List.of("A+"), List.of("B+", "B-"), 0.5, ConstraintValidationException.class),
+          Arguments.of(List.of("A+", "A-"), List.of(), 1.25, ConstraintValidationException.class),
+          Arguments.of(
+              List.of("A+", "C+"), List.of("B+"), -0.5, ConstraintValidationException.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("successfulBuilds")
+    void testAddMarginal_shouldSucceed(
+        List<Serializable> events,
+        List<Serializable> conditions,
+        double probability,
+        Class<ProbabilityConstraint> probClass) {
+      assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
+      assertInstanceOf(probClass, test.getNetworkData().getConstraints().getFirst());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsuccessfulBuilds")
+    void testAddMarginal_shouldThrow(
+        List<Serializable> events,
+        List<Serializable> conditions,
+        double probability,
+        Class<Exception> exceptionClass) {
+      assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
+    }
+  }
 }

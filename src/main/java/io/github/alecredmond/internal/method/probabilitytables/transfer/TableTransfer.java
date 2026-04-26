@@ -1,13 +1,13 @@
 package io.github.alecredmond.internal.method.probabilitytables.transfer;
 
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferIterator;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferReader;
 
-public class TransferIterator {
+public class TableTransfer {
   private final TransferReader reader;
-  private final VectorIterator writer;
+  private final TransferIterator writer;
 
-  public TransferIterator(TransferReader reader, VectorIterator writer) {
+  public TableTransfer(TransferReader reader, TransferIterator writer) {
     this.reader = reader;
     this.writer = writer;
   }

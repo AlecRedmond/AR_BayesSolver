@@ -14,7 +14,7 @@ public interface OdometerResetLogic {
 
   Predicate<Node> checkLockInner();
 
-  default Function<Node, boolean[]> checkStateIsEvidence() {
+  default Function<Node, boolean[]> buildEvidenceMaps() {
     return node -> null;
   }
 

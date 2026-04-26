@@ -7,7 +7,7 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Function;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConstraintSolver implements OdometerResetLogic {
-  protected final BaseVectorIterator iterator;
+  protected final VectorIterator iterator;
   protected final ProbabilityConstraint constraint;
   protected final DoubleAdder eventJointProb = new DoubleAdder();
   protected final DoubleAdder conditionJointProb = new DoubleAdder();
@@ -26,7 +26,7 @@ public class ConstraintSolver implements OdometerResetLogic {
 
   public ConstraintSolver(ProbabilityConstraint constraint, JunctionTreeTable table) {
     this.constraint = constraint;
-    this.iterator = new BaseVectorIterator(table.getVector(), this);
+    this.iterator = new VectorIterator(table.getVector(), this);
   }
 
   @Override
@@ -48,7 +48,7 @@ public class ConstraintSolver implements OdometerResetLogic {
   }
 
   @Override
-  public Function<Node, boolean[]> checkStateIsEvidence() {
+  public Function<Node, boolean[]> buildEvidenceMaps() {
     Set<Node> eventNodes = constraint.getEventNodes();
     Set<NodeState> eventStates = constraint.getEventStates();
     return node -> {

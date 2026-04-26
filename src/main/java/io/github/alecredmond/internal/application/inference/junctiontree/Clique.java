@@ -2,8 +2,8 @@ package io.github.alecredmond.internal.application.inference.junctiontree;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
 import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,16 +13,16 @@ import lombok.EqualsAndHashCode;
 public class Clique {
   @EqualsAndHashCode.Include private final Set<Node> nodes;
   private final JunctionTreeTable table;
-  private JTATableHandler handler;
+  private JunctionTreeTableHelper handler;
   private Map<Clique, Separator> separatorMap;
-  private List<TransferIterator> writeFromCPTs;
-  private List<TransferIterator> writeToCPTs;
-  private List<TransferIterator> writeToObserved;
+  private List<TableTransfer> writeFromCPTs;
+  private List<TableTransfer> writeToCPTs;
+  private List<TableTransfer> writeToObserved;
 
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
     this.table = table;
-    this.handler = new JTATableHandler(table);
+    this.handler = table.getHelper();
     this.separatorMap = new HashMap<>();
     this.writeFromCPTs = new ArrayList<>();
     this.writeToCPTs = new ArrayList<>();

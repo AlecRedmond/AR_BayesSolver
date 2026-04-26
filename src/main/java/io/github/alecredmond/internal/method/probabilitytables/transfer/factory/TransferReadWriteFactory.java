@@ -4,11 +4,11 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferIterator;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public abstract class TransferReadWriteFactory<T extends VectorIterator>
+public abstract class TransferReadWriteFactory<T extends TransferIterator>
     implements OdometerResetLogic {
   protected ProbabilityTable readTable;
   protected ProbabilityTable writeTable;

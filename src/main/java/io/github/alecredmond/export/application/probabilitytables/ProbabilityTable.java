@@ -4,7 +4,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.io.Serializable;
 import java.util.*;
 import lombok.EqualsAndHashCode;
@@ -44,16 +43,6 @@ public abstract class ProbabilityTable {
   }
 
   protected abstract TableHelper<? extends ProbabilityTable> buildHelper();
-
-  public Double getProbability(Collection<NodeState> request) {
-    try {
-      TableUtils.confirmAllNodesQueried(request, this);
-      return TableUtils.getProbability(request, this);
-    } catch (IllegalArgumentException e) {
-      log.error(e.getMessage());
-      return null;
-    }
-  }
 
   public abstract TableHelper<? extends ProbabilityTable> getHelper();
 }

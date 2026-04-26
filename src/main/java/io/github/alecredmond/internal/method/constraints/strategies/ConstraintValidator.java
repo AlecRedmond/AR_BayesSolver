@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.strategies.baseobjects;
+package io.github.alecredmond.internal.method.constraints.strategies;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;

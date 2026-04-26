@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
-import static io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator.UPDATE_STATES;
+import static io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator.UPDATE_STATES;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
@@ -15,10 +15,10 @@ import lombok.Getter;
 @Getter
 public class ProbabilityMapper implements OdometerResetLogic {
   private final Map<Set<NodeState>, Double> probabilityMap = new LinkedHashMap<>();
-  private final BaseVectorIterator iterator;
+  private final VectorIterator iterator;
 
   public ProbabilityMapper(ProbabilityTable table) {
-    this.iterator = new BaseVectorIterator(table.getVector(), this, UPDATE_STATES);
+    this.iterator = new VectorIterator(table.getVector(), this, UPDATE_STATES);
     performRun();
   }
 

@@ -2,12 +2,12 @@ package io.github.alecredmond.internal.method.probabilitytables.transfer.readwri
 
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-public class TransferWriterMessagePass extends BaseVectorIterator implements VectorIterator {
+public class TransferWriterMessagePass extends VectorIterator implements TransferIterator {
   private final double[] transferArray;
   private final double[] ratioArray;
   private final double[] separatorProbs;

@@ -150,7 +150,7 @@ class SampleCollectionTest {
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();
     double probOfObserved =
-        samplePackage.getEngine().getCurrentConditionalProbabilityById(measuredStateIds);
+        samplePackage.getEngine().getCurrentProbabilityById(measuredStateIds);
     double delta = Math.sqrt(numberOfSamples) * ALLOWED_STDEV;
     double lowerBound = probOfObserved * numberOfSamples - delta;
     double upperBound = probOfObserved * numberOfSamples + delta;

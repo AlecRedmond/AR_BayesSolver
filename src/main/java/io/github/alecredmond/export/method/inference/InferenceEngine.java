@@ -15,7 +15,7 @@ public interface InferenceEngine {
     return new InferenceEngineFactory().create(network);
   }
 
-  InferenceEngine observeMarginals();
+  InferenceEngine resetObservations();
 
   InferenceEngine observeNetwork(Collection<NodeState> observedStates);
 
@@ -37,10 +37,9 @@ public interface InferenceEngine {
 
   Map<Node, MarginalTable> getObservedTables();
 
-  double getCurrentConditionalProbability(Collection<NodeState> measuredStates);
+  double getCurrentProbability(Collection<NodeState> measuredStates);
 
-  <T extends Serializable> double getCurrentConditionalProbabilityById(
-      Collection<T> measuredStateIds);
+  <T extends Serializable> double getCurrentProbabilityById(Collection<T> measuredStateIds);
 
   InferenceEngine printObserved();
 

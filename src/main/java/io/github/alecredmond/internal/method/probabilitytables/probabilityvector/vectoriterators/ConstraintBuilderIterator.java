@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators;
 
-import static io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.BaseVectorIterator.*;
+import static io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator.*;
 
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
@@ -16,12 +16,12 @@ import lombok.Getter;
 
 @Getter
 public class ConstraintBuilderIterator implements OdometerResetLogic {
-  private final BaseVectorIterator iterator;
+  private final VectorIterator iterator;
   private final ProbabilityTable table;
   private List<ProbabilityConstraint> built;
 
   public ConstraintBuilderIterator(ProbabilityTable table) {
-    this.iterator = new BaseVectorIterator(table.getVector(), this, UPDATE_STATES);
+    this.iterator = new VectorIterator(table.getVector(), this, UPDATE_STATES);
     this.table = table;
     performRun();
   }

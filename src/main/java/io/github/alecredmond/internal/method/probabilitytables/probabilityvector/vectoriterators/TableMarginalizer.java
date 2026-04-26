@@ -9,11 +9,11 @@ import java.util.function.Predicate;
 
 public class TableMarginalizer implements OdometerResetLogic {
   private final ProbabilityTable table;
-  private final BaseVectorIterator iterator;
+  private final VectorIterator iterator;
 
   public TableMarginalizer(ProbabilityTable table) {
     this.table = table;
-    this.iterator = new BaseVectorIterator(table.getVector(), this);
+    this.iterator = new VectorIterator(table.getVector(), this);
   }
 
   public void marginalize() {

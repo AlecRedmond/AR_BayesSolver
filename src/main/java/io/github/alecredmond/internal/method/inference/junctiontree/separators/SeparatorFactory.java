@@ -7,7 +7,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Separat
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -39,23 +39,23 @@ public class SeparatorFactory {
 
   private void buildMessagePassers(
       Separator separator, JunctionTreeData data, Clique cliqueA, Clique cliqueB) {
-    Map<Clique, TransferIterator> messagePassers =
+    Map<Clique, TableTransfer> messagePassers =
         data.isSolverConfig()
             ? buildSolverPassers(cliqueA, cliqueB)
             : buildInferencePassers(cliqueA, cliqueB, separator);
     separator.setMessagePassers(messagePassers);
   }
 
-  private Map<Clique, TransferIterator> buildSolverPassers(Clique cliqueA, Clique cliqueB) {
-    Map<Clique, TransferIterator> map = new HashMap<>();
+  private Map<Clique, TableTransfer> buildSolverPassers(Clique cliqueA, Clique cliqueB) {
+    Map<Clique, TableTransfer> map = new HashMap<>();
     map.put(cliqueA, iteratorFactory.buildMarginalTransfer(cliqueA.getTable(), cliqueB.getTable()));
     map.put(cliqueB, iteratorFactory.buildMarginalTransfer(cliqueB.getTable(), cliqueA.getTable()));
     return map;
   }
 
-  private Map<Clique, TransferIterator> buildInferencePassers(
+  private Map<Clique, TableTransfer> buildInferencePassers(
       Clique cliqueA, Clique cliqueB, Separator separator) {
-    Map<Clique, TransferIterator> map = new HashMap<>();
+    Map<Clique, TableTransfer> map = new HashMap<>();
     map.put(
         cliqueA,
         iteratorFactory.buildMessagePassTransfer(

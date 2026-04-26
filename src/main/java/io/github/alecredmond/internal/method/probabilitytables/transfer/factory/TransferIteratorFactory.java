@@ -1,35 +1,35 @@
 package io.github.alecredmond.internal.method.probabilitytables.transfer.factory;
 
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.readwriters.TransferReader;
 
 public class TransferIteratorFactory {
-  public TransferIterator buildMessagePassTransfer(
+  public TableTransfer buildMessagePassTransfer(
       ProbabilityTable readTable, ProbabilityTable writeTable, ProbabilityTable separatorTable) {
     TransferReader reader = new TransferReaderFactory(readTable, writeTable).build();
-    VectorIterator writer =
+    TransferIterator writer =
         new TransferWriterMessagePassFactory(
                 readTable, writeTable, separatorTable, reader.getTransferArray())
             .build();
-    return new TransferIterator(reader, writer);
+    return new TableTransfer(reader, writer);
   }
 
-  public TransferIterator buildMarginalTransfer(
+  public TableTransfer buildMarginalTransfer(
       ProbabilityTable readTable, ProbabilityTable writeTable) {
     TransferReader reader = new TransferReaderFactory(readTable, writeTable).build();
-    VectorIterator writer =
+    TransferIterator writer =
         new TransferWriterMarginalFactory(readTable, writeTable, reader.getTransferArray()).build();
-    return new TransferIterator(reader, writer);
+    return new TableTransfer(reader, writer);
   }
 
-  public TransferIterator buildMultiplyInTransfer(
+  public TableTransfer buildMultiplyInTransfer(
       ProbabilityTable readTable, ProbabilityTable writeTable) {
     TransferReader reader = new TransferReaderFactory(readTable, writeTable).build();
-    VectorIterator writer =
+    TransferIterator writer =
         new TransferWriterMultiplyInFactory(readTable, writeTable, reader.getTransferArray())
             .build();
-    return new TransferIterator(reader, writer);
+    return new TableTransfer(reader, writer);
   }
 }
