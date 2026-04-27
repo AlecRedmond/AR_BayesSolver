@@ -26,11 +26,10 @@ public class ConstraintValidator {
     statesExistInNetwork();
     parametersAreUnique();
     probabilityWithinBounds();
-    if (constraint instanceof MarginalConstraint mc) {
-      noConditionsPresent(mc);
-    }
-    if (constraint instanceof ConditionalConstraint cc) {
-      noConditionsInEventNode(cc);
+    switch (constraint) {
+      case MarginalConstraint mc -> noConditionsPresent(mc);
+      case ConditionalConstraint cc -> noConditionsInEventNode(cc);
+      default -> throw new IllegalStateException("Unexpected value: " + constraint);
     }
     return true;
   }
@@ -42,7 +41,8 @@ public class ConstraintValidator {
       return;
     }
     throw new ConstraintValidationException(
-        "Some nodeStates in %s are not defined in the network!".formatted(constraint));
+        "NodeStates %s in %s are not defined in the network!"
+            .formatted(NodeUtils.formatStatesToString(states), constraint));
   }
 
   private void parametersAreUnique() {

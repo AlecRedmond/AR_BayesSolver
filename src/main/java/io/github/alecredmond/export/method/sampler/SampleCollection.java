@@ -20,20 +20,9 @@ public class SampleCollection {
   private final SampleCollectionData collectionData;
   private final BayesianNetworkData networkData;
 
-  public SampleCollection(
-      int totalSamples,
-      Map<Sample, Integer> sampleMap,
-      Map<Node, NodeState> networkObservations,
-      Node[] nodes,
-      BayesianNetworkData networkData) {
-    this.collectionData =
-        new SampleCollectionData(totalSamples, sampleMap, networkObservations, nodes);
+  public SampleCollection(SampleCollectionData collectionData, BayesianNetworkData networkData) {
+    this.collectionData = collectionData;
     this.networkData = networkData;
-    getSampleMap().forEach(Sample::setCount);
-  }
-
-  public Map<Sample, Integer> getSampleMap() {
-    return collectionData.getSampleMap();
   }
 
   public Map<Node, NodeState> getNetworkObservations() {
@@ -81,22 +70,22 @@ public class SampleCollection {
     return SampleCollectionUtils.countSamplesIncludingStates(this, states);
   }
 
-  public Map<Sample, Integer> getSamplesIncludingStates(Collection<NodeState> includedStates) {
-    return SampleCollectionUtils.buildSampleMapIncludingStates(this, includedStates);
+  public List<Sample> getSamplesIncludingStates(Collection<NodeState> includedStates) {
+    return SampleCollectionUtils.listSamplesIncludingStates(this, includedStates);
   }
 
-  public <T extends Serializable> Map<Sample, Integer> getSamplesIncludingStateIds(
+  public <T extends Serializable> List<Sample> getSamplesIncludingStateIds(
       Collection<T> includedStateIds) {
-    return SampleCollectionUtils.buildSampleMapIncludingStates(
+    return SampleCollectionUtils.listSamplesIncludingStates(
         this, NetworkDataUtils.getStatesByID(includedStateIds, networkData));
   }
 
   @Override
   public String toString() {
-    return getDistinctSamples().stream().map(Sample::toString).collect(Collectors.joining("\n"));
+    return getSamples().stream().map(Sample::toString).collect(Collectors.joining("\n"));
   }
 
-  public List<Sample> getDistinctSamples() {
-    return getSampleMap().keySet().stream().toList();
+  public List<Sample> getSamples() {
+    return collectionData.getSamples();
   }
 }

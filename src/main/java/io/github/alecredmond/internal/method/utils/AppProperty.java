@@ -35,7 +35,7 @@ public enum AppProperty {
     this.key = key;
   }
 
-  public String get() {
+  public String getKey() {
     return key;
   }
 }

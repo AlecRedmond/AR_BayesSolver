@@ -1,13 +1,14 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.method.inference.InferenceEngine;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
+import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.ConstraintHandler;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,7 +17,7 @@ public class JTASolver {
 
   private JTASolver() {}
 
-  public static void solveNetwork(InferenceEngine engine) {
+  public static SolverResults solveNetwork(BayesianNetworkData networkData) {
     SolverConfigs configs = new SolverConfigs();
     Instant start = Instant.now();
     boolean writeLogs = configs.isLogSolverProgress();
@@ -25,7 +26,7 @@ public class JTASolver {
       log.info("STARTING SOLVER");
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(engine.getNetworkData());
+    JunctionTreeAlgorithm jta = buildJTA(networkData);
 
     double lastError;
     double error = Double.MAX_VALUE;
@@ -35,8 +36,7 @@ public class JTASolver {
     long endTime = now + configs.getTimeLimitSeconds();
     long nextLogTime = now + configs.getLogIntervalSeconds();
 
-    Map<Clique, List<JTAConstraintHandler>> constraintMap =
-        jta.getData().getConstraintHandlersMap();
+    Map<Clique, List<ConstraintHandler>> constraintMap = jta.getData().getConstraintHandlersMap();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -67,6 +67,7 @@ public class JTASolver {
     }
 
     jta.writeTablesToNetwork();
+    return writeResults(constraintMap, cycle);
   }
 
   private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {
@@ -76,7 +77,7 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<JTAConstraintHandler>> constraintHandlers) {
+      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintHandler>> constraintHandlers) {
 
     DoubleAdder error = new DoubleAdder();
 
@@ -99,5 +100,14 @@ public class JTASolver {
     log.info(
         thresholdReached ? "SOLVER FOUND A SOLUTION IN {} ms" : "SOLVER TIMED OUT AFTER {} ms",
         end.toEpochMilli() - start.toEpochMilli());
+  }
+
+  private static SolverResults writeResults(
+      Map<Clique, List<ConstraintHandler>> constraintMap, int cycle) {
+    Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
+    constraintMap.values().stream()
+        .flatMap(Collection::stream)
+        .forEach(handler -> handler.updateResults(resultsMap));
+    return new SolverResultsBuilder().buildResults(cycle, resultsMap);
   }
 }

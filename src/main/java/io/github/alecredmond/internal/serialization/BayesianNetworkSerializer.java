@@ -2,8 +2,8 @@ package io.github.alecredmond.internal.serialization;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
-import io.github.alecredmond.export.serialization.network.SerializedBayesNetData;
 import io.github.alecredmond.internal.serialization.structure.NetworkDataSerializer;
 import io.github.alecredmond.internal.serialization.structure.NodeSerializer;
 import lombok.NoArgsConstructor;
@@ -11,26 +11,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BayesianNetworkSerializer {
 
-  public SerializedBayesNetData serialize(BayesianNetwork network) {
+  public SerializedBayesianNetwork serialize(BayesianNetwork network) {
+    if (!network.getNetworkData().isSolved()) network.solveNetwork();
     return new NetworkDataSerializer().serialize(network.getNetworkData());
   }
 
-  public BayesianNetwork deSerialize(SerializedBayesNetData networkDataSTO) {
-    SerializationData data = new SerializationData();
-    createNodes(networkDataSTO, data);
-    return new BayesianNetworkImpl(new NetworkDataSerializer().deSerialize(networkDataSTO, data));
+  public BayesianNetwork deSerialize(SerializedBayesianNetwork serializedBayesianNetwork) {
+    SerializationData serializationData = new SerializationData();
+    createNodes(serializedBayesianNetwork, serializationData);
+    return new BayesianNetworkImpl(
+        new NetworkDataSerializer().deSerialize(serializedBayesianNetwork, serializationData));
   }
 
-  private void createNodes(SerializedBayesNetData networkDataSTO, SerializationData data) {
+  private void createNodes(SerializedBayesianNetwork sbn, SerializationData serializationData) {
     NodeSerializer serializer = new NodeSerializer();
-    networkDataSTO
-        .getSerializedNodes()
+    sbn.getSerializedNodes()
         .forEach(
-            nodeSTO -> {
-              Node node = serializer.createNewBase(nodeSTO);
-              data.getNodeIdMap().put(node.getId(), node);
+            serializedNode -> {
+              Node node = serializer.createNewBase(serializedNode);
+              serializationData.getNodeIdMap().put(node.getId(), node);
               node.getNodeStates()
-                  .forEach(state -> data.getNodeStateIdMap().put(state.getId(), state));
+                  .forEach(
+                      state -> serializationData.getNodeStateIdMap().put(state.getId(), state));
             });
   }
 }

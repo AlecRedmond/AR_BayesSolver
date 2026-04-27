@@ -5,18 +5,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
+import io.github.alecredmond.exceptions.NetworkStructureException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.Sample;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
 import java.io.Serializable;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,11 +20,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class BayesianNetworkTest {
-  static final int NUMBER_OF_SAMPLES = 100_000;
-  static final int STANDARD_DEVIATIONS = 3;
-  // Set to false when performing a maven build
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
-  static final boolean PRINT_RESULTS = false;
   BayesianNetwork net;
 
   @BeforeEach
@@ -72,13 +63,13 @@ class BayesianNetworkTest {
     @Test
     void addNode_duplicateID_shouldThrowException() {
       net.addNewNode("A");
-      assertThrows(IllegalArgumentException.class, () -> net.addNewNode("A"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNode(new Node("A")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A"));
+      assertThrows(BayesNetIDException.class, () -> net.addNode(new Node("A")));
     }
 
     @Test
     void addNode_nullID_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNode(null));
+      assertThrows(BayesNetIDException.class, () -> net.addNode(null));
     }
 
     @Test
@@ -95,19 +86,18 @@ class BayesianNetworkTest {
     @Test
     void addNode_withStates_duplicateNodeID_shouldThrowException() {
       net.addNewNode("A", List.of("A_T", "A_F"));
-      assertThrows(
-          IllegalArgumentException.class, () -> net.addNewNode("A", List.of("A_T_2", "A_F_2")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("A", List.of("A_T_2", "A_F_2")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInNetwork_shouldThrowException() {
       net.addNewNode("A", List.of("A_T", "A_F"));
-      assertThrows(IllegalArgumentException.class, () -> net.addNewNode("B", List.of("A_T", "B_F")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("B", List.of("A_T", "B_F")));
     }
 
     @Test
     void addNode_withStates_duplicateStateIDInCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNewNode("B", List.of("B_T", "B_T")));
+      assertThrows(BayesNetIDException.class, () -> net.addNewNode("B", List.of("B_T", "B_T")));
     }
 
     @Test
@@ -120,7 +110,7 @@ class BayesianNetworkTest {
 
     @Test
     void addNode_withNullStatesCollection_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNewNode("A", null));
+      assertThrows(NullPointerException.class, () -> net.addNewNode("A", null));
     }
 
     @Test
@@ -128,7 +118,7 @@ class BayesianNetworkTest {
       net.addNewNode("A");
       assertNotNull(net.getNode("A"));
       net.removeNodeByID("A");
-      assertThrows(IllegalArgumentException.class, () -> net.getNode("A"));
+      assertNull(net.getNode("A"));
       assertTrue(net.getNetworkData().getNodeIDsMap().isEmpty());
     }
 
@@ -158,8 +148,8 @@ class BayesianNetworkTest {
 
       net.removeNodeByID("A");
 
-      assertThrows(IllegalArgumentException.class, () -> net.getNode("A"));
-      assertThrows(IllegalArgumentException.class, () -> net.getNodeState("A_T"));
+      assertNull(net.getNode("A"));
+      assertNull(net.getNodeState("A_T"));
       assertTrue(net.getNode("B").getParents().isEmpty()); // Check edge is gone
     }
 
@@ -176,92 +166,6 @@ class BayesianNetworkTest {
     void removeAllNodes_onEmptyNetwork_shouldSucceed() {
       assertDoesNotThrow(() -> net.removeAllNodes());
       assertTrue(net.getNetworkData().getNodeIDsMap().isEmpty());
-    }
-
-    @Test
-    void addNodeState_singleState_shouldSucceed() {
-      net.addNewNode("A");
-      net.addNodeState("A", "A_T");
-      assertEquals(1, net.getNode("A").getNodeStates().size());
-      assertNotNull(net.getNodeState("A_T"));
-    }
-
-    @Test
-    void addNodeStates_multipleStates_shouldSucceed() {
-      net.addNewNode("A");
-      net.addNodeStates("A", List.of("A_T", "A_F"));
-      assertEquals(2, net.getNode("A").getNodeStates().size());
-      assertNotNull(net.getNodeState("A_T"));
-      assertNotNull(net.getNodeState("A_F"));
-    }
-
-    @Test
-    void addNodeState_duplicateState_shouldThrowException() {
-      net.addNewNode("A", List.of("A_T"));
-      assertThrows(BayesNetIDException.class, () -> net.addNodeState("A", "A_T"));
-    }
-
-    @Test
-    void addNodeState_duplicateStateInNetwork_shouldThrowException() {
-      net.addNewNode("A", List.of("A_T"));
-      net.addNewNode("B");
-      assertThrows(BayesNetIDException.class, () -> net.addNodeState("B", "A_T"));
-    }
-
-    @Test
-    void addNodeState_toNonExistentNode_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addNodeState("Z", "Z_T"));
-    }
-
-    @Test
-    void addNodeState_nullState_shouldThrowException() {
-      net.addNewNode("A");
-      assertThrows(Exception.class, () -> net.addNodeState("A", null));
-    }
-
-    @Test
-    void removeNodeState_shouldSucceed() {
-      net.addNewNode("A", List.of("A_T", "A_F"));
-      assertEquals(2, net.getNode("A").getNodeStates().size());
-
-      net.removeNodeState("A", "A_T");
-      assertEquals(1, net.getNode("A").getNodeStates().size());
-      assertThrows(IllegalArgumentException.class, () -> net.getNodeState("A_T"));
-      assertNotNull(net.getNodeState("A_F"));
-    }
-
-    @Test
-    void removeNodeState_nonExistentState_shouldNotThrow() {
-      net.addNewNode("A", List.of("A_T", "A_F"));
-      assertDoesNotThrow(() -> net.removeNodeState("A", "A_M"));
-      assertEquals(2, net.getNode("A").getNodeStates().size());
-    }
-
-    @Test
-    void removeNodeState_fromNonExistentNode_shouldNotThrow() {
-      assertDoesNotThrow(() -> net.removeNodeState("Z", "Z_T"));
-    }
-
-    @Test
-    void removeNodeStates_shouldSucceed() {
-      net.addNewNode("A", List.of("A_T", "A_F"));
-      assertFalse(net.getNode("A").getNodeStates().isEmpty());
-
-      net.removeNodeStates("A");
-      assertTrue(net.getNode("A").getNodeStates().isEmpty());
-      assertThrows(IllegalArgumentException.class, () -> net.getNodeState("A_T"));
-      assertThrows(IllegalArgumentException.class, () -> net.getNodeState("A_F"));
-    }
-
-    @Test
-    void removeNodeStates_fromNodeWithNoStates_shouldNotThrow() {
-      net.addNewNode("A");
-      assertDoesNotThrow(() -> net.removeNodeStates("A"));
-    }
-
-    @Test
-    void removeNodeStates_fromNonExistentNode_shouldNotThrow() {
-      assertDoesNotThrow(() -> net.removeNodeStates("Z"));
     }
   }
 
@@ -297,23 +201,23 @@ class BayesianNetworkTest {
 
     @Test
     void addParent_toNonExistentChild_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("Z", "A"));
+      assertThrows(NullPointerException.class, () -> net.addParent("Z", "A"));
     }
 
     @Test
     void addParent_nonExistentParent_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("A", "Z"));
+      assertThrows(NullPointerException.class, () -> net.addParent("A", "Z"));
     }
 
     @Test
     void addParent_createCycle_shouldThrowException() {
       net.addParent("B", "A");
-      assertThrows(Exception.class, () -> net.addParent("A", "B"));
+      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "B"));
     }
 
     @Test
     void addParent_addSelfAsParent_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.addParent("A", "A"));
+      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "A"));
     }
 
     @Test
@@ -352,7 +256,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeParents_fromNonExistentNode_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.removeParents("Z"));
+      assertThrows(NullPointerException.class, () -> net.removeParents("Z"));
     }
   }
 
@@ -391,7 +295,7 @@ class BayesianNetworkTest {
 
     @Test
     void addConstraint_prior_forNonExistentState_shouldThrowException() {
-      assertThrows(IllegalArgumentException.class, () -> net.addConstraint("Z_T", 0.5));
+      assertThrows(BayesNetIDException.class, () -> net.addConstraint("Z_T", 0.5));
     }
 
     @Test
@@ -412,14 +316,12 @@ class BayesianNetworkTest {
 
     @Test
     void addConstraint_conditional_nonExistentEventState_shouldThrowException() {
-      assertThrows(
-          IllegalArgumentException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
+      assertThrows(BayesNetIDException.class, () -> net.addConstraint("Z_T", List.of("A_T"), 0.5));
     }
 
     @Test
     void addConstraint_conditional_nonExistentConditionState_shouldThrowException() {
-      assertThrows(
-          IllegalArgumentException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
+      assertThrows(BayesNetIDException.class, () -> net.addConstraint("B_T", List.of("Z_T"), 0.5));
     }
 
     @Test
@@ -497,8 +399,7 @@ class BayesianNetworkTest {
   }
 
   @Nested
-  class InferenceAndQueryTests {
-
+  class SolverTest {
     @BeforeEach
     void buildNetwork() {
       net = RAIN_NETWORK.get();
@@ -513,281 +414,6 @@ class BayesianNetworkTest {
     void solveNetwork_onEmptyNetwork_shouldSucceed() {
       BayesianNetwork emptyNet = BayesianNetwork.newNetwork();
       assertDoesNotThrow(emptyNet::solveNetwork);
-    }
-
-    @Test
-    void solveNetwork_withIncompleteConstraints_shouldSucceed() {
-      assertDoesNotThrow(() -> net.solveNetwork());
-      net.observeMarginals();
-      MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertEquals(0.8, rainTable.getProbabilityFromIDs(List.of("RAIN:FALSE")), 1E-9);
-    }
-
-    @Test
-    void observeMarginals_beforeSolve_shouldImplicitlySolve() {
-      assertDoesNotThrow(() -> net.observeMarginals());
-      MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertNotNull(rainTable);
-      assertEquals(0.2, rainTable.getProbabilityFromIDs(List.of("RAIN:TRUE")), 1E-9);
-    }
-
-    @Test
-    void observeNetwork_shouldUpdateProbabilities() {
-      net.solveNetwork().observeMarginals();
-      assertEquals(0.2, net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE"), 1E-6);
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      double pRainGivenWet = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
-      assertTrue(pRainGivenWet > 0.2);
-      // Exact value P(R|W) = P(W|R)P(R)/P(W)
-      // P(W|R) = P(W|R,S)P(S|R) + P(W|R,~S)P(~S|R) = 0.99*0.01 + 0.9*0.99 = 0.9009
-      // P(W|~R) = P(W|~R,S)P(S|~R) + P(W|~R,~S)P(~S|~R) = 0.9*0.4 + 0.0*0.6 = 0.36
-      // P(W) = P(W|R)P(R) + P(W|~R)P(~R) = 0.9009*0.2 + 0.36*0.8 = 0.18018 + 0.288 = 0.46818
-      // P(R|W) = (0.9009 * 0.2) / 0.46818 = 0.18018 / 0.46818 = 0.38485
-      assertEquals(0.384852, pRainGivenWet, 1E-6);
-    }
-
-    @Test
-    void observeNetwork_withConflictingEvidence_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.observeNetwork(List.of("RAIN:TRUE", "RAIN:FALSE")));
-    }
-
-    @Test
-    void observeNetwork_withNonExistentState_shouldThrowException() {
-      assertThrows(Exception.class, () -> net.observeNetwork(List.of("ZOMBIE:TRUE")));
-    }
-
-    @Test
-    void observeNetwork_withEmptyList_shouldBeSameAsObserveMarginals() {
-      net.solveNetwork();
-      net.observeMarginals();
-      double pRainMarginal = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
-
-      net.observeNetwork(List.of());
-      double pRainObservedEmpty = net.getObservedTable("RAIN").getProbabilityFromId("RAIN:TRUE");
-
-      assertEquals(pRainMarginal, pRainObservedEmpty);
-    }
-
-    @Test
-    void getNetworkTable_shouldReturnTable() {
-      net.solveNetwork();
-      ProbabilityTable rainTable = net.getNetworkTable("RAIN");
-      assertNotNull(rainTable);
-      assertEquals(1, rainTable.getNodes().size());
-
-      ProbabilityTable grassTable = net.getNetworkTable("WET_GRASS");
-      assertNotNull(grassTable);
-      assertEquals(3, grassTable.getNodes().size());
-    }
-
-    @Test
-    void getNetworkTable_nonExistentNode_shouldThrowException() {
-      net.solveNetwork();
-      assertThrows(Exception.class, () -> net.getNetworkTable("ZOMBIE"));
-    }
-
-    @Test
-    void getNetworkTable_beforeSolve_shouldImplicitlySolve() {
-      assertDoesNotThrow(
-          () -> {
-            ProbabilityTable rainTable = net.getNetworkTable("RAIN");
-            assertNotNull(rainTable);
-          });
-    }
-
-    @Test
-    void getObservedTable_shouldReturnTable() {
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertNotNull(rainTable);
-      assertEquals(0.384852, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
-    }
-
-    @Test
-    void getObservedTable_nonExistentNode_shouldThrowException() {
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      assertThrows(Exception.class, () -> net.getObservedTable("ZOMBIE"));
-    }
-
-    @Test
-    void getObservedTable_beforeObserve_shouldReturnMarginals() {
-      net.solveNetwork();
-      MarginalTable rainTable = net.getObservedTable("RAIN");
-      assertNotNull(rainTable);
-      assertEquals(0.2, rainTable.getProbabilityFromId("RAIN:TRUE"), 1E-6);
-    }
-
-    @Test
-    void observeProbability_singleEvent_shouldReturnCorrectProb() {
-      net.observeMarginals();
-      double pRainTrue = net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE"));
-      assertEquals(0.2, pRainTrue, 1E-9);
-    }
-
-    @Test
-    void observeProbability_jointEvent_shouldReturnCorrectProb() {
-      net.observeMarginals();
-      // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
-      // P(S:T | R:T) = 0.01, so P(S:F | R:T) = 0.99
-      // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-      double pJoint =
-          net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
-      assertEquals(0.198, pJoint, 1E-9);
-    }
-
-    @Test
-    void observeProbability_conflictingEvent_shouldReturnZero() {
-      net.observeMarginals();
-      double pConflict =
-          net.getProbabilityFromCurrentObservations(List.of("RAIN:TRUE", "RAIN:FALSE"));
-      assertEquals(0.0, pConflict, 1E-9);
-    }
-
-    @Test
-    void observeProbability_emptyEvent_shouldReturnOne() {
-      net.observeMarginals();
-      double pEmpty = net.getProbabilityFromCurrentObservations(List.of());
-      assertEquals(1.0, pEmpty, 1E-9);
-    }
-
-    @Test
-    void generateSamples_shouldReturnCorrectNumberOfSamples() {
-      net.observeMarginals();
-      SampleCollection samples = net.generateSamples(100);
-      assertEquals(100, samples.size());
-    }
-
-    @Test
-    void generateSamples_withIncludeNodes_shouldOnlyIncludeNodes() {
-      net.observeMarginals();
-      SampleCollection samples = net.generateSamples(10);
-      assertEquals(10, samples.size());
-      samples.setExportNodesById(List.of("RAIN"));
-
-      for (Sample sample : samples.getDistinctSamples()) {
-        assertEquals(1, sample.size());
-        Object id = sample.getExportArray()[0].getId();
-        assertTrue(id.equals("RAIN:TRUE") || id.equals("RAIN:FALSE"));
-      }
-    }
-
-    @Test
-    void generateSamples_withExcludeNodes_shouldExcludeNodes() {
-      net.observeMarginals();
-      SampleCollection samples = net.generateSamples(10);
-      assertEquals(10, samples.size());
-      samples.setExportNodesById(List.of("SPRINKLER", "WET_GRASS"));
-      List<Sample> sampledStates = samples.getDistinctSamples();
-      for (Sample sample : sampledStates) {
-        assertEquals(2, sample.size());
-        for (NodeState state : sample.getExportArray()) {
-          assertFalse(((String) state.getId()).startsWith("RAIN:"));
-        }
-      }
-    }
-
-    @Test
-    void generateSamples_zeroSamples_shouldReturnEmptyList() {
-      net.observeMarginals();
-      SampleCollection samples = net.generateSamples(0);
-      assertNotNull(samples);
-      assertTrue(samples.isEmpty());
-    }
-
-    @Test
-    void generateSamples_negativeSamples_shouldThrowException() {
-      net.observeMarginals();
-      assertThrows(IllegalArgumentException.class, () -> net.generateSamples(-10));
-    }
-  }
-
-  @Nested
-  class ScenarioTests {
-
-    @Test
-    void testSolves_RainSprinkler() {
-      net = RAIN_NETWORK.get().solveNetwork();
-      if (PRINT_RESULTS) net.printNetwork();
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      if (PRINT_RESULTS) net.printObserved();
-
-      net.getNetworkData().getNetworkTablesMap().values().stream()
-          .map(ProbabilityTable::getVector)
-          .map(ProbabilityVector::getNodeArray)
-          .forEach(
-              nodes -> {
-                StringBuilder sb = new StringBuilder();
-                Arrays.stream(nodes)
-                    .forEach(node -> sb.append(node.getId().toString()).append(" "));
-                System.out.println(sb);
-              });
-
-      net.observeMarginals();
-
-      String testState = "RAIN:TRUE";
-      String includedNode = "RAIN";
-
-      generateSamples(net, includedNode, testState);
-
-      net.observeNetwork(List.of("WET_GRASS:TRUE"));
-      System.out.println("\n--- Now testing P(RAIN:TRUE | WET_GRASS:TRUE) ---");
-      generateSamples(net, includedNode, testState);
-    }
-
-    private void generateSamples(BayesianNetwork network, String includedNode, String testState) {
-
-      double observedProb = network.getProbabilityFromCurrentObservations(List.of(testState));
-      double expected = observedProb * NUMBER_OF_SAMPLES;
-      double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * STANDARD_DEVIATIONS;
-      long lowerBound = Math.max(0, (long) (expected - expectedDelta));
-      long upperBound = (long) (expected + expectedDelta);
-
-      SampleCollection sampleCollection = net.generateSamples(NUMBER_OF_SAMPLES);
-      sampleCollection.setExportNodesById(List.of(includedNode));
-      int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
-
-      System.out.printf(
-          "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",
-          testState, observedProb, expected, lowerBound, upperBound, count);
-
-      assertTrue(
-          count >= lowerBound && count <= upperBound,
-          String.format(
-              "Sample count %d for %s is outside expected range [%d, %d]",
-              count, testState, lowerBound, upperBound));
-    }
-
-    @Test
-    void testNetworkAH_NonLocalConstraints() {
-      assertDoesNotThrow(() -> net = AH_NETWORK.get().solveNetwork().observeMarginals());
-
-      if (PRINT_RESULTS) net.printNetwork().printObserved();
-
-      String testState = "B+";
-      String includedNode = "B";
-      generateSamples(net, includedNode, testState);
-    }
-
-    @Test
-    void testFantasyGraph_ComplexNetwork() {
-      if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
-      net = FANTASY_GRAPH.get();
-      assertDoesNotThrow(() -> net.solveNetwork().observeMarginals());
-      if (PRINT_RESULTS) net.printObserved();
-      net.observeNetwork(List.of("VOTE:CPK"));
-      if (PRINT_RESULTS) net.printObserved();
-      net.observeNetwork(List.of("VOTE:UNF"));
-      if (PRINT_RESULTS) net.printObserved();
-      net.observeNetwork(List.of("RACE:ANK", "AGE:YOUNG_ADULT"));
-      if (PRINT_RESULTS) {
-        net.printObserved();
-        net.printNetwork();
-      }
-
-      String testState = "VOTE:CPK";
-      String includedNode = "VOTE";
-
-      generateSamples(net, includedNode, testState);
     }
   }
 }

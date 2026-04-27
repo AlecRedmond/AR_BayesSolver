@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.serialization;
 
+import static io.github.alecredmond.TestConfigs.*;
 import static io.github.alecredmond.internal.method.utils.AppProperty.*;
 import static io.github.alecredmond.method.network.NetworkScenarios.*;
 import static io.github.alecredmond.method.network.NetworkScenarios.FANTASY_GRAPH;
@@ -22,9 +23,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 class NetworkFileIOTest {
-  static final boolean SKIP_SAVE_TESTS = false;
-  static final boolean SKIP_J_FILE_CHOOSER = true;
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
   static final PropertiesLoader LOADER = new PropertiesLoader();
   static final String DIRECTORY = LOADER.loadDirectory(DIRECTORY_ROOT, DIRECTORY_SAVE);
   static final String EXTENSION = LOADER.loadString(EXTENSION_FILE_TYPE);
@@ -35,7 +33,6 @@ class NetworkFileIOTest {
     return networkSuppliers.stream()
         .map(Supplier::get)
         .map(BayesianNetwork::solveNetwork)
-        .map(BayesianNetwork::observeMarginals)
         .map(Arguments::of);
   }
 
@@ -45,14 +42,14 @@ class NetworkFileIOTest {
     networkSuppliers.add(RAIN_NETWORK);
     networkSuppliers.add(AH_NETWORK);
     networkSuppliers.add(SIMPLE_LINEAR);
-    if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
+    if (!SOLVE_LONG_TESTS) return;
     networkSuppliers.add(FANTASY_GRAPH);
   }
 
   @ParameterizedTest
   @MethodSource("provideNetworks")
   void saveNetworkFileChooser(BayesianNetwork network) {
-    if (SKIP_J_FILE_CHOOSER || SKIP_SAVE_TESTS) {
+    if (!RUN_J_FILE_CHOOSER_TESTS || !SAVE_BINARIES) {
       assertTrue(true);
       return;
     }
@@ -63,7 +60,7 @@ class NetworkFileIOTest {
   @ParameterizedTest
   @MethodSource("provideNetworks")
   void loadNetworkFileChooser(BayesianNetwork network) {
-    if (SKIP_J_FILE_CHOOSER || SKIP_SAVE_TESTS) {
+    if (!RUN_J_FILE_CHOOSER_TESTS || !SAVE_BINARIES) {
       assertTrue(true);
       return;
     }
@@ -75,7 +72,7 @@ class NetworkFileIOTest {
   @ParameterizedTest
   @MethodSource("provideNetworks")
   void saveNetwork(BayesianNetwork network) {
-    if (SKIP_SAVE_TESTS) {
+    if (!SAVE_BINARIES) {
       assertTrue(true);
       return;
     }
@@ -88,7 +85,7 @@ class NetworkFileIOTest {
   @ParameterizedTest
   @MethodSource("provideNetworks")
   void loadNetwork(BayesianNetwork network) {
-      if (SKIP_SAVE_TESTS) {
+      if (!SAVE_BINARIES) {
           assertTrue(true);
           return;
       }

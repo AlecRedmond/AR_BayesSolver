@@ -11,7 +11,6 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Separat
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
 import java.util.*;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,21 +52,19 @@ class JTANetworkWriter {
 
     BayesianNetworkData networkData = jtd.getNetworkData();
 
-    networkData.setObservedEvidence(networkData.getObservedEvidence());
-
     Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
         .forEach(TransferIterator::setToUnityAndTransfer);
 
-    networkData.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
+    jtd.getObservedTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 
-    networkData.getNodes().forEach(node -> updateTableName(node, networkData));
+    networkData.getNodes().forEach(node -> updateTableName(node, jtd));
 
     log.info("...OBSERVATIONS WRITTEN!");
   }
 
-  private static void updateTableName(Node node, BayesianNetworkData data) {
+  private static void updateTableName(Node node, JunctionTreeData data) {
     MarginalTable observedTable = data.getObservedTablesMap().get(node);
     Collection<NodeState> states = data.getObservedEvidence().values();
     StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
@@ -79,20 +76,16 @@ class JTANetworkWriter {
     observedTable.setTableName(sb.toString());
   }
 
-  static void writeToNetwork(JunctionTreeData data) {
+  static void writeBackToCPTs(JunctionTreeData data) {
     log.info("WRITING TO NETWORK");
 
     BayesianNetworkData bnd = data.getNetworkData();
 
-    Stream.concat(
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToCPTs().stream()),
-            Arrays.stream(data.getCliques()).flatMap(c -> c.getWriteToObserved().stream()))
+    Arrays.stream(data.getCliques())
+        .flatMap(c -> c.getWriteToCPTs().stream())
         .forEach(TransferIterator::transfer);
 
-    Stream.concat(
-            bnd.getNetworkTablesMap().values().stream(),
-            bnd.getObservedTablesMap().values().stream())
-        .forEach(ProbabilityTable::marginalizeTable);
+    bnd.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");
   }

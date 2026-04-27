@@ -1,12 +1,14 @@
 package io.github.alecredmond.method.sampler;
 
+import static io.github.alecredmond.TestConfigs.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.method.network.NetworkScenarios;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,10 +19,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SampleCollectionTest {
-  static final boolean DEBUG_SOLVE_LENGTHY_TESTS = false;
-  static final boolean SOLVE_ONLY_PROBLEMATIC = false;
-  static final boolean PRINT_RESULTS = true;
-  static final int NUMBER_OF_SAMPLES = 100_000;
   static List<SamplePackage> packages;
 
   public static Stream<Arguments> provideSamplePackages() {
@@ -38,7 +36,6 @@ class SampleCollectionTest {
             Set.of("C", "E"),
             Set.of("F+"),
             true));
-    if (SOLVE_ONLY_PROBLEMATIC) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.SIMPLE_LINEAR.get(),
@@ -55,7 +52,7 @@ class SampleCollectionTest {
             Set.of("SPRINKLER"),
             Set.of("RAIN:TRUE"),
             false));
-    if (!DEBUG_SOLVE_LENGTHY_TESTS) return;
+    if (!SOLVE_LONG_TESTS) return;
     packages.add(
         new SamplePackage(
             NetworkScenarios.FANTASY_GRAPH.get(),
@@ -115,7 +112,7 @@ class SampleCollectionTest {
             .filter(n -> !samplePackage.getExportNodes().contains(n))
             .collect(Collectors.toSet());
 
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(
             sample ->
                 Arrays.stream(sample.getExportArray())
@@ -133,10 +130,10 @@ class SampleCollectionTest {
   void setSupplier(SamplePackage samplePackage) {
     SampleCollection test = samplePackage.getTest();
     test.setSupplier(HashSet::new);
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(sample -> assertInstanceOf(HashSet.class, sample.getSampleCollection()));
     test.setSupplier(ArrayList::new);
-    test.getDistinctSamples()
+    test.getSamples()
         .forEach(sample -> assertInstanceOf(ArrayList.class, sample.getSampleCollection()));
   }
 
@@ -144,20 +141,22 @@ class SampleCollectionTest {
   @MethodSource("provideSamplePackages")
   void countSamplesWithStateIds(SamplePackage samplePackage) {
     BayesianNetwork network = samplePackage.getNetwork();
-    if (samplePackage.isPrintMarginals() && PRINT_RESULTS) {
-      network.printObserved();
+    InferenceEngine engine = samplePackage.getEngine();
+    if (samplePackage.isPrintMarginals() && PRINT_TABLES) {
+      engine.printObserved();
       network.printNetwork();
     }
     SampleCollection test = samplePackage.getTest();
     Set<String> measuredStateIds = samplePackage.getMeasuredStateIds();
     int numberOfSamples = samplePackage.getNumberOfSamples();
-    double probOfObserved = network.getProbabilityFromCurrentObservations(measuredStateIds);
-    double delta = Math.sqrt(numberOfSamples) * 3;
+    double probOfObserved =
+        samplePackage.getEngine().getCurrentConditionalProbabilityById(measuredStateIds);
+    double delta = Math.sqrt(numberOfSamples) * ALLOWED_STDEV;
     double lowerBound = probOfObserved * numberOfSamples - delta;
     double upperBound = probOfObserved * numberOfSamples + delta;
     int counted = test.countSamplesWithStateIds(measuredStateIds);
     System.out.printf(
-        "EXPECTED LOWER : %d%nEXPECTED UPPER: %d%nACTUAL: %d",
+        "EXPECTED LOWER : %d%nEXPECTED UPPER: %d%nACTUAL: %d%n",
         (int) lowerBound, (int) upperBound, counted);
     assertTrue(counted >= lowerBound);
     assertTrue(counted <= upperBound);

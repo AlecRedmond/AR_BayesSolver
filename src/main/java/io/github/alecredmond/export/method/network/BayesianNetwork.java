@@ -9,11 +9,12 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
+import io.github.alecredmond.export.method.inference.BayesSolver;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
+import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.File;
 import java.io.Serializable;
@@ -112,6 +113,13 @@ public interface BayesianNetwork {
   boolean saveNetworkToFile();
 
   /**
+   * Returns a new serialized Bayesian network for IO operations
+   *
+   * @return a serialization of the current bayesian network data
+   */
+  SerializedBayesianNetwork serializeNetwork();
+
+  /**
    * Adds a node to the network. The node will be associated with a Conditional Probability Table
    * (CPT) of the form P(N|Parents(N)).
    *
@@ -152,25 +160,25 @@ public interface BayesianNetwork {
    * Removes a node and all associated edges from the network.
    *
    * @param node the node to remove.
-   * @return this instance for method chaining.
+   * @return true if the network contained the specified Node.
    */
-  BayesianNetwork removeNode(Node node);
+  boolean removeNode(Node node);
 
   /**
    * Removes a node and all associated edges from the network.
    *
    * @param nodeID the identifier of the node to remove.
    * @param <T> the class of the Node ID
-   * @return this instance for method chaining.
+   * @return true if the network contained the specified Node
    */
-  <T extends Serializable> BayesianNetwork removeNodeByID(T nodeID);
+  <T extends Serializable> boolean removeNodeByID(T nodeID);
 
   /**
    * Removes all nodes from the network, resetting it to an empty state.
    *
-   * @return this instance for method chaining.
+   * @return true if the network contained any nodes.
    */
-  BayesianNetwork removeAllNodes();
+  boolean removeAllNodes();
 
   /**
    * Returns a node from its input ID
@@ -193,56 +201,10 @@ public interface BayesianNetwork {
   <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
-   * Adds a collection of states to an existing node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateIDs a collection of state identifiers to add.
-   * @throws BayesNetIDException if each nodeStateID is not unique
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeStates(
-      T nodeID, Collection<E> nodeStateIDs);
-
-  /**
-   * Adds a single state to an existing node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateID the state identifier to add.
-   * @param <T> the class of the Node ID
-   * @param <E> the class of the NodeState ID
-   * @throws BayesNetIDException if the nodeStateID is not unique
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addNodeState(
-      T nodeID, E nodeStateID);
-
-  /**
-   * Removes all states from a specified node.
-   *
-   * @param nodeID the identifier of the node whose states will be removed.
-   * @param <T> the class of the Node ID
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork removeNodeStates(T nodeID);
-
-  /**
-   * Removes a specific state from a node.
-   *
-   * @param nodeID the identifier of the node to modify.
-   * @param nodeStateID the identifier of the state to remove.
-   * @param <T> the class of the Node ID
-   * @param <E> the class of the NodeState ID
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable, E extends Serializable> BayesianNetwork removeNodeState(
-      T nodeID, E nodeStateID);
-
-  /**
    * Returns a Node State from its input ID
    *
    * @param <E> class of the Node State ID
    * @param nodeStateID the Node State ID
-   * @throws IllegalArgumentException if the Node State ID is not mapped to a Node State value
    * @return the Node State object associated with the ID
    */
   <E extends Serializable> NodeState getNodeState(E nodeStateID);
@@ -252,7 +214,6 @@ public interface BayesianNetwork {
    *
    * @param <E> class of the Node State IDs
    * @param nodeStateIDs the Node State IDs
-   * @throws IllegalArgumentException if the Node State IDs are not mapped to a Node State value
    * @return a set of Node State objects associated with their IDs
    */
   <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
@@ -471,21 +432,14 @@ public interface BayesianNetwork {
   boolean removeAllConstraints();
 
   /**
-   * Runs the Junction Table IPF solver to find the best fit for the constraints provided. Other
-   * methods that involve sampling, observing, and printing from the network implicitly run this
-   * method
+   * Runs a BayesSolver instance to find the best fit for the constraints provided. Other methods
+   * that involve sampling, observing, and printing from the network implicitly run this method. If
+   * analysis of the solver convergence is required, consider creating a new {@link BayesSolver}
+   * instance using {@code BayesSolver.create(network)}
    *
    * @return this instance for method chaining.
    */
   BayesianNetwork solveNetwork();
-
-  /**
-   * Prints a representation of the network structure and its probability tables according to
-   * current printer configurations.
-   *
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork printObserved();
 
   /**
    * Prints the results of the most recent observation (posterior probabilities) according to
@@ -494,34 +448,6 @@ public interface BayesianNetwork {
    * @return this instance for method chaining.
    */
   BayesianNetwork printNetwork();
-
-  /**
-   * Sets evidence in the network by observing one or more node states. This fixes the state of
-   * certain nodes before running inference.
-   *
-   * @param observedNodeStateIDs a collection of node states that are considered evidence.
-   * @param <T> the class of the NodeState IDs
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork observeNetwork(Collection<T> observedNodeStateIDs);
-
-  /**
-   * Sets evidence in the network by observing one node state as true. This fixes the state of
-   * certain nodes before running inference.
-   *
-   * @param observedNodeStateID the id of the state fixed as observed
-   * @param <T> the class of the NodeState ID.
-   * @return this instance for method chaining.
-   */
-  <T extends Serializable> BayesianNetwork observeNetwork(T observedNodeStateID);
-
-  /**
-   * Runs the inference algorithm to compute the posterior probabilities (marginals) of all nodes.
-   * This is the equivalent of running the observeNetwork method with an empty collection.
-   *
-   * @return this instance for method chaining.
-   */
-  BayesianNetwork observeMarginals();
 
   /**
    * Builds the underlying data object containing all network information. Only runs if the network
@@ -539,41 +465,6 @@ public interface BayesianNetwork {
   BayesianNetworkData getNetworkData();
 
   /**
-   * Generates random samples from the joint probability distribution defined by the network. Note
-   * that this method utilizes the most recent result observations on the network, or the base
-   * marginals if no observation has been made.
-   *
-   * @param numberOfSamples the total number of samples to generate.
-   * @return a SampleCollection object providing further methods
-   */
-  SampleCollection generateSamples(int numberOfSamples);
-
-  /**
-   * Generates random samples from the joint probability distribution defined by the network. This
-   * version of the method allows an observation to be sampled <b>without changing the observation
-   * status of the network itself</b>.
-   *
-   * @param numberOfSamples the total number of samples to generate.
-   * @param observedStateIDs ids of the NodeStates to be treated as observed
-   * @param <T> class of the NodeState ids.
-   * @return a SampleCollection object providing further methods
-   */
-  <T extends Serializable> SampleCollection generateSamples(
-      int numberOfSamples, Collection<T> observedStateIDs);
-
-  /**
-   * Calculates the joint probability of a set of events occurring, conditional on the current
-   * observed evidence.
-   *
-   * @param eventStateIDs a collection of node states representing joint events within the current
-   *     conditions.
-   * @param <T> Class of the event state IDs
-   * @return the calculated joint probability.
-   */
-  <T extends Serializable> double getProbabilityFromCurrentObservations(
-      Collection<T> eventStateIDs);
-
-  /**
    * Retrieves the Conditional Probability Table (CPT) for a given node.
    *
    * @param nodeID the identifier of the node.
@@ -583,12 +474,12 @@ public interface BayesianNetwork {
   <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID);
 
   /**
-   * Retrieves the marginal probability table for a node after an observation. This table contains
-   * the posterior probabilities of the node's states.
+   * Builds a new InferenceEngine from the current BayesianNetwork
    *
-   * @param nodeID the identifier of the node.
-   * @param <T> class of the Node ID
-   * @return the observed marginal table for the specified node.
+   * @return a new InferenceEngine instance
    */
-  <T extends Serializable> MarginalTable getObservedTable(T nodeID);
+  InferenceEngine buildInferenceEngine();
+
+  /** resets all data in the network, excluding the network name */
+  void resetAllData();
 }

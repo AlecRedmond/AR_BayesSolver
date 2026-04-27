@@ -6,7 +6,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +22,8 @@ public class ProbabilityVectorFactory {
     int[] multiplier = buildMultiplierArray(cardinality, rank);
     double[] probability = new double[rank];
     Arrays.fill(probability, 1.0);
-    Map<Node, Integer> nodeIndexMap = buildNodeIndexMap(nodesArray);
-    Map<NodeState, Integer> stateValueMap = buildStateValueMap(nodesArray);
+    Map<Node, Integer> nodeIndexMap = NodeUtils.buildNodeIndexMap(nodesArray);
+    Map<NodeState, Integer> stateValueMap = NodeUtils.buildStateIndexMap(nodesArray);
     return new ProbabilityVector(
         nodesArray, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
   }
@@ -58,22 +57,5 @@ public class ProbabilityVectorFactory {
       multiplier[i] = m;
     }
     return multiplier;
-  }
-
-  public Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
-    return IntStream.range(0, nodes.length)
-        .mapToObj(i -> Map.entry(nodes[i], i))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  public Map<NodeState, Integer> buildStateValueMap(Node[] nodes) {
-    Map<NodeState, Integer> statePositions = new HashMap<>();
-    Arrays.stream(nodes)
-        .map(Node::getNodeStates)
-        .forEach(
-            states ->
-                IntStream.range(0, states.size())
-                    .forEach(i -> statePositions.put(states.get(i), i)));
-    return statePositions;
   }
 }

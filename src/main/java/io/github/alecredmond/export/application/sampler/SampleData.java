@@ -10,17 +10,18 @@ import lombok.Data;
 
 @Data
 public class SampleData {
-  private final NodeState[] rawArray;
-  private NodeState[] exportArray;
+  private final NodeState[] rawStateArray;
+  private NodeState[] exportStateArray;
   private int count;
   private Collection<NodeState> stateCollection;
   private Supplier<? extends Collection<NodeState>> supplier;
 
-  public SampleData(NodeState[] rawArray) {
-    this.rawArray = rawArray;
-    this.exportArray = Arrays.copyOf(rawArray, rawArray.length);
+  public SampleData(NodeState[] rawStateArray) {
+    this.rawStateArray = rawStateArray;
+    this.exportStateArray = Arrays.copyOf(rawStateArray, rawStateArray.length);
     this.supplier = ArrayList::new;
-    this.stateCollection = Arrays.stream(exportArray).collect(Collectors.toCollection(supplier));
+    this.stateCollection =
+        Arrays.stream(exportStateArray).collect(Collectors.toCollection(supplier));
     this.count = 0;
   }
 }

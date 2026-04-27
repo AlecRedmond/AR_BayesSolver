@@ -11,11 +11,9 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandler;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerConditional;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTAConstraintHandlerMarginal;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
+import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,7 +25,8 @@ public class JTAInitializer {
 
   private JTAInitializer() {}
 
-  public static JunctionTreeData buildSolverConfiguration(BayesianNetworkData bayesianNetworkData) {
+  public static JunctionTreeData buildNewSolverConfiguration(
+      BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(true);
     buildCommon(junctionTreeData, bayesianNetworkData);
@@ -46,7 +45,7 @@ public class JTAInitializer {
 
   private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
-    Map<Clique, List<JTAConstraintHandler>> map =
+    Map<Clique, List<ConstraintHandler>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -66,14 +65,16 @@ public class JTAInitializer {
   }
 
   private static void buildExternalMessagePassers(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    boolean writeBackToCPTs = jtd.isSolverConfig();
+    boolean writeBackToNetwork = jtd.isSolverConfig();
     Clique[] cliques = jtd.getCliques();
 
     TransferIteratorBuilder builder = new TransferIteratorBuilder();
 
+    Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
+    Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
+
     for (Node node : bnd.getNodes()) {
-      ProbabilityTable networkTable = bnd.getNetworkTablesMap().get(node);
-      MarginalTable observedTable = bnd.getObservedTablesMap().get(node);
+      ProbabilityTable networkTable = networkTables.get(node);
 
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
@@ -82,19 +83,20 @@ public class JTAInitializer {
           .getWriteFromCPTs()
           .add(builder.buildMultiplyTransferIterator(networkTable, cliqueTable));
 
-      bestClique
-          .getWriteToObserved()
-          .add(builder.buildMarginalTransferIterator(cliqueTable, observedTable));
-
-      if (writeBackToCPTs) {
+      if (writeBackToNetwork) {
         bestClique
             .getWriteToCPTs()
             .add(builder.buildMarginalTransferIterator(cliqueTable, networkTable));
+        continue;
       }
+
+      bestClique
+          .getWriteToObserved()
+          .add(builder.buildMarginalTransferIterator(cliqueTable, marginalTables.get(node)));
     }
   }
 
-  private static List<JTAConstraintHandler> matchConstraints(
+  private static List<ConstraintHandler> matchConstraints(
       Clique clique, List<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
@@ -109,7 +111,7 @@ public class JTAInitializer {
         .orElseThrow();
   }
 
-  private static JTAConstraintHandler buildConstraintHandler(
+  private static ConstraintHandler buildConstraintHandler(
       @NonNull ProbabilityConstraint constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
     return switch (constraint) {
@@ -119,12 +121,25 @@ public class JTAInitializer {
     };
   }
 
-  public static JunctionTreeData buildInferenceConfiguration(
+  public static JunctionTreeData buildNewInferenceConfiguration(
       BayesianNetworkData bayesianNetworkData) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
-    junctionTreeData.setSolverConfig(false);
-    buildCommon(junctionTreeData, bayesianNetworkData);
-    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+    buildInferenceConfiguration(junctionTreeData, bayesianNetworkData);
     return junctionTreeData;
+  }
+
+  public static void buildInferenceConfiguration(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    jtd.setSolverConfig(false);
+    buildObserved(jtd, bnd);
+    buildCommon(jtd, bnd);
+    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+  }
+
+  private static void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    jtd.setObservedEvidence(new HashMap<>());
+    jtd.setObservedTablesMap(
+        bnd.getNodes().stream()
+            .map(node -> Map.entry(node, TableBuilder.buildMarginalTable(Set.of(node))))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 }

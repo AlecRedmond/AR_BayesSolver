@@ -24,7 +24,7 @@ public class PropertiesLoader {
 
   public int loadInt(AppProperty property) {
     try {
-      return loadProperty(property.get(), Integer::parseInt);
+      return loadProperty(property.getKey(), Integer::parseInt);
     } catch (NumberFormatException e) {
       throw new PropertiesLoaderException(e);
     }
@@ -36,7 +36,7 @@ public class PropertiesLoader {
 
   public double loadDouble(AppProperty property) {
     try {
-      return loadProperty(property.get(), Double::parseDouble);
+      return loadProperty(property.getKey(), Double::parseDouble);
     } catch (NumberFormatException e) {
       throw new PropertiesLoaderException(e);
     }
@@ -47,7 +47,7 @@ public class PropertiesLoader {
   }
 
   public String loadDirectory(AppProperty property) {
-    String raw = properties.getProperty(property.get());
+    String raw = properties.getProperty(property.getKey());
     Matcher matcher = SYSTEM_PROPS_REGEX.matcher(raw);
     StringBuilder sb = new StringBuilder();
     while (matcher.find()) {
@@ -60,10 +60,10 @@ public class PropertiesLoader {
   }
 
   public String loadString(AppProperty property) {
-    return properties.getProperty(property.get());
+    return properties.getProperty(property.getKey());
   }
 
   public boolean loadBoolean(AppProperty property) {
-    return loadProperty(property.get(), Boolean::parseBoolean);
+    return loadProperty(property.getKey(), Boolean::parseBoolean);
   }
 }

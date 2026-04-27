@@ -9,9 +9,8 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedConditionalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedMarginalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedProbabilityTable;
-import io.github.alecredmond.internal.serialization.SerializerUtils;
 import io.github.alecredmond.internal.serialization.SerializationData;
-
+import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.io.Serializable;
 import java.util.*;
 
@@ -26,36 +25,38 @@ public class ProbabilityTableSerializer {
   }
 
   public SerializedMarginalTable serializeMarginalTable(MarginalTable mt) {
-    SerializedMarginalTable sto = new SerializedMarginalTable();
-    serializeCommon(sto, mt);
-    sto.setNetworkNodeId(mt.getNetworkNode().getId());
-    return sto;
+    SerializedMarginalTable serialized = new SerializedMarginalTable();
+    serializeCommon(serialized, mt);
+    serialized.setNetworkNodeId(mt.getNetworkNode().getId());
+    return serialized;
   }
 
   private SerializedConditionalTable serializeConditionalTable(ConditionalTable ct) {
-    SerializedConditionalTable sto = new SerializedConditionalTable();
-    serializeCommon(sto, ct);
-    sto.setNetworkNodeId(ct.getNetworkNode().getId());
-    return sto;
+    SerializedConditionalTable serialized = new SerializedConditionalTable();
+    serializeCommon(serialized, ct);
+    serialized.setNetworkNodeId(ct.getNetworkNode().getId());
+    return serialized;
   }
 
-  private void serializeCommon(SerializedProbabilityTable sto, ProbabilityTable table) {
-    sto.setVectorSTO(new ProbabilityVectorSerializer().serialize(table.getVector()));
-    sto.setNodeIds(SerializerUtils.serializeNodes(table.getNodes()));
-    sto.setEventNodeIds(SerializerUtils.serializeNodes(table.getEvents()));
-    sto.setConditionNodeIds(SerializerUtils.serializeNodes(table.getConditions()));
-    sto.setTableName(table.getTableName());
+  private void serializeCommon(SerializedProbabilityTable serialized, ProbabilityTable table) {
+    serialized.setVectorSTO(new ProbabilityVectorSerializer().serialize(table.getVector()));
+    serialized.setNodeIds(SerializerUtils.serializeNodes(table.getNodes()));
+    serialized.setEventNodeIds(SerializerUtils.serializeNodes(table.getEvents()));
+    serialized.setConditionNodeIds(SerializerUtils.serializeNodes(table.getConditions()));
+    serialized.setTableName(table.getTableName());
   }
 
-  public ProbabilityTable deSerialize(SerializedProbabilityTable sto, SerializationData data) {
-    return switch (sto) {
+  public ProbabilityTable deSerialize(
+      SerializedProbabilityTable serialized, SerializationData data) {
+    return switch (serialized) {
       case SerializedMarginalTable marginal -> deSerializeMarginal(marginal, data);
       case SerializedConditionalTable conditional -> deSerializeConditional(conditional, data);
-      default -> throw new IllegalStateException("Unexpected value: " + sto);
+      default -> throw new IllegalStateException("Unexpected value: " + serialized);
     };
   }
 
-  public MarginalTable deSerializeMarginal(SerializedMarginalTable marginal, SerializationData data) {
+  public MarginalTable deSerializeMarginal(
+      SerializedMarginalTable marginal, SerializationData data) {
     Map<Serializable, Node> nodeIdMap = new HashMap<>();
     Map<Serializable, NodeState> nodeStateIdMap = new HashMap<>();
     buildMapData(marginal, nodeIdMap, nodeStateIdMap, data);
@@ -68,7 +69,7 @@ public class ProbabilityTableSerializer {
   }
 
   private ProbabilityTable deSerializeConditional(
-          SerializedConditionalTable conditional, SerializationData data) {
+      SerializedConditionalTable conditional, SerializationData data) {
     Map<Serializable, Node> nodeIdMap = new HashMap<>();
     Map<Serializable, NodeState> nodeStateIdMap = new HashMap<>();
     buildMapData(conditional, nodeIdMap, nodeStateIdMap, data);
@@ -98,7 +99,8 @@ public class ProbabilityTableSerializer {
             });
   }
 
-  private ProbabilityVector deserializeVector(SerializedProbabilityTable sto, SerializationData data) {
+  private ProbabilityVector deserializeVector(
+      SerializedProbabilityTable sto, SerializationData data) {
     return new ProbabilityVectorSerializer().deSerialize(sto.getVectorSTO(), data);
   }
 
