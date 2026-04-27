@@ -442,14 +442,15 @@ class NewBayesianNetworkTest {
     }
 
     static Stream<Arguments> unsuccessfulBuilds() {
+      Class<BayesNetIDException> idException = BayesNetIDException.class;
+      Class<ConstraintValidationException> constraintException =
+          ConstraintValidationException.class;
       return Stream.of(
-          Arguments.of(List.of("An"), List.of(), 0.5, BayesNetIDException.class),
-          Arguments.of(List.of("A+"), List.of("A-"), 0.5, ConstraintValidationException.class),
-          Arguments.of(
-              List.of("A+"), List.of("B+", "B-"), 0.5, ConstraintValidationException.class),
-          Arguments.of(List.of("A+", "A-"), List.of(), 1.25, ConstraintValidationException.class),
-          Arguments.of(
-              List.of("A+", "C+"), List.of("B+"), -0.5, ConstraintValidationException.class));
+          Arguments.of(List.of("An"), List.of(), 0.5, idException),
+          Arguments.of(List.of("A+"), List.of("A-"), 0.5, constraintException),
+          Arguments.of(List.of("A+"), List.of("B+", "B-"), 0.5, constraintException),
+          Arguments.of(List.of("A+", "A-"), List.of(), 1.25, constraintException),
+          Arguments.of(List.of("A+", "C+"), List.of("B+"), -0.5, constraintException));
     }
 
     @ParameterizedTest
