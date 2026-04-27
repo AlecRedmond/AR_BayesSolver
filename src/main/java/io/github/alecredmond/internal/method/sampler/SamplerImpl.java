@@ -17,11 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class SamplerImpl implements Sampler {
   protected static final Random RANDOM = new Random();
-  protected final BayesianNetworkData data;
+  protected final BayesianNetworkData networkData;
   protected final InferenceEngine engine;
 
   protected SamplerImpl(BayesianNetwork network, InferenceEngine engine) {
-    this.data = network.getNetworkData();
+    this.networkData = network.getNetworkData();
     this.engine = engine;
   }
 
@@ -61,7 +61,7 @@ public abstract class SamplerImpl implements Sampler {
   @Override
   public <T extends Serializable> SampleCollection generateSamplesById(
       Collection<T> evidenceIDs, int numberOfSamples) {
-    return generateSamples(NetworkDataUtils.getStatesByID(evidenceIDs, data), numberOfSamples);
+    return generateSamples(NetworkDataUtils.getStatesByID(evidenceIDs, networkData), numberOfSamples);
   }
 
   public BayesianNetwork getNetwork() {

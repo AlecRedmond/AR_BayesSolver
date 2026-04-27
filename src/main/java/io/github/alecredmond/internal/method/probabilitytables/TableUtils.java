@@ -28,8 +28,8 @@ public class TableUtils {
     int[] stepMultiplier = vector.getStepMultiplier();
     int index = 0;
     for (NodeState state : states) {
-      int stateValue = vector.getStateValueMap().get(state);
-      int nodeIndex = vector.getNodeIndexMap().get(state.getNode());
+      int stateValue = vector.getStateValueMap().getOrDefault(state, 0);
+      int nodeIndex = vector.getNodeIndexMap().getOrDefault(state.getNode(), 0);
       index += stepMultiplier[nodeIndex] * stateValue;
     }
     return index;
@@ -43,7 +43,7 @@ public class TableUtils {
   public static Collection<NodeState> assertAllNodesPresent(
       Collection<NodeState> states, Set<Node> allNodes) {
     Map<Node, NodeState> request = NodeUtils.generateRequest(states);
-    if (request.keySet().equals(allNodes)) return states;
+    if (request.keySet().containsAll(allNodes)) return states;
     throw new ProbabilityTableRequestException(
         "request %s does not contain all nodes requested %s"
             .formatted(
