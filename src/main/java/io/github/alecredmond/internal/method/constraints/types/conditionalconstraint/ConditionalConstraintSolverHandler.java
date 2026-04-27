@@ -1,18 +1,21 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.handlers;
+package io.github.alecredmond.internal.method.constraints.types.conditionalconstraint;
 
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorCombinationKey;
+import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintSolverHandler;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
+import io.github.alecredmond.internal.method.inference.junctiontree.handlers.JTATableHandler;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.VectorCombinationKeyFactory;
-
 import java.util.Set;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.ObjIntConsumer;
 
-public class JTAConstraintHandlerConditional extends JTAConstraintHandler {
+public class ConditionalConstraintSolverHandler extends BaseConstraintSolverHandler
+    implements ConstraintSolverHandler<ConditionalConstraint> {
 
-  public JTAConstraintHandlerConditional(
+  public ConditionalConstraintSolverHandler(
       JTATableHandler jtaTableHandler, ConditionalConstraint constraint) {
     super(jtaTableHandler, constraint);
   }

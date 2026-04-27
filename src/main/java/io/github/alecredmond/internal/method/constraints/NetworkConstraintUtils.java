@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.constraints;
 
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
@@ -13,33 +14,50 @@ public class NetworkConstraintUtils {
 
   private NetworkConstraintUtils() {}
 
-  public static void addConstraints(
+  public static List<ConstraintValidationException> addConstraints(
       Collection<ProbabilityConstraint> constraints, BayesianNetworkData networkData) {
-    constraints.forEach(c -> addConstraint(c, networkData));
+    return constraints.stream()
+        .map(c -> addConstraint(c, networkData))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
   }
 
-  public static void addConstraint(
+  public static Optional<ConstraintValidationException> addConstraint(
       ProbabilityConstraint constraint, BayesianNetworkData networkData) {
-    if (new ConstraintValidator(constraint, networkData).validate()) {
-      networkData.getConstraints().add(constraint);
+    return addConstraint(new ConstraintBuilder(constraint, networkData));
+  }
+
+  private static Optional<ConstraintValidationException> addConstraint(ConstraintBuilder builder) {
+    Optional<ConstraintValidationException> e = builder.getException();
+    if (e.isPresent()) {
+      return e;
     }
+    builder.getData().getNetworkData().getConstraints().add(builder.getConstraint());
+    return Optional.empty();
   }
 
-  public static void addConstraint(
+  public static Optional<ConstraintValidationException> addConstraint(
+      Set<NodeState> eventStates,
+      Set<NodeState> conditionStates,
+      double probability,
+      BayesianNetworkData networkData) {
+    return addConstraint(
+        new ConstraintBuilder(eventStates, conditionStates, probability, networkData));
+  }
+
+  public static Optional<ConstraintValidationException> addConstraint(
       NodeState eventState, double probability, BayesianNetworkData networkData) {
-    addConstraint(eventState, Set.of(), probability, networkData);
+    return addConstraint(new ConstraintBuilder(eventState, probability, networkData));
   }
 
-  public static void addConstraint(
+  public static Optional<ConstraintValidationException> addConstraint(
       NodeState eventState,
       Set<NodeState> conditionStates,
       double probability,
       BayesianNetworkData networkData) {
-    ProbabilityConstraint probabilityConstraint =
-        conditionStates.isEmpty()
-            ? new MarginalConstraint(eventState, probability)
-            : new ConditionalConstraint(eventState, conditionStates, probability);
-    addConstraint(probabilityConstraint, networkData);
+    return addConstraint(
+        new ConstraintBuilder(eventState, conditionStates, probability, networkData));
   }
 
   public static boolean removeAllConstraints(BayesianNetworkData networkData) {

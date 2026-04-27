@@ -1,7 +1,5 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
@@ -11,6 +9,8 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
+import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
@@ -45,7 +45,7 @@ public class JTAInitializer {
 
   private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
-    Map<Clique, List<ConstraintHandler>> map =
+    Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -96,7 +96,7 @@ public class JTAInitializer {
     }
   }
 
-  private static List<ConstraintHandler> matchConstraints(
+  private static List<ConstraintSolverHandler<ProbabilityConstraint>> matchConstraints(
       Clique clique, List<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
@@ -111,14 +111,13 @@ public class JTAInitializer {
         .orElseThrow();
   }
 
-  private static ConstraintHandler buildConstraintHandler(
-      @NonNull ProbabilityConstraint constraint, Clique clique) {
+  @SuppressWarnings("unchecked")
+  private static <T extends ProbabilityConstraint> ConstraintSolverHandler<T> buildConstraintHandler(
+      @NonNull T constraint, Clique clique) {
     JTATableHandler jtaTableHandler = clique.getHandler();
-    return switch (constraint) {
-      case MarginalConstraint mc -> new JTAConstraintHandlerMarginal(jtaTableHandler, mc);
-      case ConditionalConstraint cc -> new JTAConstraintHandlerConditional(jtaTableHandler, cc);
-      default -> throw new IllegalStateException("Unexpected value: " + constraint);
-    };
+    return (ConstraintSolverHandler<T>)
+        ConstraintRegistry.getStrategy(constraint.getClass())
+            .buildConstraintHandler(jtaTableHandler, constraint);
   }
 
   public static JunctionTreeData buildNewInferenceConfiguration(

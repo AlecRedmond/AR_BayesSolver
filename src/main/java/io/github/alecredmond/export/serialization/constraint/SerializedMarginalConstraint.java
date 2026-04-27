@@ -1,15 +1,24 @@
 package io.github.alecredmond.export.serialization.constraint;
 
+import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import java.io.Serializable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class SerializedMarginalConstraint extends SerializedProbabilityConstraint implements Serializable {
+public class SerializedMarginalConstraint
+    implements SerializedProbabilityConstraint<MarginalConstraint> {
+  private Serializable eventStateId;
+  private double probability;
+
   public SerializedMarginalConstraint(Serializable eventStateId, double probability) {
-    super(eventStateId, probability);
+    this.eventStateId = eventStateId;
+    this.probability = probability;
+  }
+
+  @Override
+  public Class<MarginalConstraint> getConstraintClass() {
+    return MarginalConstraint.class;
   }
 }

@@ -5,8 +5,8 @@ import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.ConstraintHandler;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -36,7 +36,8 @@ public class JTASolver {
     long endTime = now + configs.getTimeLimitSeconds();
     long nextLogTime = now + configs.getLogIntervalSeconds();
 
-    Map<Clique, List<ConstraintHandler>> constraintMap = jta.getData().getConstraintHandlersMap();
+    Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> constraintMap =
+        jta.getData().getConstraintHandlersMap();
 
     boolean thresholdReached = false;
     boolean timeLimitReached;
@@ -77,19 +78,22 @@ public class JTASolver {
   }
 
   private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintHandler>> constraintHandlers) {
+      JunctionTreeAlgorithm jta,
+      Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> constraintHandlers) {
 
-    DoubleAdder error = new DoubleAdder();
+    DoubleAdder cycleError = new DoubleAdder();
 
     constraintHandlers.forEach(
         (clique, handlers) ->
             handlers.forEach(
                 h -> {
-                  error.add(h.adjustAndReturnError());
+                  double error = h.adjustAndReturnError();
+                  cycleError.add(error);
+                  h.storeError(error);
                   jta.sumTransfer(clique);
                 }));
 
-    return error.sum();
+    return cycleError.sum();
   }
 
   private static void logCycleComplete(int cycle, double loss, double error) {
@@ -103,7 +107,7 @@ public class JTASolver {
   }
 
   private static SolverResults writeResults(
-      Map<Clique, List<ConstraintHandler>> constraintMap, int cycle) {
+          Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)

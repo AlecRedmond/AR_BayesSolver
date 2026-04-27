@@ -11,6 +11,7 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.network.NetworkErrorPolicy;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
@@ -31,6 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListener {
   private final BayesianNetworkData networkData;
+  private final NetworkErrorPolicy policy = new NetworkErrorPolicy();
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRUCTORS------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public BayesianNetworkImpl(String networkName) {
     this.networkData = new BayesianNetworkData();
@@ -44,6 +50,22 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   public BayesianNetworkImpl(BayesianNetworkData networkData) {
     this.networkData = networkData;
   }
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------LISTENERS---------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    NetworkPropertyChangeEvent.valueOf(evt.getPropertyName())
+        .getSupplier()
+        .get()
+        .applyChange(evt, networkData);
+  }
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NETWORK FILE IO---------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public boolean saveNetworkToFile(File file) {
     return new NetworkFileIO(new BayesianNetworkSerializer()).saveNetwork(this, file);
@@ -61,13 +83,9 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return new BayesianNetworkSerializer().serialize(this);
   }
 
-  @Override
-  public void propertyChange(PropertyChangeEvent evt) {
-    NetworkPropertyChangeEvent.valueOf(evt.getPropertyName())
-        .getSupplier()
-        .get()
-        .applyChange(evt, networkData);
-  }
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NODE IN/OUT-------------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public BayesianNetwork addNode(Node node) throws BayesNetIDException {
     new NetworkIdValidator(networkData).validateNewNode(node);
@@ -112,42 +130,9 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return !ids.isEmpty();
   }
 
-  public BayesianNetworkImpl solveNetwork() {
-    if (networkData.isSolved()) {
-      return this;
-    }
-    BayesSolver.create(this).solve();
-    return this;
-  }
-
-  public BayesianNetworkImpl printNetwork() {
-    if (!networkData.isSolved()) solveNetwork();
-    new NetworkPrinter(networkData).printNetwork();
-    return this;
-  }
-
-  public BayesianNetwork buildNetworkData() {
-    new NetworkDataBuilder(networkData).build();
-    return this;
-  }
-
-  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
-    if (!networkData.isSolved()) solveNetwork();
-    return networkData.getNetworkTableById(nodeID);
-  }
-
-  public InferenceEngine buildInferenceEngine() {
-    return InferenceEngine.create(this);
-  }
-
-  public void resetAllData() {
-    removeAllNodes();
-    networkData.setNodes(new ArrayList<>());
-    networkData.setNodeIDsMap(new HashMap<>());
-    networkData.setNodeStateIDsMap(new HashMap<>());
-    networkData.setNetworkTablesMap(new HashMap<>());
-    networkData.setConstraints(new ArrayList<>());
-  }
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NODE/STATE GETTERS------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public <T extends Serializable> Node getNode(T nodeID) {
     return NetworkDataUtils.getNodeById(nodeID, networkData);
@@ -155,6 +140,10 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
 
   public <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs) {
     return NetworkDataUtils.getNodesByID(nodeIDs, networkData);
+  }
+
+  public <E extends Serializable> NodeState getNodeState(E nodeStateID) {
+    return NetworkDataUtils.getStateById(nodeStateID, networkData);
   }
 
   public <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs) {
@@ -165,9 +154,9 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
         .collect(Collectors.toSet());
   }
 
-  public <E extends Serializable> NodeState getNodeState(E nodeStateID) {
-    return NetworkDataUtils.getStateById(nodeStateID, networkData);
-  }
+  // ----------------------------------------------------------------------------------------------
+  // ---------------------------------NODE PARENT/CHILD RELATIONS----------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public BayesianNetwork addParents(Node child, Collection<Node> parents)
       throws NetworkStructureException {
@@ -213,14 +202,31 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT ADDERS-------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
+  public <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
+      Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
+    networkData.setSolved(false);
+    NetworkConstraintUtils.addConstraint(
+            NetworkDataUtils.getStatesByIdOrThrow(eventStateIDs, networkData),
+            NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
+            probability,
+            networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
+    return this;
+  }
+
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
-        NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
-        probability,
-        networkData);
+            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
+            NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
+            probability,
+            networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
@@ -228,21 +234,30 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
       T eventStateID, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
-        NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData), probability, networkData);
+            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
+            probability,
+            networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
   public BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData);
+    NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData)
+        .ifPresent(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
 
   public BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraints(probabilityConstraints, networkData);
+    NetworkConstraintUtils.addConstraints(probabilityConstraints, networkData)
+        .forEach(policy.getConstraintValidationExceptionPolicy());
     return this;
   }
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT GETTERS------------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public <T extends Serializable> MarginalConstraint getConstraint(T eventStateId) {
     return NetworkConstraintUtils.getConstraint(getNodeState(eventStateId), networkData);
@@ -253,6 +268,10 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return NetworkConstraintUtils.getConstraint(
         getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
   }
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------CONSTRAINT REMOVERS-----------------------------------------
+  // ----------------------------------------------------------------------------------------------
 
   public boolean removeConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
@@ -274,5 +293,46 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   public boolean removeAllConstraints() {
     networkData.setSolved(false);
     return NetworkConstraintUtils.removeAllConstraints(networkData);
+  }
+
+  // ----------------------------------------------------------------------------------------------
+  // ----------------------------------NETWORK FUNCTIONS-------------------------------------------
+  // ----------------------------------------------------------------------------------------------
+
+  public BayesianNetworkImpl solveNetwork() {
+    if (networkData.isSolved()) {
+      return this;
+    }
+    BayesSolver.create(this).solve();
+    return this;
+  }
+
+  public BayesianNetworkImpl printNetwork() {
+    if (!networkData.isSolved()) solveNetwork();
+    new NetworkPrinter(networkData).printNetwork();
+    return this;
+  }
+
+  public BayesianNetwork buildNetworkData() {
+    new NetworkDataBuilder(networkData).build();
+    return this;
+  }
+
+  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
+    if (!networkData.isSolved()) solveNetwork();
+    return networkData.getNetworkTableById(nodeID);
+  }
+
+  public InferenceEngine buildInferenceEngine() {
+    return InferenceEngine.create(this);
+  }
+
+  public void resetAllData() {
+    removeAllNodes();
+    networkData.setNodes(new ArrayList<>());
+    networkData.setNodeIDsMap(new HashMap<>());
+    networkData.setNodeStateIDsMap(new HashMap<>());
+    networkData.setNetworkTablesMap(new HashMap<>());
+    networkData.setConstraints(new ArrayList<>());
   }
 }
