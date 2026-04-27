@@ -68,7 +68,7 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     Map<Set<NodeState>, Double> weightedStateSets = samplerData.getWeightedStateSets();
 
     for (int s = 0; s < samplerData.getNumberOfSamples(); s++) {
-      Set<NodeState> newSet = new HashSet<>();
+      Set<NodeState> newSet = new LinkedHashSet<>();
       double weight =
           IntStream.range(0, nodes.length)
               .mapToDouble(i -> selectNextState(newSet, defaultSample[i], helpers[i]))
