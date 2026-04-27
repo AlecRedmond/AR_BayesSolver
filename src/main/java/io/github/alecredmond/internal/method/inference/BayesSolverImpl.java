@@ -41,8 +41,9 @@ public class BayesSolverImpl implements BayesSolver {
       data.setSolved(true);
       return true;
     } catch (Exception e) {
-      log.error(e.getMessage());
-      return false;
+      log.error(e.getLocalizedMessage());
+      throw e;
+      //return false;
     }
   }
 

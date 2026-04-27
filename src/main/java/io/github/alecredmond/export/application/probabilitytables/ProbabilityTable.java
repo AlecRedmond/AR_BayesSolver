@@ -3,8 +3,7 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import java.io.Serializable;
 import java.util.*;
 import lombok.EqualsAndHashCode;
@@ -22,6 +21,7 @@ public abstract class ProbabilityTable {
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
+  @EqualsAndHashCode.Exclude protected final TableHelper<?> helper;
   @EqualsAndHashCode.Exclude @Setter protected Serializable tableName;
 
   protected <T extends Serializable> ProbabilityTable(
@@ -39,40 +39,10 @@ public abstract class ProbabilityTable {
     this.nodes = nodes;
     this.events = events;
     this.conditions = conditions;
+    this.helper = buildHelper();
   }
 
-  public <T extends Serializable> Double getProbabilityFromIDs(Collection<T> stateIDs) {
-    return getProbability(stateIDs.stream().map(nodeStateIDMap::get).toList());
-  }
+  protected abstract TableHelper<? extends ProbabilityTable> buildHelper();
 
-  public Double getProbability(Collection<NodeState> request) {
-    try {
-      TableUtils.confirmAllNodesQueried(request, this);
-      return TableUtils.getProbability(request, this);
-    } catch (IllegalArgumentException e) {
-      log.error(e.getMessage());
-      return null;
-    }
-  }
-
-  public abstract void marginalizeTable();
-
-  public abstract ProbabilityTable copyTable();
-
-  public static ProbabilityTable copyOf(ProbabilityTable table) {
-    return new TableCopier().copyTable(table);
-  }
-
-  public Map<Set<NodeState>, Double> buildProbabilitiesMap() {
-    return TableUtils.buildProbabilityMap(this);
-  }
-
-  public <T extends Serializable> Map<Set<NodeState>, Double> buildProbabilitiesMapById(
-      Collection<T> includedStateIDs) {
-    return buildProbabilitiesMap(TableUtils.convertIDsToStates(includedStateIDs, this));
-  }
-
-  public Map<Set<NodeState>, Double> buildProbabilitiesMap(Collection<NodeState> includedStates) {
-    return TableUtils.buildProbabilityMapInclusive(this, includedStates, nodes);
-  }
+  public abstract TableHelper<? extends ProbabilityTable> getHelper();
 }

@@ -2,6 +2,7 @@ package io.github.alecredmond.export.application.node;
 
 import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
 
+import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -12,9 +13,11 @@ import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Slf4j
 public class Node {
   @EqualsAndHashCode.Include private final Serializable id;
   private final PropertyChangeSupport support = new PropertyChangeSupport(this);
@@ -41,19 +44,34 @@ public class Node {
   public void setNodeStates(List<NodeState> nodeStates) {
     List<NodeState> oldStates = this.nodeStates;
     this.nodeStates = Collections.unmodifiableList(nodeStates);
-    support.firePropertyChange(NODE_STATES_UPDATED.name(), oldStates, nodeStates);
+    try {
+      support.firePropertyChange(NODE_STATES_UPDATED.name(), oldStates, nodeStates);
+    } catch (BayesNetIDException e) {
+      log.error("Error setting states, '{}' reverting...", e.getMessage());
+      this.nodeStates = oldStates;
+    }
   }
 
   public void setParents(List<Node> parents) {
     List<Node> oldParents = this.parents;
     this.parents = Collections.unmodifiableList(parents);
-    support.firePropertyChange(NODE_PARENTS_UPDATED.name(), oldParents, parents);
+    try {
+      support.firePropertyChange(NODE_PARENTS_UPDATED.name(), oldParents, parents);
+    } catch (BayesNetIDException e) {
+      log.error("Error setting parents, '{}' reverting...", e.getMessage());
+      this.parents = oldParents;
+    }
   }
 
   public void setChildren(List<Node> children) {
     List<Node> oldChildren = this.children;
     this.children = Collections.unmodifiableList(children);
-    support.firePropertyChange(NODE_CHILDREN_UPDATED.name(), oldChildren, children);
+    try {
+      support.firePropertyChange(NODE_CHILDREN_UPDATED.name(), oldChildren, children);
+    } catch (BayesNetIDException e) {
+      log.error("Error setting children, '{}' reverting...", e.getMessage());
+      this.children = oldChildren;
+    }
   }
 
   public <T extends Serializable> NodeState addState(T stateID) {

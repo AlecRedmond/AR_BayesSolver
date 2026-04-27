@@ -6,9 +6,9 @@ import io.github.alecredmond.export.serialization.constraint.SerializedProbabili
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
+import java.util.ArrayList;
 
-public class JointConstraintSerializer
-    implements ConstraintSerializer<JointProbabilityConstraint> {
+public class JointConstraintSerializer implements ConstraintSerializer<JointProbabilityConstraint> {
 
   @Override
   public SerializedProbabilityConstraint<JointProbabilityConstraint> serialize(
@@ -23,6 +23,11 @@ public class JointConstraintSerializer
   public JointProbabilityConstraint deSerialize(
       SerializedProbabilityConstraint<JointProbabilityConstraint> serialized,
       SerializationData serializationData) {
-    return null;
+    SerializedJointProbabilityConstraint sc = (SerializedJointProbabilityConstraint) serialized;
+    return new JointProbabilityConstraint(
+        SerializerUtils.deSerializeNodeStates(sc.getEventIds(), ArrayList::new, serializationData),
+        SerializerUtils.deSerializeNodeStates(
+            sc.getConditionIds(), ArrayList::new, serializationData),
+        sc.getProbability());
   }
 }

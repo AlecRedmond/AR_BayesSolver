@@ -6,7 +6,6 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.types.ConstraintTypes;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +30,7 @@ public class ConstraintBuilder {
 
   private void commonLogic() {
     try {
+      ConstraintValidator.validateCommon(data);
       selectValidator();
       buildConstraint();
       validateConstraint();

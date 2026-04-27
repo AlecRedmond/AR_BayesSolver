@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.method.network.NetworkStructureValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
+
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;

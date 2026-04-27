@@ -1,7 +1,8 @@
 package io.github.alecredmond.internal.serialization;
 
 import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
-import static io.github.alecredmond.method.network.NetworkScenarios.*;
+import static io.github.alecredmond.method.network.NetworkScenario.*;
+import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -30,11 +31,11 @@ class BayesianNetworkSerializerTest {
   @BeforeAll
   static void init() {
     networkSuppliers = new ArrayList<>();
-    networkSuppliers.add(AH_NETWORK);
-    networkSuppliers.add(SIMPLE_LINEAR);
-    networkSuppliers.add(RAIN_NETWORK);
+    networkSuppliers.add(AH_NETWORK.getSupplier());
+    networkSuppliers.add(SIMPLE_LINEAR.getSupplier());
+    networkSuppliers.add(RAIN_NETWORK.getSupplier());
     if (!SOLVE_LONG_TESTS) return;
-    networkSuppliers.add(FANTASY_GRAPH);
+    networkSuppliers.add(FANTASY_GRAPH.getSupplier());
   }
 
   @ParameterizedTest

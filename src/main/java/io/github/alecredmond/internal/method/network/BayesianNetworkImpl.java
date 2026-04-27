@@ -241,6 +241,12 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
+  @Override
+  public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
+      T eventStateID, E conditionStateId, double probability) {
+    return this.addConstraint(eventStateID, List.of(conditionStateId), probability);
+  }
+
   public BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(probabilityConstraint, networkData)

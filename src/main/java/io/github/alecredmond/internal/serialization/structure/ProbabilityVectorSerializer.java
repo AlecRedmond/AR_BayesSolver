@@ -1,9 +1,11 @@
 package io.github.alecredmond.internal.serialization.structure;
 
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.serialization.probabilitytable.probabilityvector.SerializedProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.io.Serializable;
@@ -24,8 +26,10 @@ public class ProbabilityVectorSerializer {
     Map<Serializable, Node> nodeIdMap = data.getNodeIdMap();
     Node[] nodeArray =
         SerializerUtils.deserializeArray(spv.getNodeIdArray(), nodeIdMap::get, Node[]::new);
+    NodeState[][] stateArray = ProbabilityVectorFactory.buildStateArrays(nodeArray);
     return new ProbabilityVector(
         nodeArray,
+        stateArray,
         spv.getNumberOfStates(),
         spv.getStepMultiplier(),
         spv.getProbabilities(),

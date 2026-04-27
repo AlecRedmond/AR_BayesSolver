@@ -9,12 +9,13 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolverHandler;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
-import io.github.alecredmond.internal.method.inference.junctiontree.handlers.*;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
+import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIteratorBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -45,7 +46,7 @@ public class JTAInitializer {
 
   private static void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
-    Map<Clique, List<ConstraintSolverHandler<ProbabilityConstraint>>> map =
+    Map<Clique, List<ConstraintSolver>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -68,7 +69,7 @@ public class JTAInitializer {
     boolean writeBackToNetwork = jtd.isSolverConfig();
     Clique[] cliques = jtd.getCliques();
 
-    TransferIteratorBuilder builder = new TransferIteratorBuilder();
+    TransferIteratorFactory builder = new TransferIteratorFactory();
 
     Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
     Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
@@ -79,24 +80,20 @@ public class JTAInitializer {
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
 
-      bestClique
-          .getWriteFromCPTs()
-          .add(builder.buildMultiplyTransferIterator(networkTable, cliqueTable));
+      bestClique.getWriteFromCPTs().add(builder.buildMultiplyInTransfer(networkTable, cliqueTable));
 
       if (writeBackToNetwork) {
-        bestClique
-            .getWriteToCPTs()
-            .add(builder.buildMarginalTransferIterator(cliqueTable, networkTable));
+        bestClique.getWriteToCPTs().add(builder.buildMarginalTransfer(cliqueTable, networkTable));
         continue;
       }
 
       bestClique
           .getWriteToObserved()
-          .add(builder.buildMarginalTransferIterator(cliqueTable, marginalTables.get(node)));
+          .add(builder.buildMarginalTransfer(cliqueTable, marginalTables.get(node)));
     }
   }
 
-  private static List<ConstraintSolverHandler<ProbabilityConstraint>> matchConstraints(
+  private static List<ConstraintSolver> matchConstraints(
       Clique clique, List<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
@@ -112,12 +109,11 @@ public class JTAInitializer {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T extends ProbabilityConstraint> ConstraintSolverHandler<T> buildConstraintHandler(
+  private static <T extends ProbabilityConstraint> ConstraintSolver buildConstraintHandler(
       @NonNull T constraint, Clique clique) {
-    JTATableHandler jtaTableHandler = clique.getHandler();
-    return (ConstraintSolverHandler<T>)
-        ConstraintRegistry.getStrategy(constraint.getClass())
-            .buildConstraintHandler(jtaTableHandler, constraint);
+    JunctionTreeTableHelper tableHelper = clique.getHandler();
+    return ((ConstraintStrategy<T>) ConstraintRegistry.getStrategy(constraint.getClass()))
+        .buildSolverHandler(tableHelper, constraint);
   }
 
   public static JunctionTreeData buildNewInferenceConfiguration(

@@ -4,8 +4,10 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelperImpl;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,16 +30,21 @@ public class JunctionTreeTable extends ProbabilityTable {
       Map<Serializable, Node> nodeIDMap) {
     super(nodeStateIDMap, nodeIDMap, vector, tableID, events, events, Set.of());
     this.backupVector = backupVector;
-    observedStates = new HashSet<>();
+    this.observedStates = new HashSet<>();
+    ((JunctionTreeTableHelperImpl) getHelper()).initHelper();
   }
 
   @Override
+  public JunctionTreeTableHelper getHelper() {
+    return (JunctionTreeTableHelperImpl) helper;
+  }
+
   public void marginalizeTable() {
     TableUtils.marginalizeJointTable(this);
   }
 
   @Override
-  public JunctionTreeTable copyTable() {
-    return new TableCopier().copyJTT(this);
+  protected TableHelper<JunctionTreeTable> buildHelper() {
+    return new JunctionTreeTableHelperImpl(this);
   }
 }

@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.utils.CollectionChangeAnalyzer;
+import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;

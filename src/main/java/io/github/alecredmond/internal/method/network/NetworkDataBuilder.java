@@ -4,6 +4,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import java.io.Serializable;
 import java.util.Collection;
@@ -71,7 +72,9 @@ public class NetworkDataBuilder {
   }
 
   public void marginalizeAllTables() {
-    networkData.getNetworkTablesMap().values().forEach(ProbabilityTable::marginalizeTable);
+    networkData.getNetworkTablesMap().values().stream()
+        .map(ProbabilityTable::getHelper)
+        .forEach(TableHelper::marginalizeTable);
   }
 
   public void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
@@ -83,7 +86,7 @@ public class NetworkDataBuilder {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
               ProbabilityTable table = TableBuilder.buildNetworkTable(events, conditions);
-              table.marginalizeTable();
+              table.getHelper().marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

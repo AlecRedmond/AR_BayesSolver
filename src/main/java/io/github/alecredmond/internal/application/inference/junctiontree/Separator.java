@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.application.inference.junctiontree;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TransferIterator;
+import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +15,7 @@ public class Separator {
   @EqualsAndHashCode.Include private Set<Node> nodes;
   private JunctionTreeTable table;
   private Map<Clique, Clique> connected;
-  private Map<Clique, TransferIterator> messagePassers;
+  private Map<Clique, TableTransfer> messagePassers;
 
   public void run(Clique start) {
     messagePassers.get(start).transfer();

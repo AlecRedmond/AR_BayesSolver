@@ -4,10 +4,8 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.strategies.baseobjects.BaseConstraintValidator;
 
-public class MarginalConstraintValidator extends BaseConstraintValidator<MarginalConstraint>
-    implements ConstraintValidator<MarginalConstraint> {
+public class MarginalConstraintValidator extends ConstraintValidator<MarginalConstraint> {
 
   public MarginalConstraintValidator() {
     super();

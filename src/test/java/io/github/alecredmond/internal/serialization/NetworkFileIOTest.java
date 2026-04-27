@@ -2,14 +2,12 @@ package io.github.alecredmond.internal.serialization;
 
 import static io.github.alecredmond.TestConfigs.*;
 import static io.github.alecredmond.internal.method.utils.AppProperty.*;
-import static io.github.alecredmond.method.network.NetworkScenarios.*;
-import static io.github.alecredmond.method.network.NetworkScenarios.FANTASY_GRAPH;
+import static io.github.alecredmond.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +37,11 @@ class NetworkFileIOTest {
   @BeforeAll
   static void init() {
     networkSuppliers = new ArrayList<>();
-    networkSuppliers.add(RAIN_NETWORK);
-    networkSuppliers.add(AH_NETWORK);
-    networkSuppliers.add(SIMPLE_LINEAR);
+    networkSuppliers.add(RAIN_NETWORK.getSupplier());
+    networkSuppliers.add(AH_NETWORK.getSupplier());
+    networkSuppliers.add(SIMPLE_LINEAR.getSupplier());
     if (!SOLVE_LONG_TESTS) return;
-    networkSuppliers.add(FANTASY_GRAPH);
+    networkSuppliers.add(FANTASY_GRAPH.getSupplier());
   }
 
   @ParameterizedTest
@@ -85,10 +83,10 @@ class NetworkFileIOTest {
   @ParameterizedTest
   @MethodSource("provideNetworks")
   void loadNetwork(BayesianNetwork network) {
-      if (!SAVE_BINARIES) {
-          assertTrue(true);
-          return;
-      }
+    if (!SAVE_BINARIES) {
+      assertTrue(true);
+      return;
+    }
     String netName = network.getNetworkData().getNetworkName();
     String totalPath = DIRECTORY + netName + EXTENSION;
     BayesianNetwork loaded = test.loadNetwork(totalPath);

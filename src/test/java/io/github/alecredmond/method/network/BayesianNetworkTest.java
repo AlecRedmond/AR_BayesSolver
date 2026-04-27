@@ -1,6 +1,7 @@
 package io.github.alecredmond.method.network;
 
-import static io.github.alecredmond.method.network.NetworkScenarios.*;
+import static io.github.alecredmond.method.network.NetworkScenario.RAIN_NETWORK;
+import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
