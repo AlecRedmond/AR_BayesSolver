@@ -1,8 +1,8 @@
 package io.github.alecredmond.export.method.inference;
 
 import static io.github.alecredmond.TestConfigs.*;
-import static io.github.alecredmond.method.network.NetworkScenario.*;
-import static io.github.alecredmond.method.network.NetworkScenario.RAIN_NETWORK;
+import static io.github.alecredmond.export.method.network.NetworkScenario.*;
+import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;

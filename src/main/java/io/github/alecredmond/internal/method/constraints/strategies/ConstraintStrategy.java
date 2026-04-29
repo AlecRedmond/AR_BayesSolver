@@ -5,7 +5,7 @@ import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.Junc
 
 public interface ConstraintStrategy<T extends ProbabilityConstraint> {
   default ConstraintSolver buildSolverHandler(JunctionTreeTableHelper tableHelper, T constraint) {
-    return new ConstraintSolver(constraint, tableHelper.getTable());
+    return new ConstraintSolverBase(constraint, tableHelper.getTable());
   }
 
   ConstraintValidator<T> buildConstraintValidator();

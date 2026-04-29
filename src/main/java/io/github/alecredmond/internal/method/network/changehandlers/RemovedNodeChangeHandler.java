@@ -36,7 +36,8 @@ public class RemovedNodeChangeHandler implements NetworkChangeHandler {
           removeNode(node::setChildren, node::getChildren, toRemove);
         });
 
-    NetworkConstraintUtils.removeAllConstraintsContaining(toRemove, networkData);
+    NetworkConstraintUtils.removeConstraints(
+        constraint -> constraint.getAllNodes().contains(toRemove), networkData);
   }
 
   private void removeNode(Consumer<List<Node>> setter, Supplier<List<Node>> getter, Node toRemove) {

@@ -1,8 +1,8 @@
 package io.github.alecredmond.export.method.inference;
 
 import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
-import static io.github.alecredmond.method.network.NetworkScenario.AH_NETWORK;
-import static io.github.alecredmond.method.network.NetworkScenario.FANTASY_GRAPH;
+import static io.github.alecredmond.export.method.network.NetworkScenario.AH_NETWORK;
+import static io.github.alecredmond.export.method.network.NetworkScenario.FANTASY_GRAPH;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.inference.SolverConstraintResult;

@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
@@ -206,7 +205,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   // ----------------------------------CONSTRAINT ADDERS-------------------------------------------
   // ----------------------------------------------------------------------------------------------
 
-  public <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
+  public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
     NetworkConstraintUtils.addConstraint(
@@ -220,31 +219,17 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
 
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability) {
-    networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(
-            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
-            NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
-            probability,
-            networkData)
-        .ifPresent(policy.getConstraintValidationExceptionPolicy());
-    return this;
+    return addConstraint(List.of(eventStateID), conditionStateIDs, probability);
   }
 
   public <T extends Serializable> BayesianNetworkImpl addConstraint(
       T eventStateID, double probability) {
-    networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(
-            NetworkDataUtils.getStateByIdOrThrow(eventStateID, networkData),
-            probability,
-            networkData)
-        .ifPresent(policy.getConstraintValidationExceptionPolicy());
-    return this;
+    return addConstraint(List.of(eventStateID), List.of(), probability);
   }
 
-  @Override
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       T eventStateID, E conditionStateId, double probability) {
-    return this.addConstraint(eventStateID, List.of(conditionStateId), probability);
+    return addConstraint(List.of(eventStateID), List.of(conditionStateId), probability);
   }
 
   public BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint) {
@@ -265,14 +250,19 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   // ----------------------------------CONSTRAINT GETTERS------------------------------------------
   // ----------------------------------------------------------------------------------------------
 
-  public <T extends Serializable> MarginalConstraint getConstraint(T eventStateId) {
-    return NetworkConstraintUtils.getConstraint(getNodeState(eventStateId), networkData);
+  public <T extends Serializable> ProbabilityConstraint getConstraint(T eventStateId) {
+    return getConstraint(List.of(eventStateId), List.of());
   }
 
   public <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
       T eventStateId, Collection<E> conditionStateIds) {
+    return getConstraint(List.of(eventStateId), conditionStateIds);
+  }
+
+  public <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
+      Collection<T> eventStateIds, Collection<E> conditionStateIds) {
     return NetworkConstraintUtils.getConstraint(
-        getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
+        getNodeStates(eventStateIds), getNodeStates(conditionStateIds), networkData);
   }
 
   // ----------------------------------------------------------------------------------------------
@@ -285,15 +275,19 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   }
 
   public <T extends Serializable> boolean removeConstraint(T eventStateId) {
-    networkData.setSolved(false);
-    return NetworkConstraintUtils.removeConstraint(getNodeState(eventStateId), networkData);
+    return removeConstraint(List.of(eventStateId), List.of());
   }
 
   public <T extends Serializable, E extends Serializable> boolean removeConstraint(
       T eventStateId, Collection<E> conditionStateIds) {
+    return removeConstraint(List.of(eventStateId), conditionStateIds);
+  }
+
+  public <T extends Serializable, E extends Serializable> boolean removeConstraint(
+      Collection<T> eventStateIds, Collection<E> conditionStateIds) {
     networkData.setSolved(false);
     return NetworkConstraintUtils.removeConstraint(
-        getNodeState(eventStateId), getNodeStates(conditionStateIds), networkData);
+        getNodeStates(eventStateIds), getNodeStates(conditionStateIds), networkData);
   }
 
   public boolean removeAllConstraints() {

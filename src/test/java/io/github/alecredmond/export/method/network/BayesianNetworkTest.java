@@ -1,7 +1,6 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond.export.method.network;
 
-import static io.github.alecredmond.method.network.NetworkScenario.RAIN_NETWORK;
-import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
+import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
@@ -13,7 +12,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+
 import java.io.Serializable;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;

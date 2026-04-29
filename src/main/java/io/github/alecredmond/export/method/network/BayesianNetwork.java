@@ -430,7 +430,7 @@ public interface BayesianNetwork {
    * @throws IllegalArgumentException if the state is not found within the data.
    * @return the associated MarginalConstraint, or null if it does not exist
    */
-  <T extends Serializable> MarginalConstraint getConstraint(T eventStateId);
+  <T extends Serializable> ProbabilityConstraint getConstraint(T eventStateId);
 
   /**
    * Searches the network for a conditional or marginal constraint with event and condition
@@ -443,6 +443,9 @@ public interface BayesianNetwork {
    */
   <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
       T eventStateId, Collection<E> conditionStateIds);
+
+  <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
+      Collection<T> eventStateIds, Collection<E> conditionStateIds);
 
   // ----------------------------------------------------------------------------------------------
   // ----------------------------------CONSTRAINT REMOVERS-----------------------------------------
@@ -478,6 +481,9 @@ public interface BayesianNetwork {
    */
   <T extends Serializable, E extends Serializable> boolean removeConstraint(
       T eventStateId, Collection<E> conditionStateIds);
+
+  <T extends Serializable, E extends Serializable> boolean removeConstraint(
+      Collection<T> eventStateIds, Collection<E> conditionStateIds);
 
   /**
    * Removes all constraints defined on the network.

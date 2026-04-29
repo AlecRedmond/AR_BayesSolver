@@ -1,5 +1,6 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond.export.method.network;
 
+import static io.github.alecredmond.internal.method.constraints.ConstraintTypes.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
@@ -9,7 +10,7 @@ import io.github.alecredmond.export.application.constraints.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.internal.method.constraints.ConstraintTypes;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import java.beans.PropertyChangeListener;
@@ -216,6 +217,7 @@ class NewBayesianNetworkTest {
       analyzer.getRemoved().forEach(removed -> assertFalse(networkStates.contains(removed)));
 
       assertEquals(expectedConstraints, networkData.getConstraints().size());
+      assertFalse(networkData.isSolved());
     }
   }
 
@@ -427,18 +429,18 @@ class NewBayesianNetworkTest {
   }
 
   @Nested
-  class ParameterConstraintAdditionTests {
+  class ProbabilityConstraintTests {
 
     static Stream<Arguments> successfulBuilds() {
       return Stream.of(
-          Arguments.of(List.of("A+"), List.of(), 0.5, MarginalConstraint.class),
-          Arguments.of(List.of("A+"), List.of("B+"), 0.5, ConditionalConstraint.class),
-          Arguments.of(List.of("A+", "C+"), List.of(), 0.5, JointProbabilityConstraint.class),
-          Arguments.of(List.of("A+", "A-"), List.of(), 0.5, SumProbabilityConstraint.class),
-          Arguments.of(List.of("A+", "C+"), List.of("B+"), 0.5, JointProbabilityConstraint.class),
-          Arguments.of(List.of("A+", "A-"), List.of("B+"), 0.5, SumProbabilityConstraint.class),
-          Arguments.of(List.of("A+", "C+", "D+"), List.of(), 0.5, JointProbabilityConstraint.class),
-          Arguments.of(List.of("A+", "A-", "D+"), List.of(), 0.5, SumProbabilityConstraint.class));
+          Arguments.of(List.of("A+"), List.of(), 0.5, MARGINAL),
+          Arguments.of(List.of("A+"), List.of("B+"), 0.5, CONDITIONAL),
+          Arguments.of(List.of("A+", "C+"), List.of(), 0.5, JOINT),
+          Arguments.of(List.of("A+", "A-"), List.of(), 0.5, SUM),
+          Arguments.of(List.of("A+", "C+"), List.of("B+"), 0.5, JOINT),
+          Arguments.of(List.of("A+", "A-"), List.of("B+"), 0.5, SUM),
+          Arguments.of(List.of("A+", "C+", "D+"), List.of(), 0.5, JOINT),
+          Arguments.of(List.of("A+", "A-", "D+"), List.of(), 0.5, SUM));
     }
 
     static Stream<Arguments> unsuccessfulBuilds() {
@@ -455,18 +457,42 @@ class NewBayesianNetworkTest {
 
     @ParameterizedTest
     @MethodSource("successfulBuilds")
-    void testAddMarginal_shouldSucceed(
+    void testAddGetAndRemove_shouldSucceed(
         List<Serializable> events,
         List<Serializable> conditions,
         double probability,
-        Class<ProbabilityConstraint> probClass) {
+        ConstraintTypes type) {
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
-      assertInstanceOf(probClass, test.getNetworkData().getConstraints().getFirst());
+      assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
+      assertTrue(test.removeConstraint(events, conditions));
+      assertFalse(test.getNetworkData().isSolved());
+      ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
+      assertDoesNotThrow(() -> test.addConstraint(c));
+      assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
+      assertTrue(test.removeConstraint(events, conditions));
+      assertFalse(test.getNetworkData().isSolved());
+    }
+
+    static ProbabilityConstraint createConstraint(
+        Collection<Serializable> eventIds,
+        Collection<Serializable> conditionIds,
+        double probability,
+        BayesianNetwork network,
+        ConstraintTypes type) {
+      Set<NodeState> events = network.getNodeStates(eventIds);
+      NodeState event = events.stream().findFirst().orElseThrow();
+      Set<NodeState> conditions = network.getNodeStates(conditionIds);
+      return switch (type) {
+        case MARGINAL -> new MarginalConstraint(event, probability);
+        case CONDITIONAL -> new ConditionalConstraint(event, conditions, probability);
+        case JOINT -> new JointProbabilityConstraint(events, conditions, probability);
+        case SUM -> new SumProbabilityConstraint(events, conditions, probability);
+      };
     }
 
     @ParameterizedTest
     @MethodSource("unsuccessfulBuilds")
-    void testAddMarginal_shouldThrow(
+    void testAddIllegal_shouldThrow(
         List<Serializable> events,
         List<Serializable> conditions,
         double probability,

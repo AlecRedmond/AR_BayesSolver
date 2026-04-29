@@ -87,7 +87,6 @@ public class JTASolver {
                 h -> {
                   double error = h.adjustAndReturnError();
                   cycleError.add(error);
-                  h.storeError(error);
                   jta.sumTransfer(clique);
                 }));
 

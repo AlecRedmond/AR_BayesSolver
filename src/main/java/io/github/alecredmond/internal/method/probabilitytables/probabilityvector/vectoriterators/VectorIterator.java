@@ -31,6 +31,15 @@ public class VectorIterator {
   protected OdometerSetter odometerSetter;
 
   public VectorIterator(
+      VectorOdometer vectorOdometer,
+      OdometerSetter odometerSetter,
+      ObjIntConsumer<VectorOdometer> updateConsumer) {
+    this.vectorOdometer = vectorOdometer;
+    this.updateConsumer = updateConsumer;
+    this.odometerSetter = odometerSetter;
+  }
+
+  public VectorIterator(
       ProbabilityVector vector,
       OdometerResetLogic logic,
       ObjIntConsumer<VectorOdometer> updateConsumer) {
@@ -141,8 +150,4 @@ public class VectorIterator {
         OdometerUtils.initIterateOuter(vectorOdometer));
   }
 
-  @FunctionalInterface
-  public interface UpdateConsumer {
-    void update(int currentIndex, boolean overflow, VectorOdometer odometer);
-  }
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
-import lombok.NonNull;
 
 @Getter
 public class ConstraintBuilder {
@@ -41,7 +40,7 @@ public class ConstraintBuilder {
 
   private void selectValidator() {
     data.setValidator(
-        INPUT_VALIDATORS.stream()
+        INPUT_VALIDATORS.parallelStream()
             .filter(v -> v.validateInputs(data))
             .findAny()
             .orElseThrow(
@@ -90,21 +89,6 @@ public class ConstraintBuilder {
     } catch (ConstraintValidationException e) {
       data.setException(e);
     }
-  }
-
-  public ConstraintBuilder(
-      @NonNull NodeState event,
-      Set<NodeState> conditions,
-      double probability,
-      BayesianNetworkData networkData) {
-    this.data = new ConstraintBuilderData(networkData, Set.of(event), conditions, probability);
-    commonLogic();
-  }
-
-  public ConstraintBuilder(
-      @NonNull NodeState event, double probability, BayesianNetworkData networkData) {
-    this.data = new ConstraintBuilderData(networkData, Set.of(event), Set.of(), probability);
-    commonLogic();
   }
 
   public ProbabilityConstraint getConstraint() {
