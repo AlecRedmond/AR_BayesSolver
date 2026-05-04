@@ -268,7 +268,7 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  BayesianNetwork addParent(Node child, Node parent);
+  BayesianNetwork addParents(Node child, Node parent);
 
   /**
    * Defines a parent-child relationship by adding a directed edge from a parent node to a child
@@ -281,7 +281,7 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addParent(T childID, E parentID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(T childID, E parentID);
 
   /**
    * Removes a directed edge between a parent and a child node.

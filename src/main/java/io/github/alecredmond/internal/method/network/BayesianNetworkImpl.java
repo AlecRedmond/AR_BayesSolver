@@ -169,12 +169,12 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
-  public BayesianNetwork addParent(Node child, Node parent) throws NetworkStructureException {
+  public BayesianNetwork addParents(Node child, Node parent) throws NetworkStructureException {
     child.addParent(parent);
     return this;
   }
 
-  public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addParent(
+  public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addParents(
       T childID, E parentID) throws NetworkStructureException {
     getNode(childID).addParent(getNode(parentID));
     return this;
@@ -208,7 +208,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   public <T extends Serializable, E extends Serializable> BayesianNetworkImpl addConstraint(
       Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability) {
     networkData.setSolved(false);
-    NetworkConstraintUtils.addConstraint(
+    NetworkConstraintUtils.addConstraints(
             NetworkDataUtils.getStatesByIdOrThrow(eventStateIDs, networkData),
             NetworkDataUtils.getStatesByIdOrThrow(conditionStateIDs, networkData),
             probability,

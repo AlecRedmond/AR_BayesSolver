@@ -82,8 +82,10 @@ public class JunctionTreeAlgorithm {
   }
 
   public double getJointProbOfMeasured(Collection<NodeState> newEvidence) {
-    return multiplyTableSums(data.getCliques(), Clique::getTable, newEvidence)
-        / multiplyTableSums(data.getSeparators(), Separator::getTable, newEvidence);
+    double cliqueSums = multiplyTableSums(data.getCliques(), Clique::getTable, newEvidence);
+    double separatorSums =
+        multiplyTableSums(data.getSeparators(), Separator::getTable, newEvidence);
+    return separatorSums == 0.0 ? 0.0 : cliqueSums / separatorSums;
   }
 
   private <T> double multiplyTableSums(

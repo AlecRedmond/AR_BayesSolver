@@ -4,6 +4,7 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
 import java.util.function.Predicate;
 import lombok.NonNull;
@@ -34,6 +35,19 @@ public class NetworkConstraintUtils {
     }
     networkData.getConstraints().add(builder.getConstraint());
     return Optional.empty();
+  }
+
+  public static Optional<ConstraintValidationException> addConstraints(
+      Set<NodeState> eventStates,
+      Set<NodeState> conditionStates,
+      double probability,
+      BayesianNetworkData networkData) {
+    List<Set<NodeState>> splitConditions = NodeUtils.splitStatesSharingNodes(conditionStates);
+    List<Optional<ConstraintValidationException>> list = new ArrayList<>();
+    for (Set<NodeState> condition : splitConditions) {
+      list.add(addConstraint(eventStates, condition, probability, networkData));
+    }
+    return list.stream().findFirst().orElse(Optional.empty());
   }
 
   public static Optional<ConstraintValidationException> addConstraint(

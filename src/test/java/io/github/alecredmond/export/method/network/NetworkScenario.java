@@ -11,7 +11,9 @@ public enum NetworkScenario {
   AH_NETWORK(buildAhNetwork()),
   FANTASY_GRAPH(buildFantasyGraph()),
   SIMPLE_LINEAR(buildSimpleLinearGraph()),
-  DIAMOND_NET(buildDiamondNetwork());
+  DIAMOND_NET(buildDiamondNetwork()),
+  WEATHER_NETWORK(buildWeatherNetwork()),
+  CAR_TRIMS(buildCarTrimNetwork());
 
   private final Supplier<BayesianNetwork> supplier;
 

@@ -10,6 +10,7 @@ import io.github.alecredmond.export.application.constraints.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.internal.method.constraints.ConstraintTypes;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
@@ -431,19 +432,19 @@ class NewBayesianNetworkTest {
   @Nested
   class ProbabilityConstraintTests {
 
-    static Stream<Arguments> successfulBuilds() {
+    static Stream<Arguments> successfulAddGetRemove() {
       return Stream.of(
-          Arguments.of(List.of("A+"), List.of(), 0.5, MARGINAL),
-          Arguments.of(List.of("A+"), List.of("B+"), 0.5, CONDITIONAL),
-          Arguments.of(List.of("A+", "C+"), List.of(), 0.5, JOINT),
-          Arguments.of(List.of("A+", "A-"), List.of(), 0.5, SUM),
-          Arguments.of(List.of("A+", "C+"), List.of("B+"), 0.5, JOINT),
-          Arguments.of(List.of("A+", "A-"), List.of("B+"), 0.5, SUM),
-          Arguments.of(List.of("A+", "C+", "D+"), List.of(), 0.5, JOINT),
-          Arguments.of(List.of("A+", "A-", "D+"), List.of(), 0.5, SUM));
+          Arguments.of(List.of("A+"), List.of(), 0.25, MARGINAL),
+          Arguments.of(List.of("A+"), List.of("B+"), 0.25, CONDITIONAL),
+          Arguments.of(List.of("A+", "C+"), List.of(), 0.25, JOINT),
+          Arguments.of(List.of("A+", "A-"), List.of(), 0.25, SUM),
+          Arguments.of(List.of("B+", "C+"), List.of("A+"), 0.25, JOINT),
+          Arguments.of(List.of("A+", "A-"), List.of("B+", "C+"), 0.25, SUM),
+          Arguments.of(List.of("B+", "C+", "D+"), List.of(), 0.25, JOINT),
+          Arguments.of(List.of("A+", "A-", "D+"), List.of(), 0.25, SUM));
     }
 
-    static Stream<Arguments> unsuccessfulBuilds() {
+    static Stream<Arguments> unsuccessfulAdd() {
       Class<BayesNetIDException> idException = BayesNetIDException.class;
       Class<ConstraintValidationException> constraintException =
           ConstraintValidationException.class;
@@ -452,11 +453,21 @@ class NewBayesianNetworkTest {
           Arguments.of(List.of("A+"), List.of("A-"), 0.5, constraintException),
           Arguments.of(List.of("A+"), List.of("B+", "B-"), 0.5, constraintException),
           Arguments.of(List.of("A+", "A-"), List.of(), 1.25, constraintException),
-          Arguments.of(List.of("A+", "C+"), List.of("B+"), -0.5, constraintException));
+          Arguments.of(List.of("A+", "C+"), List.of("B+"), -0.5, constraintException),
+          Arguments.of(listWithNull(List.of("A+")), List.of("B+"), 0.5, NullPointerException.class),
+          Arguments.of(
+              List.of("A+"), listWithNull(List.of("B+")), 0.5, NullPointerException.class));
+    }
+
+    @BeforeEach
+    void setUpNet() {
+      test.addParents("B", List.of("A"));
+      test.addParents("C", List.of("A", "B"));
+      test.addParents("D", List.of("C", "B", "A"));
     }
 
     @ParameterizedTest
-    @MethodSource("successfulBuilds")
+    @MethodSource("successfulAddGetRemove")
     void testAddGetAndRemove_shouldSucceed(
         List<Serializable> events,
         List<Serializable> conditions,
@@ -491,13 +502,38 @@ class NewBayesianNetworkTest {
     }
 
     @ParameterizedTest
-    @MethodSource("unsuccessfulBuilds")
+    @MethodSource("unsuccessfulAdd")
     void testAddIllegal_shouldThrow(
         List<Serializable> events,
         List<Serializable> conditions,
         double probability,
         Class<Exception> exceptionClass) {
       assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
+    }
+
+    @ParameterizedTest
+    @MethodSource("successfulAddGetRemove")
+    void testAddTwice_shouldThrow(
+        List<Serializable> events,
+        List<Serializable> conditions,
+        double probability,
+        ConstraintTypes type) {
+      Class<ConstraintValidationException> exceptionClass = ConstraintValidationException.class;
+      assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
+      assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
+      ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
+      assertThrows(exceptionClass, () -> test.addConstraint(c));
+    }
+
+    @ParameterizedTest
+    @MethodSource("successfulAddGetRemove")
+    void testSolves_shouldSucceed(
+        List<Serializable> events, List<Serializable> conditions, double probability) {
+      test.addConstraint(events, conditions, probability);
+      InferenceEngine engine = InferenceEngine.create(test);
+      assertNotNull(engine);
+      engine.observeNetworkFromIds(conditions);
+      assertEquals(probability, engine.getCurrentProbabilityById(events), 1e-6);
     }
   }
 }

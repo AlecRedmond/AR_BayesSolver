@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 public class InferenceEngineFactory {
 
   public InferenceEngine create(BayesianNetwork network) {
-    if (!checkSolved(network)) {
+    if (!attemptSolve(network)) {
       log.error("Could not build an inference engine!");
       return null;
     }
@@ -20,7 +20,7 @@ public class InferenceEngineFactory {
         network, JunctionTreeAlgorithm.buildForInference(network.getNetworkData()));
   }
 
-  private boolean checkSolved(BayesianNetwork network) {
+  private boolean attemptSolve(BayesianNetwork network) {
     if (network.getNetworkData().isSolved()) return true;
     log.warn(
         "Attempted to create an Inference Engine on unsolved network {}. Will now attempt to solve...",

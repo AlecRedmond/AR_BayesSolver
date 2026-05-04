@@ -140,7 +140,7 @@ class BayesianNetworkTest {
     void removeNode_shouldAlsoRemoveStatesAndEdges() {
       net.addNewNode("A", List.of("A_T", "A_F"));
       net.addNewNode("B", List.of("B_T", "B_F"));
-      net.addParent("B", "A");
+      net.addParents("B", "A");
 
       assertNotNull(net.getNode("A"));
       assertNotNull(net.getNodeState("A_T"));
@@ -181,7 +181,7 @@ class BayesianNetworkTest {
 
     @Test
     void addParent_shouldSucceed() {
-      net.addParent("B", "A");
+      net.addParents("B", "A");
       Node nodeB = net.getNode("B");
       Node nodeA = net.getNode("A");
       assertTrue(nodeB.getParents().contains(nodeA));
@@ -201,28 +201,28 @@ class BayesianNetworkTest {
 
     @Test
     void addParent_toNonExistentChild_shouldThrowException() {
-      assertThrows(NullPointerException.class, () -> net.addParent("Z", "A"));
+      assertThrows(NullPointerException.class, () -> net.addParents("Z", "A"));
     }
 
     @Test
     void addParent_nonExistentParent_shouldThrowException() {
-      assertThrows(NullPointerException.class, () -> net.addParent("A", "Z"));
+      assertThrows(NullPointerException.class, () -> net.addParents("A", "Z"));
     }
 
     @Test
     void addParent_createCycle_shouldThrowException() {
-      net.addParent("B", "A");
-      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "B"));
+      net.addParents("B", "A");
+      assertThrows(NetworkStructureException.class, () -> net.addParents("A", "B"));
     }
 
     @Test
     void addParent_addSelfAsParent_shouldThrowException() {
-      assertThrows(NetworkStructureException.class, () -> net.addParent("A", "A"));
+      assertThrows(NetworkStructureException.class, () -> net.addParents("A", "A"));
     }
 
     @Test
     void removeParent_shouldSucceed() {
-      net.addParent("B", "A");
+      net.addParents("B", "A");
       Node nodeB = net.getNode("B");
       Node nodeA = net.getNode("A");
       assertTrue(nodeB.getParents().contains(nodeA));
@@ -234,7 +234,7 @@ class BayesianNetworkTest {
 
     @Test
     void removeParent_nonExistentParentRelation_shouldNotThrow() {
-      net.addParent("B", "A");
+      net.addParents("B", "A");
       assertDoesNotThrow(() -> net.removeParent("C", "A"));
       assertDoesNotThrow(() -> net.removeParent("B", "C"));
     }
@@ -277,7 +277,7 @@ class BayesianNetworkTest {
       bF = b.getNodeStates().getLast();
       net.addNode(a);
       net.addNode(b);
-      net.addParent(b, a);
+      net.addParents(b, a);
     }
 
     @Test
