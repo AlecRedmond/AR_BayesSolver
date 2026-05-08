@@ -6,28 +6,33 @@ import java.util.stream.IntStream;
 import lombok.Data;
 
 @Data
-public class OdometerInitializerBuilder {
+public class OdometerInitializerUtils {
 
-  private OdometerInitializerBuilder() {}
+  private OdometerInitializerUtils() {}
 
   public static OdometerInitializer initIterateInner(VectorOdometer odometer) {
     return initialize(odometer, odometer.getInnerIteratorLocks());
   }
 
   private static OdometerInitializer initialize(VectorOdometer odometer, boolean[] positionLocked) {
-    OdometerInitializer tracker = new OdometerInitializer();
-    tracker.setLockedPositions(positionLocked);
+    OdometerInitializer initializer = new OdometerInitializer();
+    updateInitializer(odometer, positionLocked, initializer);
+    return initializer;
+  }
+
+  public static void updateInitializer(
+      VectorOdometer odometer, boolean[] positionLocked, OdometerInitializer initializer) {
+    initializer.setLockedPositions(positionLocked);
     int fastestPos = findFastestPosition(positionLocked);
     boolean fireOnlyOnce = fastestPos < 0;
-    tracker.setFastestPosition(fastestPos);
-    tracker.setFireOnlyOnce(fireOnlyOnce);
+    initializer.setFastestPosition(fastestPos);
+    initializer.setFireOnlyOnce(fireOnlyOnce);
     int[] stepMultiplier = odometer.getStepMultiplier();
-    tracker.setInitialIndex(computeStartIndex(odometer.getStateIndexes(), stepMultiplier));
-    if (fireOnlyOnce) return tracker;
-    tracker.setBaseStride(stepMultiplier[fastestPos]);
-    tracker.setStrideIfLocked(
+    initializer.setInitialIndex(computeStartIndex(odometer.getStateIndexes(), stepMultiplier));
+    if (fireOnlyOnce) return;
+    initializer.setBaseStride(stepMultiplier[fastestPos]);
+    initializer.setStrideIfLocked(
         computeIndexCorrections(positionLocked, odometer.getNumberOfStates(), stepMultiplier));
-    return tracker;
   }
 
   private static int findFastestPosition(boolean[] positionLocked) {
@@ -54,6 +59,11 @@ public class OdometerInitializerBuilder {
         .filter(i -> positionLocked[i])
         .forEach(i -> corrections[i] = (numberOfStates[i] - 1) * stepMultiplier[i]);
     return corrections;
+  }
+
+  public static void updateIterateInner(OdometerInitializer initializer, VectorOdometer odometer) {
+    initializer.setInitialIndex(
+        computeStartIndex(odometer.getStateIndexes(), odometer.getStepMultiplier()));
   }
 
   public static OdometerInitializer initIterateOuter(VectorOdometer odometer) {

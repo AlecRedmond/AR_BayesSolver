@@ -56,7 +56,7 @@ public class VectorIterator {
 
   protected void iterateInner(
       ObjIntConsumer<VectorOdometer> indexConsumer, IntConsumer updateConsumer) {
-    iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.initIterateInner());
+    iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.getInitInner());
   }
 
   /**
@@ -133,6 +133,6 @@ public class VectorIterator {
 
   protected void iterateOuter(
       ObjIntConsumer<VectorOdometer> indexConsumer, IntConsumer updateConsumer) {
-    iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.initIterateOuter());
+    iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.getInitOuter());
   }
 }

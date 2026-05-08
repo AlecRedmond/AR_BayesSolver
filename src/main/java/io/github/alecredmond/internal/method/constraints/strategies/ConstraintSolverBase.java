@@ -4,9 +4,11 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
@@ -29,30 +31,6 @@ public class ConstraintSolverBase
   public ConstraintSolverBase(ProbabilityConstraint constraint, JunctionTreeTable table) {
     this.constraint = constraint;
     this.iterator = new VectorIterator(table.getVector(), this, VectorOdometer::new);
-  }
-
-  @Override
-  public Function<Node, NodeState> initialStatePositionSetter() {
-    Map<Node, NodeState> condMap = NodeUtils.generateRequest(constraint.getConditionStates());
-    return node -> condMap.containsKey(node) ? condMap.get(node) : node.getNodeStates().getFirst();
-  }
-
-  @Override
-  public Function<Node, boolean[]> buildEvidenceMaps() {
-    Set<Node> eventNodes = constraint.getEventNodes();
-    Set<NodeState> eventStates = constraint.getEventStates();
-    return node -> {
-      if (!eventNodes.contains(node)) {
-        return new boolean[0];
-      }
-      List<NodeState> states = node.getNodeStates();
-      boolean[] isEvidence = new boolean[states.size()];
-      IntStream.range(0, states.size())
-          .filter(y -> eventStates.contains(states.get(y)))
-          .forEach(y -> isEvidence[y] = true);
-      return isEvidence;
-      // Java pls give BooleanStream functions T^T
-    };
   }
 
   @Override
@@ -142,5 +120,35 @@ public class ConstraintSolverBase
     }
     double[] newArray = errors.stream().mapToDouble(Double::doubleValue).toArray();
     results.put(constraint, newArray);
+  }
+
+  @Override
+  public void updateInitializer(
+      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.updateIterateInner(initializer, odometer);
+  }
+
+  @Override
+  public Function<Node, NodeState> initialStatePositionSetter() {
+    Map<Node, NodeState> condMap = NodeUtils.generateRequest(constraint.getConditionStates());
+    return node -> condMap.containsKey(node) ? condMap.get(node) : node.getNodeStates().getFirst();
+  }
+
+  @Override
+  public Function<Node, boolean[]> buildEvidenceMaps() {
+    Set<Node> eventNodes = constraint.getEventNodes();
+    Set<NodeState> eventStates = constraint.getEventStates();
+    return node -> {
+      if (!eventNodes.contains(node)) {
+        return new boolean[0];
+      }
+      List<NodeState> states = node.getNodeStates();
+      boolean[] isEvidence = new boolean[states.size()];
+      IntStream.range(0, states.size())
+          .filter(y -> eventStates.contains(states.get(y)))
+          .forEach(y -> isEvidence[y] = true);
+      return isEvidence;
+      // Java pls give BooleanStream functions T^T
+    };
   }
 }

@@ -2,7 +2,9 @@ package io.github.alecredmond.internal.method.vectoriterator.iteratorutils.reset
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerResetLogic;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,6 +38,12 @@ public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdomete
     }
 
     postUpdateLogic().run();
+  }
+
+  @Override
+  default void updateInitializer(
+      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.updateInitializer(odometer, positionLocks, initializer);
   }
 
   default Function<Node, NodeState> initialStatePositionSetter() {
