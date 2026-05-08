@@ -307,6 +307,11 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
+  @Override
+  public boolean isSolved() {
+    return networkData.isSolved();
+  }
+
   public BayesianNetworkImpl printNetwork() {
     if (!networkData.isSolved()) solveNetwork();
     new NetworkPrinter(networkData).printNetwork();

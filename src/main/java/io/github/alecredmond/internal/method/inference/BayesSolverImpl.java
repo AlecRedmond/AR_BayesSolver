@@ -27,7 +27,7 @@ public class BayesSolverImpl implements BayesSolver {
 
   @Override
   public boolean isSolved() {
-    return network.getNetworkData().isSolved();
+    return network.isSolved();
   }
 
   @Override
@@ -42,8 +42,7 @@ public class BayesSolverImpl implements BayesSolver {
       return true;
     } catch (Exception e) {
       log.error(e.getLocalizedMessage());
-      throw e;
-      //return false;
+      return false;
     }
   }
 

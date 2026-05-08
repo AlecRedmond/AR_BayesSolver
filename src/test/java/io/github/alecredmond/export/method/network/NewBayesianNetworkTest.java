@@ -17,10 +17,13 @@ import io.github.alecredmond.internal.method.network.changehandlers.CollectionCh
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +46,17 @@ class NewBayesianNetworkTest {
   void setUp() {
     test = BayesianNetwork.newNetwork("TestNetwork");
     NODE_IDS.forEach(id -> test.addNewNode(id, List.of(id + "+", id + "-", id + "x")));
+  }
+
+  @AfterEach
+  void assertNodeAndStateIdsCorrect() {
+    BayesianNetworkData data = test.getNetworkData();
+    assertMapCorrect(data.getNodeIDsMap(), Node::getId);
+    assertMapCorrect(data.getNodeStateIDsMap(), NodeState::getId);
+  }
+
+  private <T> void assertMapCorrect(Map<Serializable, T> idMap, Function<T, Serializable> getId) {
+    idMap.forEach((id, t) -> assertEquals(id, getId.apply(t)));
   }
 
   @Nested
@@ -76,6 +90,11 @@ class NewBayesianNetworkTest {
           Arguments.of("F", List.of("A+", "F-"), BayesNetIDException.class),
           Arguments.of("G", listWithNull(List.of("G+", "G-")), NullPointerException.class),
           Arguments.of("H", List.of("H+", "H+", "H-"), BayesNetIDException.class));
+    }
+
+    @AfterEach
+    void assertNetworkUnsolved() {
+      assertFalse(test.getNetworkData().isSolved());
     }
 
     @ParameterizedTest
@@ -158,24 +177,39 @@ class NewBayesianNetworkTest {
 
     @ParameterizedTest
     @MethodSource("nodeRemovalArgs")
-    void removeById_shouldSucceed(Serializable id, boolean expected) {
-      assertEquals(expected, test.removeNodeByID(id));
+    void removeById_shouldSucceed(Serializable id, boolean existing) {
+      BayesianNetworkData data = test.getNetworkData();
+      test.buildNetworkData();
+      assertEquals(existing, test.removeNodeByID(id));
+      if (!existing) return;
+      assertFalse(data.getNodes().stream().anyMatch(n -> n.getId().equals(id)));
+      assertFalse(data.getNodeIDsMap().keySet().stream().anyMatch(id::equals));
+      assertFalse(data.getNetworkTablesMap().keySet().stream().anyMatch(n -> n.getId().equals(id)));
     }
 
     @ParameterizedTest
     @MethodSource("nodeRemovalArgs")
-    void removeByNode_shouldSucceed(Serializable id, boolean expected) {
-      assertEquals(expected, test.removeNode(test.getNode(id)));
+    void removeByNode_shouldSucceed(Serializable id, boolean existing) {
+      BayesianNetworkData data = test.getNetworkData();
+      test.buildNetworkData();
+      assertEquals(existing, test.removeNode(test.getNode(id)));
+      if (!existing) return;
+      assertFalse(data.getNodes().stream().anyMatch(n -> n.getId().equals(id)));
+      assertFalse(data.getNodeIDsMap().keySet().stream().anyMatch(id::equals));
+      assertFalse(data.getNetworkTablesMap().keySet().stream().anyMatch(n -> n.getId().equals(id)));
     }
 
     @Test
     void removeAllNodes_shouldSucceed() {
+      BayesianNetworkData data = test.getNetworkData();
+      test.buildNetworkData();
       assertTrue(test.removeAllNodes());
-    }
-
-    @Test
-    void removeAllNodes_emptyNetwork_shouldReturnFalse() {
-      test.removeAllNodes();
+      assertTrue(data.getNodes().isEmpty());
+      assertTrue(data.getNodeIDsMap().isEmpty());
+      assertTrue(data.getNodeStateIDsMap().isEmpty());
+      assertTrue(data.getNetworkTablesMap().isEmpty());
+      assertTrue(data.getConstraints().isEmpty());
+      assertFalse(data.isSolved());
       assertFalse(test.removeAllNodes());
     }
   }
@@ -202,14 +236,30 @@ class NewBayesianNetworkTest {
 
     @ParameterizedTest
     @MethodSource("provideSuccessfulStateChanges")
-    void changeNodeStates_shouldSucceed(
+    void setStates_shouldSucceed(
         Serializable nodeId, List<Serializable> newStateIds, int expectedConstraints) {
+      changeStatesCommon_shouldSucceed(
+          nodeId,
+          newStateIds,
+          expectedConstraints,
+          (n, a) -> n.setNodeStates((List<NodeState>) a.getNewCollection()),
+          (n, a) -> {});
+    }
+
+    void changeStatesCommon_shouldSucceed(
+        Serializable nodeId,
+        List<Serializable> newStateIds,
+        int expectedConstraints,
+        BiConsumer<Node, CollectionChangeAnalyzer<NodeState>> addStates,
+        BiConsumer<Node, CollectionChangeAnalyzer<NodeState>> removeStates) {
       Node node = test.getNode(nodeId);
       List<NodeState> oldStates = new ArrayList<>(node.getNodeStates());
-      List<NodeState> states = newStateIds.stream().map(id -> new NodeState(id, node)).toList();
-      assertDoesNotThrow(() -> node.setNodeStates(states));
+      List<NodeState> newStates = newStateIds.stream().map(id -> new NodeState(id, node)).toList();
       CollectionChangeAnalyzer<NodeState> analyzer =
-          new CollectionChangeAnalyzer<>(oldStates, states);
+          new CollectionChangeAnalyzer<>(oldStates, newStates);
+
+      assertDoesNotThrow(() -> addStates.accept(node, analyzer));
+      assertDoesNotThrow(() -> removeStates.accept(node, analyzer));
 
       BayesianNetworkData networkData = test.getNetworkData();
 
@@ -219,6 +269,18 @@ class NewBayesianNetworkTest {
 
       assertEquals(expectedConstraints, networkData.getConstraints().size());
       assertFalse(networkData.isSolved());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSuccessfulStateChanges")
+    void addRemoveManual_shouldSucceed(
+        Serializable nodeId, List<Serializable> newStateIds, int expectedConstraints) {
+      changeStatesCommon_shouldSucceed(
+          nodeId,
+          newStateIds,
+          expectedConstraints,
+          (n, a) -> a.getAdded().forEach(added -> n.addState(added.getId())),
+          (n, a) -> a.getRemoved().forEach(added -> n.removeState(added.getId())));
     }
   }
 
@@ -328,6 +390,11 @@ class NewBayesianNetworkTest {
           Arguments.of(mapD, NullPointerException.class));
     }
 
+    @AfterEach
+    void assertNetworkUnsolved() {
+      assertFalse(test.getNetworkData().isSolved());
+    }
+
     @ParameterizedTest
     @MethodSource("provideSuccessfulRelations")
     void addParents_withNetwork_fromNode_shouldSucceed(Map<Serializable, List<Serializable>> map) {
@@ -336,6 +403,8 @@ class NewBayesianNetworkTest {
             Node child = test.getNode(childId);
             Set<Node> parents = test.getNodes(parentIds);
             assertDoesNotThrow(() -> test.addParents(child, parents));
+            assertEquals(parents, new HashSet<>(child.getParents()));
+            assertTrue(parents.stream().allMatch(node -> node.getChildren().contains(child)));
           });
     }
 
@@ -372,6 +441,24 @@ class NewBayesianNetworkTest {
       assertThrows(
           exceptionClass,
           () -> map.forEach((childId, parentIds) -> test.addParents(childId, parentIds)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideErrorRelations")
+    void addParents_fromNodes_shouldThrowError(
+        Map<Serializable, List<Serializable>> map, Class<Exception> exceptionClass) {
+      try {
+        Map<Node, List<Node>> nodeMap =
+            map.entrySet().stream()
+                .map(
+                    e ->
+                        Map.entry(
+                            test.getNode(e.getKey()), new ArrayList<>(test.getNodes(e.getValue()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        assertThrows(exceptionClass, () -> nodeMap.forEach(Node::setParents));
+      } catch (NullPointerException e) {
+        assertTrue(true);
+      }
     }
 
     @ParameterizedTest
@@ -509,6 +596,7 @@ class NewBayesianNetworkTest {
         double probability,
         Class<Exception> exceptionClass) {
       assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
+      assertFalse(test.isSolved());
     }
 
     @ParameterizedTest
@@ -523,6 +611,7 @@ class NewBayesianNetworkTest {
       assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
       ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
       assertThrows(exceptionClass, () -> test.addConstraint(c));
+      assertFalse(test.isSolved());
     }
 
     @ParameterizedTest
@@ -533,6 +622,7 @@ class NewBayesianNetworkTest {
       InferenceEngine engine = InferenceEngine.create(test);
       assertNotNull(engine);
       engine.observeNetworkFromIds(conditions);
+      assertTrue(test.isSolved());
       assertEquals(probability, engine.getCurrentProbabilityById(events), 1e-6);
     }
   }

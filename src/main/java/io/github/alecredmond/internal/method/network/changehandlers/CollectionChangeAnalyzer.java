@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.network.changehandlers;
 
+import java.beans.PropertyChangeEvent;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,7 +15,7 @@ public class CollectionChangeAnalyzer<T> {
   private Set<T> removed;
   private Set<T> added;
   private Set<T> common;
-  private Set<T> dupesInNew;
+  private Set<T> dupesInNewCollection;
 
   public CollectionChangeAnalyzer(Collection<T> oldCollection, Collection<T> newCollection) {
     this.oldCollection = oldCollection;
@@ -24,9 +25,15 @@ public class CollectionChangeAnalyzer<T> {
     this.common = removed.stream().filter(added::contains).collect(Collectors.toSet());
     removed.removeAll(common);
     added.removeAll(common);
-    this.dupesInNew =
+    this.dupesInNewCollection =
         newCollection.stream()
             .filter(t -> Collections.frequency(newCollection, t) > 1)
             .collect(Collectors.toSet());
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> CollectionChangeAnalyzer<T> of(PropertyChangeEvent evt) {
+    return new CollectionChangeAnalyzer<>(
+        (Collection<T>) evt.getOldValue(), (Collection<T>) evt.getNewValue());
   }
 }

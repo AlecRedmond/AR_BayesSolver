@@ -506,6 +506,9 @@ public interface BayesianNetwork {
    */
   BayesianNetwork solveNetwork();
 
+
+  boolean isSolved();
+
   /**
    * Prints the results of the most recent observation (posterior probabilities) according to
    * current printer configurations.
