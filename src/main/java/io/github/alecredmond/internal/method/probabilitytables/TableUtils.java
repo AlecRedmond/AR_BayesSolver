@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.StateCombinationGenerator;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
@@ -97,30 +97,6 @@ public class TableUtils {
       return new ArrayList<>();
     }
     return new StateCombinationGenerator(table).generateCombos(includedNodes, supplier);
-  }
-
-  public static void confirmAllNodesQueried(Collection<NodeState> request, ProbabilityTable table) {
-    Set<Node> nodeSet = new HashSet<>(table.getNodes());
-    boolean duplicateNodes;
-    for (NodeState state : request) {
-      duplicateNodes = !nodeSet.remove(state.getNode());
-      if (duplicateNodes) {
-        throwQueryError("contained duplicate nodes", request, table);
-      }
-    }
-    boolean allNodesQueried = nodeSet.isEmpty();
-    if (!allNodesQueried) {
-      throwQueryError("did not query all nodes", request, table);
-    }
-  }
-
-  private static void throwQueryError(
-      String endMessage, Collection<NodeState> request, ProbabilityTable table) {
-    StringBuilder requestString = new StringBuilder();
-    request.forEach(ns -> requestString.append(ns.getId().toString()).append(" "));
-    throw new IllegalArgumentException(
-        String.format(
-            "Request %s to table %s %s", requestString, table.getTableName(), endMessage));
   }
 
   public static Set<Node> getCommonNodes(ProbabilityTable tableA, ProbabilityTable tableB) {
