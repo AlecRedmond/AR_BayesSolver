@@ -113,14 +113,22 @@ public class VectorIterator {
           currentIndex += strideIfLocked[position];
           continue;
         }
-        stateIndexes[position] = (stateIndexes[position] + 1) % numberOfStates[position];
-        overflow = stateIndexes[position] == 0;
+        overflow = setNewPos(position, stateIndexes, numberOfStates);
         updateConsumer.accept(currentIndex);
         if (!overflow) {
           break;
         }
       }
     }
+  }
+
+  private boolean setNewPos(int position, int[] stateIndexes, int[] numberOfStates) {
+    if (stateIndexes[position] == numberOfStates[position] - 1) {
+      stateIndexes[position] = 0;
+      return true;
+    }
+    stateIndexes[position] += 1;
+    return false;
   }
 
   public void reset() {
