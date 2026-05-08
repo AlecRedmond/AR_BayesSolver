@@ -4,10 +4,11 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.application.probabilitytables.probabilityvector.VectorOdometer;
+import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.iteratorutils.OdometerResetLogic;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.VectorIterator;
+import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Function;
@@ -16,7 +17,8 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ConstraintSolverBase implements OdometerResetLogic, ConstraintSolver {
+public class ConstraintSolverBase
+    implements BaseOdometerResetLogic, BlankUpdater, ConstraintSolver {
   protected final VectorIterator iterator;
   protected final ProbabilityConstraint constraint;
   protected final DoubleAdder eventJointProb = new DoubleAdder();
@@ -26,25 +28,13 @@ public class ConstraintSolverBase implements OdometerResetLogic, ConstraintSolve
 
   public ConstraintSolverBase(ProbabilityConstraint constraint, JunctionTreeTable table) {
     this.constraint = constraint;
-    this.iterator = new VectorIterator(table.getVector(), this);
+    this.iterator = new VectorIterator(table.getVector(), this, VectorOdometer::new);
   }
 
   @Override
   public Function<Node, NodeState> initialStatePositionSetter() {
     Map<Node, NodeState> condMap = NodeUtils.generateRequest(constraint.getConditionStates());
     return node -> condMap.containsKey(node) ? condMap.get(node) : node.getNodeStates().getFirst();
-  }
-
-  @Override
-  public Predicate<Node> checkLockOuter() {
-    Set<Node> events = constraint.getEventNodes();
-    return node -> !events.contains(node);
-  }
-
-  @Override
-  public Predicate<Node> checkLockInner() {
-    Set<Node> allNodes = constraint.getAllNodes();
-    return allNodes::contains;
   }
 
   @Override
@@ -65,13 +55,25 @@ public class ConstraintSolverBase implements OdometerResetLogic, ConstraintSolve
     };
   }
 
+  @Override
+  public Predicate<Node> checkLockOuter() {
+    Set<Node> events = constraint.getEventNodes();
+    return node -> !events.contains(node);
+  }
+
+  @Override
+  public Predicate<Node> checkLockInner() {
+    Set<Node> allNodes = constraint.getAllNodes();
+    return allNodes::contains;
+  }
+
   public double adjustAndReturnError() {
     double expectedProb = constraint.getProbability();
     eventJointProb.reset();
     conditionJointProb.reset();
     complementJointProb.reset();
 
-    VectorOdometer vectorOdometer = iterator.getVectorOdometer();
+    VectorOdometer vectorOdometer = iterator.getController().getOdometer();
     double[] probs = vectorOdometer.getProbabilities();
     int[] stateIndexes = vectorOdometer.getStateIndexes();
     boolean[][] stateIsEvent = vectorOdometer.getNodeStateEvidenceArray();

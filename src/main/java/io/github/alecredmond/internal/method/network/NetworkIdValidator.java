@@ -68,7 +68,7 @@ public class NetworkIdValidator {
 
   public void validateNewStates(CollectionChangeAnalyzer<NodeState> analyzer) {
     Set<Serializable> dupes =
-        analyzer.getDupesInNew().stream()
+        analyzer.getDupesInNewCollection().stream()
             .map(NodeState::getId)
             .collect(Collectors.toCollection(HashSet::new));
 

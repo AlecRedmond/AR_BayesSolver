@@ -15,7 +15,7 @@ import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSt
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
+import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.NonNull;

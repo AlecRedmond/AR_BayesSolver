@@ -21,7 +21,7 @@ public class InferenceEngineFactory {
   }
 
   private boolean attemptSolve(BayesianNetwork network) {
-    if (network.getNetworkData().isSolved()) return true;
+    if (network.isSolved()) return true;
     log.warn(
         "Attempted to create an Inference Engine on unsolved network {}. Will now attempt to solve...",
         network.getNetworkData().getNetworkName());

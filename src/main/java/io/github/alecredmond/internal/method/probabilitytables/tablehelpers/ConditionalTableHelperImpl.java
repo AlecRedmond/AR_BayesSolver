@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.vectoriterators.TableMarginalizer;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.IntStream;

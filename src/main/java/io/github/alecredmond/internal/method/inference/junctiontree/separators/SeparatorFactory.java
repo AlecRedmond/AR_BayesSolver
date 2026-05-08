@@ -6,8 +6,8 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Junctio
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.factory.TransferIteratorFactory;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
+import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
+import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.NoArgsConstructor;

@@ -3,13 +3,12 @@ package io.github.alecredmond.internal.method.network.changehandlers;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import java.beans.PropertyChangeEvent;
-import java.util.HashMap;
 
 public class AddedNodeChangeHandler implements NetworkChangeHandler {
   @Override
   public void applyChange(PropertyChangeEvent evt, BayesianNetworkData networkData) {
     networkData.setSolved(false);
-    networkData.setNetworkTablesMap(new HashMap<>());
+    networkData.getNetworkTablesMap().clear();
 
     Node node = (Node) evt.getNewValue();
 
