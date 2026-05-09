@@ -19,14 +19,14 @@ import java.util.function.Predicate;
 public class ObservationCopier implements BaseOdometerResetLogic, BlankUpdater {
   private final ProbabilityVector mainVector;
   private final ProbabilityVector backupVector;
-  private final VectorIterator iterator;
+  private final VectorIterator<VectorOdometer> iterator;
   private Map<Node, NodeState> observations;
 
   public ObservationCopier(JunctionTreeTable table) {
     this.observations = new HashMap<>();
     this.backupVector = table.getBackupVector();
     this.mainVector = table.getVector();
-    this.iterator = new VectorIterator(mainVector, this, VectorOdometer::new);
+    this.iterator = new VectorIterator<>(mainVector, this, VectorOdometer::new);
   }
 
   public void observeTable(Collection<NodeState> observedStates) {

@@ -9,6 +9,7 @@ import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.export.method.sampler.Sample;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableHelperImpl;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -40,7 +41,9 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
       return null;
     }
     initSamplerData(observations, numberOfSamples);
+    setHelpersForSampling();
     generateWeightedStateSets();
+    resetHelpers();
     convertSetsToSamples();
     distributeSamples();
     return new SampleBuilder()
@@ -61,6 +64,13 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     samplerData.setDistributedSamples(new HashMap<>());
   }
 
+  private void setHelpersForSampling() {
+    Arrays.stream(samplerData.getTableHelpers())
+        .filter(ConditionalTableHelperImpl.class::isInstance)
+        .map(ConditionalTableHelperImpl.class::cast)
+        .forEach(ConditionalTableHelperImpl::initForSampling);
+  }
+
   private void generateWeightedStateSets() {
     NodeState[] defaultSample = samplerData.getDefaultSample();
     Node[] nodes = samplerData.getNodes();
@@ -76,6 +86,13 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
       weightedStateSets.putIfAbsent(newSet, 0.0);
       weightedStateSets.put(newSet, weightedStateSets.get(newSet) + weight);
     }
+  }
+
+  private void resetHelpers() {
+    Arrays.stream(samplerData.getTableHelpers())
+        .filter(ConditionalTableHelperImpl.class::isInstance)
+        .map(ConditionalTableHelperImpl.class::cast)
+        .forEach(ConditionalTableHelperImpl::endSampling);
   }
 
   private void convertSetsToSamples() {

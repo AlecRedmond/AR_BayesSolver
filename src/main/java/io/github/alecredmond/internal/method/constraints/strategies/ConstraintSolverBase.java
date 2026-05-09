@@ -10,17 +10,17 @@ import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConstraintSolverBase
     implements BaseOdometerResetLogic, BlankUpdater, ConstraintSolver {
-  protected final VectorIterator iterator;
+  protected final VectorIterator<VectorOdometer> iterator;
   protected final ProbabilityConstraint constraint;
   protected final double[] eventJointProb = {0.0};
   protected final double[] conditionJointProb = {0.0};
@@ -31,25 +31,8 @@ public class ConstraintSolverBase
 
   public ConstraintSolverBase(ProbabilityConstraint constraint, JunctionTreeTable table) {
     this.constraint = constraint;
-    this.iterator = new VectorIterator(table.getVector(), this, VectorOdometer::new);
-    this.isEvidence = buildIsEvidenceIndex();
-  }
-
-  private boolean[] buildIsEvidenceIndex() {
-    VectorOdometer vectorOdometer = iterator.getController().getOdometer();
-    int[] stateIndexes = vectorOdometer.getStateIndexes();
-    boolean[][] stateIsEvent = vectorOdometer.getNodeStateEvidenceArray();
-    List<Boolean> bools = new ArrayList<>();
-    iterator.iterateOuter(() -> bools.add(checkIsEvidence(stateIndexes, stateIsEvent)));
-    boolean[] bArray = new boolean[bools.size()];
-    IntStream.range(0, bools.size()).forEach(i -> bArray[i] = bools.get(i));
-    return bArray;
-  }
-
-  protected boolean checkIsEvidence(int[] stateIndexes, boolean[][] stateIsEvent) {
-    return IntStream.range(0, stateIsEvent.length)
-        .filter(x -> stateIsEvent[x].length != 0)
-        .allMatch(x -> stateIsEvent[x][stateIndexes[x]]);
+    this.iterator = new VectorIterator<>(table.getVector(), this, VectorOdometer::new);
+    this.isEvidence = ResetLogicUtils.buildIsEvidenceIndex(iterator);
   }
 
   @Override
@@ -70,10 +53,8 @@ public class ConstraintSolverBase
 
     VectorOdometer vectorOdometer = iterator.getController().getOdometer();
     double[] probs = vectorOdometer.getProbabilities();
-    int[] stateIndexes = vectorOdometer.getStateIndexes();
-    boolean[][] stateIsEvent = vectorOdometer.getNodeStateEvidenceArray();
 
-    calculateProbability(probs, stateIndexes, stateIsEvent);
+    calculateProbability(probs);
 
     double actualProb = getRatio(eventJointProb[0], conditionJointProb[0]);
     double complementProb = getRatio(complementJointProb[0], conditionJointProb[0]);
@@ -81,7 +62,7 @@ public class ConstraintSolverBase
     double adjustmentRatio = getRatio(expectedProb, actualProb);
     double compRatio = getRatio((1 - expectedProb), complementProb);
 
-    adjustToRatio(adjustmentRatio, compRatio, probs, stateIndexes, stateIsEvent);
+    adjustToRatio(adjustmentRatio, compRatio, probs);
     return storeError(Math.pow(actualProb - expectedProb, 2));
   }
 
@@ -91,7 +72,7 @@ public class ConstraintSolverBase
     complementJointProb[0] = 0.0;
   }
 
-  private void calculateProbability(double[] probs, int[] stateIndexes, boolean[][] stateIsEvent) {
+  private void calculateProbability(double[] probs) {
     isEvidenceIndex[0] = 0;
     iterator.iterateOuter(
         () -> {
@@ -111,12 +92,7 @@ public class ConstraintSolverBase
     return actualProb == 0 ? 0.0 : targetProb / actualProb;
   }
 
-  protected void adjustToRatio(
-      double ratioIfEvent,
-      double ratioOtherwise,
-      double[] probs,
-      int[] stateIndexes,
-      boolean[][] stateIsEvent) {
+  protected void adjustToRatio(double ratioIfEvent, double ratioOtherwise, double[] probs) {
     isEvidenceIndex[0] = 0;
     iterator.iterateOuter(
         () -> {
@@ -159,17 +135,6 @@ public class ConstraintSolverBase
   public Function<Node, boolean[]> buildEvidenceMaps() {
     Set<Node> eventNodes = constraint.getEventNodes();
     Set<NodeState> eventStates = constraint.getEventStates();
-    return node -> {
-      if (!eventNodes.contains(node)) {
-        return new boolean[0];
-      }
-      List<NodeState> states = node.getNodeStates();
-      boolean[] isEvidence = new boolean[states.size()];
-      IntStream.range(0, states.size())
-          .filter(y -> eventStates.contains(states.get(y)))
-          .forEach(y -> isEvidence[y] = true);
-      return isEvidence;
-      // Java pls give BooleanStream functions T^T
-    };
+    return ResetLogicUtils.updateEvidenceArrayFunction(eventNodes, eventStates);
   }
 }

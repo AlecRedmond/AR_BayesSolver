@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.DoubleAdder;
 import lombok.Getter;
 
 @Getter
-public class TransferReader extends VectorIterator implements TransferIterator {
+public class TransferReader extends VectorIterator<VectorOdometer> implements TransferIterator {
   private final double[] transferArray;
 
   public TransferReader(

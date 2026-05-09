@@ -7,7 +7,7 @@ import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.DoubleAdder;
 
-public class TransferWriterMarginal extends VectorIterator implements TransferIterator {
+public class TransferWriterMarginal extends VectorIterator<VectorOdometer> implements TransferIterator {
   private final double[] transferArray;
 
   public TransferWriterMarginal(

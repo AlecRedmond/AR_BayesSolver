@@ -3,6 +3,8 @@ package io.github.alecredmond.internal.method.probabilitytables;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -47,8 +49,7 @@ public class TableUtils {
     throw new ProbabilityTableRequestException(
         "request %s does not contain all nodes requested %s"
             .formatted(
-                NodeUtils.formatStatesToString(request.values()),
-                NodeUtils.formatNodesToString(allNodes)));
+                NodeUtils.formatStatesToString(states), NodeUtils.formatNodesToString(allNodes)));
   }
 
   public static List<NodeState> convertIdsToStates(
@@ -102,6 +103,24 @@ public class TableUtils {
   public static Set<Node> getCommonNodes(ProbabilityTable tableA, ProbabilityTable tableB) {
     return NodeUtils.getOverlap(tableA.getNodes(), tableB.getNodes());
   }
+
+  public static Map<NodeState, Double> buildConditionalProbMap(
+      Collection<NodeState> conditionStates, ConditionalTable table) {
+    Map<NodeState, Double> map = new LinkedHashMap<>();
+    List<NodeState> events = table.getNetworkNode().getNodeStates();
+    double[] probs = table.getVector().getProbabilities();
+    int firstIndex = getIndex(conditionStates, table);
+    IntStream.range(0, events.size()).forEach(i -> map.put(events.get(i), probs[firstIndex + i]));
+    return map;
+  }
+
+    public static Map<NodeState, Double> buildMarginalProbMap(MarginalTable table) {
+      List<NodeState> states = table.getNetworkNode().getNodeStates();
+      double[] prob = table.getVector().getProbabilities();
+      return IntStream.range(0, prob.length)
+          .mapToObj(i -> Map.entry(states.get(i), prob[i]))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
 
   private static <T extends ProbabilityTable> void setComplementStatesToZero(
       Collection<NodeState> states, T table) {

@@ -1,6 +1,5 @@
 package io.github.alecredmond.internal.method.vectoriterator;
 
-import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
@@ -8,54 +7,37 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.Odomet
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerUpdateLogic;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
-import java.util.stream.IntStream;
 import lombok.Data;
 
 @Data
-@SuppressWarnings("rawtypes")
-public class VectorIterator {
-  protected static final ObjIntConsumer<VectorOdometer> UPDATE_STATES =
-      (odometer, index) -> {
-        NodeState[][] stateArrays = odometer.getStateArrays();
-        NodeState[] states = odometer.getStates();
-        int[] stateIndexes = odometer.getStateIndexes();
-        IntStream.range(0, states.length)
-            .forEach(
-                x -> {
-                  int y = stateIndexes[x];
-                  states[x] = stateArrays[x][y];
-                });
-      };
+public class VectorIterator<T extends VectorOdometer> {
 
-  protected OdometerController controller;
+  protected OdometerController<T> controller;
 
-  public VectorIterator(OdometerController controller) {
+  public VectorIterator(OdometerController<T> controller) {
     this.controller = controller;
     controller.reset();
   }
 
-  public <T extends VectorOdometer, R extends OdometerUpdateLogic<T> & OdometerResetLogic<T>>
-      VectorIterator(T odometer, R logic) {
+  public <R extends OdometerUpdateLogic<T> & OdometerResetLogic<T>> VectorIterator(
+      T odometer, R logic) {
     this.controller = new OdometerController<>(odometer, logic, logic);
     controller.reset();
   }
 
-  public <T extends VectorOdometer, R extends OdometerUpdateLogic<T> & OdometerResetLogic<T>>
-      VectorIterator(
-          ProbabilityVector vector, R logic, Function<ProbabilityVector, T> constructor) {
+  public <R extends OdometerUpdateLogic<T> & OdometerResetLogic<T>> VectorIterator(
+      ProbabilityVector vector, R logic, Function<ProbabilityVector, T> constructor) {
     T odometer = constructor.apply(vector);
     this.controller = new OdometerController<>(odometer, logic, logic);
     controller.reset();
   }
 
-  public void iterateInner(ObjIntConsumer<VectorOdometer> indexConsumer) {
-    iterateInner(indexConsumer, controller::update);
+  public void iterateInner(ObjIntConsumer<T> indexConsumer) {
+    iterateInner(indexConsumer, controller.getUpdateConsumer());
   }
 
-  protected void iterateInner(
-      ObjIntConsumer<VectorOdometer> indexConsumer, IntConsumer updateConsumer) {
+  protected void iterateInner(ObjIntConsumer<T> indexConsumer, ObjIntConsumer<T> updateConsumer) {
     iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.getInitInner());
   }
 
@@ -86,9 +68,9 @@ public class VectorIterator {
    * StateIndexes, but is unused in most cases to reduce compute time per iteration.
    */
   protected void iterate(
-      VectorOdometer odometer,
-      ObjIntConsumer<VectorOdometer> indexConsumer,
-      IntConsumer updateConsumer,
+      T odometer,
+      ObjIntConsumer<T> indexConsumer,
+      ObjIntConsumer<T> updateConsumer,
       OdometerInitializer initializer) {
     int currentIndex = initializer.getInitialIndex();
 
@@ -114,7 +96,7 @@ public class VectorIterator {
           continue;
         }
         overflow = setNewPos(position, stateIndexes, numberOfStates);
-        updateConsumer.accept(currentIndex);
+        updateConsumer.accept(odometer, currentIndex);
         if (!overflow) {
           break;
         }
@@ -136,11 +118,10 @@ public class VectorIterator {
   }
 
   public void iterateOuter(Runnable runnable) {
-    iterateOuter((o, i) -> runnable.run(), controller::update);
+    iterateOuter((o, i) -> runnable.run(), controller.getUpdateConsumer());
   }
 
-  protected void iterateOuter(
-      ObjIntConsumer<VectorOdometer> indexConsumer, IntConsumer updateConsumer) {
+  protected void iterateOuter(ObjIntConsumer<T> indexConsumer, ObjIntConsumer<T> updateConsumer) {
     iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.getInitOuter());
   }
 }

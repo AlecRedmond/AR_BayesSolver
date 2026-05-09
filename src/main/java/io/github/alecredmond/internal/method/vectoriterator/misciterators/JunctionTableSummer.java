@@ -7,6 +7,7 @@ import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -15,7 +16,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater {
-  private final VectorIterator iterator;
+  private final VectorIterator<VectorOdometer> iterator;
   private final JunctionTreeTable table;
   private final DoubleAdder adder;
   private final VectorOdometer odometer;
@@ -27,7 +28,7 @@ public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater
     this.requestNodes = new HashSet<>();
     this.requestStates = new HashSet<>();
     this.odometer = new VectorOdometer(table.getVector());
-    this.iterator = new VectorIterator(odometer, this);
+    this.iterator = new VectorIterator<>(odometer, this);
     this.adder = new DoubleAdder();
   }
 
@@ -67,17 +68,7 @@ public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater
 
   @Override
   public Function<Node, boolean[]> buildEvidenceMaps() {
-    return node -> {
-      if (!requestNodes.contains(node)) {
-        return new boolean[0];
-      }
-      List<NodeState> states = node.getNodeStates();
-      boolean[] isEvidence = new boolean[states.size()];
-      IntStream.range(0, states.size())
-          .filter(y -> requestStates.contains(states.get(y)))
-          .forEach(y -> isEvidence[y] = true);
-      return isEvidence;
-    };
+    return ResetLogicUtils.updateEvidenceArrayFunction(requestNodes, requestStates);
   }
 
   @Override

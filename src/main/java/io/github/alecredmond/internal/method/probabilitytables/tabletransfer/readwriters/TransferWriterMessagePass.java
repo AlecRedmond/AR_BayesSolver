@@ -7,7 +7,7 @@ import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-public class TransferWriterMessagePass extends VectorIterator implements TransferIterator {
+public class TransferWriterMessagePass extends VectorIterator<VectorOdometer> implements TransferIterator {
   private final double[] transferArray;
   private final double[] ratioArray;
   private final double[] separatorProbs;

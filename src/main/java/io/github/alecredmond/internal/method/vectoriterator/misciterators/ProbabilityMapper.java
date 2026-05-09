@@ -15,12 +15,12 @@ import lombok.Getter;
 @Getter
 public class ProbabilityMapper implements BaseOdometerResetLogic, StateUpdater {
   private final Map<Set<NodeState>, Double> probabilityMap = new LinkedHashMap<>();
-  private final VectorIterator iterator;
+  private final VectorIterator<VectorOdometer> iterator;
   private final VectorOdometer odometer;
 
   public ProbabilityMapper(ProbabilityTable table) {
     this.odometer = new VectorOdometer(table.getVector());
-    this.iterator = new VectorIterator(odometer, this);
+    this.iterator = new VectorIterator<>(odometer, this);
     performRun();
   }
 

@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class StateCombinationGenerator implements BaseOdometerResetLogic, StateUpdater {
-  private final VectorIterator iterator;
+  private final VectorIterator<VectorOdometer> iterator;
   private final VectorOdometer odometer;
   private Set<Node> includedNodes;
 
   public StateCombinationGenerator(ProbabilityTable table) {
     this.odometer = new VectorOdometer(table.getVector());
     this.includedNodes = new HashSet<>();
-    this.iterator = new VectorIterator(odometer, this);
+    this.iterator = new VectorIterator<>(odometer, this);
   }
 
   public <T extends Collection<NodeState>, R extends T> List<T> generateCombos(

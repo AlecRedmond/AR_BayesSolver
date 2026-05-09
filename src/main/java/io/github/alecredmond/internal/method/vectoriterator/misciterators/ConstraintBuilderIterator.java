@@ -17,14 +17,14 @@ import lombok.Getter;
 
 @Getter
 public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateUpdater {
-  private final VectorIterator iterator;
+  private final VectorIterator<VectorOdometer> iterator;
   private final ProbabilityTable table;
   private final VectorOdometer odometer;
   private List<ProbabilityConstraint> built;
 
   public ConstraintBuilderIterator(ProbabilityTable table) {
     this.odometer = new VectorOdometer(table.getVector());
-    this.iterator = new VectorIterator(odometer, this);
+    this.iterator = new VectorIterator<>(odometer, this);
     this.table = table;
     performRun();
   }

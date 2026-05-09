@@ -6,7 +6,7 @@ import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.fac
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TransferWriterMultiplyIn extends VectorIterator implements TransferIterator {
+public class TransferWriterMultiplyIn extends VectorIterator<VectorOdometer> implements TransferIterator {
   private final double[] transferArray;
 
   public TransferWriterMultiplyIn(
