@@ -18,8 +18,8 @@ public class ProbabilityVectorFactory {
     Node[] nodesArray = nodes.toArray(new Node[0]);
     NodeState[][] stateArrays = buildStateArrays(nodesArray);
     int[] cardinality = buildCardinalityArray(nodesArray);
-    cardinalitySanityCheck(cardinality, nodesArray);
     int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
+    if (rank == 0) cardinalitySanityCheck(cardinality, nodesArray);
     int[] multiplier = buildMultiplierArray(cardinality, rank);
     double[] probability = new double[rank];
     Arrays.fill(probability, 1.0);
@@ -49,12 +49,17 @@ public class ProbabilityVectorFactory {
             .mapToObj(i -> nodes[i])
             .toList();
 
-    if (zeroCardinality.isEmpty()) {
-      return;
+    if (!zeroCardinality.isEmpty()) {
+      throw new ProbabilityVectorFactoryException(
+          "Attempted to build a ProbabilityVector with stateless nodes: %s"
+              .formatted(NodeUtils.formatNodesToString(zeroCardinality)));
     }
-    throw new ProbabilityVectorFactoryException(
-        "Attempted to build a ProbabilityVector with stateless nodes: %s"
-            .formatted(NodeUtils.formatNodesToString(zeroCardinality)));
+    long rank = Arrays.stream(cardinality).mapToLong(i -> (long) i).reduce(1, (x, y) -> x * y);
+    if (rank >= Integer.MAX_VALUE) {
+      throw new ProbabilityVectorFactoryException(
+          "TABLE RANK WAS TOO LARGE, YOU MAY HAVE TO ATTEMPT TO USE THE JUNCTION TABLE METHOD!");
+    }
+    throw new ProbabilityVectorFactoryException("UNKNOWN TABLE RANK ISSUE");
   }
 
   private int[] buildMultiplierArray(int[] cardinality, int rank) {

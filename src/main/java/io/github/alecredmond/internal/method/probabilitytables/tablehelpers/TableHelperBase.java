@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class TableHelperBase<T extends ProbabilityTable> {
   protected T table;
+  protected boolean safeMode = true;
 
   protected TableHelperBase(T table) {
     this.table = table;
@@ -25,7 +26,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public Double getProbability(Collection<NodeState> states) {
     try {
-      TableUtils.assertAllNodesPresent(states, table);
+      if (safeMode) TableUtils.assertAllNodesPresent(states, table);
       return TableUtils.getProbability(states, table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
@@ -35,17 +36,22 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public Double getProbabilityFromIDs(Collection<Serializable> stateIds) {
     try {
-      Collection<NodeState> states = TableUtils.assertAllIdsPresent(stateIds, table);
-      return TableUtils.getProbability(states, table);
+      return TableUtils.getProbability(getStates(stateIds), table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
       return null;
     }
   }
 
+  protected Collection<NodeState> getStates(Collection<Serializable> stateIds) {
+    return safeMode
+        ? TableUtils.assertAllIdsPresent(stateIds, table)
+        : TableUtils.convertIdsToStates(stateIds, table);
+  }
+
   public boolean setProbability(Collection<NodeState> states, double probability) {
     try {
-      TableUtils.assertAllNodesPresent(states, table);
+      if (safeMode) TableUtils.assertAllNodesPresent(states, table);
       TableUtils.setProbability(states, probability, table);
       return true;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
@@ -56,8 +62,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public boolean setProbabilityById(Collection<Serializable> stateIds, double probability) {
     try {
-      Collection<NodeState> states = TableUtils.assertAllIdsPresent(stateIds, table);
-      TableUtils.setProbability(states, probability, table);
+      TableUtils.setProbability(getStates(stateIds), probability, table);
       return true;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());

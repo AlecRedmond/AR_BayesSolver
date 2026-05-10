@@ -3,7 +3,6 @@ package io.github.alecredmond.internal.application.vectoriterator;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import java.util.Arrays;
 import java.util.Map;
 import lombok.Data;
 
@@ -34,6 +33,5 @@ public class VectorOdometer {
     innerIteratorLocks = new boolean[keyLength];
     nodeStateEvidenceArray = new boolean[keyLength][];
     stateValueMap = vector.getStateValueMap();
-    //Arrays.fill(nodeStateEvidenceArray, new boolean[0]);
   }
 }

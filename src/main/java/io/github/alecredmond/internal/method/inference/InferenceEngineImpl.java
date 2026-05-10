@@ -13,6 +13,7 @@ import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,6 +130,23 @@ public class InferenceEngineImpl implements InferenceEngine {
   public InferenceEngine printObserved() {
     if (!ensureSolved()) return this;
     new NetworkPrinter(this).printObserved();
+    return this;
+  }
+
+  @Override
+  public InferenceEngine printObservedById(Collection<Serializable> nodeIds) {
+    return printObserved(network.getNodes(nodeIds));
+  }
+
+  @Override
+  public InferenceEngine printObserved(Collection<Node> nodes) {
+    if (!ensureSolved()) return this;
+    Set<Node> nodeSet = new HashSet<>(nodes);
+    Map<Node, MarginalTable> toPrint =
+        junctionTree.getData().getObservedTablesMap().entrySet().stream()
+            .filter(e -> nodeSet.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    new NetworkPrinter(this).printTables(toPrint, "OBSERVED");
     return this;
   }
 

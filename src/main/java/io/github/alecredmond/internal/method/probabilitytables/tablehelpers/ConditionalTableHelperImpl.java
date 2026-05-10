@@ -15,19 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable>
     implements ConditionalTableHelper {
   private final TableMarginalizer marginalizer;
-  private boolean assertionChecks = true;
 
   public ConditionalTableHelperImpl(ConditionalTable table) {
     super(table);
     this.marginalizer = new TableMarginalizer(table);
-  }
-
-  public void initForSampling() {
-    assertionChecks = false;
-  }
-
-  public void endSampling() {
-    assertionChecks = true;
   }
 
   @Override
@@ -39,7 +30,7 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
   public Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs) {
     Collection<NodeState> states;
     try {
-      states = TableUtils.assertAllIdsPresent(conditionIDs, table.getConditions(), table);
+      states = getStates(conditionIDs);
     } catch (ProbabilityTableRequestException e) {
       log.error(e.getMessage());
       return new HashMap<>();
@@ -50,7 +41,7 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
   @Override
   public Map<NodeState, Double> getConditionalProb(Collection<NodeState> conditionStates) {
     try {
-      if (assertionChecks) TableUtils.assertAllNodesPresent(conditionStates, table.getConditions());
+      if (safeMode) TableUtils.assertAllNodesPresent(conditionStates, table.getConditions());
       return TableUtils.buildConditionalProbMap(conditionStates, table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());

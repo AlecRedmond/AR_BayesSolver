@@ -44,6 +44,7 @@ public class NetworkPrinter {
     List<String> outputLines = new ArrayList<>(List.of(tableType, ""));
 
     networkData.getNodes().stream()
+        .filter(associatedMap::containsKey)
         .map(associatedMap::get)
         .map(tableFormatter::generateTableLines)
         .forEach(outputLines::addAll);

@@ -43,6 +43,10 @@ public interface InferenceEngine {
 
   InferenceEngine printObserved();
 
+  InferenceEngine printObservedById(Collection<Serializable> nodeIds);
+
+  InferenceEngine printObserved(Collection<Node> nodes);
+
   BayesianNetwork getNetwork();
 
   Sampler createSampler();

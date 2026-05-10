@@ -2,11 +2,13 @@ package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.fa
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
+import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters.TransferIterator;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
-
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -37,6 +39,12 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
     this.transferArray = transferArray;
   }
 
+  @Override
+  public void updateInitializer(
+      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.updateIterateInner(initializer, odometer);
+  }
+
   public abstract T build();
 
   @Override
@@ -48,5 +56,4 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
   public Predicate<Node> checkLockInner() {
     return commonNodes::contains;
   }
-
 }
