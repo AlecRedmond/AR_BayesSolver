@@ -36,8 +36,6 @@ public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdomete
       innerIteratorLocks[x] = innerFn.test(node);
       isEvidenceArray[x] = evidenceMapper.apply(node);
     }
-
-    postUpdateLogic().run();
   }
 
   @Override
@@ -52,9 +50,5 @@ public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdomete
 
   default Function<Node, boolean[]> buildEvidenceMaps() {
     return node -> null;
-  }
-
-  default Runnable postUpdateLogic() {
-    return () -> {};
   }
 }

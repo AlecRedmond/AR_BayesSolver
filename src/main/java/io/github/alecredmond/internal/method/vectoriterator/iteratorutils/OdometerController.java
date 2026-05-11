@@ -25,14 +25,6 @@ public class OdometerController<T extends VectorOdometer> {
     return initInner;
   }
 
-  /*
-
-  public OdometerInitializer getInitOuter() {
-    return OdometerInitializerBuilder.initIterateOuter(odometer);
-  }
-
-   */
-
   public void reset() {
     resetLogic.resetOdometer(odometer);
     resetInitializers();
