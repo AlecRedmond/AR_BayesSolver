@@ -25,4 +25,6 @@ public interface TableHelper<T extends ProbabilityTable> {
   Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition);
 
   Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs);
+
+  void setSafeMode(boolean safeMode);
 }

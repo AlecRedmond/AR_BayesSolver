@@ -40,7 +40,9 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
       return null;
     }
     initSamplerData(observations, numberOfSamples);
+    setHelperSafeMode(false);
     generateWeightedStateSets();
+    setHelperSafeMode(true);
     convertSetsToSamples();
     distributeSamples();
     return new SampleBuilder()
@@ -59,6 +61,10 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     samplerData.setWeightedStateSets(new HashMap<>());
     samplerData.setWeightedSamples(new HashMap<>());
     samplerData.setDistributedSamples(new HashMap<>());
+  }
+
+  private void setHelperSafeMode(boolean safeMode) {
+    Arrays.stream(samplerData.getTableHelpers()).forEach(t -> t.setSafeMode(safeMode));
   }
 
   private void generateWeightedStateSets() {

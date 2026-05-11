@@ -10,7 +10,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.transfer.TableTransfer;
+import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 

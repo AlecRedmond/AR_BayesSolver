@@ -6,8 +6,6 @@ import io.github.alecredmond.export.method.probabilitytables.MarginalTableHelper
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class MarginalTableHelperImpl extends TableHelperBase<MarginalTable>
     implements MarginalTableHelper {
@@ -33,11 +31,7 @@ public class MarginalTableHelperImpl extends TableHelperBase<MarginalTable>
 
   @Override
   public Map<NodeState, Double> buildProbabilityMap() {
-    List<NodeState> states = table.getNetworkNode().getNodeStates();
-    double[] prob = table.getVector().getProbabilities();
-    return IntStream.range(0, prob.length)
-        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return TableUtils.buildMarginalProbMap(table);
   }
 
   @Override

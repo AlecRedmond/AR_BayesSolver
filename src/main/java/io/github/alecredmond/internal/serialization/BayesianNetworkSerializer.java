@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class BayesianNetworkSerializer {
 
   public SerializedBayesianNetwork serialize(BayesianNetwork network) {
-    if (!network.getNetworkData().isSolved()) network.solveNetwork();
+    if (!network.isSolved()) network.solveNetwork();
     return new NetworkDataSerializer().serialize(network.getNetworkData());
   }
 

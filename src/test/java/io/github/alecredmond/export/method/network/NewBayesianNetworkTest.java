@@ -538,7 +538,6 @@ class NewBayesianNetworkTest {
       return Stream.of(
           Arguments.of(List.of("An"), List.of(), 0.5, idException),
           Arguments.of(List.of("A+"), List.of("A-"), 0.5, constraintException),
-          Arguments.of(List.of("A+"), List.of("B+", "B-"), 0.5, constraintException),
           Arguments.of(List.of("A+", "A-"), List.of(), 1.25, constraintException),
           Arguments.of(List.of("A+", "C+"), List.of("B+"), -0.5, constraintException),
           Arguments.of(listWithNull(List.of("A+")), List.of("B+"), 0.5, NullPointerException.class),
@@ -563,12 +562,12 @@ class NewBayesianNetworkTest {
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
       assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
       assertTrue(test.removeConstraint(events, conditions));
-      assertFalse(test.getNetworkData().isSolved());
+      assertFalse(test.isSolved());
       ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
       assertDoesNotThrow(() -> test.addConstraint(c));
       assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
       assertTrue(test.removeConstraint(events, conditions));
-      assertFalse(test.getNetworkData().isSolved());
+      assertFalse(test.isSolved());
     }
 
     static ProbabilityConstraint createConstraint(

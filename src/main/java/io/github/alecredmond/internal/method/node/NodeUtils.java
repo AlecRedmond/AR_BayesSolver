@@ -55,7 +55,10 @@ public class NodeUtils {
   }
 
   public static List<Set<NodeState>> splitStatesSharingNodes(Collection<NodeState> states) {
-    return states.stream().collect(Collectors.groupingBy(NodeState::getNode)).values().stream()
+    return states.stream()
+        .collect(Collectors.groupingBy(NodeState::getNode, LinkedHashMap::new, Collectors.toList()))
+        .values()
+        .stream()
         .reduce(List.of(new HashSet<>()), NodeUtils::accumulatePerturbations, (x, y) -> y);
   }
 
@@ -67,7 +70,7 @@ public class NodeUtils {
                 statesWithSharedNode.stream()
                     .map(
                         state -> {
-                          Set<NodeState> newPerturbation = new HashSet<>(currentSet);
+                          Set<NodeState> newPerturbation = new LinkedHashSet<>(currentSet);
                           newPerturbation.add(state);
                           return newPerturbation;
                         }))
