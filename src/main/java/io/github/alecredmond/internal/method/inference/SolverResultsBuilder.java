@@ -4,21 +4,25 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.inference.SolverConstraintResult;
 import io.github.alecredmond.export.application.inference.SolverResults;
 import java.util.Comparator;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class SolverResultsBuilder {
 
   public SolverResults buildResults(int cycle, Map<ProbabilityConstraint, double[]> resultsMap) {
-    List<SolverConstraintResult> results =
+    Map<ProbabilityConstraint, SolverConstraintResult> solverResultMap =
         resultsMap.entrySet().stream()
-            .map(this::buildConstraintResult)
-            .sorted(Comparator.comparingDouble(SolverConstraintResult::getLastError).reversed())
-            .toList();
+            .map(e -> Map.entry(e.getKey(), buildConstraintResult(e)))
+            .sorted(byLastErrorReversed())
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
 
-    double lastError = results.stream().mapToDouble(SolverConstraintResult::getLastError).sum();
-    return new SolverResults(cycle, results, lastError);
+    double lastError =
+        solverResultMap.values().stream().mapToDouble(SolverConstraintResult::getLastError).sum();
+    return new SolverResults(cycle, solverResultMap, lastError);
   }
 
   private SolverConstraintResult buildConstraintResult(
@@ -29,5 +33,13 @@ public class SolverResultsBuilder {
     double[] losses = new double[errors.length];
     IntStream.range(1, errors.length).forEach(i -> losses[i] = Math.abs(errors[i] - errors[i - 1]));
     return new SolverConstraintResult(constraint, lastError, errors, losses);
+  }
+
+  private static Comparator<Map.Entry<ProbabilityConstraint, SolverConstraintResult>>
+      byLastErrorReversed() {
+    return Comparator.comparingDouble(
+            (Map.Entry<ProbabilityConstraint, SolverConstraintResult> e) ->
+                e.getValue().getLastError())
+        .reversed();
   }
 }

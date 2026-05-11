@@ -1,18 +1,13 @@
 package io.github.alecredmond.internal.method.network.changehandlers;
 
-import static io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils.removeAllConstraintsContaining;
-
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.internal.method.network.NetworkIdValidator;
-
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,22 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NodeStateChangeHandler implements NetworkChangeHandler {
   @Override
-  @SuppressWarnings("unchecked")
   public void applyChange(PropertyChangeEvent evt, BayesianNetworkData networkData) {
-
-    Node node = (Node) evt.getSource();
-    List<NodeState> oldStates = (List<NodeState>) evt.getOldValue();
-    List<NodeState> newStates = (List<NodeState>) evt.getNewValue();
-    CollectionChangeAnalyzer<NodeState> analyzer =
-        new CollectionChangeAnalyzer<>(oldStates, newStates);
-
-    networkData.setSolved(false);
-
+    if (networkData.isSolved()) {
+      networkData.setSolved(false);
+    }
+    CollectionChangeAnalyzer<NodeState> analyzer = CollectionChangeAnalyzer.of(evt);
     log.warn(
         "States at Node {} have been changed, will rebuild data and remove invalid constraints...",
-        node.getId());
-
-    networkData.setNetworkTablesMap(new HashMap<>());
+        ((Node) evt.getSource()).getId());
+    networkData.getNetworkTablesMap().clear();
     rebuildIdMaps(networkData, analyzer);
     removeInvalidConstraints(networkData, analyzer);
   }
@@ -50,6 +38,11 @@ public class NodeStateChangeHandler implements NetworkChangeHandler {
 
   private void removeInvalidConstraints(
       BayesianNetworkData networkData, CollectionChangeAnalyzer<NodeState> analyzer) {
-    analyzer.getRemoved().forEach(state -> removeAllConstraintsContaining(state, networkData));
+    analyzer
+        .getRemoved()
+        .forEach(
+            state ->
+                NetworkConstraintUtils.removeConstraints(
+                    constraint -> constraint.getAllStates().contains(state), networkData));
   }
 }

@@ -17,12 +17,6 @@ public class NodeUtils {
 
   private NodeUtils() {}
 
-  public static Map<Node, NodeState> generateRequest(
-      Collection<NodeState> statesA, Collection<NodeState> statesB) {
-    return generateRequest(
-        Stream.concat(statesA.stream(), statesB.stream()).collect(Collectors.toSet()));
-  }
-
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
     try {
       return states.stream()
@@ -38,10 +32,6 @@ public class NodeUtils {
       Collection<NodeState> eventStates, Collection<NodeState> conditionStates) {
     return Stream.concat(eventStates.stream(), conditionStates.stream())
         .collect(Collectors.toSet());
-  }
-
-  public static Set<Node> getNodes(Collection<NodeState> states) {
-    return states.stream().map(NodeState::getNode).collect(Collectors.toSet());
   }
 
   public static void addParent(Node child, Node parent) {
@@ -64,6 +54,30 @@ public class NodeUtils {
     return newList;
   }
 
+  public static List<Set<NodeState>> splitStatesSharingNodes(Collection<NodeState> states) {
+    return states.stream().collect(Collectors.groupingBy(NodeState::getNode)).values().stream()
+        .reduce(List.of(new HashSet<>()), NodeUtils::accumulatePerturbations, (x, y) -> y);
+  }
+
+  private static List<Set<NodeState>> accumulatePerturbations(
+      List<Set<NodeState>> previousAccumulation, List<NodeState> statesWithSharedNode) {
+    return previousAccumulation.stream()
+        .flatMap(
+            currentSet ->
+                statesWithSharedNode.stream()
+                    .map(
+                        state -> {
+                          Set<NodeState> newPerturbation = new HashSet<>(currentSet);
+                          newPerturbation.add(state);
+                          return newPerturbation;
+                        }))
+        .toList();
+  }
+
+  public static Set<Node> getNodes(Collection<NodeState> states) {
+    return states.stream().map(NodeState::getNode).collect(Collectors.toSet());
+  }
+
   public static Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
     return IntStream.range(0, nodes.length)
         .mapToObj(i -> Map.entry(nodes[i], i))
@@ -82,26 +96,25 @@ public class NodeUtils {
   }
 
   public static String formatStatesToString(Collection<NodeState> stateCollection) {
+    return formatCollectionToString(stateCollection);
+  }
+
+  private static <T> String formatCollectionToString(Collection<T> collection) {
+    if (collection.isEmpty()) return "";
     StringBuilder sb = new StringBuilder();
-    stateCollection.forEach(state -> sb.append(state.toString()).append(", "));
-    sb.setLength(sb.length() - 2);
+    collection.forEach(c -> sb.append(c.toString()).append(", "));
+    if (sb.length() >= 2) {
+      sb.setLength(sb.length() - 2);
+    }
     return sb.toString();
   }
 
   public static String formatIDsToString(Collection<Serializable> ids) {
-    StringBuilder sb = new StringBuilder();
-    ids.forEach(id -> sb.append(id.toString()).append(", "));
-    sb.setLength(sb.length() - 2);
-    return sb.toString();
+    return formatCollectionToString(ids);
   }
 
   public static String formatNodesToString(Collection<Node> nodeCollection) {
-    StringBuilder sb = new StringBuilder();
-    nodeCollection.forEach(node -> sb.append(node.toString()).append(", "));
-    if (sb.length() > 2) {
-      sb.setLength(sb.length() - 2);
-    }
-    return sb.toString();
+    return formatCollectionToString(nodeCollection);
   }
 
   public static List<Serializable> getNodeIds(Collection<Node> nodes) {

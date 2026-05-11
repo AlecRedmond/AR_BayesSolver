@@ -1,8 +1,7 @@
 package io.github.alecredmond.export.method.inference;
 
 import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
-import static io.github.alecredmond.method.network.NetworkScenario.AH_NETWORK;
-import static io.github.alecredmond.method.network.NetworkScenario.FANTASY_GRAPH;
+import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.inference.SolverConstraintResult;
@@ -16,7 +15,7 @@ class BayesSolverTest {
 
   @Test
   void getResults() {
-    BayesianNetwork network = SOLVE_LONG_TESTS ? FANTASY_GRAPH.get() : AH_NETWORK.get();
+    BayesianNetwork network = SOLVE_LONG_TESTS ? FANTASY_GRAPH.get() : CAR_TRIMS.get();
     test = BayesSolver.create(network);
     assertTrue(test.solve());
     SolverResults results = test.getResults();
@@ -31,7 +30,7 @@ class BayesSolverTest {
         worstPercent, worstResults.size(), results.getConstraintResults().size());
 
     int count = 0;
-    for (SolverConstraintResult r : results.getConstraintResults()) {
+    for (SolverConstraintResult r : results.getConstraintResults().values()) {
       if (count == worstResults.size()) {
         System.out.printf("-----------------------------------%n");
       }

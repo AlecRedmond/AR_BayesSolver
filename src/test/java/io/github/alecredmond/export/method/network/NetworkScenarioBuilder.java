@@ -1,6 +1,5 @@
-package io.github.alecredmond.method.network;
+package io.github.alecredmond.export.method.network;
 
-import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -13,9 +12,9 @@ public class NetworkScenarioBuilder {
             .addNewNode("B", List.of("B+", "B-"))
             .addNewNode("C", List.of("C+", "C-"))
             .addNewNode("D", List.of("D+", "D-"))
-            .addParent("B", "A")
-            .addParent("C", "B")
-            .addParent("D", "C")
+            .addParents("B", "A")
+            .addParents("C", "B")
+            .addParents("D", "C")
             .addConstraint("A+", 0.4)
             .addConstraint("B+", List.of("A+"), 0.8)
             .addConstraint("B+", List.of("A-"), 0.5)
@@ -140,23 +139,12 @@ public class NetworkScenarioBuilder {
             .addConstraint("AGE:MIDDLE_AGE", List.of("RACE:ELF"), 0.23)
             // Race|DISTRICT_TYPE
             .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.65)
-            //// .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:SUBURBAN"), 1.05 * 0.65)
-            //// .addConstraint("RACE:HUMAN", List.of("DISTRICT_TYPE:RURAL"), 1.03 * 0.65)
-            //// .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.14)
             .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:SUBURBAN"), 0.78 * 0.14)
             .addConstraint("RACE:ANK", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.14)
-            //// .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:URBAN"), 1.05 * 0.07)
             .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:SUBURBAN"), 0.73 * 0.07)
-            //// .addConstraint("RACE:ORC", List.of("DISTRICT_TYPE:RURAL"), 1.01 * 0.07)
-            //// .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:URBAN"), 1.03 * 0.06)
             .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:SUBURBAN"), 0.70 * 0.06)
             .addConstraint("RACE:GOBLIN", List.of("DISTRICT_TYPE:RURAL"), 0.92 * 0.06)
-            //// .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:URBAN"), 1.08 * 0.05)
-            //// .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.01 * 0.05)
-            //// .addConstraint("RACE:DWARF", List.of("DISTRICT_TYPE:FRONTIER"), 1.1 * 0.05)
             .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:URBAN"), 0.98 * 0.03)
-            //// .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:SUBURBAN"), 1.03 * 0.03)
-            //// .addConstraint("RACE:ELF", List.of("DISTRICT_TYPE:RURAL"), 1.02 * 0.03)
 
             // Wealth|Race,DISTRICT_TYPE
             .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT:CAPITAL_CITY"), 0.25)
@@ -165,12 +153,6 @@ public class NetworkScenarioBuilder {
             .addConstraint("WEALTH:MARGINAL", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"), 0.29)
             .addConstraint("WEALTH:LOW", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.36)
             .addConstraint("WEALTH:HIGH", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.13)
-            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:URBAN"), 0.005)
-            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:RURAL"), 0.001)
-            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:SUBURBAN"),
-            // 0.003)
-            //// .addConstraint("WEALTH:ULTRA", List.of("RACE:HUMAN", "DISTRICT_TYPE:FRONTIER"),
-            // 0.000)
             // Outlook|Race,Wealth,Age,DISTRICT_TYPE
             .addConstraint(
                 "OUTLOOK:REACTIONARY",
@@ -315,7 +297,7 @@ public class NetworkScenarioBuilder {
             .addNewNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
             .addNewNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
             .addNewNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
-            .addParent("SPRINKLER", "RAIN")
+            .addParents("SPRINKLER", "RAIN")
             .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
             .addConstraint("RAIN:TRUE", 0.2)
             .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
@@ -327,6 +309,11 @@ public class NetworkScenarioBuilder {
   }
 
   public static Supplier<BayesianNetwork> buildDiamondNetwork() {
+    //   A
+    //  / \
+    // B   C
+    //  \ /
+    //   D
     return () ->
         BayesianNetwork.newNetwork("DIAMOND NETWORK")
             .addNewNode("A", List.of("A+", "A-", "Ax"))
@@ -336,21 +323,85 @@ public class NetworkScenarioBuilder {
             .addParents("B", List.of("A"))
             .addParents("C", List.of("A"))
             .addParents("D", List.of("B", "C"))
-            // .addConstraint("A+", 0.35)
             .addConstraint("A-", 0.05)
             .addConstraint("Cx", List.of("Ax"), 0.7)
             .addConstraint("C+", List.of("Ax"), 0.025)
             .addConstraint("C+", List.of("A+"), 0.625)
             .addConstraint("C+", List.of("A-"), 0.68)
             .addConstraint("Bx", List.of("Ax"), 1.0)
-            .addConstraint("B+", List.of("A+"), 0.95)
-            .addConstraint("B+", List.of("D++"), 1.0)
+            .addConstraint(List.of("B+", "B-"), List.of("A+"), 1.0)
             .addConstraint("C+", List.of("D++"), 1.0)
-            .addConstraint("Dx", List.of("Cx"), 1.0)
-            .addConstraint("Dx", List.of("Bx"), 1.0)
-            .addConstraint(List.of("D++", "D+-"), List.of("A+"), 0.85)
-            .addConstraint(List.of("D++", "D+-"), List.of(), 0.325)
-            .addConstraint(List.of("D++", "D--"), List.of("A-"), 0.1)
-            .addConstraint(List.of("Dx"), List.of("Ax"), 1.0);
+            .addConstraint(List.of("D++", "D+-"), List.of(), 0.325);
+  }
+
+  public static Supplier<BayesianNetwork> buildWeatherNetwork() {
+    // CLOUD_COVER
+    //      |
+    // PRECIPITATION
+    return () ->
+        BayesianNetwork.newNetwork("WEATHER_AND_PRECIP")
+            .addNewNode("CLOUD_COVER", List.of("CLOUD:CLEAR", "CLOUD:LIGHT", "CLOUD:HEAVY"))
+            .addNewNode("PRECIPITATION", List.of("PRECIP:NONE", "PRECIP:RAIN", "PRECIP:SNOW"))
+            .addParents("PRECIPITATION", List.of("CLOUD_COVER"))
+            .addConstraint("CLOUD:HEAVY", 0.30)
+            .addConstraint(List.of("CLOUD:CLEAR", "CLOUD:LIGHT"), List.of(), 0.70)
+            .addConstraint("PRECIP:NONE", List.of("CLOUD:CLEAR"), 1.0)
+            .addConstraint(List.of("CLOUD:LIGHT", "PRECIP:RAIN"), List.of(), 0.15)
+            .addConstraint(List.of("PRECIP:RAIN", "PRECIP:SNOW"), List.of("CLOUD:HEAVY"), 0.90);
+  }
+
+  public static Supplier<BayesianNetwork> buildCarTrimNetwork() {
+    //          TRIM LEVEL---------
+    //         /     |    \        \
+    // ENGINE TYPE   |    INTERIOR  COLOUR
+    //    | |      / |     |
+    //    | GEARBOX  |     |
+    //     \  \      |    /
+    //      ----  PRICE
+    return () ->
+        BayesianNetwork.newNetwork("CAR MODEL VARIANTS")
+            .addNewNode("TRIM", List.of("STANDARD", "SPORT", "GT", "GTR", "HOMOLOGATION"))
+            .addNewNode("ENGINE", List.of("1L ECO", "1.6 TURBO", "2.0 DIESEL", "3.0 V6"))
+            .addNewNode("INTERIOR", List.of("BASIC", "MID", "LUX", "LIGHT"))
+            .addNewNode("COLOUR", List.of("WHITE", "BLACK", "SILVER", "RED", "BLUE"))
+            .addNewNode("GEARBOX", List.of("5x MANUAL", "6x MANUAL", "3x AUTO", "6x DCT"))
+            .addNewNode("PRICE", List.of("£20k", "£40k", "£80k", "£250k"))
+            // STRUCTURE
+            .addParents("ENGINE", "TRIM")
+            .addParents("INTERIOR", "TRIM")
+            .addParents("COLOUR", "TRIM")
+            .addParents("GEARBOX", List.of("ENGINE", "TRIM"))
+            .addParents("PRICE", List.of("ENGINE", "GEARBOX", "INTERIOR", "TRIM"))
+            // CONSTRAINTS
+            .addConstraint(
+                List.of("3.0 V6", "6x DCT", "LIGHT", "£250k"), List.of("HOMOLOGATION"), 1.0)
+            .addConstraint(List.of("3.0 V6", "6x MANUAL", "LUX", "£80k"), List.of("GTR"), 1.0)
+            .addConstraint("1L ECO", "£20k", 1.0)
+            .addConstraint("BASIC", "£20k", 1.0)
+            .addConstraint(List.of("5x MANUAL", "3x AUTO"), List.of("£20k", "1L ECO"), 1.0)
+            .addConstraint("STANDARD", "£20k", 1.0)
+            .addConstraint(List.of("6x MANUAL", "3x AUTO"), List.of("GT"), 1.0)
+            .addConstraint(List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("2.0 DIESEL","3.0 V6"), 1.0)
+            //.addConstraint(List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("3.0 V6"), 1.0)
+            .addConstraint(List.of("6x MANUAL", "5x MANUAL", "1.6 TURBO"), List.of("SPORT"), 1.0)
+            .addConstraint("£40k", "SPORT", 1.0)
+            .addConstraint("£80k", "GT", 0.6)
+            .addConstraint(List.of("£20k", "£40k"), List.of("3.0 V6"), 0.0)
+            .addConstraint("BLACK", "GTR", 0.5)
+            .addConstraint("BLUE", "HOMOLOGATION", 0.85)
+            .addConstraint("BLUE", "SPORT", 0.65)
+            .addConstraint("HOMOLOGATION", "£250k", 1.0)
+            // MARGINALS
+            // PRICE
+            .addConstraint("£80k", 0.075)
+            .addConstraint("£250k", 1e-5)
+            // ENGINES
+            .addConstraint("1L ECO", 0.65)
+            .addConstraint("1.6 TURBO", 0.1)
+            .addConstraint("2.0 DIESEL", 0.2)
+            // COLOUR
+            .addConstraint("BLACK", 0.25)
+            .addConstraint("BLUE", 0.35)
+            .addConstraint("WHITE", 0.1);
   }
 }

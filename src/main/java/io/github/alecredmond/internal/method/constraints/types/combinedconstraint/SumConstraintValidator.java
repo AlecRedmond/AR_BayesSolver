@@ -10,7 +10,9 @@ import io.github.alecredmond.internal.method.node.NodeUtils;
 public class SumConstraintValidator extends ConstraintValidator<SumProbabilityConstraint> {
   @Override
   public boolean validateInputs(ConstraintBuilderData data) {
-    return data.getEventStates().size() > 1;
+    boolean hasMultipleEvents = data.getEventStates().size() > 1;
+    boolean withSharedNodes = data.getEventNodes().size() < data.getEventStates().size();
+    return hasMultipleEvents && withSharedNodes;
   }
 
   @Override

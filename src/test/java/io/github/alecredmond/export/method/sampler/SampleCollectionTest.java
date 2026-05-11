@@ -1,14 +1,14 @@
-package io.github.alecredmond.method.sampler;
+package io.github.alecredmond.export.method.sampler;
 
 import static io.github.alecredmond.TestConfigs.*;
-import static io.github.alecredmond.method.network.NetworkScenario.*;
+import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

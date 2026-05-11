@@ -13,8 +13,9 @@ public class JointConstraintValidator extends ConstraintValidator<JointProbabili
 
   @Override
   public boolean validateInputs(ConstraintBuilderData data) {
-    return data.getEventStates().size() > 1
-        && data.getEventNodes().size() == data.getEventStates().size();
+    boolean hasMultipleEvents = data.getEventStates().size() > 1;
+    boolean overDifferentNodes = data.getEventNodes().size() == data.getEventStates().size();
+    return hasMultipleEvents && overDifferentNodes;
   }
 
   @Override

@@ -1,14 +1,14 @@
 package io.github.alecredmond.internal.serialization;
 
 import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
-import static io.github.alecredmond.method.network.NetworkScenario.*;
-import static io.github.alecredmond.method.network.NetworkScenarioBuilder.*;
+import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.network.NetworkScenario;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -23,19 +23,22 @@ class BayesianNetworkSerializerTest {
 
   static Stream<Arguments> provideNetworks() {
     return networkSuppliers.stream()
-        .map(Supplier::get)
-        .map(BayesianNetwork::solveNetwork)
+        .flatMap(BayesianNetworkSerializerTest::solvedAndUnsolved)
         .map(Arguments::of);
+  }
+
+  private static Stream<BayesianNetwork> solvedAndUnsolved(
+      Supplier<BayesianNetwork> bayesianNetworkSupplier) {
+    return Stream.of(bayesianNetworkSupplier.get(), bayesianNetworkSupplier.get().solveNetwork());
   }
 
   @BeforeAll
   static void init() {
-    networkSuppliers = new ArrayList<>();
-    networkSuppliers.add(AH_NETWORK.getSupplier());
-    networkSuppliers.add(SIMPLE_LINEAR.getSupplier());
-    networkSuppliers.add(RAIN_NETWORK.getSupplier());
-    if (!SOLVE_LONG_TESTS) return;
-    networkSuppliers.add(FANTASY_GRAPH.getSupplier());
+    networkSuppliers =
+        Arrays.stream(values())
+            .filter(scenario -> !scenario.equals(FANTASY_GRAPH) || SOLVE_LONG_TESTS)
+            .map(NetworkScenario::getSupplier)
+            .toList();
   }
 
   @ParameterizedTest
@@ -62,6 +65,8 @@ class BayesianNetworkSerializerTest {
   void testNetworksAreEqual_shouldReturnTrue(BayesianNetwork network) {
     BayesianNetworkData before = network.getNetworkData();
     BayesianNetworkData after = test.deSerialize(test.serialize(network)).getNetworkData();
+    assertFalse(before.getConstraints().isEmpty());
+    assertFalse(after.getConstraints().isEmpty());
     assertEquals(before, after);
   }
 }

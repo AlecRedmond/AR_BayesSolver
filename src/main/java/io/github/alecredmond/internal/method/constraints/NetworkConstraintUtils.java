@@ -1,14 +1,13 @@
 package io.github.alecredmond.internal.method.constraints;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
+import lombok.NonNull;
 
 public class NetworkConstraintUtils {
 
@@ -25,16 +24,30 @@ public class NetworkConstraintUtils {
 
   public static Optional<ConstraintValidationException> addConstraint(
       ProbabilityConstraint constraint, BayesianNetworkData networkData) {
-    return addConstraint(new ConstraintBuilder(constraint, networkData));
+    return addConstraintFromBuilder(new ConstraintBuilder(constraint, networkData), networkData);
   }
 
-  private static Optional<ConstraintValidationException> addConstraint(ConstraintBuilder builder) {
+  private static Optional<ConstraintValidationException> addConstraintFromBuilder(
+      ConstraintBuilder builder, BayesianNetworkData networkData) {
     Optional<ConstraintValidationException> e = builder.getException();
     if (e.isPresent()) {
       return e;
     }
-    builder.getData().getNetworkData().getConstraints().add(builder.getConstraint());
+    networkData.getConstraints().add(builder.getConstraint());
     return Optional.empty();
+  }
+
+  public static Optional<ConstraintValidationException> addConstraints(
+      Set<NodeState> eventStates,
+      Set<NodeState> conditionStates,
+      double probability,
+      BayesianNetworkData networkData) {
+    List<Set<NodeState>> splitConditions = NodeUtils.splitStatesSharingNodes(conditionStates);
+    List<Optional<ConstraintValidationException>> list = new ArrayList<>();
+    for (Set<NodeState> condition : splitConditions) {
+      list.add(addConstraint(eventStates, condition, probability, networkData));
+    }
+    return list.stream().findFirst().orElse(Optional.empty());
   }
 
   public static Optional<ConstraintValidationException> addConstraint(
@@ -42,22 +55,8 @@ public class NetworkConstraintUtils {
       Set<NodeState> conditionStates,
       double probability,
       BayesianNetworkData networkData) {
-    return addConstraint(
-        new ConstraintBuilder(eventStates, conditionStates, probability, networkData));
-  }
-
-  public static Optional<ConstraintValidationException> addConstraint(
-      NodeState eventState, double probability, BayesianNetworkData networkData) {
-    return addConstraint(new ConstraintBuilder(eventState, probability, networkData));
-  }
-
-  public static Optional<ConstraintValidationException> addConstraint(
-      NodeState eventState,
-      Set<NodeState> conditionStates,
-      double probability,
-      BayesianNetworkData networkData) {
-    return addConstraint(
-        new ConstraintBuilder(eventState, conditionStates, probability, networkData));
+    return addConstraintFromBuilder(
+        new ConstraintBuilder(eventStates, conditionStates, probability, networkData), networkData);
   }
 
   public static boolean removeAllConstraints(BayesianNetworkData networkData) {
@@ -69,63 +68,33 @@ public class NetworkConstraintUtils {
     return true;
   }
 
-  public static boolean removeConstraint(NodeState eventStateId, BayesianNetworkData networkData) {
-    return removeConstraint(eventStateId, Set.of(), networkData);
+  public static boolean removeConstraint(
+      Set<NodeState> eventStates, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
+    return removeConstraints(exactMatch(eventStates, conditionStates), networkData);
+  }
+
+  public static boolean removeConstraints(
+      Predicate<ProbabilityConstraint> predicate, BayesianNetworkData data) {
+    return data.getConstraints().removeIf(predicate);
+  }
+
+  private static Predicate<ProbabilityConstraint> exactMatch(
+      Set<NodeState> eventStates, Set<NodeState> conditionStates) {
+    return constraint ->
+        constraint.getEventStates().equals(eventStates)
+            && constraint.getConditionStates().equals(conditionStates);
   }
 
   public static boolean removeConstraint(
-      NodeState eventState, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
-    ProbabilityConstraint probabilityConstraint =
-        getConstraint(eventState, conditionStates, networkData);
-    if (probabilityConstraint == null) {
-      return false;
-    }
-    return removeConstraint(probabilityConstraint, networkData);
-  }
-
-  public static ProbabilityConstraint getConstraint(
-      NodeState eventState, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
-    if (conditionStates.isEmpty()) {
-      return getConstraint(eventState, networkData);
-    }
-
-    return networkData.getConstraints().parallelStream()
-        .filter(ConditionalConstraint.class::isInstance)
-        .map(ConditionalConstraint.class::cast)
-        .filter(cc -> cc.getEventState().equals(eventState))
-        .filter(cc -> cc.getConditionStates().equals(conditionStates))
-        .findFirst()
-        .orElse(null);
-  }
-
-  public static boolean removeConstraint(
-      ProbabilityConstraint probabilityConstraint, BayesianNetworkData networkData) {
+      @NonNull ProbabilityConstraint probabilityConstraint, BayesianNetworkData networkData) {
     return networkData.getConstraints().remove(probabilityConstraint);
   }
 
-  public static MarginalConstraint getConstraint(
-      NodeState eventState, BayesianNetworkData networkData) {
+  public static ProbabilityConstraint getConstraint(
+      Set<NodeState> eventStates, Set<NodeState> conditionStates, BayesianNetworkData networkData) {
     return networkData.getConstraints().parallelStream()
-        .filter(MarginalConstraint.class::isInstance)
-        .map(MarginalConstraint.class::cast)
-        .filter(mc -> mc.getEventState().equals(eventState))
+        .filter(exactMatch(eventStates, conditionStates))
         .findFirst()
         .orElse(null);
-  }
-
-  public static boolean removeAllConstraintsContaining(Node node, BayesianNetworkData data) {
-    Set<ProbabilityConstraint> toRemove =
-        data.getConstraints().parallelStream()
-            .filter(constraint -> constraint.getAllNodes().contains(node))
-            .collect(Collectors.toSet());
-    return data.getConstraints().removeAll(toRemove);
-  }
-
-  public static boolean removeAllConstraintsContaining(NodeState state, BayesianNetworkData data) {
-    Set<ProbabilityConstraint> toRemove =
-        data.getConstraints().parallelStream()
-            .filter(constraint -> constraint.getAllStates().contains(state))
-            .collect(Collectors.toSet());
-    return data.getConstraints().removeAll(toRemove);
   }
 }
