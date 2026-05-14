@@ -147,13 +147,17 @@ public class NodeUtils {
     setter.accept(list.stream().filter(predicate.negate()).toList());
   }
 
-  public static void removeParent(Node node, Node parent) {
+  public static boolean removeParent(Node node, Node parent) {
+    boolean removed = false;
     if (node.getParents().contains(parent)) {
       removeFromList(node.getParents(), parent::equals, node::setParents);
+      removed = true;
     }
     if (parent.getChildren().contains(node)) {
       removeFromList(parent.getChildren(), node::equals, parent::setChildren);
+      removed = true;
     }
+    return removed;
   }
 
   public static Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {

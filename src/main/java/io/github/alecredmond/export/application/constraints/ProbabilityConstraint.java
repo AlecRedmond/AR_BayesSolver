@@ -9,6 +9,17 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * A probability distribution constraint in the form {@code P(E|C) = p}. During the solving process,
+ * the solver will attempt to find a solution minimizing the divergence from the constraints
+ * assigned to it.
+ *
+ * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+ * constraints that span conditionally independent nodes cannot be losslessly projected back to
+ * individual CPT entries, and may produce different inference results after fitting.
+ *
+ * @author Alec Redmond
+ */
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode

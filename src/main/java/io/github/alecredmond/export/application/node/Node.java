@@ -3,6 +3,7 @@ package io.github.alecredmond.export.application.node;
 import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -15,6 +16,15 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * A Node representing one of the variables in the Bayesian Network. Each node contains a list of
+ * its variables - called {@link NodeState} in AR_BayesSolver - as well as its parents and children.
+ * A node is conditionally dependent on its parents, while the children are conditionally dependent
+ * on the node.
+ *
+ * <p>Note: All nodes in a network MUST be registered in the {@link BayesianNetwork} instance before
+ * attempting to connect them to their parents or children through the methods defined here.
+ */
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
@@ -41,6 +51,7 @@ public class Node {
     this.nodeStates = List.of();
   }
 
+
   public void setNodeStates(List<NodeState> nodeStates) {
     List<NodeState> oldStates = this.nodeStates;
     this.nodeStates = Collections.unmodifiableList(nodeStates);
@@ -51,6 +62,7 @@ public class Node {
       this.nodeStates = oldStates;
     }
   }
+
 
   public void setParents(List<Node> parents) {
     List<Node> oldParents = this.parents;
