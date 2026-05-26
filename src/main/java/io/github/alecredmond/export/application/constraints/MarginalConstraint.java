@@ -20,7 +20,8 @@ import lombok.NonNull;
  *   <li>{@code P(RAIN:TRUE) = 0.8}<br>
  *       Graph-Ordered: The unconditional probability for P(RAIN)
  *   <li>{@code P(SPRINKLER:TRUE) = 0.6}<br>
- *       Non-Graph-Ordered: A soft marginal constraint on P(SPRINKLER)
+ *       Non-Graph-Ordered: A marginal constraint on P(SPRINKLER), which will be projected back to
+ *       P(SPRINKLER|RAIN) after solving.
  * </ul>
  *
  * @see ProbabilityConstraint

@@ -12,6 +12,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * A table mapping the distribution of probabilities over all states of a {@link Node}, conditional
+ * on its parent states. This is used as the CPT for non-root nodes in a Bayesian Network. The table
+ * contains a helper object for querying the probability distribution.
+ *
+ * @see ProbabilityTable
+ */
 @Slf4j
 @Getter
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)

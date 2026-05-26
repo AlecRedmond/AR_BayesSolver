@@ -13,6 +13,14 @@ import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+/**
+ * A table mapping the distribution of probabilities over all states of a single {@link Node}. This
+ * is either used as the CPT for Root Nodes in the Bayesian Network, or for observed marginal values
+ * found during inference. The table contains a helper object for querying the probability
+ * distribution.
+ *
+ * @see ProbabilityTable
+ */
 @Getter
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class MarginalTable extends ProbabilityTable {
@@ -35,7 +43,7 @@ public class MarginalTable extends ProbabilityTable {
     this.networkNode = networkNode;
   }
 
-    @Override
+  @Override
   protected TableHelper<MarginalTable> buildHelper() {
     return new MarginalTableHelperImpl(this);
   }
