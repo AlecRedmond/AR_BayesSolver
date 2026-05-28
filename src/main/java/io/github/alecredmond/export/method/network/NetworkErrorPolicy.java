@@ -22,5 +22,4 @@ public class NetworkErrorPolicy {
           throw e;
         };
   }
-
 }

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 public interface ConditionalTableHelper extends TableHelper<ConditionalTable> {
-
   boolean setProbability(Collection<NodeState> states, double probability);
 
   boolean setProbabilityById(Collection<Serializable> stateIds, double probability);

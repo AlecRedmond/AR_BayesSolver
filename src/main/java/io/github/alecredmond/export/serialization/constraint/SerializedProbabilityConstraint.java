@@ -6,5 +6,5 @@ import java.io.Serializable;
 public interface SerializedProbabilityConstraint<T extends ProbabilityConstraint>
     extends Serializable {
 
-    Class<T> getConstraintClass();
+  Class<T> getConstraintClass();
 }

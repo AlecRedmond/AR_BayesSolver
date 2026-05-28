@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 public abstract class SerializedProbabilityConstraintBase {
   protected Serializable eventStateId;
   protected double probability;
-
 }

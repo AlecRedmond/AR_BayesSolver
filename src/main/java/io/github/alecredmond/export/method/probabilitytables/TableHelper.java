@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface TableHelper<T extends ProbabilityTable> {
-
   Double getProbability(Collection<NodeState> states);
 
   Double getProbabilityFromIDs(Collection<Serializable> stateIds);

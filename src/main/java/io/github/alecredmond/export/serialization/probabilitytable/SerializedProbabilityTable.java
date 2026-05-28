@@ -1,9 +1,8 @@
 package io.github.alecredmond.export.serialization.probabilitytable;
 
+import io.github.alecredmond.export.serialization.probabilitytable.probabilityvector.SerializedProbabilityVector;
 import java.io.Serializable;
 import java.util.*;
-
-import io.github.alecredmond.export.serialization.probabilitytable.probabilityvector.SerializedProbabilityVector;
 import lombok.Data;
 
 @Data
