@@ -50,4 +50,9 @@ public interface InferenceEngine {
   BayesianNetwork getNetwork();
 
   Sampler createSampler();
+
+  enum InferenceType {
+    JOINT_TABLE_INFERENCE,
+    JUNCTION_TREE_INFERENCE
+  }
 }

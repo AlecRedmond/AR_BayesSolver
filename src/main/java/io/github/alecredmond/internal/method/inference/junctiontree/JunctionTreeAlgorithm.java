@@ -5,7 +5,9 @@ import static io.github.alecredmond.internal.method.node.NodeUtils.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
@@ -19,27 +21,33 @@ import lombok.Getter;
 @Getter
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
+  private final JTANetworkWriter networkWriter;
 
   public JunctionTreeAlgorithm(JunctionTreeData data) {
     this.data = data;
-    JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
+    this.networkWriter = new JTANetworkWriter(data);
+    networkWriter.initializeJunctionTreeFromNetwork();
   }
 
-  public static JunctionTreeAlgorithm buildForSolver(BayesianNetworkData bnd) {
-    return new JunctionTreeAlgorithm(JTAInitializer.buildNewSolverConfiguration(bnd));
+  public static JunctionTreeAlgorithm buildForSolver(
+      BayesianNetworkData bnd, SolverConfigs configs) {
+    return new JunctionTreeAlgorithm(
+        new JTADataBuilder().buildNewSolverConfiguration(bnd, configs));
   }
 
-  public static JunctionTreeAlgorithm buildForInference(BayesianNetworkData bnd) {
-    return new JunctionTreeAlgorithm(JTAInitializer.buildNewInferenceConfiguration(bnd));
+  public static JunctionTreeAlgorithm buildForInference(
+      BayesianNetworkData bnd, InferenceType inferenceType) {
+    return new JunctionTreeAlgorithm(
+        new JTADataBuilder().buildNewInferenceConfiguration(bnd, inferenceType));
   }
 
-  public void rebuildJTA(BayesianNetworkData bnd) {
-    JTAInitializer.buildInferenceConfiguration(data, bnd);
-    JTANetworkWriter.initializeJunctionTreeFromNetwork(data);
+  public void rebuildJTA(BayesianNetworkData bnd, InferenceType inferenceType) {
+    new JTADataBuilder().buildInferenceConfiguration(data, bnd, inferenceType);
+    networkWriter.initializeJunctionTreeFromNetwork();
   }
 
   public void writeObservations() {
-    JTANetworkWriter.writeObservations(data);
+    networkWriter.writeObservations();
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
@@ -74,7 +82,7 @@ public class JunctionTreeAlgorithm {
   }
 
   public void writeTablesToNetwork() {
-    JTANetworkWriter.writeBackToCPTs(data);
+    networkWriter.writeBackToCPTs();
   }
 
   public double getJointProbability() {
