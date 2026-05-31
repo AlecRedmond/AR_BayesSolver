@@ -38,8 +38,8 @@ public class TableUtils {
   }
 
   public static Collection<NodeState> assertAllIdsPresent(
-      Collection<Serializable> states, Set<Node> expected, ProbabilityTable table) {
-    return assertAllNodesPresent(convertIdsToStates(states, table), expected);
+      Collection<Serializable> stateIds, ProbabilityTable table, Set<Node> expected) {
+    return assertAllNodesPresent(convertIdsToStates(stateIds, table), expected);
   }
 
   public static Collection<NodeState> assertAllNodesPresent(
@@ -63,16 +63,6 @@ public class TableUtils {
     if (missing.isEmpty()) return states;
     throw new ProbabilityTableRequestException(
         "IDs %s not found in table %s!".formatted(NodeUtils.formatIDsToString(missing), table));
-  }
-
-  public static Collection<NodeState> assertAllIdsPresent(
-      Collection<Serializable> states, ProbabilityTable table) {
-    return assertAllNodesPresent(convertIdsToStates(states, table), table);
-  }
-
-  public static Collection<NodeState> assertAllNodesPresent(
-      Collection<NodeState> states, ProbabilityTable table) {
-    return assertAllNodesPresent(states, table.getNodes());
   }
 
   public static <T extends ProbabilityTable> void setProbability(
@@ -114,13 +104,13 @@ public class TableUtils {
     return map;
   }
 
-    public static Map<NodeState, Double> buildMarginalProbMap(MarginalTable table) {
-      List<NodeState> states = table.getNetworkNode().getNodeStates();
-      double[] prob = table.getVector().getProbabilities();
-      return IntStream.range(0, prob.length)
-          .mapToObj(i -> Map.entry(states.get(i), prob[i]))
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
+  public static Map<NodeState, Double> buildMarginalProbMap(MarginalTable table) {
+    List<NodeState> states = table.getNetworkNode().getNodeStates();
+    double[] prob = table.getVector().getProbabilities();
+    return IntStream.range(0, prob.length)
+        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
 
   private static <T extends ProbabilityTable> void setComplementStatesToZero(
       Collection<NodeState> states, T table) {
