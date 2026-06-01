@@ -47,7 +47,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
   protected Collection<NodeState> getStates(
       Collection<Serializable> stateIds, Set<Node> expectedNodes) {
     return safeMode
-        ? TableUtils.assertAllIdsPresent(stateIds, table, expectedNodes)
+        ? TableUtils.assertAllIdsPresent(stateIds, expectedNodes, table)
         : TableUtils.convertIdsToStates(stateIds, table);
   }
 

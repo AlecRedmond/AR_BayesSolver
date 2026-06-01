@@ -38,7 +38,7 @@ public class TableUtils {
   }
 
   public static Collection<NodeState> assertAllIdsPresent(
-      Collection<Serializable> stateIds, ProbabilityTable table, Set<Node> expected) {
+      Collection<Serializable> stateIds, Set<Node> expected, ProbabilityTable table) {
     return assertAllNodesPresent(convertIdsToStates(stateIds, table), expected);
   }
 
