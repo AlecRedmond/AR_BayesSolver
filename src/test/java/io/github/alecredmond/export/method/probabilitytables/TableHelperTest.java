@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -26,44 +27,68 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@SuppressWarnings("rawtypes")
 @Slf4j
 class TableHelperTest {
 
   public static Stream<Arguments> provideMarginalizeTableArgs() {
-    return provideArgs((t, n) -> Stream.of(Arguments.of(t)), s -> s.get().buildNetworkData());
+    return provideArgs(
+        (t, n) -> Stream.of(Arguments.of(t)), s -> s.get().buildNetworkData(), t -> true);
   }
 
   static Stream<Arguments> provideArgs(
       BiFunction<NetworkTable, BayesianNetwork, Stream<Arguments>> function,
-      Function<NetworkScenario, BayesianNetwork> networkInit) {
+      Function<NetworkScenario, BayesianNetwork> networkInit,
+      Predicate<? super NetworkTable> tableFilter) {
     return Arrays.stream(NetworkScenario.values())
         .filter(networkScenario -> !FANTASY_GRAPH.equals(networkScenario) || SOLVE_LONG_TESTS)
         .map(networkInit)
         .flatMap(
             network ->
                 network.getNetworkData().getNetworkTablesMap().values().stream()
-                    .flatMap(t -> function.apply(t, network)));
+                    .filter(tableFilter)
+                    .map(t -> Optional.ofNullable(function.apply(t, network)))
+                    .filter(Optional::isPresent)
+                    .flatMap(Optional::get));
   }
 
-  public static Stream<Arguments> provideGetConditionProbArgs() {
-    return provideSolvedArgs(TableHelperTest::allConditionsForTable);
+  public static Stream<Arguments> provideProbabilitySetMapTables() {
+    return provideTableOnly(ConditionalTable.class::isInstance);
+  }
+
+  static Stream<Arguments> provideTableOnly(Predicate<? super NetworkTable> tableFilter) {
+    return provideSolvedArgs((table, network) -> Stream.of(Arguments.of(table)), tableFilter);
   }
 
   static Stream<Arguments> provideSolvedArgs(
-      BiFunction<NetworkTable, BayesianNetwork, Stream<Arguments>> function) {
-    return provideArgs(function, scenario -> scenario.get().solveNetwork());
+      BiFunction<NetworkTable, BayesianNetwork, Stream<Arguments>> function,
+      Predicate<? super NetworkTable> tableFilter) {
+    return provideArgs(function, scenario -> scenario.get().solveNetwork(), tableFilter);
+  }
+
+  public static Stream<Arguments> provideSafeModeArgs() {
+    return provideTableOnly(ConditionalTable.class::isInstance);
+  }
+
+  public static Stream<Arguments> provideCopyTableArgs() {
+    return provideTableOnly(t -> true);
+  }
+
+  public static Stream<Arguments> provideGetConditionProbArgs() {
+    return provideSolvedArgs(TableHelperTest::allConditionsForTable, t -> true);
   }
 
   private static Stream<Arguments> allConditionsForTable(NetworkTable t, BayesianNetwork n) {
-    List<Collection<NodeState>> conditions =
-        new StateCombinationGenerator(t).generateCombos(t.getConditions(), ArrayList::new);
-    Set<Node> eventNodes = t.getEvents();
     List<ProbabilityConstraint> eventStateConstraints =
         n.getNetworkData().getConstraints().stream()
-            .filter(c -> c.getEventNodes().equals(eventNodes))
+            .filter(c -> c.getEventNodes().equals(t.getEvents()))
             .filter(c -> c.getEventStates().size() == 1)
+            .filter(c -> c.getConditionNodes().equals(t.getConditions()))
             .toList();
+
+    if (eventStateConstraints.isEmpty()) return null;
+
+    List<Collection<NodeState>> conditions =
+        new StateCombinationGenerator(t).generateCombos(t.getConditions(), ArrayList::new);
 
     if (conditions.isEmpty()) {
       Map<NodeState, ProbabilityConstraint> map = new HashMap<>();
@@ -82,12 +107,17 @@ class TableHelperTest {
                           map.put(
                               constraint.getEventStates().stream().findFirst().orElseThrow(),
                               constraint));
-              return Arguments.of(t, map, conditionStates);
-            });
+              return map.isEmpty()
+                  ? Optional.empty()
+                  : Optional.of(Arguments.of(t, map, conditionStates));
+            })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(Arguments.class::cast);
   }
 
   static Stream<Arguments> provideGetProbArgs() {
-    return provideSolvedArgs(TableHelperTest::buildGetProbArgs);
+    return provideSolvedArgs(TableHelperTest::buildGetProbArgs, t -> true);
   }
 
   static Stream<Arguments> buildGetProbArgs(NetworkTable table, BayesianNetwork network) {
@@ -98,10 +128,6 @@ class TableHelperTest {
         .filter(c -> c.getEventStates().size() == 1)
         .filter(c -> c.getConditionNodes().equals(conditionNodes))
         .map(c -> Arguments.of(table, c));
-  }
-
-  static Stream<Arguments> provideTableOnly() {
-    return provideSolvedArgs((table, network) -> Stream.of(Arguments.of(table)));
   }
 
   @ParameterizedTest
@@ -122,7 +148,7 @@ class TableHelperTest {
   }
 
   @ParameterizedTest
-  @MethodSource("provideTableOnly")
+  @MethodSource("provideCopyTableArgs")
   void copyTable(NetworkTable networkTable) {
     TableHelper<?> helper = networkTable.getHelper();
     ProbabilityTable copied = helper.copyTable();
@@ -173,11 +199,8 @@ class TableHelperTest {
   }
 
   @ParameterizedTest
-  @MethodSource("provideTableOnly")
+  @MethodSource("provideSafeModeArgs")
   void setSafeMode(NetworkTable networkTable) {
-    if (networkTable instanceof MarginalTable) {
-      return;
-    }
     TableHelper<?> helper = networkTable.getHelper();
     Node networkNode = networkTable.getNetworkNode();
     double[] probs = networkTable.getVector().getProbabilities();
@@ -194,5 +217,18 @@ class TableHelperTest {
               NodeState state = eventStates.get(i);
               assertEquals(probs[i], helper.getProbability(List.of(state)), DOUBLE_EQUALITY);
             });
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideProbabilitySetMapTables")
+  void buildProbabilitySetMap(ConditionalTable conditionalTable) {
+    ConditionalTableHelper helper = conditionalTable.getHelper();
+    Map<Set<NodeState>, Double> map = helper.buildProbabilitySetMap();
+    double[] probs = conditionalTable.getVector().getProbabilities();
+    int index = 0;
+    for (Double p : map.values()) {
+      assertEquals(probs[index], p, DOUBLE_EQUALITY);
+      index++;
+    }
   }
 }

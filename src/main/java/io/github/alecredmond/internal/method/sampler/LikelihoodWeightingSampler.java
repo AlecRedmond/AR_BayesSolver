@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.sampler;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
