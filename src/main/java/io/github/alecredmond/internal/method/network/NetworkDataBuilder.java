@@ -3,6 +3,7 @@ package io.github.alecredmond.internal.method.network;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
@@ -85,7 +86,7 @@ public class NetworkDataBuilder {
             node -> {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
-              ProbabilityTable table = TableBuilder.buildNetworkTable(events, conditions);
+              NetworkTable table = TableBuilder.buildNetworkTable(events, conditions);
               table.getHelper().marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });

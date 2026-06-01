@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
@@ -323,7 +323,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
-  public <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID) {
+  public <T extends Serializable> NetworkTable getNetworkTable(T nodeID) {
     if (!networkData.isSolved()) solveNetwork();
     return networkData.getNetworkTableById(nodeID);
   }

@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -20,7 +20,7 @@ public class TableBuilder {
 
   private TableBuilder() {}
 
-  public static ProbabilityTable buildNetworkTable(List<Node> events, List<Node> conditions) {
+  public static NetworkTable buildNetworkTable(List<Node> events, List<Node> conditions) {
     if (events.isEmpty())
       throw new TableBuilderException("attempted to build a table with no events!");
     if (!conditions.isEmpty()) return buildConditionalTable(events, conditions);
@@ -29,7 +29,7 @@ public class TableBuilder {
         "Could not build a marginal or conditional table from request!");
   }
 
-  private static ProbabilityTable buildConditionalTable(List<Node> events, List<Node> conditions) {
+  private static NetworkTable buildConditionalTable(List<Node> events, List<Node> conditions) {
     List<Node> nodesList = joinEventsAndConditions(events, conditions);
     Set<Node> nodes = new LinkedHashSet<>(nodesList);
     ProbabilityVector vector = new ProbabilityVectorFactory().build(nodesList);

@@ -4,6 +4,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
@@ -71,7 +72,7 @@ public class JTAInitializer {
 
     TransferIteratorFactory builder = new TransferIteratorFactory();
 
-    Map<Node, ProbabilityTable> networkTables = bnd.getNetworkTablesMap();
+    Map<Node, NetworkTable> networkTables = bnd.getNetworkTablesMap();
     Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
 
     for (Node node : bnd.getNodes()) {

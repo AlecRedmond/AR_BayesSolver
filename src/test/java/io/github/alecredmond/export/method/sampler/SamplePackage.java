@@ -4,8 +4,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.export.method.sampler.Sampler;
 import java.util.Set;
 import lombok.Data;
 

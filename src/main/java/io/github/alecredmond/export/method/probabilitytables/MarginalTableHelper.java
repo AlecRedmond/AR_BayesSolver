@@ -11,9 +11,5 @@ public interface MarginalTableHelper extends TableHelper<MarginalTable> {
 
     Double getProbabilityById(Serializable id);
 
-    boolean setProbability(NodeState state,double probability);
-
-    boolean setProbabilityById(Serializable id,double probability);
-
     Map<NodeState,Double> buildProbabilityMap();
 }
