@@ -1,37 +1,38 @@
 package io.github.alecredmond.internal.method.sampler;
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.export.method.sampler.Sampler;
-import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.io.Serializable;
 import java.util.*;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Getter
 public abstract class SamplerImpl implements Sampler {
   protected static final Random RANDOM = new Random();
-  protected final BayesianNetworkData networkData;
-  protected final InferenceEngine engine;
+  protected final BayesianNetwork network;
 
-  protected SamplerImpl(BayesianNetwork network, InferenceEngine engine) {
-    this.networkData = network.getNetworkData();
-    this.engine = engine;
+  protected SamplerImpl(BayesianNetwork network) {
+    this.network = network;
   }
 
   @Override
-  public SampleCollection generateSamples(int numberOfSamples) {
-    return generateWithEvidence(engine.getCurrentObservations(), numberOfSamples);
+  public SampleCollectionImpl generateSamples(int numberOfSamples) {
+    return generateSamples(new HashMap<>(), numberOfSamples);
   }
 
-  protected abstract SampleCollection generateWithEvidence(
+  protected abstract SampleCollectionImpl generateSamples(
       Map<Node, NodeState> observations, int numberOfSamples);
+
+  public SampleCollectionImpl generateSamples(InferenceEngine engine, int numberOfSamples) {
+    return generateSamples(engine.getCurrentObservations(), numberOfSamples);
+  }
 
   protected <R, E extends Number> R nextRandom(Map<R, E> weights) {
     if (weights.isEmpty()) {
@@ -49,9 +50,9 @@ public abstract class SamplerImpl implements Sampler {
   }
 
   @Override
-  public SampleCollection generateSamples(Collection<NodeState> evidence, int numberOfSamples) {
+  public SampleCollectionImpl generateSamples(Collection<NodeState> evidence, int numberOfSamples) {
     try {
-      return generateWithEvidence(NodeUtils.generateRequest(evidence), numberOfSamples);
+      return generateSamples(NodeUtils.generateRequest(evidence), numberOfSamples);
     } catch (NodeStateConflictException e) {
       log.error(e.getMessage());
       return null;
@@ -59,16 +60,8 @@ public abstract class SamplerImpl implements Sampler {
   }
 
   @Override
-  public <T extends Serializable> SampleCollection generateSamplesById(
+  public <T extends Serializable> SampleCollectionImpl generateSamplesById(
       Collection<T> evidenceIDs, int numberOfSamples) {
-    return generateSamples(NetworkDataUtils.getStatesByID(evidenceIDs, networkData), numberOfSamples);
-  }
-
-  public BayesianNetwork getNetwork() {
-    return engine.getNetwork();
-  }
-
-  public InferenceEngine getInferenceEngine() {
-    return engine;
+    return generateSamples(network.getNodeStates(evidenceIDs), numberOfSamples);
   }
 }

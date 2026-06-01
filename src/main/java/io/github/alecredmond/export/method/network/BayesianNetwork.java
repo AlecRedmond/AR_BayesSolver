@@ -12,6 +12,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
@@ -281,7 +282,8 @@ public interface BayesianNetwork {
    * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
    * @return this instance for method chaining.
    */
-  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(T childID, E parentID);
+  <T extends Serializable, E extends Serializable> BayesianNetwork addParents(
+      T childID, E parentID);
 
   /**
    * Removes a directed edge between a parent and a child node.
@@ -506,7 +508,6 @@ public interface BayesianNetwork {
    */
   BayesianNetwork solveNetwork();
 
-
   boolean isSolved();
 
   /**
@@ -547,6 +548,8 @@ public interface BayesianNetwork {
    * @return a new InferenceEngine instance
    */
   InferenceEngine buildInferenceEngine();
+
+  Sampler buildSampler();
 
   /** resets all data in the network, excluding the network name */
   void resetAllData();

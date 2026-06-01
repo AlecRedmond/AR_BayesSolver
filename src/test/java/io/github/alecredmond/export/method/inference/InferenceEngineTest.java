@@ -10,20 +10,11 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.export.method.sampler.Sampler;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 class InferenceEngineTest {
@@ -173,9 +164,10 @@ class InferenceEngineTest {
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));
       long upperBound = (long) (expected + expectedDelta);
 
-      SampleCollection sampleCollection = Sampler.create(engine).generateSamples(NUMBER_OF_SAMPLES);
-      sampleCollection.setExportNodesById(List.of(includedNode));
-      int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
+      SampleCollection sampleCollection =
+          Sampler.create(engine.getNetwork()).generateSamples(engine, NUMBER_OF_SAMPLES);
+      sampleCollection.setDisplayedNodesById(List.of(includedNode));
+      int count = sampleCollection.countSamplesIncludingStateIds(List.of(testState));
 
       System.out.printf(
           "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",
