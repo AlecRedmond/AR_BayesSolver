@@ -3,6 +3,7 @@ package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
@@ -26,7 +27,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public Double getProbability(Collection<NodeState> states) {
     try {
-      if (safeMode) TableUtils.assertAllNodesPresent(states, table);
+      if (safeMode) TableUtils.assertAllNodesPresent(states, table.getNodes());
       return TableUtils.getProbability(states, table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
@@ -36,22 +37,23 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public Double getProbabilityFromIDs(Collection<Serializable> stateIds) {
     try {
-      return TableUtils.getProbability(getStates(stateIds), table);
+      return TableUtils.getProbability(getStates(stateIds, table.getNodes()), table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
       return null;
     }
   }
 
-  protected Collection<NodeState> getStates(Collection<Serializable> stateIds) {
+  protected Collection<NodeState> getStates(
+      Collection<Serializable> stateIds, Set<Node> expectedNodes) {
     return safeMode
-        ? TableUtils.assertAllIdsPresent(stateIds, table)
+        ? TableUtils.assertAllIdsPresent(stateIds, expectedNodes, table)
         : TableUtils.convertIdsToStates(stateIds, table);
   }
 
   public boolean setProbability(Collection<NodeState> states, double probability) {
     try {
-      if (safeMode) TableUtils.assertAllNodesPresent(states, table);
+      if (safeMode) TableUtils.assertAllNodesPresent(states, table.getNodes());
       TableUtils.setProbability(states, probability, table);
       return true;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
@@ -62,7 +64,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
 
   public boolean setProbabilityById(Collection<Serializable> stateIds, double probability) {
     try {
-      TableUtils.setProbability(getStates(stateIds), probability, table);
+      TableUtils.setProbability(getStates(stateIds, table.getNodes()), probability, table);
       return true;
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
       log.error(e.getMessage());
