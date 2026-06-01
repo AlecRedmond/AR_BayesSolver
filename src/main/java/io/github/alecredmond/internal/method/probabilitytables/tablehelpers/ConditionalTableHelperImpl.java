@@ -30,7 +30,7 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
   public Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs) {
     Collection<NodeState> states;
     try {
-      states = getStates(conditionIDs);
+      states = getStates(conditionIDs, table.getConditions());
     } catch (ProbabilityTableRequestException e) {
       log.error(e.getMessage());
       return new HashMap<>();
