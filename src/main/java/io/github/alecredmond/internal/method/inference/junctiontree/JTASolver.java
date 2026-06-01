@@ -15,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JTASolver {
 
-  private JTASolver() {}
-
-  public static SolverResults solveNetwork(BayesianNetworkData networkData) {
-    SolverConfigs configs = new SolverConfigs();
+  public SolverResults solveNetwork(BayesianNetworkData networkData, SolverConfigs configs) {
     boolean writeLogs = configs.isLogSolverProgress();
     Instant start = Instant.now();
 
@@ -26,7 +23,7 @@ public class JTASolver {
       log.info("STARTING SOLVER");
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(networkData);
+    JunctionTreeAlgorithm jta = buildJTA(networkData,configs);
 
     double lastError;
     double error = Double.MAX_VALUE;
@@ -70,13 +67,13 @@ public class JTASolver {
     return writeResults(constraintMap, cycle);
   }
 
-  private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {
-    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData);
+  private JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData, SolverConfigs configs) {
+    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData,configs);
     jta.marginalizeTables();
     return jta;
   }
 
-  private static double runSolverCycleAndReturnError(
+  private double runSolverCycleAndReturnError(
       JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers) {
 
     DoubleAdder cycleError = new DoubleAdder();
@@ -93,17 +90,17 @@ public class JTASolver {
     return cycleError.sum();
   }
 
-  private static void logCycleComplete(int cycle, double loss, double error) {
+  private void logCycleComplete(int cycle, double loss, double error) {
     log.info(String.format("CYCLE %d : LOSS = %1.2e : ERROR = %1.2e", cycle, loss, error));
   }
 
-  private static void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
+  private void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
     log.info(
         thresholdReached ? "SOLVER FOUND A SOLUTION IN {} ms" : "SOLVER TIMED OUT AFTER {} ms",
         end.toEpochMilli() - start.toEpochMilli());
   }
 
-  private static SolverResults writeResults(
+  private SolverResults writeResults(
       Map<Clique, List<ConstraintSolver>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()

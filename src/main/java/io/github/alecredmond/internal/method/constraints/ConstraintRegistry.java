@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.method.constraints;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;

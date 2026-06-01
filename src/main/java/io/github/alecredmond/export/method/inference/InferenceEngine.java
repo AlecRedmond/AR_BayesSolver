@@ -55,4 +55,9 @@ public interface InferenceEngine {
   InferenceEngine printObserved(Node node);
 
   BayesianNetwork getNetwork();
+
+  enum InferenceType {
+    JOINT_TABLE_INFERENCE,
+    JUNCTION_TREE_INFERENCE
+  }
 }

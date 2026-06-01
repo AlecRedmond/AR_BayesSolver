@@ -16,25 +16,28 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class JTANetworkWriter {
+  private final JunctionTreeData jtd;
 
-  private JTANetworkWriter() {}
+  public JTANetworkWriter(JunctionTreeData jtd) {
+    this.jtd = jtd;
+  }
 
-  static void initializeJunctionTreeFromNetwork(JunctionTreeData jtd) {
+  public void initializeJunctionTreeFromNetwork() {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
       clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
       clique.getTable().marginalizeTable();
     }
-    backupUnobservedData(jtd);
-    marginaliseSeparators(jtd);
+    backupUnobservedData();
+    marginaliseSeparators();
   }
 
-  private static void setProbabilitiesToUnity(Clique clique) {
+  private void setProbabilitiesToUnity(Clique clique) {
     Arrays.fill(clique.getTable().getVector().getProbabilities(), 1.0);
   }
 
-  private static void backupUnobservedData(JunctionTreeData data) {
-    Arrays.stream(data.getCliques())
+  private void backupUnobservedData() {
+    Arrays.stream(jtd.getCliques())
         .map(Clique::getTable)
         .forEach(
             jtt -> {
@@ -44,11 +47,11 @@ class JTANetworkWriter {
             });
   }
 
-  private static void marginaliseSeparators(JunctionTreeData jtd) {
+  private void marginaliseSeparators() {
     Arrays.stream(jtd.getSeparators()).forEach(Separator::resetSeparator);
   }
 
-  static void writeObservations(JunctionTreeData jtd) {
+  public void writeObservations() {
     log.info("WRITING OBSERVATIONS...");
 
     BayesianNetworkData networkData = jtd.getNetworkData();
@@ -62,14 +65,14 @@ class JTANetworkWriter {
         .map(ProbabilityTable::getHelper)
         .forEach(TableHelper::marginalizeTable);
 
-    networkData.getNodes().forEach(node -> updateTableName(node, jtd));
+    networkData.getNodes().forEach(this::updateTableName);
 
     log.info("...OBSERVATIONS WRITTEN!");
   }
 
-  private static void updateTableName(Node node, JunctionTreeData data) {
-    MarginalTable observedTable = data.getObservedTablesMap().get(node);
-    Collection<NodeState> states = data.getObservedEvidence().values();
+  private void updateTableName(Node node) {
+    MarginalTable observedTable = jtd.getObservedTablesMap().get(node);
+    Collection<NodeState> states = jtd.getObservedEvidence().values();
     StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
     if (!states.isEmpty()) {
       sb.append("|");
@@ -79,12 +82,12 @@ class JTANetworkWriter {
     observedTable.setTableName(sb.toString());
   }
 
-  static void writeBackToCPTs(JunctionTreeData data) {
+  public void writeBackToCPTs() {
     log.info("WRITING TO NETWORK");
 
-    BayesianNetworkData bnd = data.getNetworkData();
+    BayesianNetworkData bnd = jtd.getNetworkData();
 
-    Arrays.stream(data.getCliques())
+    Arrays.stream(jtd.getCliques())
         .flatMap(c -> c.getWriteToCPTs().stream())
         .forEach(TableTransfer::transfer);
 
