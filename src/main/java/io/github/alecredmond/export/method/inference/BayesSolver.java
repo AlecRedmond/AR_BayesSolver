@@ -11,9 +11,18 @@ public interface BayesSolver {
 
   boolean solve();
 
+  boolean solve(SolverType solverType);
+
   boolean forceSolve();
+
+  boolean forceSolve(SolverType solverType);
 
   boolean isSolved();
 
   SolverResults getResults();
+
+  enum SolverType {
+    JOINT_TABLE_IPFP,
+    JUNCTION_TREE_IPFP
+  }
 }

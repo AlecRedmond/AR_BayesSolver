@@ -164,9 +164,10 @@ class InferenceEngineTest {
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));
       long upperBound = (long) (expected + expectedDelta);
 
-      SampleCollection sampleCollection = Sampler.create(engine).generateSamples(NUMBER_OF_SAMPLES);
-      sampleCollection.setExportNodesById(List.of(includedNode));
-      int count = sampleCollection.countSamplesWithStateIds(List.of(testState));
+      SampleCollection sampleCollection =
+          Sampler.create(engine.getNetwork()).generateSamples(engine, NUMBER_OF_SAMPLES);
+      sampleCollection.setDisplayedNodesById(List.of(includedNode));
+      int count = sampleCollection.countSamplesIncludingStateIds(List.of(testState));
 
       System.out.printf(
           "Test State: %s%nExpected: %.2f (%.0f samples)%nAllowed Range: [%d, %d]%nActual Sample Count: %d%n",

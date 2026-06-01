@@ -31,7 +31,7 @@ public class SamplePackage {
     this.printMarginals = printMarginals;
     this.network = network;
     this.engine = InferenceEngine.create(network).observeNetworkFromIds(observedStateIds);
-    this.test = Sampler.create(engine).generateSamples(numberOfSamples);
+    this.test = Sampler.create(network).generateSamples(engine, numberOfSamples);
     this.numberOfSamples = numberOfSamples;
     this.observedStateIds = observedStateIds;
     this.observedStates = network.getNodeStates(observedStateIds);

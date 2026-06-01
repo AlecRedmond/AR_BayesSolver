@@ -1,91 +1,48 @@
 package io.github.alecredmond.export.method.sampler;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.sampler.SampleCollectionData;
-import io.github.alecredmond.internal.method.network.NetworkDataUtils;
-import io.github.alecredmond.internal.method.sampler.SampleCollectionUtils;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class SampleCollection {
-  private final SampleCollectionData collectionData;
-  private final BayesianNetworkData networkData;
+public interface SampleCollection {
+  Map<Node, NodeState> getObservations();
 
-  public SampleCollection(SampleCollectionData collectionData, BayesianNetworkData networkData) {
-    this.collectionData = collectionData;
-    this.networkData = networkData;
-  }
+  Node[] getNodes();
 
-  public Map<Node, NodeState> getNetworkObservations() {
-    return collectionData.getNetworkObservations();
-  }
+  boolean isEmpty();
 
-  public Node[] getNodes() {
-    return collectionData.getNodes();
-  }
+  int countSamples();
 
-  public boolean isEmpty() {
-    return size() == 0;
-  }
+  int countSamplesIncludingStates(Collection<NodeState> states);
 
-  public int size() {
-    return collectionData.getTotalSamples();
-  }
+  int countSamplesIncludingStates(NodeState state);
 
-  public <T extends Serializable> void setExportNodesById(Collection<T> nodeIds) {
-    Set<Node> nodes = NetworkDataUtils.getNodesByID(nodeIds, networkData);
-    setExportNodes(nodes);
-  }
+  <T extends Serializable> int countSamplesIncludingStateIds(Collection<T> stateIds);
 
-  public void setExportNodes(Collection<Node> nodes) {
-    SampleCollectionUtils.applyToSamples(this, s -> s.setExportNodes(nodes));
-  }
+  <T extends Serializable> int countSamplesIncludingStateIds(T stateId);
 
-  public void resetExportNodes() {
-    SampleCollectionUtils.applyToSamples(this, Sample::resetExportNodes);
-  }
+  List<Sample> getSamples();
 
-  public <R extends Collection<NodeState>> void setSupplier(Supplier<R> supplier) {
-    SampleCollectionUtils.applyToSamples(this, s -> s.setSampleSupplier(supplier));
-    collectionData.setSampleSupplier(supplier);
-  }
+  List<Sample> getSamplesIncludingStates(Collection<NodeState> states);
 
-  public <T extends Serializable> int countSamplesWithStateIds(Collection<T> stateIds) {
-    return countSamplesWithStates(NetworkDataUtils.getStatesByID(stateIds, networkData));
-  }
+  List<Sample> getSamplesIncludingStates(NodeState state);
 
-  public int countSamplesWithStates(Collection<NodeState> states) {
-    if (states.isEmpty()) {
-      return size();
-    }
-    return SampleCollectionUtils.countSamplesIncludingStates(this, states);
-  }
+  <T extends Serializable> List<Sample> getSamplesIncludingStatesById(Collection<T> stateIds);
 
-  public List<Sample> getSamplesIncludingStates(Collection<NodeState> includedStates) {
-    return SampleCollectionUtils.listSamplesIncludingStates(this, includedStates);
-  }
+  <T extends Serializable> List<Sample> getSamplesIncludingStatesById(T stateId);
 
-  public <T extends Serializable> List<Sample> getSamplesIncludingStateIds(
-      Collection<T> includedStateIds) {
-    return SampleCollectionUtils.listSamplesIncludingStates(
-        this, NetworkDataUtils.getStatesByID(includedStateIds, networkData));
-  }
+  void displayAllNodes();
 
-  @Override
-  public String toString() {
-    return getSamples().stream().map(Sample::toString).collect(Collectors.joining("\n"));
-  }
+  void setDisplayedNodes(Collection<Node> nodes);
 
-  public List<Sample> getSamples() {
-    return collectionData.getSamples();
-  }
+  void setDisplayedNodes(Node node);
+
+  <T extends Serializable> void setDisplayedNodesById(Collection<T> nodeIds);
+
+  <T extends Serializable> void setDisplayedNodesById(T nodeId);
+
+  String toString();
 }

@@ -12,6 +12,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
@@ -547,6 +548,8 @@ public interface BayesianNetwork {
    * @return a new InferenceEngine instance
    */
   InferenceEngine buildInferenceEngine();
+
+  Sampler buildSampler();
 
   /** resets all data in the network, excluding the network name */
   void resetAllData();

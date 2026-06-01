@@ -11,11 +11,13 @@ import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkErrorPolicy;
+import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
+import io.github.alecredmond.internal.method.sampler.LikelihoodWeightingSampler;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -330,6 +332,10 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
 
   public InferenceEngine buildInferenceEngine() {
     return InferenceEngine.create(this);
+  }
+
+  public Sampler buildSampler() {
+    return new LikelihoodWeightingSampler(this);
   }
 
   public void resetAllData() {
