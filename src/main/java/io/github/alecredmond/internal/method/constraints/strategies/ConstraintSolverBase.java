@@ -1,5 +1,7 @@
 package io.github.alecredmond.internal.method.constraints.strategies;
 
+import static io.github.alecredmond.internal.method.utils.DoublePrecision.*;
+
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
@@ -48,21 +50,21 @@ public class ConstraintSolverBase
   }
 
   public double adjustAndReturnError() {
-    double expectedProb = constraint.getProbability();
     resetAccumulators();
-
     VectorOdometer vectorOdometer = iterator.getController().getOdometer();
     double[] probs = vectorOdometer.getProbabilities();
-
     calculateProbability(probs);
 
+    double expectedProb = constraint.getProbability();
     double actualProb = getRatio(eventJointProb[0], conditionJointProb[0]);
-    double complementProb = getRatio(complementJointProb[0], conditionJointProb[0]);
 
-    double adjustmentRatio = getRatio(expectedProb, actualProb);
-    double compRatio = getRatio((1 - expectedProb), complementProb);
+    if (!fuzzyEquals(actualProb, expectedProb)) {
+      double complementProb = getRatio(complementJointProb[0], conditionJointProb[0]);
+      double adjustmentRatio = getRatio(expectedProb, actualProb);
+      double compRatio = getRatio((1 - expectedProb), complementProb);
+      adjustToRatio(adjustmentRatio, compRatio, probs);
+    }
 
-    adjustToRatio(adjustmentRatio, compRatio, probs);
     return storeError(Math.pow(actualProb - expectedProb, 2));
   }
 

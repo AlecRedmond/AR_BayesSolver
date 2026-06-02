@@ -10,7 +10,6 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetl
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -18,7 +17,7 @@ import java.util.stream.IntStream;
 public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater {
   private final VectorIterator<VectorOdometer> iterator;
   private final JunctionTreeTable table;
-  private final DoubleAdder adder;
+  private final double[] adder = {0.0};
   private final VectorOdometer odometer;
   private Set<Node> requestNodes;
   private Set<NodeState> requestStates;
@@ -29,7 +28,6 @@ public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater
     this.requestStates = new HashSet<>();
     this.odometer = new VectorOdometer(table.getVector());
     this.iterator = new VectorIterator<>(odometer, this);
-    this.adder = new DoubleAdder();
   }
 
   public double sum(Collection<NodeState> states) {
@@ -41,12 +39,13 @@ public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater
     int[] stateIndexes = odometer.getStateIndexes();
     boolean[][] stateIsEvent = odometer.getNodeStateEvidenceArray();
 
+    adder[0] = 0.0;
     iterator.iterateOuter(
         () -> {
           if (!checkIsEvidence(stateIndexes, stateIsEvent)) return;
-          iterator.iterateInner((o, i) -> adder.add(p[i]));
+          iterator.iterateInner((o, i) -> adder[0] += p[i]);
         });
-    return adder.sumThenReset();
+    return adder[0];
   }
 
   protected boolean checkIsEvidence(int[] stateIndexes, boolean[][] stateIsEvent) {

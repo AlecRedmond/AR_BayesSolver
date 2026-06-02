@@ -27,7 +27,7 @@ public class SolverConfigs {
 
   public void updateConfigs() {
     PropertiesLoader l = new PropertiesLoader();
-    solverType = l.loadBoolean(INFERENCE_USE_JTA_SOLVER) ? JUNCTION_TREE_IPFP : JOINT_TABLE_IPFP;
+    solverType = l.loadBoolean(SOLVER_USE_JTA) ? JUNCTION_TREE_IPFP : JOINT_TABLE_IPFP;
     setCyclesLimit(l.loadInt(SOLVER_CYCLES_LIMIT));
     setTimeLimitSeconds(l.loadInt(SOLVER_TIME_LIMIT_SECONDS));
     setLogIntervalSeconds(l.loadInt(SOLVER_LOG_INTERVAL_SECONDS));

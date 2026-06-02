@@ -9,7 +9,6 @@ import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSo
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -38,10 +37,11 @@ public class JTASolver {
     boolean thresholdReached = false;
     boolean timeLimitReached;
     int cycle;
+    double[] adder = {0.0};
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, constraintMap);
+      error = runSolverCycleAndReturnError(jta, constraintMap,adder);
       converge = Math.abs(error - lastError);
 
       now = Instant.now().getEpochSecond();
@@ -74,20 +74,19 @@ public class JTASolver {
   }
 
   private double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers) {
+          JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers, double[] adder) {
 
-    DoubleAdder cycleError = new DoubleAdder();
+    adder[0] = 0.0;
 
     constraintHandlers.forEach(
         (clique, handlers) ->
             handlers.forEach(
                 h -> {
-                  double error = h.adjustAndReturnError();
-                  cycleError.add(error);
+                  adder[0] += h.adjustAndReturnError();
                   jta.sumTransfer(clique);
                 }));
 
-    return cycleError.sum();
+    return adder[0];
   }
 
   private void logCycleComplete(int cycle, double loss, double error) {

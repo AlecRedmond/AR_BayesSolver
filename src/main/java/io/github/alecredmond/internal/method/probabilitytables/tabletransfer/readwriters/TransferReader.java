@@ -4,13 +4,15 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferReaderFactory;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.DoubleAdder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class TransferReader extends VectorIterator<VectorOdometer> implements TransferIterator {
   private final double[] transferArray;
+  private final double[] adder = {0.0};
+  private final int[] tIndex = {0};
 
   public TransferReader(
       ProbabilityVector read, double[] transferArray, TransferReaderFactory logic) {
@@ -20,13 +22,14 @@ public class TransferReader extends VectorIterator<VectorOdometer> implements Tr
 
   @Override
   public void performRun() {
-    AtomicInteger tIndex = new AtomicInteger();
-    DoubleAdder adder = new DoubleAdder();
+    tIndex[0] = 0;
     double[] probabilities = controller.getOdometer().getProbabilities();
     iterateOuter(
         () -> {
-          iterateInner((o, i) -> adder.add(probabilities[i]));
-          transferArray[tIndex.getAndAdd(1)] = adder.sumThenReset();
+          adder[0] = 0.0;
+          iterateInner((o, i) -> adder[0] += probabilities[i]);
+          transferArray[tIndex[0]] = adder[0];
+          tIndex[0]++;
         });
   }
 }

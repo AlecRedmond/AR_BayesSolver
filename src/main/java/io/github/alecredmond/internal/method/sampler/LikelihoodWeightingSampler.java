@@ -8,7 +8,6 @@ import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -97,18 +96,18 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     Map<SampleImpl, Integer> distributedSamples = samplerData.getDistributedSamples();
     Map<SampleImpl, Double> remainderSamples = new HashMap<>();
     double ratio = getRatio(weightedSamples, numberOfSamples);
-    AtomicInteger tally = new AtomicInteger(0);
+    int[] tally = {0};
 
     weightedSamples.forEach(
         (sample, weight) -> {
           double adjusted = weight * ratio;
           int distributed = (int) adjusted;
-          tally.addAndGet(distributed);
+          tally[0] += distributed;
           distributedSamples.put(sample, distributed);
           remainderSamples.put(sample, adjusted - distributed);
         });
 
-    allocateRemainders(remainderSamples, numberOfSamples - tally.get(), distributedSamples);
+    allocateRemainders(remainderSamples, numberOfSamples - tally[0], distributedSamples);
   }
 
   private NodeState[] buildDefaultSample(Map<Node, NodeState> observations, Node[] nodes) {
