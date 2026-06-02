@@ -8,11 +8,10 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.Odomet
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerUpdateLogic;
 import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class VectorIterator<T extends VectorOdometer> {
-
   protected OdometerController<T> controller;
 
   public VectorIterator(OdometerController<T> controller) {

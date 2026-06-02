@@ -7,12 +7,12 @@ import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.Set;
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Predicate;
 
 public class TableMarginalizer implements BaseOdometerResetLogic, BlankUpdater {
   private final ProbabilityTable table;
   private final VectorIterator<VectorOdometer> iterator;
+  private final double[] adder = {0.0};
 
   public TableMarginalizer(ProbabilityTable table) {
     this.table = table;
@@ -21,11 +21,11 @@ public class TableMarginalizer implements BaseOdometerResetLogic, BlankUpdater {
 
   public void marginalize() {
     double[] probabilities = table.getVector().getProbabilities();
-    DoubleAdder adder = new DoubleAdder();
     iterator.iterateOuter(
         () -> {
-          iterator.iterateInner((o, i) -> adder.add(probabilities[i]));
-          double sum = adder.sumThenReset();
+          adder[0] = 0.0;
+          iterator.iterateInner((o, i) -> adder[0] += probabilities[i]);
+          double sum = adder[0];
           double ratio = sum == 0.0 ? 0.0 : 1.0 / sum;
           iterator.iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
         });
