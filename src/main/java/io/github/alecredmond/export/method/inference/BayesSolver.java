@@ -41,6 +41,8 @@ public interface BayesSolver {
    */
   boolean solve();
 
+  boolean solve(SolverType solverType);
+
   /**
    * Forces the solver to run with the default IPFP, regardless of if the network is already solved.
    * The default procedure can be changed in 'app.properties' using {@code
@@ -49,17 +51,15 @@ public interface BayesSolver {
    *
    * @return true if the solver procedure completes successfully.
    */
-  boolean solve(SolverType solverType);
-
   boolean forceSolve();
+
+  boolean forceSolve(SolverType solverType);
 
   /**
    * Checks if the network has already been solved.
    *
    * @return true if the network is already solved
    */
-  boolean forceSolve(SolverType solverType);
-
   boolean isSolved();
 
   /**
