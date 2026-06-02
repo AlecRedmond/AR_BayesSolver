@@ -9,7 +9,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.sampler.Sampler;
@@ -540,7 +540,7 @@ public interface BayesianNetwork {
    * @param <T> class of the Node ID
    * @return the probability table for the specified node.
    */
-  <T extends Serializable> ProbabilityTable getNetworkTable(T nodeID);
+  <T extends Serializable> NetworkTable getNetworkTable(T nodeID);
 
   /**
    * Builds a new InferenceEngine from the current BayesianNetwork

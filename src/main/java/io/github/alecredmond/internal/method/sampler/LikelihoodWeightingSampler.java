@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.sampler;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
@@ -24,7 +24,7 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     BayesianNetworkData networkData = network.getNetworkData();
     Node[] nodes = networkData.getNodes().toArray(Node[]::new);
     TableHelper<?>[] helpers = new TableHelper[nodes.length];
-    Map<Node, ProbabilityTable> networkTables = networkData.getNetworkTablesMap();
+    Map<Node, NetworkTable> networkTables = networkData.getNetworkTablesMap();
     IntStream.range(0, nodes.length)
         .forEach(i -> helpers[i] = networkTables.get(nodes[i]).getHelper());
     return new LikelihoodWeightingSamplerData(nodes, helpers);
