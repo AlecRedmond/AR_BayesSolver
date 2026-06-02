@@ -4,7 +4,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.internal.method.inference.InferenceEngineFactory;
 import java.io.Serializable;
 import java.util.Collection;
@@ -39,15 +38,26 @@ public interface InferenceEngine {
 
   double getCurrentProbability(Collection<NodeState> measuredStates);
 
+  double getCurrentProbability(NodeState measuredState);
+
   <T extends Serializable> double getCurrentProbabilityById(Collection<T> measuredStateIds);
+
+  <T extends Serializable> double getCurrentProbabilityById(T measuredStateId);
 
   InferenceEngine printObserved();
 
-  InferenceEngine printObservedById(Collection<Serializable> nodeIds);
+  <T extends Serializable> InferenceEngine printObservedById(Collection<T> nodeIds);
+
+  <T extends Serializable> InferenceEngine printObservedById(T nodeId);
 
   InferenceEngine printObserved(Collection<Node> nodes);
 
+  InferenceEngine printObserved(Node node);
+
   BayesianNetwork getNetwork();
 
-  Sampler createSampler();
+  enum InferenceType {
+    JOINT_TABLE_INFERENCE,
+    JUNCTION_TREE_INFERENCE
+  }
 }

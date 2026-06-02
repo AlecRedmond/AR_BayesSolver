@@ -6,13 +6,9 @@ import java.io.Serializable;
 import java.util.Map;
 
 public interface MarginalTableHelper extends TableHelper<MarginalTable> {
-  Double getProbability(NodeState state);
+    Double getProbability(NodeState state);
 
-  Double getProbabilityById(Serializable id);
+    Double getProbabilityById(Serializable id);
 
-  boolean setProbability(NodeState state, double probability);
-
-  boolean setProbabilityById(Serializable id, double probability);
-
-  Map<NodeState, Double> buildProbabilityMap();
+    Map<NodeState,Double> buildProbabilityMap();
 }

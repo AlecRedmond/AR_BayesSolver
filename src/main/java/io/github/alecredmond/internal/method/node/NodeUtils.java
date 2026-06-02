@@ -124,7 +124,11 @@ public class NodeUtils {
     return nodes.stream().map(Node::getId).toList();
   }
 
-  public static List<Serializable> getNodeStateIds(Collection<Node> nodes) {
+  public static List<Serializable> getNodeStateIds(Collection<NodeState> nodeStates) {
+    return nodeStates.stream().map(NodeState::getId).toList();
+  }
+
+  public static List<Serializable> getAllNodeStateIds(Collection<Node> nodes) {
     return nodes.stream().flatMap(n -> n.getNodeStates().stream()).map(NodeState::getId).toList();
   }
 

@@ -6,6 +6,6 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SerializedConditionalTable extends SerializedProbabilityTable implements Serializable {
+public class SerializedConditionalTable extends SerializedNetworkTable implements Serializable {
   private Serializable networkNodeId;
 }

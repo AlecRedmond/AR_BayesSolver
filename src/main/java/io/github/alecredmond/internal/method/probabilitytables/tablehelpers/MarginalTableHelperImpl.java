@@ -43,14 +43,4 @@ public class MarginalTableHelperImpl extends TableHelperBase<MarginalTable>
   public Double getProbabilityById(Serializable id) {
     return super.getProbabilityFromIDs(List.of(id));
   }
-
-  @Override
-  public boolean setProbability(NodeState state, double probability) {
-    return super.setProbability(List.of(state), probability);
-  }
-
-  @Override
-  public boolean setProbabilityById(Serializable id, double probability) {
-    return super.setProbabilityById(List.of(id), probability);
-  }
 }

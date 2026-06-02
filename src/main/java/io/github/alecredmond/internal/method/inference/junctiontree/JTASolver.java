@@ -9,16 +9,12 @@ import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSo
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.atomic.DoubleAdder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JTASolver {
 
-  private JTASolver() {}
-
-  public static SolverResults solveNetwork(BayesianNetworkData networkData) {
-    SolverConfigs configs = new SolverConfigs();
+  public SolverResults solveNetwork(BayesianNetworkData networkData, SolverConfigs configs) {
     boolean writeLogs = configs.isLogSolverProgress();
     Instant start = Instant.now();
 
@@ -26,7 +22,7 @@ public class JTASolver {
       log.info("STARTING SOLVER");
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(networkData);
+    JunctionTreeAlgorithm jta = buildJTA(networkData,configs);
 
     double lastError;
     double error = Double.MAX_VALUE;
@@ -41,10 +37,11 @@ public class JTASolver {
     boolean thresholdReached = false;
     boolean timeLimitReached;
     int cycle;
+    double[] adder = {0.0};
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, constraintMap);
+      error = runSolverCycleAndReturnError(jta, constraintMap,adder);
       converge = Math.abs(error - lastError);
 
       now = Instant.now().getEpochSecond();
@@ -70,40 +67,39 @@ public class JTASolver {
     return writeResults(constraintMap, cycle);
   }
 
-  private static JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData) {
-    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData);
+  private JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData, SolverConfigs configs) {
+    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData,configs);
     jta.marginalizeTables();
     return jta;
   }
 
-  private static double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers) {
+  private double runSolverCycleAndReturnError(
+          JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers, double[] adder) {
 
-    DoubleAdder cycleError = new DoubleAdder();
+    adder[0] = 0.0;
 
     constraintHandlers.forEach(
         (clique, handlers) ->
             handlers.forEach(
                 h -> {
-                  double error = h.adjustAndReturnError();
-                  cycleError.add(error);
+                  adder[0] += h.adjustAndReturnError();
                   jta.sumTransfer(clique);
                 }));
 
-    return cycleError.sum();
+    return adder[0];
   }
 
-  private static void logCycleComplete(int cycle, double loss, double error) {
+  private void logCycleComplete(int cycle, double loss, double error) {
     log.info(String.format("CYCLE %d : LOSS = %1.2e : ERROR = %1.2e", cycle, loss, error));
   }
 
-  private static void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
+  private void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
     log.info(
         thresholdReached ? "SOLVER FOUND A SOLUTION IN {} ms" : "SOLVER TIMED OUT AFTER {} ms",
         end.toEpochMilli() - start.toEpochMilli());
   }
 
-  private static SolverResults writeResults(
+  private SolverResults writeResults(
       Map<Clique, List<ConstraintSolver>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()

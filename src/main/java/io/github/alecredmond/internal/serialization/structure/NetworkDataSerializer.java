@@ -4,11 +4,11 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.export.serialization.node.SerializedNode;
-import io.github.alecredmond.export.serialization.probabilitytable.SerializedProbabilityTable;
+import io.github.alecredmond.export.serialization.probabilitytable.SerializedNetworkTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
@@ -36,9 +36,9 @@ public class NetworkDataSerializer {
     return data.getNodes().stream().map(serializer::serialize).toList();
   }
 
-  private Map<Serializable, SerializedProbabilityTable> buildSerializedNetworkTables(
+  private Map<Serializable, SerializedNetworkTable> buildSerializedNetworkTables(
       BayesianNetworkData data) {
-    ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
+    NetworkTableSerializer serializer = new NetworkTableSerializer();
     return convertMap(data.getNetworkTablesMap(), Node::getId, serializer::serialize);
   }
 
@@ -84,11 +84,11 @@ public class NetworkDataSerializer {
         .toList();
   }
 
-  private Map<Node, ProbabilityTable> deSerializeNetworkTables(
+  private Map<Node, NetworkTable> deSerializeNetworkTables(
       SerializedBayesianNetwork serialized,
       SerializationData data,
       Map<Serializable, Node> nodeIDsMap) {
-    ProbabilityTableSerializer serializer = new ProbabilityTableSerializer();
+    NetworkTableSerializer serializer = new NetworkTableSerializer();
     return convertMap(
         serialized.getSerializedCptMap(),
         nodeIDsMap::get,

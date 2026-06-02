@@ -9,11 +9,13 @@ import java.util.Collection;
 
 public interface Sampler {
 
-  static Sampler create(InferenceEngine engine) {
-    return new LikelihoodWeightingSampler(engine.getNetwork(), engine);
+  static Sampler create(BayesianNetwork network) {
+    return new LikelihoodWeightingSampler(network);
   }
 
   SampleCollection generateSamples(int numberOfSamples);
+
+  SampleCollection generateSamples(InferenceEngine engine, int numberOfSamples);
 
   SampleCollection generateSamples(Collection<NodeState> evidence, int numberOfSamples);
 
@@ -21,6 +23,4 @@ public interface Sampler {
       Collection<T> evidenceStateIDs, int numberOfSamples);
 
   BayesianNetwork getNetwork();
-
-  InferenceEngine getInferenceEngine();
 }

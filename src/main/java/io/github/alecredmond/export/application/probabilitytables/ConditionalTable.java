@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-public class ConditionalTable extends ProbabilityTable {
+public class ConditionalTable extends NetworkTable {
   private final Node networkNode;
 
   public ConditionalTable(

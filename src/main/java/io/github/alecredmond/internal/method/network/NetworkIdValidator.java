@@ -34,7 +34,7 @@ public class NetworkIdValidator {
   public Set<Serializable> validateRebuild(Collection<Node> nodes) {
     Set<Serializable> checked = new HashSet<>();
     List<Serializable> nodeIds = NodeUtils.getNodeIds(nodes);
-    List<Serializable> nodeStateIds = NodeUtils.getNodeStateIds(nodes);
+    List<Serializable> nodeStateIds = NodeUtils.getAllNodeStateIds(nodes);
     validateIdCollection(nodeIds, checked);
     validateIdCollection(nodeStateIds, checked);
     return checked;

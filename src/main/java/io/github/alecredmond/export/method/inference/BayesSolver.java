@@ -49,6 +49,8 @@ public interface BayesSolver {
    *
    * @return true if the solver procedure completes successfully.
    */
+  boolean solve(SolverType solverType);
+
   boolean forceSolve();
 
   /**
@@ -56,6 +58,8 @@ public interface BayesSolver {
    *
    * @return true if the network is already solved
    */
+  boolean forceSolve(SolverType solverType);
+
   boolean isSolved();
 
   /**
@@ -66,4 +70,9 @@ public interface BayesSolver {
    * @return results of the latest run, or null if no runs have occurred.
    */
   SolverResults getResults();
+
+  enum SolverType {
+    JOINT_TABLE_IPFP,
+    JUNCTION_TREE_IPFP
+  }
 }

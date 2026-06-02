@@ -4,8 +4,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.export.method.sampler.Sampler;
 import java.util.Set;
 import lombok.Data;
 
@@ -33,7 +31,7 @@ public class SamplePackage {
     this.printMarginals = printMarginals;
     this.network = network;
     this.engine = InferenceEngine.create(network).observeNetworkFromIds(observedStateIds);
-    this.test = Sampler.create(engine).generateSamples(numberOfSamples);
+    this.test = Sampler.create(network).generateSamples(engine, numberOfSamples);
     this.numberOfSamples = numberOfSamples;
     this.observedStateIds = observedStateIds;
     this.observedStates = network.getNodeStates(observedStateIds);

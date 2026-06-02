@@ -23,7 +23,7 @@ import lombok.Getter;
  */
 @Getter
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-public class MarginalTable extends ProbabilityTable {
+public class MarginalTable extends NetworkTable {
   private final Node networkNode;
 
   public MarginalTable(

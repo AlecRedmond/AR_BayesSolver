@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.inference.junctiontree;
 
-import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_INFERENCE;
-import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_SOLVER;
+import static io.github.alecredmond.export.method.inference.BayesSolver.SolverType.JUNCTION_TREE_IPFP;
+import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_INFERENCE;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -10,28 +10,29 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
-import io.github.alecredmond.internal.method.utils.AppProperty;
-import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 class JTACliqueBuilder {
 
-  private JTACliqueBuilder() {}
-
-  static void buildCliques(JunctionTreeData jtd) {
-    AppProperty property =
-        jtd.isSolverConfig() ? INFERENCE_USE_JTA_SOLVER : INFERENCE_USE_JTA_INFERENCE;
-    boolean useJta = new PropertiesLoader().loadBoolean(property);
-    if (useJta) {
+  public void buildCliques(JunctionTreeData jtd) {
+    if (checkUseJta(jtd)) {
       buildJtaCliques(jtd);
     } else {
       buildIPFPClique(jtd);
     }
   }
 
-  static void buildIPFPClique(JunctionTreeData jtd) {
+  private boolean checkUseJta(JunctionTreeData jtd) {
+    return jtd.isSolverConfig()
+        ? jtd.getSolverType().equals(JUNCTION_TREE_IPFP)
+        : jtd.getInferenceType().equals(JUNCTION_TREE_INFERENCE);
+  }
+
+  private void buildIPFPClique(JunctionTreeData jtd) {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Clique[] cliques = new Clique[1];
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
@@ -39,7 +40,7 @@ class JTACliqueBuilder {
     jtd.setCliques(cliques);
   }
 
-  private static void buildJtaCliques(JunctionTreeData jtd) {
+  private void buildJtaCliques(JunctionTreeData jtd) {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
@@ -47,17 +48,17 @@ class JTACliqueBuilder {
     jtd.setCliques(buildCliqueArray(findMaximalCliques(edgeGraph), bnd));
   }
 
-  private static Clique[] buildCliqueArray(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
+  private Clique[] buildCliqueArray(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
     return maximalCliques.stream()
         .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes, bnd)))
         .toArray(Clique[]::new);
   }
 
-  static Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
+  private Set<Node> intersectionOf(Set<Node> setA, Set<Node> setB) {
     return NodeUtils.getOverlap(setA, setB);
   }
 
-  private static Map<Node, Set<Node>> initializeGraph(BayesianNetworkData data) {
+  private Map<Node, Set<Node>> initializeGraph(BayesianNetworkData data) {
     Map<Node, Set<Node>> edges = new HashMap<>();
     for (Node node : data.getNodes()) {
       Set<Node> connected = new HashSet<>(node.getParents());
@@ -68,8 +69,7 @@ class JTACliqueBuilder {
     return edges;
   }
 
-  private static void addConstraintsIfUnsolved(
-      BayesianNetworkData data, Node node, Set<Node> connected) {
+  private void addConstraintsIfUnsolved(BayesianNetworkData data, Node node, Set<Node> connected) {
     if (data.isSolved()) return;
     data.getConstraints().stream()
         .map(ProbabilityConstraint::getAllNodes)
@@ -80,7 +80,7 @@ class JTACliqueBuilder {
         .forEach(connected::add);
   }
 
-  private static void moralizeGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
+  private void moralizeGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
     for (Node node : data.getNodes()) {
       List<Node> parents = node.getParents();
       for (int i = 0; i < parents.size(); i++) {
@@ -94,7 +94,8 @@ class JTACliqueBuilder {
     }
   }
 
-  private static void triangulateGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
+  // TODO - This provides a maximum triangulation with redundant edges and should be replaced.
+  private void triangulateGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
     Map<Node, Set<Node>> graph = new HashMap<>();
     edges.keySet().forEach(node -> graph.put(node, new HashSet<>(edges.get(node))));
 
@@ -113,7 +114,7 @@ class JTACliqueBuilder {
     }
   }
 
-  private static Set<Set<Node>> findMaximalCliques(Map<Node, Set<Node>> edges) {
+  private Set<Set<Node>> findMaximalCliques(Map<Node, Set<Node>> edges) {
     Set<Set<Node>> maximalCliques = new HashSet<>();
 
     List<Node> degeneracyOrdering =
@@ -149,7 +150,7 @@ class JTACliqueBuilder {
    * @param edges The graph's adjacency list.
    * @param maximalCliques The collection to store the found maximal cliques.
    */
-  private static void bronKerbosch(
+  private void bronKerbosch(
       Set<Node> currentNodes,
       Set<Node> candidateNodes,
       Set<Node> processedNodes,
@@ -176,7 +177,7 @@ class JTACliqueBuilder {
     }
   }
 
-  private static Set<Node> unionOf(Set<Node> setA, Set<Node> setB) {
+  private Set<Node> unionOf(Set<Node> setA, Set<Node> setB) {
     return Stream.concat(setA.stream(), setB.stream())
         .collect(Collectors.toCollection(HashSet::new));
   }

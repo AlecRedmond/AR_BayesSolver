@@ -6,7 +6,7 @@ import java.util.*;
 import lombok.Data;
 
 @Data
-public abstract class SerializedProbabilityTable implements Serializable {
+public abstract class SerializedNetworkTable implements Serializable {
   private SerializedProbabilityVector vectorSTO;
   private List<Serializable> nodeIds;
   private List<Serializable> eventNodeIds;

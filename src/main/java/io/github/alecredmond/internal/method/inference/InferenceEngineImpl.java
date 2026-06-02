@@ -6,7 +6,6 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -23,11 +22,14 @@ public class InferenceEngineImpl implements InferenceEngine {
   private final BayesianNetwork network;
   private final BayesSolver solver;
   private final JunctionTreeAlgorithm junctionTree;
+  private final InferenceType inferenceType;
 
-  public InferenceEngineImpl(BayesianNetwork network, JunctionTreeAlgorithm junctionTree) {
+  public InferenceEngineImpl(
+      BayesianNetwork network, JunctionTreeAlgorithm junctionTree, InferenceType inferenceType) {
     this.network = network;
     this.junctionTree = junctionTree;
     this.solver = BayesSolver.create(network);
+    this.inferenceType = inferenceType;
     resetObservations();
   }
 
@@ -54,7 +56,7 @@ public class InferenceEngineImpl implements InferenceEngine {
         "Modifications were detected on network {}, solver will be re-run",
         network.getNetworkData().getNetworkName());
     if (solver.solve()) {
-      junctionTree.rebuildJTA(network.getNetworkData());
+      junctionTree.rebuildJTA(network.getNetworkData(), inferenceType);
       return true;
     }
     log.error("Could not solve network {}!", network.getNetworkData().getNetworkName());
@@ -121,9 +123,19 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
+  public double getCurrentProbability(NodeState measuredState) {
+    return getCurrentProbability(List.of(measuredState));
+  }
+
+  @Override
   public <T extends Serializable> double getCurrentProbabilityById(Collection<T> measuredStateIds) {
     return getCurrentProbability(
         NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
+  }
+
+  @Override
+  public <T extends Serializable> double getCurrentProbabilityById(T measuredStateId) {
+    return getCurrentProbabilityById(List.of(measuredStateId));
   }
 
   @Override
@@ -134,8 +146,13 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public InferenceEngine printObservedById(Collection<Serializable> nodeIds) {
+  public <T extends Serializable> InferenceEngine printObservedById(Collection<T> nodeIds) {
     return printObserved(network.getNodes(nodeIds));
+  }
+
+  @Override
+  public <T extends Serializable> InferenceEngine printObservedById(T nodeId) {
+    return printObservedById(List.of(nodeId));
   }
 
   @Override
@@ -151,7 +168,7 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public Sampler createSampler() {
-    return Sampler.create(this);
+  public InferenceEngine printObserved(Node node) {
+    return printObserved(List.of(node));
   }
 }

@@ -1,5 +1,8 @@
 package io.github.alecredmond.internal.method.utils;
 
+import lombok.Getter;
+
+@Getter
 public enum AppProperty {
   // Directory Properties
   DIRECTORY_ROOT("app.directory.rootDirectory"),
@@ -7,15 +10,18 @@ public enum AppProperty {
   DIRECTORY_SAVE("app.directory.saveDirectory"),
 
   // Inference Properties
-  INFERENCE_USE_JTA_SOLVER("app.inference.useJunctionTreeSolver"),
   INFERENCE_USE_JTA_INFERENCE("app.inference.useJunctionTreeInference"),
 
   // Solver Properties
+  SOLVER_USE_JTA("app.solver.useJunctionTreeSolver"),
   SOLVER_CYCLES_LIMIT("app.solver.cyclesLimit"),
   SOLVER_TIME_LIMIT_SECONDS("app.solver.timeLimitSeconds"),
   SOLVER_LOG_PROGRESS("app.solver.logSolverProgress"),
   SOLVER_LOG_INTERVAL_SECONDS("app.solver.logIntervalSeconds"),
   SOLVER_CONVERGE_THRESHOLD("app.solver.convergeThreshold"),
+
+  // Internal Properties
+  INTERNAL_DOUBLE_EQUALITY("app.internal.doubleEqualityPrecision"),
 
   // Printer Properties
   PRINTER_OPEN_FILE_ON_CREATION("app.printer.openFileOnCreation"),
@@ -35,7 +41,4 @@ public enum AppProperty {
     this.key = key;
   }
 
-  public String getKey() {
-    return key;
-  }
 }

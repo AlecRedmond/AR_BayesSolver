@@ -1,16 +1,13 @@
 package io.github.alecredmond.internal.method.sampler;
 
+import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
-import io.github.alecredmond.export.method.sampler.Sample;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,22 +15,23 @@ import lombok.extern.slf4j.Slf4j;
 public class LikelihoodWeightingSampler extends SamplerImpl {
   private final LikelihoodWeightingSamplerData samplerData;
 
-  public LikelihoodWeightingSampler(BayesianNetwork network, InferenceEngine engine) {
-    super(network, engine);
+  public LikelihoodWeightingSampler(BayesianNetwork network) {
+    super(network);
     this.samplerData = buildSamplerData();
   }
 
   private LikelihoodWeightingSamplerData buildSamplerData() {
+    BayesianNetworkData networkData = network.getNetworkData();
     Node[] nodes = networkData.getNodes().toArray(Node[]::new);
     TableHelper<?>[] helpers = new TableHelper[nodes.length];
-    Map<Node, ProbabilityTable> networkTables = networkData.getNetworkTablesMap();
+    Map<Node, NetworkTable> networkTables = networkData.getNetworkTablesMap();
     IntStream.range(0, nodes.length)
         .forEach(i -> helpers[i] = networkTables.get(nodes[i]).getHelper());
     return new LikelihoodWeightingSamplerData(nodes, helpers);
   }
 
   @Override
-  public SampleCollection generateWithEvidence(
+  public SampleCollectionImpl generateSamples(
       Map<Node, NodeState> observations, int numberOfSamples) {
     if (numberOfSamples < 0) {
       log.error("Attempted to generate less than zero samples!");
@@ -51,7 +49,7 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
             samplerData.getDistributedSamples(),
             observations,
             samplerData.getNodes(),
-            networkData);
+            network.getNetworkData());
   }
 
   private void initSamplerData(Map<Node, NodeState> observations, int numberOfSamples) {
@@ -85,30 +83,31 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   }
 
   private void convertSetsToSamples() {
-    Map<Sample, Double> weightedSamples = samplerData.getWeightedSamples();
+    Map<SampleImpl, Double> weightedSamples = samplerData.getWeightedSamples();
     Map<Set<NodeState>, Double> weightedStateSets = samplerData.getWeightedStateSets();
     weightedStateSets.forEach(
-        (set, weight) -> weightedSamples.put(new Sample(set.toArray(NodeState[]::new)), weight));
+        (set, weight) ->
+            weightedSamples.put(new SampleImpl(set.toArray(NodeState[]::new)), weight));
   }
 
   private void distributeSamples() {
-    Map<Sample, Double> weightedSamples = samplerData.getWeightedSamples();
+    Map<SampleImpl, Double> weightedSamples = samplerData.getWeightedSamples();
     int numberOfSamples = samplerData.getNumberOfSamples();
-    Map<Sample, Integer> distributedSamples = samplerData.getDistributedSamples();
-    Map<Sample, Double> remainderSamples = new HashMap<>();
+    Map<SampleImpl, Integer> distributedSamples = samplerData.getDistributedSamples();
+    Map<SampleImpl, Double> remainderSamples = new HashMap<>();
     double ratio = getRatio(weightedSamples, numberOfSamples);
-    AtomicInteger tally = new AtomicInteger(0);
+    int[] tally = {0};
 
     weightedSamples.forEach(
         (sample, weight) -> {
           double adjusted = weight * ratio;
           int distributed = (int) adjusted;
-          tally.addAndGet(distributed);
+          tally[0] += distributed;
           distributedSamples.put(sample, distributed);
           remainderSamples.put(sample, adjusted - distributed);
         });
 
-    allocateRemainders(remainderSamples, numberOfSamples - tally.get(), distributedSamples);
+    allocateRemainders(remainderSamples, numberOfSamples - tally[0], distributedSamples);
   }
 
   private NodeState[] buildDefaultSample(Map<Node, NodeState> observations, Node[] nodes) {
@@ -128,17 +127,17 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     return 1.0;
   }
 
-  private double getRatio(Map<Sample, Double> weightedSamples, int numberOfSamples) {
+  private double getRatio(Map<SampleImpl, Double> weightedSamples, int numberOfSamples) {
     double sum = weightedSamples.values().stream().mapToDouble(Double::doubleValue).sum();
     return sum != 0.0 ? numberOfSamples / sum : 0.0;
   }
 
   private void allocateRemainders(
-      Map<Sample, Double> remainderWeights,
+      Map<SampleImpl, Double> remainderWeights,
       int unallocated,
-      Map<Sample, Integer> distributedWeights) {
+      Map<SampleImpl, Integer> distributedWeights) {
     remainderWeights.entrySet().stream()
-        .sorted(Comparator.comparingDouble(Map.Entry<Sample, Double>::getValue).reversed())
+        .sorted(Comparator.comparingDouble(Map.Entry<SampleImpl, Double>::getValue).reversed())
         .map(Map.Entry::getKey)
         .limit(unallocated)
         .forEach(key -> distributedWeights.put(key, distributedWeights.get(key) + 1));

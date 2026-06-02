@@ -47,9 +47,11 @@ public class OdometerInitializerUtils {
   }
 
   private static int computeStartIndex(int[] odometerValues, int[] stepMultiplier) {
-    return IntStream.range(0, odometerValues.length)
-        .map(i -> odometerValues[i] * stepMultiplier[i])
-        .sum();
+    int index = 0;
+    for (int i = 0; i < odometerValues.length; i++) {
+      index += odometerValues[i] * stepMultiplier[i];
+    }
+    return index;
   }
 
   private static int[] computeIndexCorrections(
