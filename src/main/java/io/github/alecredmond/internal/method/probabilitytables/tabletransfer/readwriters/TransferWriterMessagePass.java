@@ -34,7 +34,7 @@ public class TransferWriterMessagePass extends VectorIterator<VectorOdometer>
     iterateOuter(
         (() -> {
           double ratio = ratioArray[tIndex[0]];
-          iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+          iterateInner((o, i) -> probabilities[i] *= ratio);
           tIndex[0]++;
         }));
     setNewSeparators();

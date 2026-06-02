@@ -25,7 +25,7 @@ public class TransferWriterMultiplyIn extends VectorIterator<VectorOdometer>
     iterateOuter(
         () -> {
           double ratio = transferArray[tIndex[0]];
-          iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+          iterateInner((o, i) -> probabilities[i] *= ratio);
           tIndex[0]++;
         });
   }
