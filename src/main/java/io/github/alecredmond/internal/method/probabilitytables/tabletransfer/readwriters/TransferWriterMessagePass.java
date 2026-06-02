@@ -4,13 +4,16 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferWriterMessagePassFactory;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import lombok.EqualsAndHashCode;
 
-public class TransferWriterMessagePass extends VectorIterator<VectorOdometer> implements TransferIterator {
+@EqualsAndHashCode(callSuper = true)
+public class TransferWriterMessagePass extends VectorIterator<VectorOdometer>
+    implements TransferIterator {
   private final double[] transferArray;
   private final double[] ratioArray;
   private final double[] separatorProbs;
+  private final int[] tIndex = {0};
 
   public TransferWriterMessagePass(
       ProbabilityVector write,
@@ -26,12 +29,13 @@ public class TransferWriterMessagePass extends VectorIterator<VectorOdometer> im
   @Override
   public void performRun() {
     fillRatioArray();
-    AtomicInteger tIndex = new AtomicInteger();
+    tIndex[0] = 0;
     double[] probabilities = controller.getOdometer().getProbabilities();
     iterateOuter(
         (() -> {
-          double ratio = ratioArray[tIndex.getAndAdd(1)];
+          double ratio = ratioArray[tIndex[0]];
           iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+          tIndex[0]++;
         }));
     setNewSeparators();
   }

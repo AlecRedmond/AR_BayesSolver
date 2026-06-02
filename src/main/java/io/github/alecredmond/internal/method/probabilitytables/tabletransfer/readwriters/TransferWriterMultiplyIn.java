@@ -4,10 +4,13 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferWriterMultiplyInFactory;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.EqualsAndHashCode;
 
-public class TransferWriterMultiplyIn extends VectorIterator<VectorOdometer> implements TransferIterator {
+@EqualsAndHashCode(callSuper = true)
+public class TransferWriterMultiplyIn extends VectorIterator<VectorOdometer>
+    implements TransferIterator {
   private final double[] transferArray;
+  private final int[] tIndex = {0};
 
   public TransferWriterMultiplyIn(
       ProbabilityVector write, double[] transferArray, TransferWriterMultiplyInFactory logic) {
@@ -17,12 +20,13 @@ public class TransferWriterMultiplyIn extends VectorIterator<VectorOdometer> imp
 
   @Override
   public void performRun() {
-    AtomicInteger tIndex = new AtomicInteger();
+    tIndex[0] = 0;
     double[] probabilities = controller.getOdometer().getProbabilities();
     iterateOuter(
         () -> {
-          double ratio = transferArray[tIndex.getAndAdd(1)];
+          double ratio = transferArray[tIndex[0]];
           iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+          tIndex[0]++;
         });
   }
 }
