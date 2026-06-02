@@ -33,26 +33,40 @@ public interface BayesSolver {
   }
 
   /**
-   * Runs the solver with the default IPFP if the network is not yet solved. The default procedure
-   * can be changed in 'app.properties' using {@code app.inference.useJunctionTreeSolver} (default =
-   * false). If this is unsuccessful, it will catch and log the associated error.
+   * Runs the solver with the IPFP set in 'app.properties', if the network is not yet solved. The
+   * default procedure can be changed using {@code app.solver.useJunctionTreeSolver} (default =
+   * true). If this is unsuccessful, it will catch and log the associated error.
    *
    * @return true if the solver procedure completes successfully, or the network was already solved.
    */
   boolean solve();
 
+  /**
+   * Runs the solver with the specified IPFP variation, if the network is not yet solved. If this is
+   * unsuccessful, it will catch and log the associated error.
+   *
+   * @param solverType the type of IPFP to be used.
+   * @return true if the solver procedure completes successfully, or the network was already solved.
+   */
   boolean solve(SolverType solverType);
 
   /**
-   * Forces the solver to run with the default IPFP, regardless of if the network is already solved.
-   * The default procedure can be changed in 'app.properties' using {@code
-   * app.inference.useJunctionTreeSolver} (default = false). If this is unsuccessful, it will catch
-   * and log the associated error.
+   * Forces the solver to run with the IPFP set in 'app.properties', regardless of if the network is
+   * already solved. The default procedure can be changed in using {@code
+   * app.solver.useJunctionTreeSolver} (default = true). If this is unsuccessful, it will catch and
+   * log the associated error.
    *
    * @return true if the solver procedure completes successfully.
    */
   boolean forceSolve();
 
+  /**
+   * Forces the solver to run with specified IPFP variation, regardless of if the network is already
+   * solved. If this is unsuccessful, it will catch and log the associated error.
+   *
+   * @param solverType the type of IPFP to be used.
+   * @return true if the solver procedure completes successfully.
+   */
   boolean forceSolve(SolverType solverType);
 
   /**
@@ -71,6 +85,33 @@ public interface BayesSolver {
    */
   SolverResults getResults();
 
+  /**
+   * The type of Iterative Proportional Fitting Procedure (IPFP) used in the solver process. There
+   * are currently two variations:
+   *
+   * <ul>
+   *   <li>
+   *       <p><b>JOINT_TABLE_IPFP</b> is the most basic form of iterative proportional fitting,
+   *       where the Cartesian product of all node states are mapped to a single joint probability
+   *       table to which all constraints are applied.
+   *       <p>This method has a low overhead and is typically faster for small networks where the
+   *       joint product of the network would result in ~100,000 entries or fewer (roughly
+   *       equivalent to 17 True/False nodes). After this point, adding nodes will result in
+   *       exponentially diminishing returns. The hard limit for this is 2^31-1 entries, or the max
+   *       value of a signed 32-bit integer.
+   *   <li>
+   *       <p><b>JUNCTION_TREE_IPFP</b> discretizes the network into a junction tree of several
+   *       smaller cliques, each with its own miniature joint table, connected to other cliques by
+   *       separators formed from their shared nodes. Batches of constraints associated with each
+   *       clique are solved and the results distributed through the separators.
+   *       <p>This method has a higher overhead but scales on the Cartesian product of the maximum
+   *       <i>Treewidth</i> of the network and its constraints. As a result, this method will
+   *       typically provide an exponential speed increase over the full joint table method for
+   *       every additional node added. This is also the only way to solve a network whose joint
+   *       Cartesian product would exceed 2^31 entries, which is the length limit of an array in
+   *       Java.
+   * </ul>
+   */
   enum SolverType {
     JOINT_TABLE_IPFP,
     JUNCTION_TREE_IPFP
