@@ -6,10 +6,10 @@ import java.util.*;
 import lombok.Data;
 
 /**
- * A data class containing the results of a {@link BayesSolver} proportional fitting run. The class
- * contains information on the number of cycles completed, the final absolute error, and a map
- * linking each {@link ProbabilityConstraint} on the network to its associated {@link
- * SolverConstraintResult} for a more granular, per-constraint breakdown.
+ * Contains the results of a {@link BayesSolver} proportional fitting run, including the number of
+ * cycles completed, the aggregate R-squared error on the final cycle, and a per-constraint
+ * breakdown linking each {@link ProbabilityConstraint} to its associated {@link
+ * SolverConstraintResult}.
  *
  * @author Alec Redmond
  */
@@ -19,38 +19,41 @@ public class SolverResults {
   private final int cycles;
 
   /**
-   * A map that connects each constraint to its specific result, including details of the error and
-   * loss rates per cycle
+   * A map that connects each constraint to its specific result, including details of per-cycle
+   * error and loss rates. The map is a {@link LinkedHashMap}, sorted in reverse order of final
+   * cycle R-squared error.
    */
   private final Map<ProbabilityConstraint, SolverConstraintResult> constraintResults;
 
   /**
-   * The sum of R-squared errors between the fitted data and the expected data defined in the
-   * constraints on the solver's final cycle.
+   * The aggregate R-squared error between the fitted data and the expected data defined in the
+   * constraints, measured on the solver's final cycle.
    */
   private final double lastError;
 
   /**
-   * Returns the granular results of a single constraint over the course of the solver's run,
-   * including details of the error and loss rates per cycle.
+   * Returns the detailed result for a single constraint over the course of the solver run,
+   * including per-cycle error and loss.
    *
-   * @param constraint a constraint that was active in the network during the solving process
-   * @return the result object for the given constraint
+   * @param constraint a constraint that was active in the network during solving.
+   * @return the {@link SolverConstraintResult} for the given constraint, or {@code null} if the
+   *     constraint was not present in this run.
    */
   public SolverConstraintResult getResult(ProbabilityConstraint constraint) {
     return constraintResults.get(constraint);
   }
 
   /**
-   * Returns the list of constraint results, in descending order of last cycle error, and limited to
-   * the given percentage of the total final error. This is useful for finding constraints that are
-   * unable to find a fit within the data, or groups of constraints that overwrite each other. These
-   * constraints are likely to be outliers by several orders of magnitude and can usually be found
-   * within 2 standard deviations, or 95.45%, of the overall error.
+   * Returns constraint results in descending order of final-cycle error, accumulated up to the
+   * given percentage of the total final error. This is useful for identifying constraints that
+   * cannot be satisfied within the data, or that conflict with other constraints. Such constraints
+   * tend to be outliers by several orders of magnitude and are typically found within the worst
+   * 95.45% (2 standard deviations) of the total error.
    *
-   * @param percent percentage of the final error
-   * @return a list of constraint results, in descending error order, summing to the given
-   *     percentage of the final error
+   * @param percent the cumulative percentage of total error to cover, as a value between 0 and 100
+   *     (e.g., {@code 95} to retrieve the constraints responsible for 95% of the total error).
+   * @return a list of {@link SolverConstraintResult} objects in descending order of final-cycle
+   *     error, whose combined error sums to approximately the given percentage of the total.
    */
   public List<SolverConstraintResult> getWorstNthPercentile(Number percent) {
     double goal = lastError * (percent.doubleValue() / 100.0);
