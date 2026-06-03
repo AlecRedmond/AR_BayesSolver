@@ -11,9 +11,10 @@ import io.github.alecredmond.export.application.probabilitytables.probabilityvec
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class TableBuilder {
@@ -61,9 +62,7 @@ public class TableBuilder {
   }
 
   private static Map<Serializable, Node> buildNodeIDMap(Collection<Node> nodes) {
-    return nodes.stream()
-        .map(n -> Map.entry(n.getId(), n))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return MapUtils.mapFromInput(nodes, Node::getId, Function.identity());
   }
 
   private static Map<Serializable, NodeState> buildNodeStateIDMap(Collection<Node> nodes) {
@@ -71,7 +70,7 @@ public class TableBuilder {
         .map(Node::getNodeStates)
         .flatMap(Collection::stream)
         .map(ns -> Map.entry(ns.getId(), ns))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        .collect(MapUtils.collectMap());
   }
 
   private static String buildTableName(Collection<Node> events, Collection<Node> conditions) {

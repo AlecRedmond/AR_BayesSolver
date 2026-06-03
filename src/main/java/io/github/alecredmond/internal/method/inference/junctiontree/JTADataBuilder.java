@@ -17,8 +17,8 @@ import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSo
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +50,8 @@ public class JTADataBuilder {
 
   private void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
-    Map<Clique, List<ConstraintSolver>> map =
-        Arrays.stream(jtd.getCliques())
-            .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    jtd.setConstraintHandlersMap(map);
+    jtd.setConstraintHandlersMap(
+        MapUtils.mapFromInput(jtd.getCliques(), clique -> matchConstraints(clique, constraints)));
   }
 
   private void buildInternalMessagePassers(JunctionTreeData jtd) {
@@ -138,8 +135,7 @@ public class JTADataBuilder {
   private void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
     jtd.setObservedEvidence(new HashMap<>());
     jtd.setObservedTablesMap(
-        bnd.getNodes().stream()
-            .map(node -> Map.entry(node, TableBuilder.buildMarginalTable(Set.of(node))))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        MapUtils.mapFromInput(
+            bnd.getNodes(), node -> TableBuilder.buildMarginalTable(Set.of(node))));
   }
 }

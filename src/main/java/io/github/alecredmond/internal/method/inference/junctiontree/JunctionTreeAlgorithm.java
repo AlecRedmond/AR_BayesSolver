@@ -13,9 +13,9 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Junctio
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
@@ -169,9 +169,7 @@ public class JunctionTreeAlgorithm {
             });
   }
 
-  private Map<Clique, Separator> getNextSeparators(Clique currentClique, Set<Clique> cliqueChain) {
-    return currentClique.getSeparatorMap().entrySet().stream()
-        .filter(entry -> !cliqueChain.contains(entry.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  private Map<Clique, Separator> getNextSeparators(Clique current, Set<Clique> visited) {
+    return MapUtils.filterMap(current.getSeparatorMap(), (clique, s) -> !visited.contains(clique));
   }
 }

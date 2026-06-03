@@ -7,12 +7,13 @@ import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import lombok.Data;
 
 @Data
@@ -60,16 +61,14 @@ public class NetworkDataBuilder {
   }
 
   public static Map<Serializable, Node> createNodeIdMap(Collection<Node> nodes) {
-    return nodes.stream()
-        .map(n -> Map.entry(n.getId(), n))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return MapUtils.mapFromInput(nodes, Node::getId, Function.identity());
   }
 
   public static Map<Serializable, NodeState> createNodeStateIdMap(Collection<Node> nodes) {
     return nodes.stream()
         .flatMap(n -> n.getNodeStates().stream())
         .map(ns -> Map.entry(ns.getId(), ns))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        .collect(MapUtils.collectMap());
   }
 
   public void marginalizeAllTables() {

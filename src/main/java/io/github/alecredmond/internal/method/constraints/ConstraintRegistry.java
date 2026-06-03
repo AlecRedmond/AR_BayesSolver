@@ -2,9 +2,9 @@ package io.github.alecredmond.internal.method.constraints;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
-import java.util.Arrays;
+import io.github.alecredmond.internal.method.utils.MapUtils;
+
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ConstraintRegistry {
   private static final Map<Class<? extends ProbabilityConstraint>, ConstraintStrategy<?>> REGISTRY =
@@ -20,8 +20,9 @@ public class ConstraintRegistry {
 
   private static Map<Class<? extends ProbabilityConstraint>, ConstraintStrategy<?>>
       buildRegistry() {
-    return Arrays.stream(ConstraintTypes.values())
-        .map(type -> Map.entry(type.getConstraintClass(), type.getStrategySupplier().get()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return MapUtils.mapFromInput(
+        ConstraintTypes.values(),
+        ConstraintTypes::getConstraintClass,
+        t -> t.getStrategySupplier().get());
   }
 }

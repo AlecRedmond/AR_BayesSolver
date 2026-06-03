@@ -3,9 +3,11 @@ package io.github.alecredmond.internal.method.node;
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -19,9 +21,7 @@ public class NodeUtils {
 
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
     try {
-      return states.stream()
-          .map((state -> Map.entry(state.getNode(), state)))
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      return MapUtils.mapFromInput(states, NodeState::getNode, Function.identity());
     } catch (IllegalStateException e) {
       throw new NodeStateConflictException(
           "Error generating request : Multiple values of NodeState shared the same Node", e);
@@ -82,9 +82,10 @@ public class NodeUtils {
   }
 
   public static Map<Node, Integer> buildNodeIndexMap(Node[] nodes) {
-    return IntStream.range(0, nodes.length)
-        .mapToObj(i -> Map.entry(nodes[i], i))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return MapUtils.intStreamMap(nodes, i -> nodes[i], i -> i);
+    //    return IntStream.range(0, nodes.length)
+    //        .mapToObj(i -> Map.entry(nodes[i], i))
+    //        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public static Map<NodeState, Integer> buildStateIndexMap(Node[] nodes) {

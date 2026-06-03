@@ -8,6 +8,7 @@ import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
 import java.io.Serializable;
 import java.util.*;
@@ -107,9 +108,7 @@ public class TableUtils {
   public static Map<NodeState, Double> buildMarginalProbMap(MarginalTable table) {
     List<NodeState> states = table.getNetworkNode().getNodeStates();
     double[] prob = table.getVector().getProbabilities();
-    return IntStream.range(0, prob.length)
-        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return MapUtils.intStreamMap(prob, states::get, i -> prob[i], LinkedHashMap::new);
   }
 
   private static <T extends ProbabilityTable> void setComplementStatesToZero(

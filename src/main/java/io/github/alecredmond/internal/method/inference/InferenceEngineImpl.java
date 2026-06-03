@@ -10,9 +10,9 @@ import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTree
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
+import io.github.alecredmond.internal.method.utils.MapUtils;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -160,9 +160,9 @@ public class InferenceEngineImpl implements InferenceEngine {
     if (!ensureSolved()) return this;
     Set<Node> nodeSet = new HashSet<>(nodes);
     Map<Node, MarginalTable> toPrint =
-        junctionTree.getData().getObservedTablesMap().entrySet().stream()
-            .filter(e -> nodeSet.contains(e.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        MapUtils.filterMap(
+            junctionTree.getData().getObservedTablesMap(),
+            (node, marginalTable) -> nodeSet.contains(node));
     new NetworkPrinter(this).printTables(toPrint, "OBSERVED");
     return this;
   }
