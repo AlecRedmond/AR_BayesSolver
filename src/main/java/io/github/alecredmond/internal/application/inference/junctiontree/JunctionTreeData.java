@@ -20,7 +20,7 @@ public class JunctionTreeData {
   private BayesianNetworkData networkData;
   private Clique[] cliques;
   private Separator[] separators;
-  private Map<Clique, List<ConstraintSolver>> constraintHandlersMap;
+  private Map<Clique, List<ConstraintSolver>> solversPerClique;
   private Map<Node, MarginalTable> observedTablesMap;
   private Map<Node, NodeState> observedEvidence;
   private boolean solverConfig;
