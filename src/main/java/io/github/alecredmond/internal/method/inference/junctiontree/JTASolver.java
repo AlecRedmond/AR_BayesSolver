@@ -8,7 +8,9 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -19,88 +21,111 @@ public class JTASolver {
     Instant start = Instant.now();
 
     if (writeLogs) {
-      log.info("STARTING SOLVER");
+      log.info("STARTING SOLVER IN MODE = {}", configs.getSolverType());
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(networkData,configs);
+    JunctionTreeAlgorithm jta = buildJTA(networkData, configs);
 
     double lastError;
     double error = Double.MAX_VALUE;
     double converge = Double.MAX_VALUE;
 
-    long now = Instant.now().getEpochSecond();
-    long endTime = now + configs.getTimeLimitSeconds();
-    long nextLogTime = now + configs.getLogIntervalSeconds();
+    Instant now = Instant.now();
+    Instant endTime = now.plus(configs.getTimeLimitSeconds(), ChronoUnit.SECONDS);
+    Instant nextLogTime = now.plus(configs.getLogIntervalSeconds(), ChronoUnit.SECONDS);
 
-    Map<Clique, List<ConstraintSolver>> constraintMap = jta.getData().getConstraintHandlersMap();
+    Map<Clique, List<ConstraintSolver>> solversPerClique = jta.getData().getSolversPerClique();
 
     boolean thresholdReached = false;
-    boolean timeLimitReached;
+    boolean timeLimitReached = false;
     int cycle;
     double[] adder = {0.0};
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, constraintMap,adder);
-      converge = Math.abs(error - lastError);
+      error = runSolverCycleAndReturnError(jta, solversPerClique, adder);
+      converge = error - lastError;
 
-      now = Instant.now().getEpochSecond();
-      thresholdReached = converge <= configs.getConvergeThreshold();
-      timeLimitReached = now >= endTime;
+      now = Instant.now();
+      thresholdReached = Math.abs(converge) <= configs.getConvergeThreshold();
+      timeLimitReached = now.isAfter(endTime);
 
       if (thresholdReached || timeLimitReached) {
         break;
       }
 
-      if (writeLogs && now >= nextLogTime) {
-        nextLogTime = now + configs.getLogIntervalSeconds();
+      if (writeLogs && now.isAfter(nextLogTime)) {
+        nextLogTime = now.plus(configs.getLogIntervalSeconds(), ChronoUnit.SECONDS);
         logCycleComplete(cycle, converge, error);
       }
     }
 
     if (writeLogs) {
-      logEndStatement(thresholdReached, start, Instant.now());
+      logEndStatement(
+          thresholdReached,
+          timeLimitReached,
+          cycle >= configs.getCyclesLimit(),
+          now.toEpochMilli() - start.toEpochMilli());
       logCycleComplete(cycle, converge, error);
     }
 
     jta.writeTablesToNetwork();
-    return writeResults(constraintMap, cycle);
+    return writeResults(solversPerClique, cycle);
   }
 
   private JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData, SolverConfigs configs) {
-    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData,configs);
+    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData, configs);
     jta.marginalizeTables();
     return jta;
   }
 
   private double runSolverCycleAndReturnError(
-          JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> constraintHandlers, double[] adder) {
+      JunctionTreeAlgorithm jta,
+      Map<Clique, List<ConstraintSolver>> solversPerClique,
+      double[] adder) {
 
     adder[0] = 0.0;
 
-    constraintHandlers.forEach(
-        (clique, handlers) ->
-            handlers.forEach(
-                h -> {
-                  adder[0] += h.adjustAndReturnError();
+    solversPerClique.forEach(
+        (clique, constraintSolvers) ->
+            constraintSolvers.forEach(
+                solver -> {
+                  adder[0] += solver.adjustAndReturnError();
                   jta.sumTransfer(clique);
                 }));
 
     return adder[0];
   }
 
+  @SuppressWarnings("StringConcatenationArgumentToLogCall")
   private void logCycleComplete(int cycle, double loss, double error) {
     log.info(String.format("CYCLE %d : LOSS = %1.2e : ERROR = %1.2e", cycle, loss, error));
   }
 
-  private void logEndStatement(boolean thresholdReached, Instant start, Instant end) {
-    log.info(
-        thresholdReached ? "SOLVER FOUND A SOLUTION IN {} ms" : "SOLVER TIMED OUT AFTER {} ms",
-        end.toEpochMilli() - start.toEpochMilli());
+  private void logEndStatement(
+      boolean thresholdReached,
+      boolean timeLimitReached,
+      boolean cycleLimitReached,
+      long runTimeMs) {
+    String statement;
+    Consumer<String> logType;
+    if (thresholdReached) {
+      statement = "FOUND A SOLUTION";
+      logType = log::info;
+    } else if (cycleLimitReached) {
+      statement = "REACHED MAX CYCLES";
+      logType = log::warn;
+    } else if (timeLimitReached) {
+      statement = "TIMED OUT";
+      logType = log::warn;
+    } else {
+      statement = "ENDED ABNORMALLY";
+      logType = log::error;
+    }
+    logType.accept("SOLVER %s, ELAPSED TIME %d ms".formatted(statement, runTimeMs));
   }
 
-  private SolverResults writeResults(
-      Map<Clique, List<ConstraintSolver>> constraintMap, int cycle) {
+  private SolverResults writeResults(Map<Clique, List<ConstraintSolver>> constraintMap, int cycle) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)
