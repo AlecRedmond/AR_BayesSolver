@@ -17,15 +17,18 @@ import java.util.Map;
  * BayesianNetwork}. The values stored in the network's Conditional Probability Tables (CPTs) are
  * mapped to a secondary inference network which can be queried for joint, marginal, or conditional
  * probabilities. The documentation for {@link InferenceType} provides further information on the
- * available variations.
+ * available variants.
  *
  * <p>Specific {@link NodeState} values can be set as observed (always true) using {@link
  * #observeNetwork(Collection)} or {@link #observeNetworkFromIds(Collection)}. These will be
  * persisted in the instance until new observations are given, or until the observations are cleared
  * using {@link #resetObservations()}.
  *
- * <p>Unlike Monte Carlo sampling (as used in {@link Sampler}), the results of direct inference are
- * always guaranteed to be correct.
+ * <p>Unlike Monte Carlo sampling (as used in {@link Sampler}), which will give an approximate
+ * solution, the results of direct inference are both exact and deterministic.
+ *
+ * <p>Instances of this interface are not thread-safe. External synchronisation is required for
+ * concurrent access.
  *
  * @see BayesSolver
  * @author Alec Redmond
@@ -53,6 +56,7 @@ public interface InferenceEngine {
    * Refer to the {@link InferenceType} documentation for further information.
    *
    * @param network the network where inference is to be run.
+   * @param inferenceType the {@link InferenceType} variant to use for this instance.
    * @return a new {@code InferenceEngine} instance, or {@code null} if the given network was
    *     unsolved and could not be solved.
    */
@@ -97,8 +101,9 @@ public interface InferenceEngine {
    * NodeState}.
    *
    * @param observedStateId the id of the single state to be observed.
+   * @param <T> the type of the state id.
    * @return this instance for chaining.
-   * @throws NullPointerException if the id was not associated with any {@link NodeState}
+   * @throws NullPointerException if the id was not associated with any {@link NodeState}.
    */
   <T extends Serializable> InferenceEngine observeNetworkFromIds(T observedStateId);
 
@@ -108,10 +113,11 @@ public interface InferenceEngine {
    * probabilities measured in this configuration will be conditional on these states.
    *
    * @param observedStateIDs the collection of ids associated with the states to be observed.
+   * @param <T> the type of the state ids.
    * @return this instance for chaining.
    * @throws NodeStateConflictException if multiple {@link NodeState} values would map to the same
    *     {@link Node}.
-   * @throws NullPointerException if any id was not associated with a {@link NodeState}
+   * @throws NullPointerException if any id was not associated with a {@link NodeState}.
    */
   <T extends Serializable> InferenceEngine observeNetworkFromIds(Collection<T> observedStateIDs);
 
@@ -128,10 +134,10 @@ public interface InferenceEngine {
    * probability of every {@link NodeState} conditional on the current observations. The values on
    * this table are not deep-copied and will change if the observations on this instance change.
    *
-   * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}
-   * @param <T> the class of the id
+   * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}.
+   * @param <T> the type of the node id.
    * @return a {@link MarginalTable} mapping a single node's states to their current probability.
-   * @throws NullPointerException if the id was not associated with any {@link Node}
+   * @throws NullPointerException if the id was not associated with any {@link Node}.
    */
   <T extends Serializable> MarginalTable getObservedTableById(T nodeId);
 
@@ -140,7 +146,7 @@ public interface InferenceEngine {
    * probability of every {@link NodeState} conditional on the current observations. The values on
    * this table are not deep-copied and will change if the observations on this instance change.
    *
-   * @param node the {@link Node} associated with the {@link MarginalTable}
+   * @param node the {@link Node} associated with the {@link MarginalTable}.
    * @return a {@link MarginalTable} mapping a single node's states to their current probability.
    */
   MarginalTable getObservedTable(Node node);
@@ -151,11 +157,11 @@ public interface InferenceEngine {
    * provide a deep copy of the table, and the probability values will not change if the
    * observations on the instance change.
    *
-   * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}
-   * @param <T> the class of the id
+   * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}.
+   * @param <T> the type of the node id.
    * @return a {@link MarginalTable} mapping a single node's states to their probability given the
    *     conditions when constructed.
-   * @throws NullPointerException if the id was not associated with any {@link Node}
+   * @throws NullPointerException if the id was not associated with any {@link Node}.
    */
   <T extends Serializable> MarginalTable copyObservedTableById(T nodeId);
 
@@ -165,7 +171,7 @@ public interface InferenceEngine {
    * provide a deep copy of the table, and the probability values will not change if the
    * observations on the instance change.
    *
-   * @param node the {@link Node} associated with the {@link MarginalTable}
+   * @param node the {@link Node} associated with the {@link MarginalTable}.
    * @return a {@link MarginalTable} mapping a single node's states to their probability given the
    *     conditions when constructed.
    */
@@ -205,7 +211,7 @@ public interface InferenceEngine {
    * observed states. This gives the probability of all given states being simultaneously true.
    *
    * @param measuredStateIds the ids of all {@link NodeState} values to be queried.
-   * @param <T> the class of the measured {@link NodeState} ids
+   * @param <T> the type of the measured {@link NodeState} ids.
    * @return the observed joint probability of all measured {@link NodeState} values.
    * @throws NullPointerException if any id was not associated with a {@link NodeState}.
    */
@@ -216,7 +222,7 @@ public interface InferenceEngine {
    * current observed states.
    *
    * @param measuredStateId the id of the {@link NodeState} to be queried.
-   * @param <T> the class of the measured {@link NodeState} id.
+   * @param <T> the type of the measured {@link NodeState} id.
    * @return the observed marginal probability of the measured {@link NodeState} value.
    * @throws NullPointerException if the id was not associated with any {@link NodeState}.
    */
@@ -224,7 +230,7 @@ public interface InferenceEngine {
 
   /**
    * Prints the observed marginal values from all observed {@link MarginalTable} entries, either to
-   * a .txt file or to the console. Parameters for the printer can be defined within {@code
+   * a {@code .txt} file or to the console. Parameters for the printer can be defined within {@code
    * app.properties} under the {@code app.printer} section.
    *
    * @return this instance for chaining.
@@ -235,12 +241,12 @@ public interface InferenceEngine {
 
   /**
    * Prints the observed marginal values from the observed {@link MarginalTable} entries associated
-   * with the given {@link Node}, either to a .txt file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * with the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for
+   * the printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
    * @param nodeIds the ids of all {@link Node} values where the associated {@link MarginalTable}
    *     should be printed.
-   * @param <T> the class of the {@link Node} ids.
+   * @param <T> the type of the {@link Node} ids.
    * @return this instance for chaining.
    * @throws NetworkPrinterException if the printer is unable to successfully complete the
    *     operation.
@@ -250,8 +256,8 @@ public interface InferenceEngine {
 
   /**
    * Prints the observed marginal values from the observed {@link MarginalTable} entries associated
-   * with the given {@link Node}, either to a .txt file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * with the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for
+   * the printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
    * @param nodeId the id of the {@link Node} where the associated {@link MarginalTable} should be
    *     printed.
@@ -265,8 +271,8 @@ public interface InferenceEngine {
 
   /**
    * Prints the observed marginal values from the observed {@link MarginalTable} entries associated
-   * with the given {@link Node}, either to a .txt file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * with the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for
+   * the printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
    * @param nodes all {@link Node} values where the associated {@link MarginalTable} should be
    *     printed.
@@ -278,8 +284,8 @@ public interface InferenceEngine {
 
   /**
    * Prints the observed marginal values from the observed {@link MarginalTable} entries associated
-   * with the given {@link Node}, either to a .txt file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * with the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for
+   * the printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
    * @param node a {@link Node} where the associated {@link MarginalTable} should be printed.
    * @return this instance for chaining.
@@ -291,12 +297,12 @@ public interface InferenceEngine {
   /**
    * Returns the {@link BayesianNetwork} measured by this {@code InferenceEngine}.
    *
-   * @return the {@link BayesianNetwork} associated with this {@code InferenceEngine}
+   * @return the {@link BayesianNetwork} associated with this {@code InferenceEngine}.
    */
   BayesianNetwork getNetwork();
 
   /**
-   * The variations of direct inference an {@code InferenceEngine} can perform. These are set on the
+   * The variants of direct inference an {@code InferenceEngine} can perform. These are set on the
    * creation of an {@code InferenceEngine} instance and cannot be changed. There are currently two
    * variants of inference that can be used, and the default can be configured in {@code
    * app.properties} using {@code app.inference.useJunctionTreeInference} (default: {@code true}).
@@ -310,12 +316,12 @@ public interface InferenceEngine {
    *       yield an exponential improvement over the joint table method at the cost of a small
    *       overhead. It is also the only option for networks whose full joint Cartesian product
    *       would exceed 2<sup>31</sup>&minus;1 entries.
-   *   <li><b>SINGLE_TABLE_ALGORITHM</b> (STA) is generally not advisable for use under most
-   *       circumstances. STA maps the Cartesian product of all node states in the network to a
-   *       single joint probability table. This has a low overhead but very poor time and memory
-   *       complexity scaling, although there may be some benefit in very small networks under high
-   *       loads of observation queries. The absolute upper limit for this variant is a table length
-   *       of 2<sup>31</sup>&minus;1 entries, the maximum length of a Java array.
+   *   <li><b>SINGLE_TABLE_ALGORITHM</b> (STA) is generally not advisable. STA maps the Cartesian
+   *       product of all node states in the network to a single joint probability table. This has a
+   *       low overhead but very poor time and memory complexity scaling, although there may be some
+   *       benefit in very small networks under high loads of observation queries. The absolute
+   *       upper limit for this variant is a table length of 2<sup>31</sup>&minus;1 entries, the
+   *       maximum length of a Java array.
    * </ul>
    */
   enum InferenceType {
@@ -331,12 +337,12 @@ public interface InferenceEngine {
      */
     JUNCTION_TREE_ALGORITHM,
     /**
-     * <b>SINGLE_TABLE_ALGORITHM</b> (STA) is generally not advisable for use under most
-     * circumstances. STA maps the Cartesian product of all node states in the network to a single
-     * joint probability table. This has a low overhead but very poor time and memory complexity
-     * scaling, although there may be some benefit in very small networks under high loads of
-     * observation queries. The absolute upper limit for this variant is a table length of
-     * 2<sup>31</sup>&minus;1 entries, the maximum length of a Java array.
+     * <b>SINGLE_TABLE_ALGORITHM</b> (STA) is generally not advisable for. STA maps the Cartesian
+     * product of all node states in the network to a single joint probability table. This has a low
+     * overhead but very poor time and memory complexity scaling, although there may be some benefit
+     * in very small networks under high loads of observation queries. The absolute upper limit for
+     * this variant is a table length of 2<sup>31</sup>&minus;1 entries, the maximum length of a
+     * Java array.
      */
     SINGLE_TABLE_ALGORITHM
   }
