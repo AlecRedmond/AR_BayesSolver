@@ -12,7 +12,6 @@ import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,10 +24,13 @@ public class InferenceEngineImpl implements InferenceEngine {
   private final InferenceType inferenceType;
 
   public InferenceEngineImpl(
-      BayesianNetwork network, JunctionTreeAlgorithm junctionTree, InferenceType inferenceType) {
+      BayesianNetwork network,
+      BayesSolver solver,
+      JunctionTreeAlgorithm junctionTree,
+      InferenceType inferenceType) {
     this.network = network;
     this.junctionTree = junctionTree;
-    this.solver = BayesSolver.create(network);
+    this.solver = solver;
     this.inferenceType = inferenceType;
     resetObservations();
   }
@@ -158,11 +160,11 @@ public class InferenceEngineImpl implements InferenceEngine {
   @Override
   public InferenceEngine printObserved(Collection<Node> nodes) {
     if (!ensureSolved()) return this;
-    Set<Node> nodeSet = new HashSet<>(nodes);
-    Map<Node, MarginalTable> toPrint =
-        junctionTree.getData().getObservedTablesMap().entrySet().stream()
-            .filter(e -> nodeSet.contains(e.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<Node, MarginalTable> observedTables = junctionTree.getData().getObservedTablesMap();
+    Map<Node, MarginalTable> toPrint = new LinkedHashMap<>();
+    nodes.stream()
+        .filter(observedTables::containsKey)
+        .forEach(node -> toPrint.put(node, observedTables.get(node)));
     new NetworkPrinter(this).printTables(toPrint, "OBSERVED");
     return this;
   }
