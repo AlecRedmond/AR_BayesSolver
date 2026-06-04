@@ -20,22 +20,21 @@ import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.fac
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
+@NoArgsConstructor
 public class JTADataBuilder {
-
-  public JTADataBuilder() {}
-
   public JunctionTreeData buildNewSolverConfiguration(
       BayesianNetworkData bayesianNetworkData, SolverConfigs configs) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(true);
     junctionTreeData.setSolverType(configs.getSolverType());
     buildCommon(junctionTreeData, bayesianNetworkData);
-    buildConstraintHandlers(junctionTreeData, bayesianNetworkData);
+    buildSolversPerClique(junctionTreeData, bayesianNetworkData);
     log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
     return junctionTreeData;
   }
@@ -48,13 +47,13 @@ public class JTADataBuilder {
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
   }
 
-  private void buildConstraintHandlers(JunctionTreeData jtd, BayesianNetworkData bnd) {
+  private void buildSolversPerClique(JunctionTreeData jtd, BayesianNetworkData bnd) {
     List<ProbabilityConstraint> constraints = bnd.getConstraints();
     Map<Clique, List<ConstraintSolver>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    jtd.setConstraintHandlersMap(map);
+    jtd.setSolversPerClique(map);
   }
 
   private void buildInternalMessagePassers(JunctionTreeData jtd) {

@@ -44,6 +44,10 @@ public interface InferenceEngine {
     return new InferenceEngineFactory().create(network);
   }
 
+  static InferenceEngine create(BayesianNetwork network, InferenceType inferenceType) {
+    return new InferenceEngineFactory().create(network, inferenceType);
+  }
+
   InferenceEngine resetObservations();
 
   InferenceEngine observeNetwork(Collection<NodeState> observedStates);

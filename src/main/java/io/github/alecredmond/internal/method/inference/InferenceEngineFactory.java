@@ -18,24 +18,32 @@ import lombok.extern.slf4j.Slf4j;
 public class InferenceEngineFactory {
 
   public InferenceEngine create(BayesianNetwork network) {
-    if (!attemptSolve(network)) {
-      log.error("Could not build an inference engine!");
-      return null;
-    }
     InferenceType inferenceType =
         new PropertiesLoader().loadBoolean(INFERENCE_USE_JTA_INFERENCE)
             ? JUNCTION_TREE_INFERENCE
             : JOINT_TABLE_INFERENCE;
-    JunctionTreeAlgorithm jta =
-        JunctionTreeAlgorithm.buildForInference(network.getNetworkData(), inferenceType);
-    return new InferenceEngineImpl(network, jta, inferenceType);
+    return create(network, inferenceType);
   }
 
-  private boolean attemptSolve(BayesianNetwork network) {
+  public InferenceEngine create(BayesianNetwork network, InferenceType inferenceType) {
+
+    BayesSolver solver = BayesSolver.create(network);
+    if (!attemptSolve(network, solver)) {
+      log.error("Could not build an inference engine!");
+      return null;
+    }
+    return new InferenceEngineImpl(
+        network,
+        solver,
+        JunctionTreeAlgorithm.buildForInference(network.getNetworkData(), inferenceType),
+        inferenceType);
+  }
+
+  private boolean attemptSolve(BayesianNetwork network, BayesSolver solver) {
     if (network.isSolved()) return true;
     log.warn(
-        "Attempted to create an Inference Engine on unsolved network {}. Will now attempt to solve...",
+        "Attempted to create an Inference Engine on unsolved network '{}'. Will now attempt to solve...",
         network.getNetworkData().getNetworkName());
-    return BayesSolver.create(network).solve();
+    return solver.forceSolve();
   }
 }
