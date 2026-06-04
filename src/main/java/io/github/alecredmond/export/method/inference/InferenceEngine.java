@@ -130,7 +130,7 @@ public interface InferenceEngine {
   Map<Node, NodeState> getCurrentObservations();
 
   /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the marginal
+   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the posterior marginal
    * probability of every {@link NodeState} conditional on the current observations. The values on
    * this table are not deep-copied and will change if the observations on this instance change.
    *
@@ -142,7 +142,7 @@ public interface InferenceEngine {
   <T extends Serializable> MarginalTable getObservedTableById(T nodeId);
 
   /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the marginal
+   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the posterior marginal
    * probability of every {@link NodeState} conditional on the current observations. The values on
    * this table are not deep-copied and will change if the observations on this instance change.
    *
