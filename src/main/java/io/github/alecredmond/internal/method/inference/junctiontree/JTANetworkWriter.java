@@ -2,14 +2,14 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
+import io.github.alecredmond.internal.application.probabilitytables.ObservedTableImpl;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ class JTANetworkWriter {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
       clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
-      clique.getTable().marginalizeTable();
+      clique.getTable().getHelper().marginalizeTable();
     }
     backupUnobservedData();
     marginaliseSeparators();
@@ -71,15 +71,11 @@ class JTANetworkWriter {
   }
 
   private void updateTableName(Node node) {
-    MarginalTable observedTable = jtd.getObservedTablesMap().get(node);
-    Collection<NodeState> states = jtd.getObservedEvidence().values();
-    StringBuilder sb = new StringBuilder("P(").append(node.getId().toString());
-    if (!states.isEmpty()) {
-      sb.append("|");
-      sb.append(NodeUtils.formatStatesToString(states));
-    }
-    sb.append(")");
-    observedTable.setTableName(sb.toString());
+    ((ObservedTableImpl) jtd.getObservedTablesMap().get(node))
+        .setTableName(
+            TableUtils.buildTableName(
+                List.of(node.getId()),
+                NodeUtils.getNodeStateIds(jtd.getObservedEvidence().values())));
   }
 
   public void writeBackToCPTs() {

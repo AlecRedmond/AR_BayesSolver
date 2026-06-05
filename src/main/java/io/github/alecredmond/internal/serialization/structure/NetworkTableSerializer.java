@@ -3,12 +3,16 @@ package io.github.alecredmond.internal.serialization.structure;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedConditionalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedMarginalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedNetworkTable;
+import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
+import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableHelperImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableHelperImpl;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.io.Serializable;
@@ -18,13 +22,13 @@ public class NetworkTableSerializer {
 
   public SerializedNetworkTable serialize(NetworkTable table) {
     return switch (table) {
-      case MarginalTable mt -> serializeMarginalTable(mt);
+      case RootNodeTable mt -> serializeMarginalTable(mt);
       case ConditionalTable ct -> serializeConditionalTable(ct);
       default -> throw new IllegalStateException("Unexpected value: " + table);
     };
   }
 
-  public SerializedMarginalTable serializeMarginalTable(MarginalTable mt) {
+  public SerializedMarginalTable serializeMarginalTable(RootNodeTable mt) {
     SerializedMarginalTable serialized = new SerializedMarginalTable();
     serializeCommon(serialized, mt);
     serialized.setNetworkNodeId(mt.getNetworkNode().getId());
@@ -54,17 +58,24 @@ public class NetworkTableSerializer {
     };
   }
 
-  public MarginalTable deSerializeMarginal(
+  public RootNodeTable deSerializeMarginal(
       SerializedMarginalTable marginal, SerializationData data) {
     Map<Serializable, Node> nodeIdMap = new HashMap<>();
     Map<Serializable, NodeState> nodeStateIdMap = new HashMap<>();
     buildMapData(marginal, nodeIdMap, nodeStateIdMap, data);
-    return new MarginalTable(
-        deserializeVector(marginal, data),
-        marginal.getTableName(),
-        data.getNodeIdMap().get(marginal.getNetworkNodeId()),
-        nodeStateIdMap,
-        nodeIdMap);
+    Node eventNode = data.getNodeIdMap().get(marginal.getNetworkNodeId());
+    RootNodeTableImpl marginalTable =
+        new RootNodeTableImpl(
+            nodeStateIdMap,
+            nodeIdMap,
+            deserializeVector(marginal, data),
+            Set.of(eventNode),
+            Set.of(eventNode),
+            Set.of(),
+            eventNode);
+    marginalTable.setHelper(new RootNodeTableHelperImpl(marginalTable));
+    marginalTable.setTableName(marginal.getTableName());
+    return marginalTable;
   }
 
   private NetworkTable deSerializeConditional(
@@ -72,15 +83,18 @@ public class NetworkTableSerializer {
     Map<Serializable, Node> nodeIdMap = new HashMap<>();
     Map<Serializable, NodeState> nodeStateIdMap = new HashMap<>();
     buildMapData(conditional, nodeIdMap, nodeStateIdMap, data);
-    return new ConditionalTable(
-        conditional.getTableName(),
-        deserializeVector(conditional, data),
-        nodeDeSerialize(conditional.getNodeIds(), data),
-        nodeDeSerialize(conditional.getEventNodeIds(), data),
-        nodeDeSerialize(conditional.getConditionNodeIds(), data),
-        data.getNodeIdMap().get(conditional.getNetworkNodeId()),
-        nodeIdMap,
-        nodeStateIdMap);
+    ConditionalTableImpl conditionalTable =
+        new ConditionalTableImpl(
+            nodeStateIdMap,
+            nodeIdMap,
+            deserializeVector(conditional, data),
+            Collections.unmodifiableSet(nodeDeSerialize(conditional.getNodeIds(), data)),
+            Collections.unmodifiableSet(nodeDeSerialize(conditional.getEventNodeIds(), data)),
+            Collections.unmodifiableSet(nodeDeSerialize(conditional.getConditionNodeIds(), data)),
+            data.getNodeIdMap().get(conditional.getNetworkNodeId()));
+    conditionalTable.setHelper(new ConditionalTableHelperImpl(conditionalTable));
+    conditionalTable.setTableName(conditional.getTableName());
+    return conditionalTable;
   }
 
   private void buildMapData(

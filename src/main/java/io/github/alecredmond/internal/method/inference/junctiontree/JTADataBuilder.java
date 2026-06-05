@@ -3,8 +3,8 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
@@ -15,7 +15,7 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
-import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -75,7 +75,7 @@ public class JTADataBuilder {
     TransferIteratorFactory builder = new TransferIteratorFactory();
 
     Map<Node, NetworkTable> networkTables = bnd.getNetworkTablesMap();
-    Map<Node, MarginalTable> marginalTables = jtd.getObservedTablesMap();
+    Map<Node, ObservedTable> observedTables = jtd.getObservedTablesMap();
 
     for (Node node : bnd.getNodes()) {
       ProbabilityTable networkTable = networkTables.get(node);
@@ -92,7 +92,7 @@ public class JTADataBuilder {
 
       bestClique
           .getWriteToObserved()
-          .add(builder.buildMarginalTransfer(cliqueTable, marginalTables.get(node)));
+          .add(builder.buildMarginalTransfer(cliqueTable, observedTables.get(node)));
     }
   }
 
@@ -135,10 +135,11 @@ public class JTADataBuilder {
   }
 
   private void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
+    ObservedTableBuilder builder = new ObservedTableBuilder();
     jtd.setObservedEvidence(new HashMap<>());
     jtd.setObservedTablesMap(
         bnd.getNodes().stream()
-            .map(node -> Map.entry(node, TableBuilder.buildMarginalTable(Set.of(node))))
+            .map(node -> Map.entry(node, builder.buildTable(node)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 }

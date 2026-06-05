@@ -6,9 +6,12 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ConditionalTableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,6 +27,11 @@ public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable
   @Override
   public void marginalizeTable() {
     marginalizer.marginalize();
+  }
+
+  @Override
+  protected Supplier<TableBuilder<ConditionalTable>> supplyTableBuilder() {
+    return ConditionalTableBuilder::new;
   }
 
   @Override

@@ -4,24 +4,22 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.JunctionTableSummer;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.ObservationCopier;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTable>
     implements JunctionTreeTableHelper {
-  private JunctionTableSummer summer;
-  private ObservationCopier copier;
+  private final JunctionTableSummer summer;
+  private final ObservationCopier copier;
 
   public JunctionTreeTableHelperImpl(JunctionTreeTable table) {
     super(table);
-  }
-
-  public void initHelper() {
     this.summer = new JunctionTableSummer(table);
     this.copier = new ObservationCopier(table);
   }
@@ -29,16 +27,6 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
   @Override
   public void marginalizeTable() {
     TableUtils.marginalizeJointTable(table);
-  }
-
-  @Override
-  public Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition) {
-    return Map.of();
-  }
-
-  @Override
-  public Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs) {
-    return Map.of();
   }
 
   @Override
@@ -77,5 +65,10 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
   @Override
   public JunctionTreeTable getTable() {
     return table;
+  }
+
+  @Override
+  protected Supplier<TableBuilder<JunctionTreeTable>> supplyTableBuilder() {
+    return JunctionTreeTableBuilder::new;
   }
 }
