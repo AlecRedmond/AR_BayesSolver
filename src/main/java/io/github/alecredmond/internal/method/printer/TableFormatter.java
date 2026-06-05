@@ -5,7 +5,6 @@ import static io.github.alecredmond.internal.application.printer.PrinterConfigs.
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -83,7 +82,7 @@ public class TableFormatter {
       int eventWidth,
       int condWidth) {
     String probabilityFormatter = configs.getProbabilityFormatter();
-    if (table instanceof MarginalTable) {
+    if (table.getConditions().isEmpty()) {
       return List.of(
           buildSingleRow(
               "", eventCombos, List.of(), table, eventWidth, condWidth, probabilityFormatter));

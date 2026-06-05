@@ -4,17 +4,18 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
-import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
-import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
+import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class SeparatorFactory {
-  public final TransferIteratorFactory iteratorFactory = new TransferIteratorFactory();
+  private final TransferIteratorFactory iteratorFactory = new TransferIteratorFactory();
+  private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
 
   public Separator buildSeparator(Clique cliqueA, Clique cliqueB, JunctionTreeData jtd) {
     Separator separator = new Separator();
@@ -34,7 +35,7 @@ public class SeparatorFactory {
   }
 
   private void buildTable(BayesianNetworkData data, Separator separator) {
-    separator.setTable(TableBuilder.buildJunctionTreeTable(separator.getNodes(), data));
+    separator.setTable(tableBuilder.buildTable(separator.getNodes(), data));
   }
 
   private void buildMessagePassers(

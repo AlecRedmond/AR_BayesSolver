@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
-import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +18,7 @@ import lombok.Data;
 @Data
 public class NetworkDataBuilder {
   private final BayesianNetworkData networkData;
+  private final NetworkTableBuilder tableBuilder = new NetworkTableBuilder();
 
   public void build() {
     Map<Node, Integer> layerMap = orderNodes();
@@ -86,7 +87,7 @@ public class NetworkDataBuilder {
             node -> {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
-              NetworkTable table = TableBuilder.buildNetworkTable(events, conditions);
+              NetworkTable table = tableBuilder.buildTable(events, conditions);
               table.getHelper().marginalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });

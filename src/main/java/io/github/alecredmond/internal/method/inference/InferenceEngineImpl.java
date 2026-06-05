@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.inference;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
@@ -88,28 +88,28 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public <T extends Serializable> MarginalTable getObservedTableById(T nodeId) {
+  public <T extends Serializable> ObservedTable getObservedTableById(T nodeId) {
     Node node = network.getNode(nodeId);
     return junctionTree.getData().getObservedTablesMap().get(node);
   }
 
   @Override
-  public MarginalTable getObservedTable(Node node) {
+  public ObservedTable getObservedTable(Node node) {
     return ensureSolved() ? junctionTree.getData().getObservedTablesMap().get(node) : null;
   }
 
   @Override
-  public <T extends Serializable> MarginalTable copyObservedTableById(T nodeId) {
+  public <T extends Serializable> ObservedTable copyObservedTableById(T nodeId) {
     return getObservedTableById(nodeId).getHelper().copyTable();
   }
 
   @Override
-  public MarginalTable copyObservedTable(Node node) {
+  public ObservedTable copyObservedTable(Node node) {
     return getObservedTable(node).getHelper().copyTable();
   }
 
   @Override
-  public Map<Node, MarginalTable> getObservedTables() {
+  public Map<Node, ObservedTable> getObservedTables() {
     return ensureSolved() ? junctionTree.getData().getObservedTablesMap() : new HashMap<>();
   }
 
@@ -160,8 +160,8 @@ public class InferenceEngineImpl implements InferenceEngine {
   @Override
   public InferenceEngine printObserved(Collection<Node> nodes) {
     if (!ensureSolved()) return this;
-    Map<Node, MarginalTable> observedTables = junctionTree.getData().getObservedTablesMap();
-    Map<Node, MarginalTable> toPrint = new LinkedHashMap<>();
+    Map<Node, ObservedTable> observedTables = junctionTree.getData().getObservedTablesMap();
+    Map<Node, ObservedTable> toPrint = new LinkedHashMap<>();
     nodes.stream()
         .filter(observedTables::containsKey)
         .forEach(node -> toPrint.put(node, observedTables.get(node)));

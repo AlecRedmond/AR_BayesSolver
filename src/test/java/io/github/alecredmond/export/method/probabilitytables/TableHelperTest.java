@@ -10,7 +10,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -150,8 +149,8 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideCopyTableArgs")
   void copyTable(NetworkTable networkTable) {
-    TableHelper<?> helper = networkTable.getHelper();
-    ProbabilityTable copied = helper.copyTable();
+    NetworkTableHelper<?> helper = networkTable.getHelper();
+    NetworkTable copied = helper.copyTable();
     assertNotSame(copied, networkTable);
     assertEquals(copied, networkTable);
   }
@@ -177,7 +176,7 @@ class TableHelperTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    TableHelper<?> helper = networkTable.getHelper();
+    NetworkTableHelper<?> helper = networkTable.getHelper();
     Map<NodeState, Double> probs = helper.getConditionalProb(conditionStates);
     constraintMap.forEach(
         (event, constraint) ->
@@ -190,7 +189,7 @@ class TableHelperTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    TableHelper<?> helper = networkTable.getHelper();
+    NetworkTableHelper<?> helper = networkTable.getHelper();
     Map<NodeState, Double> probs =
         helper.getConditionalProbByIds(NodeUtils.getNodeStateIds(conditionStates));
     constraintMap.forEach(
@@ -201,7 +200,7 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideSafeModeArgs")
   void setSafeMode(NetworkTable networkTable) {
-    TableHelper<?> helper = networkTable.getHelper();
+    NetworkTableHelper<?> helper = networkTable.getHelper();
     Node networkNode = networkTable.getNetworkNode();
     double[] probs = networkTable.getVector().getProbabilities();
     List<NodeState> eventStates = networkNode.getNodeStates();

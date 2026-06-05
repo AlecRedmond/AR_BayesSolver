@@ -5,44 +5,26 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import java.io.Serializable;
-import java.util.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+import java.util.Set;
 
-@Getter
-@EqualsAndHashCode()
-@Slf4j
-public abstract class ProbabilityTable {
-  protected final Map<Serializable, NodeState> nodeStateIDMap;
-  protected final Map<Serializable, Node> nodeIDMap;
-  protected final ProbabilityVector vector;
-  protected final Set<Node> nodes;
-  protected final Set<Node> events;
-  protected final Set<Node> conditions;
-  @EqualsAndHashCode.Exclude protected final TableHelper<?> helper;
-  @EqualsAndHashCode.Exclude @Setter protected Serializable tableName;
+public interface ProbabilityTable {
+  Map<Serializable, NodeState> getNodeStateIDMap();
 
-  protected <T extends Serializable> ProbabilityTable(
-      Map<Serializable, NodeState> nodeStateIDMap,
-      Map<Serializable, Node> nodeIDMap,
-      ProbabilityVector vector,
-      T tableName,
-      Set<Node> nodes,
-      Set<Node> events,
-      Set<Node> conditions) {
-    this.nodeStateIDMap = nodeStateIDMap;
-    this.nodeIDMap = nodeIDMap;
-    this.vector = vector;
-    this.tableName = tableName;
-    this.nodes = nodes;
-    this.events = events;
-    this.conditions = conditions;
-    this.helper = buildHelper();
-  }
+  Map<Serializable, Node> getNodeIDMap();
 
-  protected abstract TableHelper<? extends ProbabilityTable> buildHelper();
+  ProbabilityVector getVector();
 
-  public abstract TableHelper<? extends ProbabilityTable> getHelper();
+  Set<Node> getNodes();
+
+  Set<Node> getEvents();
+
+  Set<Node> getConditions();
+
+  Serializable getTableName();
+
+  @SuppressWarnings("rawtypes")
+  TableHelper getHelper();
+
+  double[] getProbabilities();
 }
