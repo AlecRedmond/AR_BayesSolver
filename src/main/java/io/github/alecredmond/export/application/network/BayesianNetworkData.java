@@ -3,9 +3,9 @@ package io.github.alecredmond.export.application.network;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.io.Serializable;
 import java.util.*;
@@ -31,10 +31,10 @@ public class BayesianNetworkData {
   private List<ProbabilityConstraint> constraints = new ArrayList<>();
   private boolean solved = false;
 
-
   /**
-   * Returns the network's conditional probability table (CPT) associated with the given Node's ID. This be a
-   * {@link MarginalTable} if referencing a root node, or a {@link ConditionalTable} otherwise.
+   * Returns the network's conditional probability table (CPT) associated with the given Node's ID.
+   * This be a {@link ObservedTable} if referencing a root node, or a {@link ConditionalTable}
+   * otherwise.
    *
    * @param <T> the class of the Node's ID
    * @param nodeID an ID associated with a node in the network
