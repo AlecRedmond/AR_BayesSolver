@@ -114,7 +114,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStateIds(measuredStateIds),
-          e -> e.getCurrentProbabilityById(measuredStateIds));
+          e -> e.getPosteriorProbabilityById(measuredStateIds));
     }
 
     void measureCount(
@@ -136,7 +136,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStates(measuredStates),
-          e -> e.getCurrentProbability(measuredStates));
+          e -> e.getPosteriorProbability(measuredStates));
     }
 
     @ParameterizedTest
@@ -147,7 +147,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStates(measuredState),
-          e -> e.getCurrentProbability(measuredState));
+          e -> e.getPosteriorProbability(measuredState));
     }
 
     @ParameterizedTest
@@ -157,7 +157,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStateIds(singleId),
-          e -> e.getCurrentProbabilityById(singleId));
+          e -> e.getPosteriorProbabilityById(singleId));
     }
 
     @ParameterizedTest
