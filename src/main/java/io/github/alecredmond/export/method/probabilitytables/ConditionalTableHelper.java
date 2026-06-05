@@ -5,6 +5,6 @@ import io.github.alecredmond.export.application.probabilitytables.ConditionalTab
 import java.util.Map;
 import java.util.Set;
 
-public interface ConditionalTableHelper extends TableHelper<ConditionalTable> {
+public interface ConditionalTableHelper extends NetworkTableHelper<ConditionalTable> {
   Map<Set<NodeState>, Double> buildProbabilitySetMap();
 }

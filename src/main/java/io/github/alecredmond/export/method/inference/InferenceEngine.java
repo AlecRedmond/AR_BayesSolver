@@ -4,7 +4,7 @@ import io.github.alecredmond.exceptions.NetworkPrinterException;
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.internal.method.inference.InferenceEngineFactory;
@@ -130,63 +130,63 @@ public interface InferenceEngine {
   Map<Node, NodeState> getCurrentObservations();
 
   /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the posterior marginal
+   * Returns an {@link ObservedTable} associated with a {@link Node}, mapping the posterior marginal
    * probability of every {@link NodeState} conditional on the current observations. The values on
    * this table are not deep-copied and will change if the observations on this instance change.
    *
    * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}.
    * @param <T> the type of the node id.
-   * @return a {@link MarginalTable} mapping a single node's states to their current probability.
+   * @return a {@link ObservedTable} mapping a single node's states to their current probability.
    * @throws NullPointerException if the id was not associated with any {@link Node}.
    */
-  <T extends Serializable> MarginalTable getObservedTableById(T nodeId);
+  <T extends Serializable> ObservedTable getObservedTableById(T nodeId);
+
+    /**
+     * Returns an {@link ObservedTable} associated with a {@link Node}, mapping the posterior marginal
+     * probability of every {@link NodeState} conditional on the current observations. The values on
+     * this table are not deep-copied and will change if the observations on this instance change.
+     *
+     * @param node the {@link Node} associated with the {@link MarginalTable}.
+     * @return a {@link ObservedTable} mapping a single node's states to their current probability.
+     */
+  ObservedTable getObservedTable(Node node);
 
   /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the posterior marginal
-   * probability of every {@link NodeState} conditional on the current observations. The values on
-   * this table are not deep-copied and will change if the observations on this instance change.
-   *
-   * @param node the {@link Node} associated with the {@link MarginalTable}.
-   * @return a {@link MarginalTable} mapping a single node's states to their current probability.
-   */
-  MarginalTable getObservedTable(Node node);
-
-  /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the marginal
+   * Returns an {@link ObservedTable} associated with a {@link Node}, mapping the marginal
    * probability of every {@link NodeState} conditional on the current observations. This will
    * provide a deep copy of the table, and the probability values will not change if the
    * observations on the instance change.
    *
    * @param nodeId the id of the {@link Node} associated with the {@link MarginalTable}.
    * @param <T> the type of the node id.
-   * @return a {@link MarginalTable} mapping a single node's states to their probability given the
+   * @return a {@link ObservedTable} mapping a single node's states to their probability given the
    *     conditions when constructed.
    * @throws NullPointerException if the id was not associated with any {@link Node}.
    */
-  <T extends Serializable> MarginalTable copyObservedTableById(T nodeId);
+  <T extends Serializable> ObservedTable copyObservedTableById(T nodeId);
 
   /**
-   * Returns a {@link MarginalTable} associated with a {@link Node}, mapping the marginal
+   * Returns an {@link ObservedTable} associated with a {@link Node}, mapping the marginal
    * probability of every {@link NodeState} conditional on the current observations. This will
    * provide a deep copy of the table, and the probability values will not change if the
    * observations on the instance change.
    *
    * @param node the {@link Node} associated with the {@link MarginalTable}.
-   * @return a {@link MarginalTable} mapping a single node's states to their probability given the
+   * @return a {@link ObservedTable} mapping a single node's states to their probability given the
    *     conditions when constructed.
    */
-  MarginalTable copyObservedTable(Node node);
+  ObservedTable copyObservedTable(Node node);
 
   /**
    * Returns a map of all {@link Node} objects present in the network, and their associated observed
-   * {@link MarginalTable}. These tables map the probability of every {@link NodeState} associated
-   * with the node to their current marginal probability, given the current observations in the
-   * {@code InferenceEngine} instance. These tables are not deep-copied and will update when changes
+   * {@link ObservedTable}. These tables map the probability of every {@link NodeState} associated
+   * with the node to their current posterior probability, given the current observations in the
+   * {@code InferenceEngine} instance, or their marginal probability if no observations are in effect. These tables are not deep-copied and will update when changes
    * to the current observations are made.
    *
-   * @return a map associating each {@link Node} with its observed marginal probability table.
+   * @return a map associating each {@link Node} with its observed probability table.
    */
-  Map<Node, MarginalTable> getObservedTables();
+  Map<Node, ObservedTable> getObservedTables();
 
   /**
    * Returns the joint probability of the given {@link NodeState} values, conditional on the current

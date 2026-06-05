@@ -6,12 +6,13 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.internal.method.probabilitytables.TableCopier;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.ConstraintBuilderIterator;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.ProbabilityMapper;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Supplier;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,8 +88,10 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
   }
 
   public T copyTable() {
-    return new TableCopier().copyTable(table);
+    return supplyTableBuilder().get().copyTable(table);
   }
+
+  protected abstract Supplier<TableBuilder<T>> supplyTableBuilder();
 
   public Map<Set<NodeState>, Double> buildProbabilitySetMap() {
     return new ProbabilityMapper(table).getProbabilityMap();

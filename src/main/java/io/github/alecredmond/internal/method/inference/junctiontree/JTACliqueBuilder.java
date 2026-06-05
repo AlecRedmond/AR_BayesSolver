@@ -9,7 +9,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 class JTACliqueBuilder {
+  private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
 
   public void buildCliques(JunctionTreeData jtd) {
     if (checkUseJta(jtd)) {
@@ -36,7 +37,7 @@ class JTACliqueBuilder {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Clique[] cliques = new Clique[1];
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
-    cliques[0] = new Clique(linkedNodes, TableBuilder.buildJunctionTreeTable(linkedNodes, bnd));
+    cliques[0] = new Clique(linkedNodes, tableBuilder.buildTable(linkedNodes, bnd));
     jtd.setCliques(cliques);
   }
 
@@ -50,7 +51,7 @@ class JTACliqueBuilder {
 
   private Clique[] buildCliqueArray(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
     return maximalCliques.stream()
-        .map(nodes -> new Clique(nodes, TableBuilder.buildJunctionTreeTable(nodes, bnd)))
+        .map(nodes -> new Clique(nodes, tableBuilder.buildTable(nodes, bnd)))
         .toArray(Clique[]::new);
   }
 

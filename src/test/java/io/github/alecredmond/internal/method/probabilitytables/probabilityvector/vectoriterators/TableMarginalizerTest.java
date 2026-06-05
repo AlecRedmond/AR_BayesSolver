@@ -6,14 +6,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.probabilitytables.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,9 +33,9 @@ class TableMarginalizerTest {
   @ParameterizedTest
   @MethodSource("getNetworkTables")
   void marginalize(BayesianNetwork network, Serializable nodeId) {
+    NetworkTableBuilder builder = new NetworkTableBuilder();
     Node node = network.getNode(nodeId);
-    List<Node> conds = node.getParents();
-    ProbabilityTable table = TableBuilder.buildNetworkTable(List.of(node), conds);
+    ProbabilityTable table = builder.buildTable(List.of(node), node.getParents());
     double[] probs = table.getVector().getProbabilities();
     assertTrue(Arrays.stream(probs).allMatch(p -> p == 1.0));
 

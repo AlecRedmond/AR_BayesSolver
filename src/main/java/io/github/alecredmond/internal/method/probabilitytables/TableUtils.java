@@ -4,9 +4,9 @@ import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
 import java.io.Serializable;
@@ -104,12 +104,25 @@ public class TableUtils {
     return map;
   }
 
-  public static Map<NodeState, Double> buildMarginalProbMap(MarginalTable table) {
-    List<NodeState> states = table.getNetworkNode().getNodeStates();
+  public static Map<NodeState, Double> buildMarginalProbMap(ProbabilityTable table) {
+    if (!(table instanceof SingleEventTable<?, ?> singleEventTable)) return new HashMap<>();
+    List<NodeState> states = singleEventTable.getEventNode().getNodeStates();
     double[] prob = table.getVector().getProbabilities();
-    return IntStream.range(0, prob.length)
-        .mapToObj(i -> Map.entry(states.get(i), prob[i]))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<NodeState, Double> map = new LinkedHashMap<>();
+    for (int i = 0; i < prob.length; i++) {
+      map.put(states.get(i), prob[i]);
+    }
+    return map;
+  }
+
+  public static String buildTableName(List<Serializable> eventIds, List<Serializable> conditionIds) {
+    StringBuilder sb = new StringBuilder("P(");
+    sb.append(NodeUtils.formatIDsToString(eventIds));
+    if (!conditionIds.isEmpty()) {
+      sb.append("|");
+      sb.append(NodeUtils.formatIDsToString(conditionIds));
+    }
+    return sb.append(")").toString();
   }
 
   private static <T extends ProbabilityTable> void setComplementStatesToZero(

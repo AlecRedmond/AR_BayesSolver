@@ -5,7 +5,7 @@ import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.probabilitytables.MarginalTable;
+import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
@@ -99,7 +99,7 @@ class InferenceEngineTest {
     @Test
     void getObservedTable_shouldReturnTable() {
       test.observeNetworkFromIds(List.of("WET_GRASS:TRUE"));
-      MarginalTable rainTable = test.getObservedTableById("RAIN");
+      ObservedTable rainTable = test.getObservedTableById("RAIN");
       assertNotNull(rainTable);
       assertEquals(0.384852, rainTable.getHelper().getProbabilityById("RAIN:TRUE"), 1E-6);
     }
