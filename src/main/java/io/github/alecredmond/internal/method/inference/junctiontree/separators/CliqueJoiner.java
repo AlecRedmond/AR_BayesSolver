@@ -9,6 +9,7 @@ import java.util.*;
 
 public class CliqueJoiner {
 
+  // TODO - MAKE AN INSTANCE, NOT STATIC
   private CliqueJoiner() {}
 
   public static void join(JunctionTreeData jtd) {
@@ -35,6 +36,7 @@ public class CliqueJoiner {
           if (joined.contains(nextClique)) {
             return;
           }
+          // TODO - INSTANTIATE SEPARATOR FACTORY AS A FIELD
           Separator separator = new SeparatorFactory().buildSeparator(current, nextClique, jtd);
           current.getSeparatorMap().put(nextClique, separator);
           nextClique.getSeparatorMap().put(current, separator);

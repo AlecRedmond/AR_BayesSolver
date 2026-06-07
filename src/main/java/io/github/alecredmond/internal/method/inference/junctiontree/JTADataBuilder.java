@@ -59,6 +59,7 @@ public class JTADataBuilder {
   private void buildInternalMessagePassers(JunctionTreeData jtd) {
     CliqueJoiner.join(jtd);
 
+    // TODO - CLIQUE JOINER SHOULD ALSO PERFORM THE REST OF THIS METHOD
     Separator[] separators =
         Arrays.stream(jtd.getCliques())
             .flatMap(clique -> clique.getSeparatorMap().values().stream())

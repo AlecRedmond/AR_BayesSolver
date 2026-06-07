@@ -1,5 +1,6 @@
 package io.github.alecredmond.export.application.probabilitytables;
 
+import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
 
 /**
