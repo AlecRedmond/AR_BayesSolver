@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference.junctiontree;
+package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
 import static io.github.alecredmond.export.method.inference.BayesSolver.SolverType.JUNCTION_TREE_IPFP;
 import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_INFERENCE;
@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-class JTACliqueBuilder {
+public class JTACliqueBuilder {
   private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
 
   public void buildCliques(JunctionTreeData jtd) {
@@ -45,7 +45,7 @@ class JTACliqueBuilder {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
-    triangulateGraph(edgeGraph, bnd);
+    new GraphTriangulator().triangulate(edgeGraph);
     jtd.setCliques(buildCliqueArray(findMaximalCliques(edgeGraph), bnd));
   }
 
@@ -92,26 +92,6 @@ class JTACliqueBuilder {
           edges.get(parent2).add(parent1);
         }
       }
-    }
-  }
-
-  // TODO - This provides a maximum triangulation with redundant edges and should be replaced.
-  private void triangulateGraph(Map<Node, Set<Node>> edges, BayesianNetworkData data) {
-    Map<Node, Set<Node>> graph = new HashMap<>();
-    edges.keySet().forEach(node -> graph.put(node, new HashSet<>(edges.get(node))));
-
-    for (Node toEliminate : data.getNodes()) {
-      List<Node> neighbours = graph.get(toEliminate).stream().toList();
-      if (neighbours.size() < 2) continue;
-      for (int i = 0; i < neighbours.size(); i++) {
-        for (int j = i + 1; j < neighbours.size(); j++) {
-          Node n1 = neighbours.get(i);
-          Node n2 = neighbours.get(j);
-          edges.get(n1).add(n2);
-          edges.get(n2).add(n1);
-        }
-      }
-      neighbours.forEach(neighbour -> graph.get(neighbour).remove(toEliminate));
     }
   }
 

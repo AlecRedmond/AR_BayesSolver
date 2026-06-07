@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference;
+package io.github.alecredmond.internal.method.inference.engine;
 
 import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JOINT_TABLE_INFERENCE;
 import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_INFERENCE;

@@ -14,7 +14,8 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Separat
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
-import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueJoiner;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.JTACliqueBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
@@ -57,7 +58,7 @@ public class JTADataBuilder {
   }
 
   private void buildInternalMessagePassers(JunctionTreeData jtd) {
-    CliqueJoiner.join(jtd);
+    new CliqueJoiner(jtd).joinCliques();
 
     Separator[] separators =
         Arrays.stream(jtd.getCliques())

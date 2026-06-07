@@ -1,22 +1,33 @@
-package io.github.alecredmond.internal.method.inference.junctiontree;
+package io.github.alecredmond.internal.method.inference.solver;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
-import io.github.alecredmond.internal.method.inference.SolverResultsBuilder;
+import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Consumer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Getter
 public class JTASolver {
+  protected final BayesianNetwork network;
+  protected final SolverConfigs configs;
+  protected JunctionTreeAlgorithm jta;
 
-  public SolverResults solveNetwork(BayesianNetworkData networkData, SolverConfigs configs) {
+  protected JTASolver(BayesianNetwork network, SolverConfigs configs) {
+    this.configs = configs;
+    this.network = network;
+  }
+
+  protected SolverResults solveNetwork() {
     boolean writeLogs = configs.isLogSolverProgress();
     Instant start = Instant.now();
 
@@ -24,7 +35,7 @@ public class JTASolver {
       log.info("STARTING SOLVER IN MODE = {}", configs.getSolverType());
     }
 
-    JunctionTreeAlgorithm jta = buildJTA(networkData, configs);
+    jta = buildJTA(network.getNetworkData(), configs);
 
     double lastError;
     double error = Double.MAX_VALUE;

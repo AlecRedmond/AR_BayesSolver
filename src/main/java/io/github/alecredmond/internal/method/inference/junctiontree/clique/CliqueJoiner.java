@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference.junctiontree.separators;
+package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
@@ -8,21 +8,35 @@ import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
 
 public class CliqueJoiner {
+  private final JunctionTreeData jtd;
+  private final SeparatorFactory separatorFactory;
+  private final Set<Separator> separators;
 
-  private CliqueJoiner() {}
+  public CliqueJoiner(JunctionTreeData jtd) {
+    this.jtd = jtd;
+    this.separatorFactory = new SeparatorFactory(jtd);
+    this.separators = new HashSet<>();
+  }
 
-  public static void join(JunctionTreeData jtd) {
+  public void joinCliques() {
     if (jtd.getCliques().length == 0) {
       return;
     }
     Set<Clique> cliques = new HashSet<>();
     Set<Clique> joined = new HashSet<>();
-    Clique smallest = initializeAndPopSmallest(jtd, cliques, joined);
-    recursivelyJoinCliques(smallest, cliques, joined, jtd);
+    Clique smallest = initializeAndPopSmallest(cliques, joined);
+    recursivelyJoinCliques(smallest, cliques, joined);
+    jtd.setSeparators(getSeparatorArray());
   }
 
-  private static void recursivelyJoinCliques(
-      Clique current, Set<Clique> available, Set<Clique> joined, JunctionTreeData jtd) {
+  private Separator[] getSeparatorArray() {
+    return Arrays.stream(jtd.getCliques())
+        .flatMap(c -> c.getSeparatorMap().values().stream())
+        .distinct()
+        .toArray(Separator[]::new);
+  }
+
+  private void recursivelyJoinCliques(Clique current, Set<Clique> available, Set<Clique> joined) {
     List<Clique> orderedCandidates = orderAvailableCandidates(current, available);
 
     if (orderedCandidates.isEmpty()) {
@@ -35,16 +49,17 @@ public class CliqueJoiner {
           if (joined.contains(nextClique)) {
             return;
           }
-          Separator separator = new SeparatorFactory().buildSeparator(current, nextClique, jtd);
+          Separator separator = separatorFactory.buildSeparator(current, nextClique);
+          separators.add(separator);
           current.getSeparatorMap().put(nextClique, separator);
           nextClique.getSeparatorMap().put(current, separator);
           available.remove(nextClique);
           joined.add(nextClique);
-          recursivelyJoinCliques(nextClique, available, joined, jtd);
+          recursivelyJoinCliques(nextClique, available, joined);
         });
   }
 
-  private static List<Clique> orderAvailableCandidates(Clique current, Set<Clique> available) {
+  private List<Clique> orderAvailableCandidates(Clique current, Set<Clique> available) {
     return available.stream()
         .map(clique -> commonNodeCount(clique, current))
         .filter(connectionSize -> connectionSize.getValue() > 0)
@@ -53,8 +68,7 @@ public class CliqueJoiner {
         .toList();
   }
 
-  private static Clique initializeAndPopSmallest(
-      JunctionTreeData jtd, Set<Clique> cliques, Set<Clique> joined) {
+  private Clique initializeAndPopSmallest(Set<Clique> cliques, Set<Clique> joined) {
     cliques.addAll(Arrays.asList(jtd.getCliques()));
     Clique smallest =
         cliques.stream().min(Comparator.comparing(c -> c.getNodes().size())).orElseThrow();
@@ -63,7 +77,7 @@ public class CliqueJoiner {
     return smallest;
   }
 
-  private static Map.Entry<Clique, Integer> commonNodeCount(Clique clique, Clique current) {
+  private Map.Entry<Clique, Integer> commonNodeCount(Clique clique, Clique current) {
     Set<Node> cliqueNodes = TableUtils.getCommonNodes(clique.getTable(), current.getTable());
     return Map.entry(clique, cliqueNodes.size());
   }

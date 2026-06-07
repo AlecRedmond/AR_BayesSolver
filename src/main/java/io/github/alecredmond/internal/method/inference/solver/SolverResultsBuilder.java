@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference;
+package io.github.alecredmond.internal.method.inference.solver;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.inference.SolverConstraintResult;

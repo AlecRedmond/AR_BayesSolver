@@ -5,11 +5,16 @@ import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.export.method.sampler.Sampler;
+import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
+import io.github.alecredmond.internal.method.inference.engine.InferenceEngineImpl;
+import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -184,6 +189,10 @@ class InferenceEngineTest {
     void testNetworkAH_NonLocalConstraints() {
       BayesianNetwork net = AH_NETWORK.get().solveNetwork();
       assertDoesNotThrow(() -> test = net.buildInferenceEngine());
+      Clique[] cliques = ((InferenceEngineImpl) test).getJunctionTree().getData().getCliques();
+      for (Clique clique : cliques) {
+        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
+      }
 
       if (PRINT_TABLES) {
         net.printNetwork();
@@ -199,8 +208,20 @@ class InferenceEngineTest {
     void testFantasyGraph_ComplexNetwork() {
       if (!SOLVE_LONG_TESTS) return;
       BayesianNetwork net = FANTASY_GRAPH.get();
-      net.solveNetwork();
+      BayesSolverImpl solver = new BayesSolverImpl(net);
+      solver.solve();
+      Clique[] cliques = solver.getJta().getData().getCliques();
+      System.out.println("SOLVER CLIQUES:");
+      for (Clique clique : cliques) {
+        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
+      }
       assertDoesNotThrow(() -> test = net.buildInferenceEngine());
+      cliques = ((InferenceEngineImpl) test).getJunctionTree().getData().getCliques();
+      System.out.println("INFERENCE CLIQUES:");
+      for (Clique clique : cliques) {
+        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
+      }
+
       if (PRINT_TABLES) test.printObserved();
       test.observeNetworkFromIds(List.of("VOTE:CPK"));
       if (PRINT_TABLES) test.printObserved();
