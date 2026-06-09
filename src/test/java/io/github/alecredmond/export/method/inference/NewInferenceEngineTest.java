@@ -48,6 +48,7 @@ public class NewInferenceEngineTest {
     @MethodSource("allObservations")
     void measureProbability_shouldEqualConstraints(BayesianNetwork network, SolverResults results) {
       test = InferenceEngine.create(network);
+      // network.printNetwork();
       assertTrue(network.isSolved());
       network
           .getNetworkData()
@@ -122,7 +123,11 @@ public class NewInferenceEngineTest {
       test = InferenceEngine.create(network);
       assertDoesNotThrow(() -> test.getCurrentObservations());
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
-      provider.addedNodesMap.forEach(network::addNewNode);
+      provider.addedNodesMap.forEach(
+          (nodeId, stateIds) -> {
+            network.addNewNode(nodeId, stateIds);
+            network.addParents(nodeId, provider.controlNodeId);
+          });
       provider.addedNodeConstraints.forEach(
           added -> network.addConstraint(added.eventId, added.conditionIds, added.prob));
       assertDoesNotThrow(() -> test.getCurrentObservations());

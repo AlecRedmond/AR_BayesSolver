@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class JTACliqueBuilder {
+public class CliqueBuilder {
   private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
 
   public void buildCliques(JunctionTreeData jtd) {
@@ -25,6 +25,12 @@ public class JTACliqueBuilder {
     } else {
       buildIPFPClique(jtd);
     }
+  }
+
+  private void triangulate(Map<Node, Set<Node>> edgeGraph) {
+    new GraphTriangulator<Node>()
+        .getFillInEdges(edgeGraph)
+        .forEach((node, fillIns) -> edgeGraph.get(node).addAll(fillIns));
   }
 
   private boolean checkUseJta(JunctionTreeData jtd) {
@@ -45,7 +51,7 @@ public class JTACliqueBuilder {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Map<Node, Set<Node>> edgeGraph = initializeGraph(bnd);
     moralizeGraph(edgeGraph, bnd);
-    new GraphTriangulator().triangulate(edgeGraph);
+    triangulate(edgeGraph);
     jtd.setCliques(buildCliqueArray(findMaximalCliques(edgeGraph), bnd));
   }
 

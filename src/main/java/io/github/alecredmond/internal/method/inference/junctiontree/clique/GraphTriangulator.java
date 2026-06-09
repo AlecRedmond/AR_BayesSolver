@@ -1,106 +1,138 @@
 package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
-import io.github.alecredmond.export.application.node.Node;
 import java.util.*;
-import java.util.stream.Collectors;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-public class GraphTriangulator {
+public class GraphTriangulator<T> {
+  public Map<T, List<T>> getFillInEdges(Map<T, ? extends Collection<T>> edges) {
+    // 1.
+    Map<T, Set<T>> graph = new HashMap<>();
+    Map<T, Integer> labels = new HashMap<>();
+    Map<T, List<T>> fillInEdges = new HashMap<>();
 
-  /**
-   * This uses the general minimal triangulation algorithm, described by D.L.P Minh & T.T.T Dong in
-   * 'Bayesian networks: The minimal triangulations of a graph.' (2019)
-   */
-  public void triangulate(Map<Node, Set<Node>> edges) {
-    Map<Node, Set<Node>> graph = new HashMap<>();
-    edges.keySet().forEach(n -> graph.put(n, new HashSet<>(edges.get(n))));
+    edges.forEach(
+        (t, tEdges) -> {
+          graph.put(t, new HashSet<>(tEdges));
+          labels.put(t, 0);
+          fillInEdges.put(t, new ArrayList<>());
+        });
 
-    Map<Node, Integer> labels = new HashMap<>();
-    graph.keySet().forEach(n -> labels.put(n, 0));
+    // 2.
+    Set<T> unnumbered = new HashSet<>(graph.keySet());
+    Map<T, Integer> eliminationOrder = new HashMap<>();
+    int totalTs = edges.size();
 
-    for (int i = 0; i < graph.size(); i++) {
-      Node mu = selectConfluenceVertex(graph, labels);
-      if (labels.get(mu) <= 0) {
-        addChordsToSubNeighbourhood(edges, mu, graph, labels);
+    T startingT = selectFirstByLeastConnected(graph);
+    unnumbered.remove(startingT);
+    eliminationOrder.put(startingT, totalTs);
+    updateNeighbourLabels(startingT, graph, labels);
+
+    Queue<ComponentState<T>> activeComponents = new ArrayDeque<>();
+    Set<T> initialComponent = new HashSet<>(unnumbered);
+    Set<T> initialNeighbourhood = graph.get(startingT);
+    activeComponents.add(new ComponentState<>(initialComponent, initialNeighbourhood));
+
+    // 3.
+    for (int orderNumber = totalTs; orderNumber > 1; orderNumber--) {
+      // 3.a
+      ComponentState<T> currentState = Optional.ofNullable(activeComponents.poll()).orElseThrow();
+      Set<T> neighbourhood = currentState.neighbourhood;
+      Set<T> component = currentState.component;
+      T mu = neighbourhood.stream().max(Comparator.comparingInt(labels::get)).orElseThrow();
+
+      // 3.b
+      neighbourhood.stream()
+          .filter(theta -> !theta.equals(mu))
+          .filter(theta -> !graph.get(theta).contains(mu))
+          .filter(theta -> hasQualifyingPath(theta, mu, component, graph, labels))
+          .forEach(
+              theta -> {
+                graph.get(theta).add(mu);
+                graph.get(mu).add(theta);
+                fillInEdges.get(theta).add(mu);
+                fillInEdges.get(mu).add(theta);
+              });
+
+      // 3.c
+      unnumbered.remove(mu);
+      eliminationOrder.put(mu, orderNumber - 1);
+
+      // 3.d
+      updateNeighbourLabels(mu, graph, labels);
+
+      // 3.e
+      component.remove(mu);
+      for (Set<T> subComp : findConnectedComponents(component, graph)) {
+        Set<T> subNeighbourhood = new HashSet<>();
+        subComp.stream()
+            .filter(t -> graph.get(t).stream().anyMatch(eliminationOrder::containsKey))
+            .forEach(subNeighbourhood::add);
+        if (subNeighbourhood.isEmpty()) continue;
+        activeComponents.add(new ComponentState<>(subComp, subNeighbourhood));
       }
-      Set<Node> muNeighbours = new HashSet<>(graph.get(mu));
-      muNeighbours.forEach(n -> labels.merge(n, 1, Integer::sum));
-      muNeighbours.forEach(n -> graph.get(n).remove(mu));
-      graph.remove(mu);
-      labels.remove(mu);
     }
+    edges.keySet().stream().filter(t -> fillInEdges.get(t).isEmpty()).forEach(fillInEdges::remove);
+    return fillInEdges;
   }
 
-  private Node selectConfluenceVertex(Map<Node, Set<Node>> graph, Map<Node, Integer> labels) {
-    return labels.entrySet().stream()
-        .filter(e -> graph.containsKey(e.getKey()))
-        .max(Comparator.comparingInt(Map.Entry::getValue))
+  private T selectFirstByLeastConnected(Map<T, Set<T>> graph) {
+    return graph.entrySet().stream()
+        .min(Comparator.comparingInt(e -> e.getValue().size()))
         .map(Map.Entry::getKey)
         .orElseThrow();
   }
 
-  private void addChordsToSubNeighbourhood(
-      Map<Node, Set<Node>> edges, Node mu, Map<Node, Set<Node>> graph, Map<Node, Integer> labels) {
-    findSubNeighbourhood(mu, graph, labels).stream()
-        .filter(theta -> !theta.equals(mu))
-        .filter(theta -> !graph.get(theta).contains(mu))
-        .filter(theta -> requiresFillIn(theta, mu, graph, labels))
-        .forEach(
-            theta -> {
-              edges.get(theta).add(mu);
-              edges.get(mu).add(theta);
-              graph.get(mu).add(theta);
-              graph.get(theta).add(mu);
-            });
+  private void updateNeighbourLabels(T current, Map<T, Set<T>> graph, Map<T, Integer> labels) {
+    graph.get(current).forEach(node -> labels.merge(node, 1, Integer::sum));
   }
 
-  private Set<Node> findSubNeighbourhood(
-      Node mu, Map<Node, Set<Node>> graph, Map<Node, Integer> labels) {
-    Set<Node> subNeighbourhood = new HashSet<>();
-    Queue<Node> queue = new LinkedList<>();
-    Set<Node> visited = new HashSet<>();
-
-    queue.add(mu);
-    visited.add(mu);
-    if (labels.get(mu) > 0) subNeighbourhood.add(mu);
+  private boolean hasQualifyingPath(
+      T start, T target, Set<T> component, Map<T, Set<T>> graph, Map<T, Integer> labels) {
+    int maxAllowedLabel = labels.get(start) - 1;
+    Set<T> visited = new HashSet<>();
+    Queue<T> queue = new ArrayDeque<>(graph.get(start));
 
     while (!queue.isEmpty()) {
-      Node current = queue.poll();
-      graph.get(current).stream()
-          .filter(visited::add)
-          .forEach(
-              neighbour -> {
-                queue.add(neighbour);
-                if (labels.get(neighbour) > 0) subNeighbourhood.add(neighbour);
-              });
-    }
-    return subNeighbourhood;
-  }
-
-  private boolean requiresFillIn(
-      Node theta, Node mu, Map<Node, Set<Node>> graph, Map<Node, Integer> labels) {
-    int thetaLabel = labels.get(theta);
-    Set<Node> muNeighbours = graph.get(mu);
-
-    Queue<Node> queue = new LinkedList<>();
-    Set<Node> visited = new HashSet<>();
-    queue.add(theta);
-    visited.add(theta);
-
-    while (!queue.isEmpty()) {
-      Node current = queue.poll();
-      Set<Node> lowerLabelledNeighbours =
-          graph.get(current).stream()
-              .filter(n -> !n.equals(mu))
+      boolean pathToTarget =
+          graph.get(queue.poll()).stream()
+              .filter(component::contains)
+              .filter(neighbour -> labels.get(neighbour) <= maxAllowedLabel)
               .filter(visited::add)
-              .filter(n -> labels.getOrDefault(n, 0) < thetaLabel)
-              .collect(Collectors.toSet());
-      for (Node neighbour : lowerLabelledNeighbours) {
-        if (muNeighbours.contains(neighbour)) return true;
-        queue.add(neighbour);
-      }
+              .filter(queue::add)
+              .anyMatch(target::equals);
+
+      if (pathToTarget) return true;
     }
     return false;
   }
+
+  private List<Set<T>> findConnectedComponents(Set<T> component, Map<T, Set<T>> graph) {
+    List<Set<T>> subComponents = new ArrayList<>();
+    Set<T> unvisited = new HashSet<>(component);
+
+    while (!unvisited.isEmpty()) {
+      T start = unvisited.iterator().next();
+
+      Set<T> currentComponent = new HashSet<>();
+      Queue<T> queue = new ArrayDeque<>();
+
+      queue.add(start);
+      unvisited.remove(start);
+      currentComponent.add(start);
+
+      while (!queue.isEmpty()) {
+        graph.get(queue.poll()).stream()
+            .filter(unvisited::contains)
+            .forEach(
+                neighbour -> {
+                  unvisited.remove(neighbour);
+                  currentComponent.add(neighbour);
+                  queue.add(neighbour);
+                });
+      }
+      subComponents.add(currentComponent);
+    }
+    return subComponents;
+  }
+
+  private record ComponentState<T>(Set<T> component, Set<T> neighbourhood) {}
 }

@@ -10,12 +10,11 @@ import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceTy
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueJoiner;
-import io.github.alecredmond.internal.method.inference.junctiontree.clique.JTACliqueBuilder;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
@@ -43,7 +42,7 @@ public class JTADataBuilder {
   private void buildCommon(
       JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
     junctionTreeData.setNetworkData(bayesianNetworkData);
-    new JTACliqueBuilder().buildCliques(junctionTreeData);
+    new CliqueBuilder().buildCliques(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
   }
@@ -59,14 +58,6 @@ public class JTADataBuilder {
 
   private void buildInternalMessagePassers(JunctionTreeData jtd) {
     new CliqueJoiner(jtd).joinCliques();
-
-    Separator[] separators =
-        Arrays.stream(jtd.getCliques())
-            .flatMap(clique -> clique.getSeparatorMap().values().stream())
-            .distinct()
-            .toArray(Separator[]::new);
-
-    jtd.setSeparators(separators);
   }
 
   private void buildExternalMessagePassers(JunctionTreeData jtd, BayesianNetworkData bnd) {

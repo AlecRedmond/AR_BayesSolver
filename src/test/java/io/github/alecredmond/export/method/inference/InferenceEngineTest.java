@@ -5,7 +5,6 @@ import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
@@ -187,9 +186,16 @@ class InferenceEngineTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-      BayesianNetwork net = AH_NETWORK.get().solveNetwork();
+      BayesianNetwork net = AH_NETWORK.get();
+      BayesSolverImpl solver = new BayesSolverImpl(net);
+      solver.solve();
+      Clique[] cliques = solver.getJta().getData().getCliques();
+      System.out.println("SOLVER CLIQUES:");
+      for (Clique clique : cliques) {
+        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
+      }
       assertDoesNotThrow(() -> test = net.buildInferenceEngine());
-      Clique[] cliques = ((InferenceEngineImpl) test).getJunctionTree().getData().getCliques();
+      cliques = ((InferenceEngineImpl) test).getJunctionTree().getData().getCliques();
       for (Clique clique : cliques) {
         System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
       }

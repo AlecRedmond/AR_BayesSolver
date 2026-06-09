@@ -26,6 +26,8 @@ public class SeparatorFactory {
     setNodes(cliqueA, cliqueB, separator);
     buildTable(jtd.getNetworkData(), separator);
     buildMessagePassers(separator, jtd, cliqueA, cliqueB);
+    cliqueA.getSeparatorMap().put(cliqueB, separator);
+    cliqueB.getSeparatorMap().put(cliqueA, separator);
     return separator;
   }
 
