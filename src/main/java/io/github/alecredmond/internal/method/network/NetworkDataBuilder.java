@@ -113,7 +113,7 @@ public class NetworkDataBuilder {
     while (!queue.isEmpty()) {
       Node current = queue.poll();
       candidates.remove(current);
-      if (!remaining.remove(current)) continue;
+      remaining.remove(current);
       visited.add(current);
       Stream.concat(current.getParents().stream(), current.getChildren().stream())
           .filter(remaining::contains)
