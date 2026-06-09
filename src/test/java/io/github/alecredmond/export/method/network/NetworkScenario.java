@@ -13,7 +13,8 @@ public enum NetworkScenario {
   SIMPLE_LINEAR(buildSimpleLinearGraph()),
   DIAMOND_NET(buildDiamondNetwork()),
   WEATHER_NETWORK(buildWeatherNetwork()),
-  CAR_TRIMS(buildCarTrimNetwork());
+  CAR_TRIMS(buildCarTrimNetwork()),
+  LOPSIDED(buildNetworkLopsided());
 
   private final Supplier<BayesianNetwork> supplier;
 

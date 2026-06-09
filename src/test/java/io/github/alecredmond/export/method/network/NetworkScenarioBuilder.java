@@ -381,8 +381,9 @@ public class NetworkScenarioBuilder {
             .addConstraint(List.of("5x MANUAL", "3x AUTO"), List.of("£20k", "1L ECO"), 1.0)
             .addConstraint("STANDARD", "£20k", 1.0)
             .addConstraint(List.of("6x MANUAL", "3x AUTO"), List.of("GT"), 1.0)
-            .addConstraint(List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("2.0 DIESEL","3.0 V6"), 1.0)
-            //.addConstraint(List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("3.0 V6"), 1.0)
+            .addConstraint(
+                List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("2.0 DIESEL", "3.0 V6"), 1.0)
+            // .addConstraint(List.of("6x MANUAL", "3x AUTO", "6x DCT"), List.of("3.0 V6"), 1.0)
             .addConstraint(List.of("6x MANUAL", "5x MANUAL", "1.6 TURBO"), List.of("SPORT"), 1.0)
             .addConstraint("£40k", "SPORT", 1.0)
             .addConstraint("£80k", "GT", 0.6)
@@ -403,5 +404,39 @@ public class NetworkScenarioBuilder {
             .addConstraint("BLACK", 0.25)
             .addConstraint("BLUE", 0.35)
             .addConstraint("WHITE", 0.1);
+  }
+
+  /*
+      V
+     / \
+    W   X
+    |   |
+    Y   |
+     \ /
+      Z
+  */
+  public static Supplier<BayesianNetwork> buildNetworkLopsided() {
+    return () ->
+        BayesianNetwork.newNetwork("LOPSIDED")
+            .addNewNode("V", List.of("V+", "V-"))
+            .addNewNode("W", List.of("W+", "W-"))
+            .addNewNode("X", List.of("X+", "X-"))
+            .addNewNode("Y", List.of("Y+", "Y-"))
+            .addNewNode("Z", List.of("Z+", "Z-"))
+            .addParents("W", "V")
+            .addParents("X", "V")
+            .addParents("Y", "W")
+            .addParents("Z", List.of("X", "Y"))
+            .addConstraint("V+", 0.7)
+            .addConstraint("W+", "V+", 0.25)
+            .addConstraint("W+", "V-", 0.60)
+            .addConstraint("X+", "V+", 0.90)
+            .addConstraint("X+", "V-", 0.40)
+            .addConstraint("Y+", "W+", 0.33)
+            .addConstraint("Y+", "W-", 0.33)
+            .addConstraint("Z+", List.of("X+", "Y+"), 0.80)
+            .addConstraint("Z+", List.of("X+", "Y-"), 0.60)
+            .addConstraint("Z+", List.of("X-", "Y+"), 0.40)
+            .addConstraint("Z+", List.of("X-", "Y-"), 0.20);
   }
 }

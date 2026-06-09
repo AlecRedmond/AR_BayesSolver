@@ -89,18 +89,22 @@ public class GraphTriangulator<T> {
       T start, T target, Set<T> component, Map<T, Set<T>> graph, Map<T, Integer> labels) {
     int maxAllowedLabel = labels.get(start) - 1;
     Set<T> visited = new HashSet<>();
-    Queue<T> queue = new ArrayDeque<>(graph.get(start));
+    Queue<T> queue = new ArrayDeque<>();
+    visited.add(start);
+    queue.add(start);
 
     while (!queue.isEmpty()) {
-      boolean pathToTarget =
-          graph.get(queue.poll()).stream()
-              .filter(component::contains)
-              .filter(neighbour -> labels.get(neighbour) <= maxAllowedLabel)
-              .filter(visited::add)
-              .filter(queue::add)
-              .anyMatch(target::equals);
-
-      if (pathToTarget) return true;
+      T current = queue.poll();
+      for (T neighbour : graph.get(current)) {
+        if (neighbour.equals(target)) return true;
+        if (!component.contains(neighbour)
+            || visited.contains(neighbour)
+            || labels.get(neighbour) > maxAllowedLabel) {
+          continue;
+        }
+        queue.add(neighbour);
+        visited.add(neighbour);
+      }
     }
     return false;
   }
