@@ -48,7 +48,6 @@ public class NewInferenceEngineTest {
     @MethodSource("allObservations")
     void measureProbability_shouldEqualConstraints(BayesianNetwork network, SolverResults results) {
       test = InferenceEngine.create(network);
-      // network.printNetwork();
       assertTrue(network.isSolved());
       network
           .getNetworkData()

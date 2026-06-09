@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.method.inference.solver;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.inference.SolverResults;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
@@ -35,7 +34,8 @@ public class JTASolver {
       log.info("STARTING SOLVER IN MODE = {}", configs.getSolverType());
     }
 
-    jta = buildJTA(network.getNetworkData(), configs);
+    jta = JunctionTreeAlgorithm.buildForSolver(network.getNetworkData(), configs);
+    jta.marginalizeTables();
 
     double lastError;
     double error = Double.MAX_VALUE;
@@ -82,12 +82,6 @@ public class JTASolver {
 
     jta.writeTablesToNetwork();
     return writeResults(solversPerClique, cycle);
-  }
-
-  private JunctionTreeAlgorithm buildJTA(BayesianNetworkData networkData, SolverConfigs configs) {
-    JunctionTreeAlgorithm jta = JunctionTreeAlgorithm.buildForSolver(networkData, configs);
-    jta.marginalizeTables();
-    return jta;
   }
 
   private double runSolverCycleAndReturnError(

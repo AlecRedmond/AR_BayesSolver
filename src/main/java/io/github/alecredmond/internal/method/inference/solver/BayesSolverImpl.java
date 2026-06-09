@@ -9,12 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BayesSolverImpl extends JTASolver implements BayesSolver {
-  private final BayesianNetwork network;
   private SolverResults results;
 
   public BayesSolverImpl(BayesianNetwork network) {
     super(network, new SolverConfigs());
-    this.network = network;
     this.results = null;
   }
 
