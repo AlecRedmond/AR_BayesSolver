@@ -96,6 +96,10 @@ public class JunctionTreeAlgorithm {
     return separatorSums == 0.0 ? 0.0 : cliqueSums / separatorSums;
   }
 
+  public void sumTransfer(Clique clique) {
+    distributeEvidence(clique, new HashSet<>());
+  }
+
   private <T> double multiplyTableSums(
       T[] array, Function<T, JunctionTreeTable> tableFunction, Collection<NodeState> newEvidence) {
     return Arrays.stream(array)
@@ -138,10 +142,6 @@ public class JunctionTreeAlgorithm {
 
     overlap.addAll(largestOverlapWithNodes.getValue());
     return largestOverlapWithNodes.getKey();
-  }
-
-  void sumTransfer(Clique clique) {
-    distributeEvidence(clique, new HashSet<>());
   }
 
   private void passMessages(Clique clique) {

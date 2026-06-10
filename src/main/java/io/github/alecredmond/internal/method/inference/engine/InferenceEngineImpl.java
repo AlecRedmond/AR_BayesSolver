@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.inference;
+package io.github.alecredmond.internal.method.inference.engine;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;

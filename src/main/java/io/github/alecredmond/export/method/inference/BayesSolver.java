@@ -2,7 +2,7 @@ package io.github.alecredmond.export.method.inference;
 
 import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.inference.BayesSolverImpl;
+import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
 
 public interface BayesSolver {
   static BayesSolver create(BayesianNetwork network) {

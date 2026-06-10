@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
-import io.github.alecredmond.internal.method.network.NetworkIdValidator;
+import io.github.alecredmond.internal.method.network.validator.NetworkIdValidator;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class NodeStateChangeHandler implements NetworkChangeHandler {
 
   private void rebuildIdMaps(
       BayesianNetworkData networkData, CollectionChangeAnalyzer<NodeState> analyzer) {
-    new NetworkIdValidator(networkData).validateNewStates(analyzer);
+    new NetworkIdValidator().validateNewStates(analyzer,networkData);
     Map<Serializable, NodeState> map = networkData.getNodeStateIDsMap();
     analyzer.getRemoved().forEach(r -> map.remove(r.getId()));
     analyzer.getAdded().forEach(a -> map.put(a.getId(), a));

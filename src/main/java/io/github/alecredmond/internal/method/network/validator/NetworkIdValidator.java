@@ -1,34 +1,38 @@
-package io.github.alecredmond.internal.method.network;
+package io.github.alecredmond.internal.method.network.validator;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
+import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 
 @Data
-public class NetworkIdValidator {
-  private final BayesianNetworkData data;
+public class NetworkIdValidator implements NetworkValidator {
 
-  public void validateNewNode(Node node) {
+  public void validateNewNode(Node node, BayesianNetworkData data) {
     if (node == null) {
       throw new BayesNetIDException("Attempted to pass a null value as a Node");
     }
     Serializable nodeId = node.getId();
     List<Serializable> stateIds = node.getNodeStates().stream().map(NodeState::getId).toList();
-    validateNewIds(nodeId, stateIds);
+    validateNewIds(nodeId, stateIds, data);
   }
 
-  public Set<Serializable> validateExistingData() {
+  public Set<Serializable> validateExistingData(BayesianNetworkData data) {
     Set<Serializable> checked = new HashSet<>();
     validateIdCollection(data.getNodeIDsMap().keySet(), checked);
     validateIdCollection(data.getNodeStateIDsMap().keySet(), checked);
     return checked;
+  }
+
+  @Override
+  public void validateData(BayesianNetworkData networkData) {
+    validateRebuild(networkData.getNodeIDsMap().values());
   }
 
   public Set<Serializable> validateRebuild(Collection<Node> nodes) {
@@ -66,7 +70,8 @@ public class NetworkIdValidator {
     }
   }
 
-  public void validateNewStates(CollectionChangeAnalyzer<NodeState> analyzer) {
+  public void validateNewStates(
+      CollectionChangeAnalyzer<NodeState> analyzer, BayesianNetworkData data) {
     Set<Serializable> dupes =
         analyzer.getDupesInNewCollection().stream()
             .map(NodeState::getId)
@@ -80,15 +85,15 @@ public class NetworkIdValidator {
     Set<Serializable> added =
         analyzer.getAdded().stream().map(NodeState::getId).collect(Collectors.toSet());
 
-    validateIdCollection(added, validateExistingData());
+    validateIdCollection(added, validateExistingData(data));
   }
 
   public <T extends Serializable, E extends Serializable> void validateNewIds(
-      T nodeID, Collection<E> nodeStateIDs) {
+      T nodeID, Collection<E> nodeStateIDs, BayesianNetworkData data) {
     try {
       List<Serializable> list = new ArrayList<>(nodeStateIDs);
       list.add(nodeID);
-      validateIdCollection(list, validateExistingData());
+      validateIdCollection(list, validateExistingData(data));
     } catch (NullPointerException e) {
       throw new BayesNetIDException(e.getMessage());
     }

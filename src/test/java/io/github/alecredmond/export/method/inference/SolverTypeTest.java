@@ -65,6 +65,8 @@ class SolverTypeTest {
     Node parentB = addParentToNet(numNodes + 1);
     nodeQueue.add(parentB);
     assert child != null;
+    child.addParent(parentA);
+    child.addParent(parentB);
     network.addConstraint(
         child.getId() + ":TRUE",
         List.of(parentA.getId() + ":TRUE", parentB.getId() + ":TRUE"),

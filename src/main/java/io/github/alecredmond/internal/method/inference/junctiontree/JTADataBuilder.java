@@ -10,11 +10,11 @@ import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceTy
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
-import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
-import io.github.alecredmond.internal.method.inference.junctiontree.separators.CliqueJoiner;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueBuilder;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
@@ -35,14 +35,14 @@ public class JTADataBuilder {
     junctionTreeData.setSolverType(configs.getSolverType());
     buildCommon(junctionTreeData, bayesianNetworkData);
     buildSolversPerClique(junctionTreeData, bayesianNetworkData);
-    log.info("JUNCTION TREE DATA INITIALIZED IN SOLVER CONFIGURATION");
+    logBuilt(bayesianNetworkData, "SOLVER", junctionTreeData);
     return junctionTreeData;
   }
 
   private void buildCommon(
       JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
     junctionTreeData.setNetworkData(bayesianNetworkData);
-    new JTACliqueBuilder().buildCliques(junctionTreeData);
+    new CliqueBuilder().buildCliques(junctionTreeData);
     buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
   }
@@ -56,16 +56,18 @@ public class JTADataBuilder {
     jtd.setSolversPerClique(map);
   }
 
+  private void logBuilt(BayesianNetworkData bnd, String type, JunctionTreeData jtd) {
+    log.info(
+        "NETWORK '{}' SUCCESSFULLY BUILT IN {} CONFIGURATION; No. CLIQUES/SEPARATORS = {} / {}; EQUIVALENT TREEWIDTH = 2^{}",
+        bnd.getNetworkName(),
+        type,
+        jtd.getCliques().length,
+        jtd.getSeparators().length,
+        "%.2f".formatted(jtd.getEquivalentTreeWidth()));
+  }
+
   private void buildInternalMessagePassers(JunctionTreeData jtd) {
-    CliqueJoiner.join(jtd);
-
-    Separator[] separators =
-        Arrays.stream(jtd.getCliques())
-            .flatMap(clique -> clique.getSeparatorMap().values().stream())
-            .distinct()
-            .toArray(Separator[]::new);
-
-    jtd.setSeparators(separators);
+    new CliqueJoiner(jtd).joinCliques();
   }
 
   private void buildExternalMessagePassers(JunctionTreeData jtd, BayesianNetworkData bnd) {
@@ -131,7 +133,7 @@ public class JTADataBuilder {
     jtd.setInferenceType(inferenceType);
     buildObserved(jtd, bnd);
     buildCommon(jtd, bnd);
-    log.info("JUNCTION TREE DATA INITIALIZED IN INFERENCE CONFIGURATION");
+    logBuilt(bnd, "INFERENCE", jtd);
   }
 
   private void buildObserved(JunctionTreeData jtd, BayesianNetworkData bnd) {
