@@ -1,0 +1,35 @@
+package io.github.alecredmond.internal.method.inference.junctiontree.clique;
+
+import io.github.alecredmond.exceptions.TreewidthException;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
+import java.util.Collection;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class TreewidthVerifier {
+  private static final double LOG_INT_MAX = Math.log(Integer.MAX_VALUE);
+
+  public void verifyClique(Set<Node> nodes, JunctionTreeData jtd) {
+    verifyCliques(Set.of(nodes), jtd);
+  }
+
+  public void verifyCliques(Collection<Set<Node>> nodeSets, JunctionTreeData jtd) {
+    verifyTreeWidth(
+        nodeSets.stream().mapToDouble(this::getLogCardinality).max().orElseThrow(), jtd);
+  }
+
+  private void verifyTreeWidth(double logMaxTableRank, JunctionTreeData jtd) {
+    double equivalentTreeWidth = logMaxTableRank / Math.log(2);
+    jtd.setEquivalentTreeWidth(equivalentTreeWidth);
+    if (logMaxTableRank <= LOG_INT_MAX) return;
+    throw new TreewidthException(
+        "Equivalent Treewidth (2^%.2f) would require an array longer than 2^31 - 1!"
+            .formatted(equivalentTreeWidth));
+  }
+
+  private double getLogCardinality(Collection<Node> nodes) {
+    return nodes.stream().mapToInt(n -> n.getNodeStates().size()).mapToDouble(Math::log).sum();
+  }
+}

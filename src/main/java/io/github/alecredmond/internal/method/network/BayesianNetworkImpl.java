@@ -16,6 +16,7 @@ import io.github.alecredmond.export.serialization.network.SerializedBayesianNetw
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
 import io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent;
+import io.github.alecredmond.internal.method.network.validator.NetworkIdValidator;
 import io.github.alecredmond.internal.method.printer.NetworkPrinter;
 import io.github.alecredmond.internal.method.sampler.LikelihoodWeightingSampler;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
@@ -89,7 +90,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   // ----------------------------------------------------------------------------------------------
 
   public BayesianNetwork addNode(Node node) throws BayesNetIDException {
-    new NetworkIdValidator(networkData).validateNewNode(node);
+    new NetworkIdValidator().validateNewNode(node,networkData);
     node.addPropertyChangeListener(this);
     return this;
   }
