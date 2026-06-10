@@ -27,4 +27,5 @@ public class JunctionTreeData {
   private double jointProbability;
   private SolverType solverType;
   private InferenceType inferenceType;
+  private double equivalentTreeWidth;
 }

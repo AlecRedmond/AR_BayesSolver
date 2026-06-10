@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.network.changehandlers;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.internal.method.network.NetworkStructureValidator;
+import io.github.alecredmond.internal.method.network.validator.NetworkStructureValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.beans.PropertyChangeEvent;
 import lombok.NoArgsConstructor;

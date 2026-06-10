@@ -175,6 +175,11 @@ class NewBayesianNetworkTest {
       return Stream.concat(expectedTrue, expectedFalse);
     }
 
+    @BeforeEach
+    void connectNetwork() {
+      test.addParents("B", "A").addParents("C", "B").addParents("D", "C");
+    }
+
     @ParameterizedTest
     @MethodSource("nodeRemovalArgs")
     void removeById_shouldSucceed(Serializable id, boolean existing) {

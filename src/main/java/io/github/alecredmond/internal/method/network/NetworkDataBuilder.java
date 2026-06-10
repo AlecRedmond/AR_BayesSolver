@@ -6,12 +6,11 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.internal.method.network.validator.ValidatorType;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.Data;
 
@@ -21,6 +20,7 @@ public class NetworkDataBuilder {
   private final NetworkTableBuilder tableBuilder = new NetworkTableBuilder();
 
   public void build() {
+    validateData();
     Map<Node, Integer> layerMap = orderNodes();
     rebuildIdMaps(networkData.getNodes());
     buildNetworkTablesMap(layerMap);
@@ -55,7 +55,6 @@ public class NetworkDataBuilder {
   }
 
   public void rebuildIdMaps(Collection<Node> nodes) {
-    new NetworkIdValidator(networkData).validateRebuild(nodes);
     networkData.setNodeIDsMap(createNodeIdMap(nodes));
     networkData.setNodeStateIDsMap(createNodeStateIdMap(nodes));
   }
@@ -99,5 +98,12 @@ public class NetworkDataBuilder {
         .sorted(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
         .toList();
+  }
+
+  private void validateData() {
+    Arrays.stream(ValidatorType.values())
+        .map(ValidatorType::getValidatorSupplier)
+        .map(Supplier::get)
+        .forEach(networkValidator -> networkValidator.validateData(networkData));
   }
 }

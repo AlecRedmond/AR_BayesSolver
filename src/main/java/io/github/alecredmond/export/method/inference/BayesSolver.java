@@ -3,7 +3,7 @@ package io.github.alecredmond.export.method.inference;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.inference.BayesSolverImpl;
+import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
 
 /**
  * A solver that provides the best fit solution for a {@link BayesianNetwork} given its constraints.

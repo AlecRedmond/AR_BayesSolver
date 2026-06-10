@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 public class Separator {
   @EqualsAndHashCode.Include private Set<Node> nodes;
   private JunctionTreeTable table;
-  private Map<Clique, Clique> connected;
+  @EqualsAndHashCode.Include private Map<Clique, Clique> connected;
   private Map<Clique, TableTransfer> messagePassers;
 
   public void run(Clique start) {

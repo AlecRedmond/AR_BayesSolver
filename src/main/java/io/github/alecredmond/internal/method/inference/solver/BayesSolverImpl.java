@@ -1,23 +1,19 @@
-package io.github.alecredmond.internal.method.inference;
+package io.github.alecredmond.internal.method.inference.solver;
 
 import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
-import io.github.alecredmond.internal.method.inference.junctiontree.JTASolver;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BayesSolverImpl implements BayesSolver {
-  private final BayesianNetwork network;
-  private final SolverConfigs configs;
+public class BayesSolverImpl extends JTASolver implements BayesSolver {
   private SolverResults results;
 
   public BayesSolverImpl(BayesianNetwork network) {
-    this.network = network;
+    super(network, new SolverConfigs());
     this.results = null;
-    this.configs = new SolverConfigs();
   }
 
   @Override
@@ -68,7 +64,7 @@ public class BayesSolverImpl implements BayesSolver {
     results = null;
     try {
       network.buildNetworkData();
-      results = new JTASolver().solveNetwork(data, configs);
+      results = solveNetwork();
       data.setSolved(true);
       return true;
     } catch (Exception e) {
