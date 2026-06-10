@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CliqueBuilder {
   private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
-  private final TreewidthVerifier treewidthVerifier = new TreewidthVerifier();
+  private final TreewidthValidator treewidthValidator = new TreewidthValidator();
 
   public void buildCliques(JunctionTreeData jtd) {
     if (checkUseJta(jtd)) {
@@ -44,7 +44,7 @@ public class CliqueBuilder {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Clique[] cliques = new Clique[1];
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
-    treewidthVerifier.verifyClique(linkedNodes, jtd);
+    treewidthValidator.verifyClique(linkedNodes, jtd);
     cliques[0] = new Clique(linkedNodes, tableBuilder.buildTable(linkedNodes, bnd));
     jtd.setCliques(cliques);
   }
@@ -55,7 +55,7 @@ public class CliqueBuilder {
     moralizeGraph(edgeGraph, bnd);
     triangulate(edgeGraph);
     Set<Set<Node>> maximalSets = findMaximalCliques(edgeGraph);
-    treewidthVerifier.verifyCliques(maximalSets, jtd);
+    treewidthValidator.verifyCliques(maximalSets, jtd);
     jtd.setCliques(buildCliqueArray(maximalSets, bnd));
   }
 

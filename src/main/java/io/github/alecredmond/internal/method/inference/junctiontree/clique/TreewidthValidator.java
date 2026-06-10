@@ -8,7 +8,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TreewidthVerifier {
+public class TreewidthValidator {
   private static final double LOG_INT_MAX = Math.log(Integer.MAX_VALUE);
 
   public void verifyClique(Set<Node> nodes, JunctionTreeData jtd) {
