@@ -73,11 +73,11 @@ public class JunctionTreeAlgorithm {
     setJointProbability();
   }
 
-  public void marginalizeTables() {
+  public void normalizeTables() {
     Arrays.stream(data.getCliques())
         .map(Clique::getTable)
         .map(JunctionTreeTable::getHelper)
-        .forEach(TableHelper::marginalizeTable);
+        .forEach(TableHelper::normalizeTable);
     Arrays.stream(data.getSeparators()).forEach(Separator::resetSeparator);
   }
 

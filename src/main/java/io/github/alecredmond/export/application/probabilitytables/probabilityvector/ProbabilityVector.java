@@ -2,6 +2,7 @@ package io.github.alecredmond.export.application.probabilitytables.probabilityve
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,12 @@ import lombok.Data;
  * <p>{@code S = {N0i,N1j,...,Nnz} // the ith state of Node 0, jth state of Node 1, etc...}<br>
  * {@code P(S) = probabilities[index], where:}<br>
  * {@code index = (i * stepMultiplier[0]) + (j * stepMultiplier[1]) + ... + (z * stepMultiplier[n])}
+ *
+ * <p>The order of nodes is laid out in the {@link #nodeArray} field, and the index of each {@link
+ * Node} carries over to every other array in {@code ProbabilityVector}.
+ *
+ * @see ProbabilityTable
+ * @author Alec Redmond
  */
 @Data
 @AllArgsConstructor

@@ -33,7 +33,7 @@ public class ObservedTableHelperImpl extends TableHelperBase<ObservedTable>
   }
 
   @Override
-  public void marginalizeTable() {
+  public void normalizeTable() {
     TableUtils.marginalizeJointTable(table);
   }
 

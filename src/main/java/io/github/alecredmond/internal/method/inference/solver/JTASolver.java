@@ -35,7 +35,7 @@ public class JTASolver {
     }
 
     jta = JunctionTreeAlgorithm.buildForSolver(network.getNetworkData(), configs);
-    jta.marginalizeTables();
+    jta.normalizeTables();
 
     double lastError;
     double error = Double.MAX_VALUE;

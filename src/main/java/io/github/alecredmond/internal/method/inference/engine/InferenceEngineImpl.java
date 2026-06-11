@@ -45,7 +45,8 @@ public class InferenceEngineImpl implements InferenceEngine {
     if (!ensureSolved()) {
       return this;
     }
-    junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
+    List<Node> orderedNodes = network.getNetworkData().getNodes();
+    junctionTree.observeNetwork(NodeUtils.generateOrderedRequest(observed, orderedNodes));
     junctionTree.writeObservations();
     return this;
   }
@@ -130,7 +131,8 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public <T extends Serializable> double getPosteriorProbabilityById(Collection<T> measuredStateIds) {
+  public <T extends Serializable> double getPosteriorProbabilityById(
+      Collection<T> measuredStateIds) {
     return getPosteriorProbability(
         NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
   }

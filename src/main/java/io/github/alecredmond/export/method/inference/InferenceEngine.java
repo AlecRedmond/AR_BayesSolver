@@ -7,7 +7,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.Sampler;
-import io.github.alecredmond.internal.method.inference.InferenceEngineFactory;
+import io.github.alecredmond.internal.method.inference.engine.InferenceEngineFactory;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;

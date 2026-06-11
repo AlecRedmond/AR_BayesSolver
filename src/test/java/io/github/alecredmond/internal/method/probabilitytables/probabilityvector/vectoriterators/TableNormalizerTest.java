@@ -7,7 +7,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
-import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableNormalizer;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -17,10 +17,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class TableMarginalizerTest {
+class TableNormalizerTest {
   static final List<BayesianNetwork> NETWORKS =
       List.of(FANTASY_GRAPH.get(), AH_NETWORK.get(), RAIN_NETWORK.get(), SIMPLE_LINEAR.get());
-  TableMarginalizer test;
+  TableNormalizer test;
 
   static Stream<Arguments> getNetworkTables() {
     return NETWORKS.stream()
@@ -32,15 +32,15 @@ class TableMarginalizerTest {
 
   @ParameterizedTest
   @MethodSource("getNetworkTables")
-  void marginalize(BayesianNetwork network, Serializable nodeId) {
+  void normalize(BayesianNetwork network, Serializable nodeId) {
     NetworkTableBuilder builder = new NetworkTableBuilder();
     Node node = network.getNode(nodeId);
     ProbabilityTable table = builder.buildTable(List.of(node), node.getParents());
     double[] probs = table.getVector().getProbabilities();
     assertTrue(Arrays.stream(probs).allMatch(p -> p == 1.0));
 
-    test = new TableMarginalizer(table);
-    test.marginalize();
+    test = new TableNormalizer(table);
+    test.normalize();
 
     int blockSize = node.getNodeStates().size();
     double average = 1.0 / blockSize;
@@ -49,7 +49,7 @@ class TableMarginalizerTest {
     IntStream.range(0, blockSize).forEach(i -> probs[i] = 1);
     probs[0] = blockSize - 1;
 
-    test.marginalize();
+    test.normalize();
 
     assertEquals(1, Arrays.stream(probs, 0, blockSize).sum(), 1e-6);
     assertEquals(0.5, probs[0], 1e-6);

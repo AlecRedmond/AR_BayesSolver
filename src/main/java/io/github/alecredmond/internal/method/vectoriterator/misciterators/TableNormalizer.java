@@ -9,17 +9,17 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.update
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class TableMarginalizer implements BaseOdometerResetLogic, BlankUpdater {
+public class TableNormalizer implements BaseOdometerResetLogic, BlankUpdater {
   private final ProbabilityTable table;
   private final VectorIterator<VectorOdometer> iterator;
   private final double[] adder = {0.0};
 
-  public TableMarginalizer(ProbabilityTable table) {
+  public TableNormalizer(ProbabilityTable table) {
     this.table = table;
     this.iterator = new VectorIterator<>(table.getVector(), this, VectorOdometer::new);
   }
 
-  public void marginalize() {
+  public void normalize() {
     double[] probabilities = table.getVector().getProbabilities();
     iterator.iterateOuter(
         () -> {

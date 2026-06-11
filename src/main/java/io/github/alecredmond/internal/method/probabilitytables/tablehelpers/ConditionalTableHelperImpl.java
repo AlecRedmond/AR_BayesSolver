@@ -8,7 +8,7 @@ import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHel
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ConditionalTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
-import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableMarginalizer;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableNormalizer;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
@@ -17,16 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable>
     implements ConditionalTableHelper {
-  private final TableMarginalizer marginalizer;
+  private final TableNormalizer normalizer;
 
   public ConditionalTableHelperImpl(ConditionalTable table) {
     super(table);
-    this.marginalizer = new TableMarginalizer(table);
+    this.normalizer = new TableNormalizer(table);
   }
 
   @Override
-  public void marginalizeTable() {
-    marginalizer.marginalize();
+  public void normalizeTable() {
+    normalizer.normalize();
   }
 
   @Override

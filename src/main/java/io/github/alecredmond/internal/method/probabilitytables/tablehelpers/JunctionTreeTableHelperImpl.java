@@ -25,7 +25,7 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
   }
 
   @Override
-  public void marginalizeTable() {
+  public void normalizeTable() {
     TableUtils.marginalizeJointTable(table);
   }
 

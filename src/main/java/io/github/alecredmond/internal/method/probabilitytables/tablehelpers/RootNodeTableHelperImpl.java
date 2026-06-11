@@ -18,7 +18,7 @@ public class RootNodeTableHelperImpl extends TableHelperBase<RootNodeTable>
   }
 
   @Override
-  public void marginalizeTable() {
+  public void normalizeTable() {
     TableUtils.marginalizeJointTable(table);
   }
 
