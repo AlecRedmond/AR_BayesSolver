@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public interface Sample {
   static int countAll(Collection<Sample> samples) {
-    return samples.stream().mapToInt(Sample::count).sum();
+    return samples.stream().distinct().mapToInt(Sample::count).sum();
   }
 
   int count();

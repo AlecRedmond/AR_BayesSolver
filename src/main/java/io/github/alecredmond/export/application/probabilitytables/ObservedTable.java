@@ -9,10 +9,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * An {@code ObservedTable} measures the prior or posterior probabilities over a single {@link Node}
- * within an {@link InferenceEngine}. This table will only contain as many entries as the number of
- * {@link NodeState} values within that {@link Node}, each of which record {@code P(n|Obs(X)}, where
- * {@code Obs(X)} are the observations present on the {@link InferenceEngine}.
+ * A table measuring the prior or posterior probability distribution over a single {@link Node}
+ * within an {@link InferenceEngine}. An {@code ObservedTable} contains one entry per {@link
+ * NodeState} of the measured {@link Node}, each recording {@code P(X=x|Obs)}, where {@code X} is
+ * the measured node, {@code x} is one of its possible states, and {@code Obs} is the set of
+ * observations currently active on the {@link InferenceEngine}.
  *
  * <p>Instances of this interface are not thread-safe. External synchronisation is required for
  * concurrent access.
@@ -31,24 +32,21 @@ public interface ObservedTable extends ProbabilityTable {
   Node getNode();
 
   /**
-   * Returns a map of each {@link Node} observed within an {@link InferenceEngine} and the {@link
-   * NodeState} value of the observation. The posterior probabilities contained within this {@code
-   * ObservedTable} are conditioned on the values of this map. This will be empty if there are no
-   * observations within the {@link InferenceEngine}.
+   * Returns the observations currently active on the {@link InferenceEngine}, as a map from each
+   * observed {@link Node} to its observed {@link NodeState}. The posterior probabilities in this
+   * table are conditioned on these observations. Returns an empty map if no observations are
+   * present.
    *
-   * @return an unmodifiable {@link LinkedHashMap} of the observations on this table.
+   * @return an unmodifiable {@link LinkedHashMap} mapping each observed {@link Node} to its
+   *     observed {@link NodeState}.
    */
   Map<Node, NodeState> getObservations();
 
   /**
-   * Returns the {@link ObservedTableHelper} for this {@code ProbabilityTable}. {@link TableHelper}
-   * classes provide additional utility methods for the table, such as querying the probability of
-   * {@link NodeState} combinations and creating table copies.
+   * Returns the {@link ObservedTableHelper} for this table. {@link ObservedTableHelper} extends the
+   * base {@link TableHelper} with additional methods specific to observed probability tables.
    *
-   * <p>This returns an {@link ObservedTableHelper}, which includes all the base methods from {@link
-   * TableHelper}, along with additional methods relevant to an {@link ObservedTable}.
-   *
-   * @return the {@link ObservedTableHelper} for this instance.
+   * @return the {@link ObservedTableHelper} for this {@code ObservedTable}.
    */
   @Override
   ObservedTableHelper getHelper();

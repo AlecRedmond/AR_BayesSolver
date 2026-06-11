@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
 import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 
 /**
  * A conditional probability table (CPT) within a {@link BayesianNetwork}. CPTs map the probability
@@ -21,15 +20,11 @@ import io.github.alecredmond.export.method.probabilitytables.TableHelper;
  */
 public interface ConditionalTable extends NetworkTable {
   /**
-   * Returns the {@link ConditionalTableHelper} for this {@code ConditionalTable}. {@link
-   * TableHelper} classes provide additional utility methods for the table, such as querying the
-   * probability of {@link NodeState} combinations and creating table copies.
+   * Returns the {@link ConditionalTableHelper} for this table. {@link ConditionalTableHelper}
+   * extends {@link NetworkTableHelper} with additional methods specific to conditional probability
+   * tables.
    *
-   * <p>This returns a {@link ConditionalTableHelper}, which includes all the base methods from
-   * {@link TableHelper} and {@link NetworkTableHelper}, along with additional methods relevant to a
-   * {@code ConditionalTable}.
-   *
-   * @return the {@link ConditionalTableHelper} for this instance.
+   * @return the {@link ConditionalTableHelper} for this {@code ConditionalTable}.
    */
   @Override
   ConditionalTableHelper getHelper();

@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Interface for a probability table used in a Bayesian Network, Solver, or Inference Engine.
- * Probability Tables contain information concerning the event and condition nodes active in the
- * table, a {@link ProbabilityVector} object which maps the Cartesian Product of all states to a
- * probability array, and a {@link TableHelper} which can be used for querying the table.
+ * A probability table for use within a Bayesian network, solver, or inference engine. Each table
+ * holds a reference to its event and condition {@link Node}s, a {@link ProbabilityVector} that maps
+ * the Cartesian product of all node states to a probability array, and a {@link TableHelper} for
+ * querying the table.
  *
  * <p>Instances of this interface are not thread-safe. External synchronisation is required for
  * concurrent access.
@@ -24,16 +24,18 @@ import java.util.Set;
  */
 public interface ProbabilityTable {
   /**
-   * Returns a map of ids and their associated {@link NodeState} within the table.
+   * Returns a map from each {@link NodeState} id to its corresponding {@link NodeState} instance
+   * within this table.
    *
-   * @return the {@link NodeState} ID map from this instance.
+   * @return an unmodifiable map from {@link NodeState} id to {@link NodeState} instances.
    */
   Map<Serializable, NodeState> getNodeStateIDMap();
 
   /**
-   * Returns a map of ids and their associated {@link Node} within the table.
+   * Returns a map from each {@link Node} id to its corresponding {@link Node} instance within this
+   * table.
    *
-   * @return the {@link Node} ID map from this instance.
+   * @return an unmodifiable map from {@link Node} id to {@link Node} instances.
    */
   Map<Serializable, Node> getNodeIDMap();
 
@@ -71,35 +73,36 @@ public interface ProbabilityTable {
   Set<Node> getConditions();
 
   /**
-   * Returns the name of the table. This is typically a string in the form {@code
-   * "P({E_ids}|{C_ids})"} where E_ids are the ids of all event nodes, and C_ids are the ids of all
+   * Returns the name of this table, typically of the form {@code P(E1,...,En|C1,...,Cm)}, where
+   * {@code E1,...,En} are the ids of the event nodes and {@code C1,...,Cm} are the ids of the
    * condition nodes.
    *
-   * @return the table name for this {@code ProbabilityTable} instance.
+   * @return the name of this table.
    */
   Serializable getTableName();
 
   /**
-   * Returns the {@link TableHelper} for this {@code ProbabilityTable}. {@link TableHelper} classes
-   * provide additional utility methods for the table, such as querying the probability of {@link
-   * NodeState} combinations and creating table copies.
+   * Returns the base {@link TableHelper} for this table. The {@link TableHelper} provides utility
+   * methods applicable to all {@code ProbabilityTable} types, such as querying probabilities for
+   * {@link NodeState} combinations and creating table copies.
    *
-   * <p>This returns the base {@link TableHelper}, which includes methods applicable to all classes
-   * that extend {@code ProbabilityTable}.
+   * <p>Subtypes of {@code ProbabilityTable} override this method to return a more specific helper;
+   * see {@link NetworkTable#getHelper()}, {@link ObservedTable#getHelper()}, etc.
    *
-   * @return the {@link TableHelper} for this instance.
+   * @return the {@link TableHelper} for this table.
    */
   @SuppressWarnings("rawtypes")
   TableHelper getHelper();
 
   /**
-   * Returns the probability array for this {@code ProbabilityTable}. This contains a probability
-   * entry for every {@link NodeState} combination in the Cartesian product of the table's nodes.
-   * Further information about how these combinations are indexed can be found in the documentation
-   * for {@link ProbabilityVector}. For standard queries, it is advisable to use this table's {@link
-   * TableHelper}, which can be accessed through by calling {@link #getHelper()}.
+   * Returns the raw probability array for this table. The array contains one entry for every {@link
+   * NodeState} combination in the Cartesian product of the table's nodes; see {@link
+   * ProbabilityVector} for details on how combinations are indexed.
    *
-   * @return the probability array for this {@code ProbabilityTable}.
+   * <p>For standard queries, prefer using the {@link TableHelper} returned by {@link #getHelper()},
+   * which provides a safer, higher-level interface.
+   *
+   * @return the probability array for this table.
    */
   double[] getProbabilities();
 }

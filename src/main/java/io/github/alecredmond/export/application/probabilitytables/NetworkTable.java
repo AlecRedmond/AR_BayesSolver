@@ -7,13 +7,13 @@ import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 
 /**
- * A conditional probability table (CPT) within a {@link BayesianNetwork}. CPTs map the probability
- * over all {@link NodeState} values of a single {@link Node}, conditional on the states of its
- * parents {@code P(X|Pa(X))}. There are two variants of {@code NetworkTable}:
+ * A conditional probability table (CPT) for a {@link Node} within a {@link BayesianNetwork}. A CPT
+ * maps the probability over all {@link NodeState} values of a single {@link Node}, conditional on
+ * the states of its parents: {@code P(X|Pa(X))}. There are two variants of {@code NetworkTable}:
  *
  * <ul>
- *   <li>{@link ConditionalTable} for nodes conditional on their parents
- *   <li>{@link RootNodeTable} for the root nodes of the network, which have no parents.
+ *   <li>{@link ConditionalTable} for non-root nodes, conditional on their parents
+ *   <li>{@link RootNodeTable} for the root nodes, which have no parents.
  * </ul>
  *
  * <p>Instances of this interface are not thread-safe. External synchronisation is required for
@@ -24,22 +24,18 @@ import io.github.alecredmond.export.method.probabilitytables.TableHelper;
  */
 public interface NetworkTable extends ProbabilityTable {
   /**
-   * Returns the {@link Node} within the {@link BayesianNetwork} that this CPT measures. This
-   * represents 'X' in {@code P(X|Pa(X)}.
+   * Returns the {@link Node} within the {@link BayesianNetwork} that this CPT measures. This is the
+   * {@code X} in {@code P(X|Pa(X))}.
    *
-   * @return the child or root {@link Node} this CPT measures.
+   * @return the child or root {@link Node} measured by this CPT.
    */
   Node getNetworkNode();
 
   /**
-   * Returns the {@link NetworkTableHelper} for this {@code NetworkTable}. {@link TableHelper}
-   * classes provide additional utility methods for the table, such as querying the probability of
-   * {@link NodeState} combinations and creating table copies.
+   * Returns the {@link NetworkTableHelper} for this table. {@link NetworkTableHelper} extends the
+   * base {@link TableHelper} with additional methods specific to network probability tables.
    *
-   * <p>This returns a {@link NetworkTableHelper}, which includes all the base methods from {@link
-   * TableHelper}, along with additional methods relevant to a {@code NetworkTable}.
-   *
-   * @return the {@link NetworkTableHelper} for this instance.
+   * @return the {@link NetworkTableHelper} for this {@code NetworkTable}.
    */
   @SuppressWarnings("rawtypes")
   NetworkTableHelper getHelper();
