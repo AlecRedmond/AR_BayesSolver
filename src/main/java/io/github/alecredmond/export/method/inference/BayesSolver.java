@@ -12,7 +12,7 @@ import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
  * solving, per-constraint error and loss results can be reviewed via {@link #getResults()}.
  *
  * <p>Two IPFP variants are currently available; a full joint-distribution procedure ({@link
- * SolverType#JOINT_TABLE_IPFP}), and a Junction Tree Algorithm-derived procedure ({@link
+ * SolverType#SINGLE_TABLE_IPFP}), and a Junction Tree Algorithm-derived procedure ({@link
  * SolverType#JUNCTION_TREE_IPFP}). The default variant is controlled by {@code
  * app.solver.useJunctionTreeSolver} in {@code app.properties} (default: {@code true}).
  *
@@ -99,13 +99,13 @@ public interface BayesSolver {
    *
    * <ul>
    *   <li>
-   *       <p><b>JOINT_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
+   *       <p><b>SINGLE_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
    *       Cartesian product of all node states is mapped to a single joint probability table, and
    *       all constraints are applied to that table.
    *       <p><b>Time complexity: O(2<sup>n</sup>), where n is the number of nodes in the
    *       network.</b>
-   *       <p>This method has a low overhead and is typically the more efficient choice for small
-   *       networks where the joint table contains fewer than 2<sup>16</sup> entries. Performance
+   *       <p>This method has a low overhead and will typically converge faster for small networks
+   *       where the joint table would contain fewer than 2<sup>10</sup> entries. Performance
    *       degrades exponentially beyond this threshold. The absolute upper limit is
    *       2<sup>31</sup>&minus;1 entries, the maximum length of a Java array.
    *   <li>
@@ -117,24 +117,24 @@ public interface BayesSolver {
    *       number of cliques in the junction tree.</b>
    *       <p>This variant carries higher overhead but scales with treewidth rather than total node
    *       count, typically yielding an exponential speed improvement over {@link
-   *       SolverType#JOINT_TABLE_IPFP} as nodes are added. It is also the only option for networks
+   *       SolverType#SINGLE_TABLE_IPFP} as nodes are added. It is also the only option for networks
    *       whose full joint Cartesian product would exceed 2<sup>31</sup>&minus;1 entries.
    * </ul>
    */
   enum SolverType {
     /**
-     * <b>JOINT_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
+     * <b>SINGLE_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
      * Cartesian product of all node states is mapped to a single joint probability table, and all
      * constraints are applied to that table.
      *
      * <p><b>Time complexity: O(2<sup>n</sup>), where n is the number of nodes in the network.</b>
      *
-     * <p>This method has a low overhead and is typically the more efficient choice for small
-     * networks where the joint table contains fewer than 2<sup>16</sup> entries. Performance
-     * degrades exponentially beyond this threshold. The absolute upper limit is
-     * 2<sup>31</sup>&minus;1 entries, the maximum length of a Java array.
+     * <p>This method has a low overhead and will typically converge faster for small networks where
+     * the joint table would contain fewer than 2<sup>10</sup> entries. Performance degrades
+     * exponentially beyond this threshold. The absolute upper limit is 2<sup>31</sup>&minus;1
+     * entries, the maximum length of a Java array.
      */
-    JOINT_TABLE_IPFP,
+    SINGLE_TABLE_IPFP,
     /**
      * <b>JUNCTION_TREE_IPFP</b> decomposes the network into a junction tree of smaller cliques,
      * each with its own joint sub-table, connected by separators formed from their shared nodes.
@@ -146,7 +146,7 @@ public interface BayesSolver {
      *
      * <p>This variant carries higher overhead but scales with treewidth rather than total node
      * count, typically yielding an exponential speed improvement over {@link
-     * SolverType#JOINT_TABLE_IPFP} as nodes are added. It is also the only option for networks
+     * SolverType#SINGLE_TABLE_IPFP} as nodes are added. It is also the only option for networks
      * whose full joint Cartesian product would exceed 2<sup>31</sup>&minus;1 entries.
      */
     JUNCTION_TREE_IPFP
