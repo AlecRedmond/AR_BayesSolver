@@ -29,7 +29,7 @@ public interface ObservedTable extends ProbabilityTable {
    *
    * @return the {@link Node} this {@code ObservedTable} measures.
    */
-  Node getNode();
+  Node getMeasuredNode();
 
   /**
    * Returns the observations currently active on the {@link InferenceEngine}, as a map from each

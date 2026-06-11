@@ -28,7 +28,7 @@ public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<
    *
    * @param condition a collection of {@link NodeState} values which define a condition within the
    *     table
-   * @return a map of each Network node's {@link NodeState} and its probability under the given
+   * @return a new map of each Network node's {@link NodeState} and its probability under the given
    *     conditions, or an empty {@link HashMap} if Safe Mode validation failed.
    */
   Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition);
@@ -43,7 +43,7 @@ public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<
    *
    * @param conditionIDs a collection of ids, each linked to a {@link NodeState} value which defines
    *     a condition within the table
-   * @return a map of each Network node's {@link NodeState} and its probability under the given
+   * @return a new map of each Network node's {@link NodeState} and its probability under the given
    *     conditions, or an empty {@link HashMap} if Safe Mode validation failed.
    */
   Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs);

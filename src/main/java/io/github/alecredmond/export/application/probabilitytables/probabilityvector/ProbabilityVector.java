@@ -46,12 +46,19 @@ public class ProbabilityVector {
 
   /**
    * The stride values used to compute an index into {@link #probabilities} for a given state
-   * combination, parallel to {@link #nodeArray}. See the class-level documentation for the full
-   * indexing formula.
+   * combination, parallel to {@link #nodeArray}. The multiplier decreases along the length of the
+   * array such that:<br>
+   * {@code stepMultiplier[i+1] = stepMultiplier[i] / numberOfStates[i]} <br>
+   * The final element will always equal 1.<br>
+   * See the class-level documentation for the full indexing formula.
    */
   private final int[] stepMultiplier;
 
-  /** The probability value for each {@link NodeState} combination in the Cartesian product. */
+  /**
+   * The probability value for each {@link NodeState} combination in the Cartesian product. The
+   * maximum length of this array, and therefore the absolute entry limit for a {@code
+   * ProbabilityVector}, is 2<sup>31</sup>&minus;1.
+   */
   private final double[] probabilities;
 
   /** Maps each {@link Node} in this vector to its index position in {@link #nodeArray}. */

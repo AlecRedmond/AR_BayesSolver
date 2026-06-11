@@ -9,7 +9,8 @@ import java.util.Collection;
 /**
  * A helper attached to a {@link ProbabilityTable} which provides additional methods for the table.
  * This is the base table helper, available for all variants of {@link ProbabilityTable}, which
- * provides methods for probability table queries and deep-copying.
+ * provides methods for probability queries, table deep-copying, and toggling {@link NodeState}
+ * validation (safe mode).
  *
  * @see NetworkTableHelper
  * @see ObservedTableHelper
@@ -18,8 +19,10 @@ import java.util.Collection;
 public interface TableHelper<T extends ProbabilityTable> {
 
   /**
-   * Returns the probability associated with all the given states in the form {@code P(Es|Cs)} where
-   * 'E' are the event states, and 'C' the condition states.
+   * Returns the probability associated with all the given states in the form {@code
+   * P(e1,...,en|c1,...,cm)} where {@code e1,...,en} are the event states, and {@code c1,...,cm} the
+   * condition states. The input collection {@code {e1,...,en,c1,...,cn}} is not required to be
+   * ordered.
    *
    * <p><b>This method is affected by Safe Mode.</b> When Safe Mode is enabled, this requires one
    * {@link NodeState} for every {@link Node} within the table, otherwise {@code null} will be
@@ -32,8 +35,10 @@ public interface TableHelper<T extends ProbabilityTable> {
   Double getProbability(Collection<NodeState> states);
 
   /**
-   * Returns the probability associated with all the given states in the form {@code P(Es|Cs)} where
-   * 'E' are the event states, and 'C' the condition states.
+   * Returns the probability associated with all the given states in the form {@code
+   * P(e1,...,en|c1,...,cm)} where {@code e1,...,en} are the event states, and {@code c1,...,cm} the
+   * condition states. The input collection {@code {id(e1),...,id(en),id(c1),...,id(cn)}} is not
+   * required to be ordered.
    *
    * <p><b>This method is affected by Safe Mode.</b> When Safe Mode is enabled, this requires one
    * {@link NodeState} for every {@link Node} within the table, otherwise {@code null} will be
