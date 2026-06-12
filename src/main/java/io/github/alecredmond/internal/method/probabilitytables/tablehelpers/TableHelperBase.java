@@ -36,7 +36,7 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
     }
   }
 
-  public Double getProbabilityFromIDs(Collection<Serializable> stateIds) {
+  public <S extends Serializable> Double getProbabilityFromIDs(Collection<S> stateIds) {
     try {
       return TableUtils.getProbability(getStates(stateIds, table.getNodes()), table);
     } catch (NodeStateConflictException | ProbabilityTableRequestException e) {
@@ -45,8 +45,8 @@ public abstract class TableHelperBase<T extends ProbabilityTable> {
     }
   }
 
-  protected Collection<NodeState> getStates(
-      Collection<Serializable> stateIds, Set<Node> expectedNodes) {
+  protected <S extends Serializable> Collection<NodeState> getStates(
+      Collection<S> stateIds, Set<Node> expectedNodes) {
     return safeMode
         ? TableUtils.assertAllIdsPresent(stateIds, expectedNodes, table)
         : TableUtils.convertIdsToStates(stateIds, table);

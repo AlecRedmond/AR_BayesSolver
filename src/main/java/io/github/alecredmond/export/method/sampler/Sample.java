@@ -90,4 +90,6 @@ public interface Sample {
    * @see #displayAllNodes()
    */
   void setDisplayedNodes(Collection<Node> nodes);
+
+  boolean containsAll(Collection<NodeState> states);
 }

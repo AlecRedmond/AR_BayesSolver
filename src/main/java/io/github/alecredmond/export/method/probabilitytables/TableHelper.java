@@ -44,11 +44,12 @@ public interface TableHelper<T extends ProbabilityTable> {
    * {@link NodeState} for every {@link Node} within the table, otherwise {@code null} will be
    * returned.
    *
+   * @param <S> the class of the {@link NodeState} ids.
    * @param stateIds the collection of all {@link NodeState} ids to be queried.
    * @return the probability table entry associated with the input states, or {@code null} if safe
    *     mode validation fails.
    */
-  Double getProbabilityFromIDs(Collection<Serializable> stateIds);
+  <S extends Serializable> Double getProbabilityFromIDs(Collection<S> stateIds);
 
   /**
    * Builds a copy of the {@link ProbabilityTable} this handler is connected to. This deep-copies

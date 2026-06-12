@@ -41,10 +41,12 @@ public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<
    * contain a {@link NodeState} for every {@link Node} value in {@link
    * NetworkTable#getConditions()}, otherwise the method will return an empty {@link HashMap}.
    *
+   * @param <S> the class of the {@link NodeState} ids.
    * @param conditionIDs a collection of ids, each linked to a {@link NodeState} value which defines
    *     a condition within the table
    * @return a new map of each Network node's {@link NodeState} and its probability under the given
    *     conditions, or an empty {@link HashMap} if Safe Mode validation failed.
    */
-  Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs);
+  <S extends Serializable> Map<NodeState, Double> getConditionalProbByIds(
+      Collection<S> conditionIDs);
 }

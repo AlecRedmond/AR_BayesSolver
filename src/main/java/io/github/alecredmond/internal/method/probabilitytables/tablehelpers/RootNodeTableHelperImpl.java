@@ -28,7 +28,8 @@ public class RootNodeTableHelperImpl extends TableHelperBase<RootNodeTable>
   }
 
   @Override
-  public Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs) {
+  public <S extends Serializable> Map<NodeState, Double> getConditionalProbByIds(
+      Collection<S> conditionIDs) {
     return buildProbabilityMap();
   }
 
