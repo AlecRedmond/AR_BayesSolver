@@ -9,5 +9,5 @@ import java.util.Map;
 public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<T> {
   Map<NodeState, Double> getConditionalProb(Collection<NodeState> condition);
 
-  Map<NodeState, Double> getConditionalProbByIds(Collection<Serializable> conditionIDs);
+  <S extends Serializable> Map<NodeState, Double> getConditionalProbByIds(Collection<S> conditionIDs);
 }
