@@ -1,27 +1,23 @@
 package io.github.alecredmond.internal.application.sampler;
 
 import io.github.alecredmond.export.application.node.NodeState;
-import java.util.ArrayList;
+import io.github.alecredmond.internal.method.sampler.SampleUtils;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Data;
 
 @Data
 public class SampleData {
   private final NodeState[] rawStateArray;
+  private final Set<NodeState> rawStateSet;
   private NodeState[] exportStateArray;
   private int count;
-  private Collection<NodeState> stateCollection;
-  private Supplier<? extends Collection<NodeState>> supplier;
 
   public SampleData(NodeState[] rawStateArray) {
     this.rawStateArray = rawStateArray;
     this.exportStateArray = Arrays.copyOf(rawStateArray, rawStateArray.length);
-    this.supplier = ArrayList::new;
-    this.stateCollection =
-        Arrays.stream(exportStateArray).collect(Collectors.toCollection(supplier));
+    this.rawStateSet = SampleUtils.stateArrayToCollection(rawStateArray, LinkedHashSet::new);
     this.count = 0;
   }
 }

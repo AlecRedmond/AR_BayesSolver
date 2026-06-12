@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.sampler.Sample;
 import java.util.*;
-import java.util.function.Supplier;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,7 +15,4 @@ public class SampleCollectionData {
   private final List<Sample> samples;
   private final Map<Node, NodeState> networkObservations;
   private final Node[] nodes;
-
-  @Builder.Default
-  private Supplier<? extends Collection<NodeState>> sampleSupplier = ArrayList::new;
 }

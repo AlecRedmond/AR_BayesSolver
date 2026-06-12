@@ -22,5 +22,7 @@ public interface Sample {
 
   void setDisplayedNodes(Collection<Node> nodes);
 
+  boolean containsAll(Collection<NodeState> states);
+
   String toString();
 }

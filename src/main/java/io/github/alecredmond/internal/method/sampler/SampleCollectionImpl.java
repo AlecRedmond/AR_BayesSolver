@@ -30,16 +30,16 @@ public class SampleCollectionImpl implements SampleCollection {
     return collectionData.getNetworkObservations();
   }
 
+  public Node[] getNodes() {
+    return collectionData.getNodes();
+  }
+
   public boolean isEmpty() {
     return countSamples() == 0;
   }
 
   public int countSamples() {
     return collectionData.getTotalSamples();
-  }
-
-  public Node[] getNodes() {
-    return collectionData.getNodes();
   }
 
   @Override
@@ -61,7 +61,7 @@ public class SampleCollectionImpl implements SampleCollection {
   }
 
   public void setDisplayedNodes(Collection<Node> nodes) {
-    SampleCollectionUtils.applyToSamples(this, s -> s.setDisplayedNodes(nodes));
+    SampleUtils.applyToSamples(this, s -> s.setDisplayedNodes(nodes));
   }
 
   public void setDisplayedNodes(Node node) {
@@ -69,7 +69,7 @@ public class SampleCollectionImpl implements SampleCollection {
   }
 
   public void displayAllNodes() {
-    SampleCollectionUtils.applyToSamples(this, Sample::displayAllNodes);
+    SampleUtils.applyToSamples(this, Sample::displayAllNodes);
   }
 
   public <T extends Serializable> int countSamplesIncludingStateIds(Collection<T> stateIds) {
@@ -84,7 +84,7 @@ public class SampleCollectionImpl implements SampleCollection {
     if (states.isEmpty()) {
       return countSamples();
     }
-    return SampleCollectionUtils.countSamplesIncludingStates(this, states);
+    return SampleUtils.countSamplesIncludingStates(this, states);
   }
 
   public int countSamplesIncludingStates(NodeState state) {
@@ -93,7 +93,7 @@ public class SampleCollectionImpl implements SampleCollection {
 
   public <T extends Serializable> List<Sample> getSamplesIncludingStatesById(
       Collection<T> includedStateIds) {
-    return SampleCollectionUtils.listSamplesIncludingStates(
+    return SampleUtils.listSamplesIncludingStates(
         this, NetworkDataUtils.getStatesByID(includedStateIds, networkData));
   }
 
@@ -102,7 +102,7 @@ public class SampleCollectionImpl implements SampleCollection {
   }
 
   public List<Sample> getSamplesIncludingStates(Collection<NodeState> includedStates) {
-    return SampleCollectionUtils.listSamplesIncludingStates(this, includedStates);
+    return SampleUtils.listSamplesIncludingStates(this, includedStates);
   }
 
   public List<Sample> getSamplesIncludingStates(NodeState state) {
