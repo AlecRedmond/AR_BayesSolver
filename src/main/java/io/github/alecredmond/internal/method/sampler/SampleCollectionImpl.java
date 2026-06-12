@@ -30,16 +30,16 @@ public class SampleCollectionImpl implements SampleCollection {
     return collectionData.getNetworkObservations();
   }
 
+  public Node[] getNodes() {
+    return collectionData.getNodes();
+  }
+
   public boolean isEmpty() {
     return countSamples() == 0;
   }
 
   public int countSamples() {
     return collectionData.getTotalSamples();
-  }
-
-  public Node[] getNodes() {
-    return collectionData.getNodes();
   }
 
   @Override

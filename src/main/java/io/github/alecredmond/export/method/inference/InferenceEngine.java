@@ -105,7 +105,6 @@ public interface InferenceEngine {
    * @param observedStateId the id of the single state to be observed.
    * @param <T> the type of the state id.
    * @return this instance for chaining.
-   * @throws NullPointerException if the id was not associated with any {@link NodeState}.
    */
   <T extends Serializable> InferenceEngine observeNetworkFromIds(T observedStateId);
 
@@ -120,7 +119,6 @@ public interface InferenceEngine {
    * @return this instance for chaining.
    * @throws NodeStateConflictException if multiple {@link NodeState} values would map to the same
    *     {@link Node}.
-   * @throws NullPointerException if any id was not associated with a {@link NodeState}.
    */
   <T extends Serializable> InferenceEngine observeNetworkFromIds(Collection<T> observedStateIDs);
 
