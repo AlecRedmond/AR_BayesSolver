@@ -9,7 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A container for {@link Sample} objects generated during a Monte Carlo {@link Sampler} run.
+ * A container for the {@link Sample} objects generated during a Monte Carlo {@link Sampler} run. A
+ * {@code SampleCollection} holds the complete set of distinct samples produced by the run, along
+ * with the observations that were applied, and provides methods for querying sample frequencies and
+ * filtering results by {@link NodeState}.
+ *
+ * <p>Instances of this interface are created by the {@code generateSamples} methods on {@link
+ * Sampler}.
  *
  * @see Sampler
  * @see Sample
@@ -20,81 +26,82 @@ public interface SampleCollection {
    * Returns a map of each {@link Node} set as observed during the sampling run, and the specific
    * {@link NodeState} it was locked to.
    *
-   * @return an unmodifiable map of the observations in this {@code SampleCollection}.
+   * @return an unmodifiable map of the observations used in this {@code SampleCollection}.
    */
   Map<Node, NodeState> getObservations();
 
   /**
-   * Returns an array of all {@link Node}s in the {@link BayesianNetwork} this {@code
-   * SampleCollection} was sampled from. The nodes are ordered in network layer order, with root
-   * nodes at the start and childless nodes at the end.
+   * Returns an array of all {@link Node}s in the {@link BayesianNetwork} that this {@code
+   * SampleCollection} was sampled from. The nodes are in topological order, with root nodes at the
+   * start and leaf nodes at the end.
    *
-   * @return a the {@link Node} array from this {@code SampleCollection}.
+   * @return the {@link Node} array from this {@code SampleCollection}.
    */
   Node[] getNodes();
 
   /**
-   * Checks if there are no samples present in this {@code SampleCollection}. This will be {@code
-   * true} if the joint probability of the observed {@link NodeState} values {@code P(Obs) = 0}.
+   * Returns {@code true} if this {@code SampleCollection} contains no samples. This can occur when
+   * the joint probability of the observed {@link NodeState} values is zero — i.e. {@code P(obs) =
+   * 0}.
    *
-   * @return {@code true} if there are no samples, otherwise {@code false}
+   * @return {@code true} if there are no samples in this collection; {@code false} otherwise.
    */
   boolean isEmpty();
 
   /**
-   * Returns a sum of all {@link Sample} frequencies in this {@code SampleCollection}. This will
-   * equal the number of samples specified during the {@link Sampler} run.
+   * Returns the total count of all {@link Sample} frequencies in this {@code SampleCollection}.
+   * This equals the number of samples specified for the {@link Sampler} run.
    *
-   * @return the total sample frequency in this {@code SampleCollection}
+   * @return the total sample count in this {@code SampleCollection}.
    */
   int countSamples();
 
   /**
-   * Returns a sum of all {@link Sample} frequencies in this {@code SampleCollection}, where each
-   * {@link Sample} contains the union of all given {@link NodeState} values. This will give the
-   * equivalent of {@code P(X|obs) * n}, where {@code X} is the input {@link NodeState} values,
-   * {@code obs} is the observations present during the {@link Sampler} run, and {@code n} is the
-   * number of samples generated in the run.
+   * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
+   * contain every {@link NodeState} in the given collection. This is equivalent to {@code P(X|obs)
+   * * n}, where {@code X} is the set of queried {@link NodeState} values, {@code obs} is the set of
+   * observations used during the {@link Sampler} run, and {@code n} is the total number of samples
+   * generated.
    *
    * @param states the {@link NodeState} values to query.
-   * @return the sample frequency in this {@code SampleCollection}
+   * @return the combined frequency of all {@link Sample}s containing every specified state.
    */
   int countSamplesIncludingStates(Collection<NodeState> states);
 
   /**
-   * Returns a sum of all {@link Sample} frequencies in this {@code SampleCollection}, where each
-   * {@link Sample} contains the given {@link NodeState} value. This will give the equivalent of
-   * {@code P(x|obs) * n}, where {@code x} is the input {@link NodeState} value, {@code obs} is the
-   * observations present during the {@link Sampler} run, and {@code n} is the number of samples
-   * generated in the run.
+   * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
+   * contain the given {@link NodeState}. This is equivalent to {@code P(x|obs) * n}, where {@code
+   * x} is the queried {@link NodeState}, {@code obs} is the set of observations used during the
+   * {@link Sampler} run, and {@code n} is the total number of samples generated.
    *
    * @param state the {@link NodeState} value to query.
-   * @return the sample frequency in this {@code SampleCollection}
+   * @return the combined frequency of all {@link Sample}s containing the specified state.
    */
   int countSamplesIncludingStates(NodeState state);
 
   /**
-   * Returns a sum of all {@link Sample} frequencies in this {@code SampleCollection}, where each
-   * {@link Sample} contains the union of all given {@link NodeState} values. This will give the
-   * equivalent of {@code P(X|obs) * n}, where {@code X} is the input {@link NodeState} values,
-   * {@code obs} is the observations present during the {@link Sampler} run, and {@code n} is the
-   * number of samples generated in the run.
+   * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
+   * contain every {@link NodeState} identified by the given IDs. This is equivalent to {@code
+   * P(X|obs) * n}, where {@code X} is the set of queried {@link NodeState} values, {@code obs} is
+   * the set of observations used during the {@link Sampler} run, and {@code n} is the total number
+   * of samples generated.
    *
-   * @param stateIds the ids of the {@link NodeState} values to query.
-   * @return the sample frequency in this {@code SampleCollection}.
+   * @param <T> the serializable ID type.
+   * @param stateIds the IDs of the {@link NodeState} values to query.
+   * @return the combined frequency of all {@link Sample}s containing every specified state.
    */
   <T extends Serializable> int countSamplesIncludingStateIds(Collection<T> stateIds);
 
   /**
-   * Returns a sum of all {@link Sample} frequencies in this {@code SampleCollection}, where each
-   * {@link Sample} contains the given {@link NodeState} value. This will give the equivalent of
-   * {@code P(x|obs) * n}, where {@code x} is the input {@link NodeState} value, {@code obs} is the
-   * observations present during the {@link Sampler} run, and {@code n} is the number of samples
-   * generated in the run.
+   * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
+   * contain the {@link NodeState} identified by the given ID. This is equivalent to {@code P(x|obs)
+   * * n}, where {@code x} is the queried {@link NodeState}, {@code obs} is the set of observations
+   * used during the {@link Sampler} run, and {@code n} is the total number of samples generated.
    *
-   * @param stateId the id of the {@link NodeState} value to query.
-   * @return the sample frequency in this {@code SampleCollection}.
-   * @throws NullPointerException if the id was not mapped to any valid {@link NodeState}.
+   * @param <T> the serializable ID type.
+   * @param stateId the ID of the {@link NodeState} value to query.
+   * @return the combined frequency of all {@link Sample}s containing the specified state.
+   * @throws NullPointerException if {@code stateId} is not mapped to any valid {@link NodeState}.
    */
   <T extends Serializable> int countSamplesIncludingStateIds(T stateId);
 
@@ -108,98 +115,115 @@ public interface SampleCollection {
   List<Sample> getSamples();
 
   /**
-   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} which include
-   * the union of all given {@link NodeState} values. A {@link Sample} contains a unique combination
-   * of {@link NodeState} values, with the frequency of their occurrence in the {@link Sampler} run.
+   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
+   * every {@link NodeState} in the given collection. Each {@link Sample} contains a unique
+   * combination of {@link NodeState} values and the frequency of its occurrence in the {@link
+   * Sampler} run.
    *
    * @param states the {@link NodeState} values to query.
-   * @return an unmodifiable {@link List} of {@link Sample} objects.
+   * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
    */
   List<Sample> getSamplesIncludingStates(Collection<NodeState> states);
 
   /**
-   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} which include
-   * the given {@link NodeState} value. A {@link Sample} contains a unique combination of {@link
-   * NodeState} values, with the frequency of their occurrence in the {@link Sampler} run.
+   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
+   * the given {@link NodeState}. Each {@link Sample} contains a unique combination of {@link
+   * NodeState} values and the frequency of its occurrence in the {@link Sampler} run.
    *
    * @param state the {@link NodeState} value to query.
-   * @return an unmodifiable {@link List} of {@link Sample} objects.
+   * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
    */
   List<Sample> getSamplesIncludingStates(NodeState state);
 
   /**
-   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} which include
-   * the union of all given {@link NodeState} values. A {@link Sample} contains a unique combination
-   * of {@link NodeState} values, with the frequency of their occurrence in the {@link Sampler} run.
+   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
+   * every {@link NodeState} identified by the given IDs. Each {@link Sample} contains a unique
+   * combination of {@link NodeState} values and the frequency of its occurrence in the {@link
+   * Sampler} run.
    *
-   * @param stateIds the ids of all {@link NodeState} values to query.
-   * @return an unmodifiable {@link List} of {@link Sample} objects.
+   * @param <T> the serializable ID type.
+   * @param stateIds the IDs of the {@link NodeState} values to query.
+   * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
    */
   <T extends Serializable> List<Sample> getSamplesIncludingStatesById(Collection<T> stateIds);
 
   /**
-   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} which include
-   * the given {@link NodeState} value. A {@link Sample} contains a unique combination of {@link
-   * NodeState} values, with the frequency of their occurrence in the {@link Sampler} run.
+   * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
+   * the {@link NodeState} identified by the given ID. Each {@link Sample} contains a unique
+   * combination of {@link NodeState} values and the frequency of its occurrence in the {@link
+   * Sampler} run.
    *
-   * @param stateId the id of the {@link NodeState} value to query.
-   * @return an unmodifiable {@link List} of {@link Sample} objects.
-   * @throws NullPointerException if the id was not mapped to any valid {@link NodeState}.
+   * @param <T> the serializable ID type.
+   * @param stateId the ID of the {@link NodeState} value to query.
+   * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
+   * @throws NullPointerException if {@code stateId} is not mapped to any valid {@link NodeState}.
    */
   <T extends Serializable> List<Sample> getSamplesIncludingStatesById(T stateId);
 
   /**
-   * Sets all {@link Node}s as displayed in each {@link Sample}. This resets the displayed nodes to
-   * their initial state, and will show every {@link Node} in the sampled {@link BayesianNetwork}.
+   * Sets all {@link Node}s as displayed in each {@link Sample}. This resets any display
+   * restrictions applied via {@link #setDisplayedNodes(Collection)} or {@link
+   * #setDisplayedNodes(Node)}, restoring the default state where every {@link Node} in the sampled
+   * {@link BayesianNetwork} is displayed.
    */
   void displayAllNodes();
 
   /**
-   * Restricts the displayed {@link Node} values in each {@link Sample} to a given collection. This
-   * means {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only export the
-   * {@link NodeState}s contained within the displayed {@link Node}s. This can be reset either by
-   * calling {@link #displayAllNodes()}, or per {@link Sample} object by calling {@link
-   * Sample#displayAllNodes()}. This only affects exported states on a per-sample basis, and does
-   * not affect methods such as {@link #countSamplesIncludingStates(Collection)},
+   * Restricts the displayed {@link Node}s in each {@link Sample} to the given collection. After
+   * this call, {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only return
+   * the {@link NodeState}s associated with the specified {@link Node}s. This restriction can be
+   * reset by calling {@link #displayAllNodes()} on this {@code SampleCollection}, or on a
+   * per-sample basis by calling {@link Sample#displayAllNodes()}. This only affects the states
+   * exported on a per-sample basis and does not affect count methods such as {@link
+   * #countSamplesIncludingStates(Collection)}.
    *
    * @param nodes the {@link Node} objects each {@link Sample} will be restricted to.
+   * @see #displayAllNodes()
    */
   void setDisplayedNodes(Collection<Node> nodes);
 
   /**
-   * Restricts the displayed {@link Node} value in each {@link Sample} to a single instance. This
-   * means {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only export the
-   * {@link NodeState} contained within the displayed {@link Node}. This can be reset either by
-   * calling {@link #displayAllNodes()}, or per {@link Sample} object by calling {@link
-   * Sample#displayAllNodes()}. This only affects exported states on a per-sample basis, and does
-   * not affect methods such as {@link #countSamplesIncludingStates(Collection)},
+   * Restricts the displayed {@link Node} in each {@link Sample} to a single given instance. After
+   * this call, {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only return
+   * the {@link NodeState} associated with the specified {@link Node}. This restriction can be reset
+   * by calling {@link #displayAllNodes()} on this {@code SampleCollection}, or on a per-sample
+   * basis by calling {@link Sample#displayAllNodes()}. This only affects the states exported on a
+   * per-sample basis and does not affect count methods such as {@link
+   * #countSamplesIncludingStates(Collection)}.
    *
    * @param node the {@link Node} each {@link Sample} will be restricted to.
+   * @see #displayAllNodes()
    */
   void setDisplayedNodes(Node node);
 
   /**
-   * Restricts the displayed {@link Node} values in each {@link Sample} to a given collection. This
-   * means {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only export the
-   * {@link NodeState}s contained within the displayed {@link Node}s. This can be reset either by
-   * calling {@link #displayAllNodes()}, or per {@link Sample} object by calling {@link
-   * Sample#displayAllNodes()}. This only affects exported states on a per-sample basis, and does
-   * not affect methods such as {@link #countSamplesIncludingStates(Collection)},
+   * Restricts the displayed {@link Node}s in each {@link Sample} to those identified by the given
+   * IDs. After this call, {@link Sample} methods such as {@link Sample#getDisplayedStates()} will
+   * only return the {@link NodeState}s associated with the specified {@link Node}s. This
+   * restriction can be reset by calling {@link #displayAllNodes()} on this {@code
+   * SampleCollection}, or on a per-sample basis by calling {@link Sample#displayAllNodes()}. This
+   * only affects the states exported on a per-sample basis and does not affect count methods such
+   * as {@link #countSamplesIncludingStates(Collection)}.
    *
-   * @param nodeIds the ids of all {@link Node} objects each {@link Sample} will be restricted to.
+   * @param <T> the serializable ID type.
+   * @param nodeIds the IDs of the {@link Node} objects each {@link Sample} will be restricted to.
+   * @see #displayAllNodes()
    */
   <T extends Serializable> void setDisplayedNodesById(Collection<T> nodeIds);
 
   /**
-   * Restricts the displayed {@link Node} value in each {@link Sample} to a single instance. This
-   * means {@link Sample} methods such as {@link Sample#getDisplayedStates()} will only export the
-   * {@link NodeState} contained within the displayed {@link Node}. This can be reset either by
-   * calling {@link #displayAllNodes()}, or per {@link Sample} object by calling {@link
-   * Sample#displayAllNodes()}. This only affects exported states on a per-sample basis, and does
-   * not affect methods such as {@link #countSamplesIncludingStates(Collection)},
+   * Restricts the displayed {@link Node} in each {@link Sample} to the single instance identified
+   * by the given ID. After this call, {@link Sample} methods such as {@link
+   * Sample#getDisplayedStates()} will only return the {@link NodeState} associated with the
+   * specified {@link Node}. This restriction can be reset by calling {@link #displayAllNodes()} on
+   * this {@code SampleCollection}, or on a per-sample basis by calling {@link
+   * Sample#displayAllNodes()}. This only affects the states exported on a per-sample basis and does
+   * not affect count methods such as {@link #countSamplesIncludingStates(Collection)}.
    *
-   * @param nodeId the id of the {@link Node} each {@link Sample} will be restricted to.
-   * @throws NullPointerException if the id was not mapped to any valid {@link Node}.
+   * @param <T> the serializable ID type.
+   * @param nodeId the ID of the {@link Node} each {@link Sample} will be restricted to.
+   * @throws NullPointerException if {@code nodeId} is not mapped to any valid {@link Node}.
+   * @see #displayAllNodes()
    */
   <T extends Serializable> void setDisplayedNodesById(T nodeId);
 }

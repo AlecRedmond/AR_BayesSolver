@@ -3,17 +3,15 @@ package io.github.alecredmond.export.method.sampler;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * A container for a unique sample generated during a {@link Sampler} run. This represents a
- * particular combination of {@link NodeState} values - one per {@link Node} in a {@link
- * BayesianNetwork} - and the frequency that combination occurred during sampling. Each {@code
- * Sample} belongs to a specific {@link SampleCollection}, which contains the results of a sampling
- * run.
+ * A container for a unique sample generated during a {@link Sampler} run. Each {@code Sample}
+ * represents a particular combination of {@link NodeState} values (one per {@link Node} in a {@link
+ * BayesianNetwork}) and the frequency with which that combination occurred during sampling. Each
+ * {@code Sample} belongs to a specific {@link SampleCollection}, which aggregates the results of a
+ * sampling run.
  *
  * @see SampleCollection
  * @see Sampler
@@ -21,65 +19,75 @@ import java.util.function.Supplier;
  */
 public interface Sample {
   /**
-   * A static helper method which sums the counts of all distinct {@link Sample}s in the collection.
+   * Returns the sum of the counts of all distinct {@link Sample}s in the given collection.
    *
-   * @param samples the samples to count
-   * @return the summed counts of all distinct {@code Sample} objects
+   * @param samples the collection of {@link Sample}s whose counts are to be summed.
+   * @return the sum of the counts of all distinct {@code Sample} objects in {@code samples}.
    */
   static int countAll(Collection<Sample> samples) {
     return samples.stream().distinct().mapToInt(Sample::count).sum();
   }
 
   /**
-   * Returns the number of times this {@code Sample} was picked during the sampling process.
+   * Returns the number of times this {@code Sample} was selected during the sampling process.
    *
-   * @return the number of occurrences of this {@code Sample}
+   * @return the number of times this {@code Sample} was selected.
    */
   int count();
 
   /**
-   * Returns an array of all {@link NodeState} values that this {@code Sample} represents. This will
-   * constitute a {@link NodeState} from every {@link Node} in its associated {@link
-   * BayesianNetwork}, and is ordered by its network layer; Root nodes will be at the start,
-   * childless nodes at the end.
+   * Returns an array of all {@link NodeState} values represented by this {@code Sample}. The array
+   * contains one {@link NodeState} from each {@link Node} in the associated {@link
+   * BayesianNetwork}, ordered by network layer: root nodes appear first and leaf nodes appear last.
    *
-   * @return an array of all {@link NodeState} values in this {@code Sample}
+   * @return an array of all {@link NodeState} values in this {@code Sample}, in topological order.
    */
   NodeState[] getAllStates();
 
   /**
-   * Returns an array of the {@link NodeState} values that this {@code Sample} represents,
-   * restricted to the current displayed {@link Node}s.
+   * Returns an array of the {@link NodeState} values represented by this {@code Sample}, restricted
+   * to the currently displayed {@link Node}s.
    *
-   * @return an array of those {@link NodeState} values associated to a visible {@link Node} in this
-   *     {@code Sample}
+   * @return an array of the {@link NodeState} values associated with a currently displayed {@link
+   *     Node} in this {@code Sample}.
+   * @see #setDisplayedNodes(Collection)
+   * @see #displayAllNodes()
    */
   NodeState[] getDisplayedStates();
 
   /**
-   * Returns a collection of the {@link NodeState} values that this {@code Sample} represents,
-   * restricted to the current displayed {@link Node}s.
+   * Returns a collection of the {@link NodeState} values represented by this {@code Sample},
+   * restricted to the currently displayed {@link Node}s. The type of collection returned is
+   * determined by the given {@link Supplier}.
    *
-   * @param supplier the supplier for the required collection.
-   * @param <S> the supplier class extending {@link Collection}, for example {@link ArrayList}.
-   * @param <T> the super type of the supplier class, for example {@link List}.
-   * @return collection of {@link NodeState} values where each {@link Node} in this {@code Sample}
-   *     is marked displayed.
+   * @param <T> the declared return type; a {@link Collection} of {@link NodeState} values.
+   * @param <S> the concrete collection type produced by {@code supplier}; must extend {@code T}.
+   * @param supplier a {@link Supplier} that provides the collection instance to populate, for
+   *     example {@code ArrayList::new}.
+   * @return a collection of the {@link NodeState} values associated with the currently displayed
+   *     {@link Node}s in this {@code Sample}.
+   * @see #setDisplayedNodes(Collection)
+   * @see #displayAllNodes()
    */
   <T extends Collection<NodeState>, S extends T> T getDisplayedStates(Supplier<S> supplier);
 
   /**
-   * Resets the display restrictions, returning to the default state where every {@link NodeState}
-   * associated with a given {@link NodeState} in the {@link BayesianNetwork} is displayed.
+   * Resets the display restrictions on this {@code Sample}, returning to the default state where
+   * every {@link Node} in the associated {@link BayesianNetwork} is displayed.
+   *
+   * @see #setDisplayedNodes(Collection)
    */
   void displayAllNodes();
 
   /**
-   * Restricts the displayed {@link NodeState} values in {@link #getDisplayedStates(Supplier)} and
-   * {@link #getDisplayedStates()} to those associated with the given {@link Node} values.
+   * Restricts the displayed {@link Node}s in this {@code Sample} to the given collection.
+   * Subsequent calls to {@link #getDisplayedStates(Supplier)} and {@link #getDisplayedStates()}
+   * will only return the {@link NodeState} values associated with the specified {@link Node}s. This
+   * restriction can be reset by calling {@link #displayAllNodes()}.
    *
    * @param nodes the {@link Node}s in the {@link BayesianNetwork} to be displayed in this {@code
    *     Sample}.
+   * @see #displayAllNodes()
    */
   void setDisplayedNodes(Collection<Node> nodes);
 }
