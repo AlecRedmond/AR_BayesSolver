@@ -91,5 +91,12 @@ public interface Sample {
    */
   void setDisplayedNodes(Collection<Node> nodes);
 
+  /**
+   * Returns {@code true} if this {@code Sample} contains all provided {@link NodeState}s, or {@code
+   * false} otherwise.
+   *
+   * @param states a collection of {@link NodeState} objects to query.
+   * @return {@code true} if this {@code Sample} contains all in {@code states}.
+   */
   boolean containsAll(Collection<NodeState> states);
 }
