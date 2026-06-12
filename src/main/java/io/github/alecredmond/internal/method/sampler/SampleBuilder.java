@@ -23,22 +23,18 @@ public class SampleBuilder {
       Node[] nodeArray,
       BayesianNetworkData networkData) {
 
-    removeEmpty(sampleMap);
-    setCounts(sampleMap);
+    if (sampleMap.isEmpty()) numberOfSamples = 0;
+    else setCounts(sampleMap);
 
     SampleCollectionData collectionData =
         SampleCollectionData.builder()
             .totalSamples(numberOfSamples)
             .samples(radixSort(sampleMap.keySet(), observations, nodeArray))
-            .networkObservations(observations)
+            .networkObservations(Collections.unmodifiableMap(observations))
             .nodes(nodeArray)
             .build();
 
     return new SampleCollectionImpl(collectionData, networkData);
-  }
-
-  private void removeEmpty(Map<SampleImpl, Integer> sampleMap) {
-    sampleMap.entrySet().removeIf(entry -> entry.getValue() <= 0);
   }
 
   private void setCounts(Map<SampleImpl, Integer> sampleMap) {
@@ -62,8 +58,7 @@ public class SampleBuilder {
     Map<NodeState, Integer> stateIndexes = NodeUtils.buildStateIndexMap(nodeArray);
     return IntStream.range(0, nodeArray.length)
         .filter(i -> !observations.containsKey(nodeArray[i]))
-        .mapToObj(
-            i -> Comparator.comparing((Sample s) -> stateIndexes.get(s.getAllStates()[i])))
+        .mapToObj(i -> Comparator.comparing((Sample s) -> stateIndexes.get(s.getAllStates()[i])))
         .reduce(Comparator::thenComparing)
         .orElseThrow(() -> new SampleValidationException("SAMPLES COULD NOT BE ORDERED"));
   }

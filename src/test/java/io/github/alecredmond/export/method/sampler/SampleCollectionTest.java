@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -166,6 +167,22 @@ class SampleCollectionTest {
       int numberOfSamples = samplePackage.getNumberOfSamples();
       SampleCollection test = samplePackage.getTest();
       assertEquals(numberOfSamples, test.countSamples());
+    }
+
+    @Test
+    void testZeroSamples() {
+      BayesianNetwork net =
+          BayesianNetwork.newNetwork()
+              .addNewNode("X", List.of("X+", "X-"))
+              .addNewNode("Y", List.of("Y+", "Y-"))
+              .addParents("Y", "X")
+              .addConstraint("X+", 0.25)
+              .addConstraint("Y+", "X-", 0.0)
+              .solveNetwork();
+      Sampler sampler = Sampler.create(net);
+      SampleCollection collection = sampler.generateSamplesById(List.of("X-", "Y+"), 100);
+      assertEquals(0,collection.countSamples());
+      assertTrue(collection.getSamples().isEmpty());
     }
   }
 
