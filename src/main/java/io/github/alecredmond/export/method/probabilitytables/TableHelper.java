@@ -8,13 +8,11 @@ import java.util.Collection;
 public interface TableHelper<T extends ProbabilityTable> {
   Double getProbability(Collection<NodeState> states);
 
-  Double getProbabilityFromIDs(Collection<Serializable> stateIds);
+  <S extends Serializable> Double getProbabilityFromIDs(Collection<S> stateIds);
 
   T copyTable();
 
   void marginalizeTable();
 
   void setSafeMode(boolean safeMode);
-
-
 }

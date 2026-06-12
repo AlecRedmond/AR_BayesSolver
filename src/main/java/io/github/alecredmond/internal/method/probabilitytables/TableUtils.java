@@ -37,8 +37,8 @@ public class TableUtils {
     return index;
   }
 
-  public static Collection<NodeState> assertAllIdsPresent(
-      Collection<Serializable> stateIds, Set<Node> expected, ProbabilityTable table) {
+  public static <S extends Serializable> Collection<NodeState> assertAllIdsPresent(
+      Collection<S> stateIds, Set<Node> expected, ProbabilityTable table) {
     return assertAllNodesPresent(convertIdsToStates(stateIds, table), expected);
   }
 
@@ -52,8 +52,8 @@ public class TableUtils {
                 NodeUtils.formatStatesToString(states), NodeUtils.formatNodesToString(allNodes)));
   }
 
-  public static List<NodeState> convertIdsToStates(
-      Collection<Serializable> ids, ProbabilityTable table) {
+  public static <S extends Serializable> List<NodeState> convertIdsToStates(
+      Collection<S> ids, ProbabilityTable table) {
     Map<Serializable, NodeState> idMap = table.getNodeStateIDMap();
     List<Serializable> missing = new ArrayList<>();
     List<NodeState> states = new ArrayList<>();
@@ -115,7 +115,8 @@ public class TableUtils {
     return map;
   }
 
-  public static String buildTableName(List<Serializable> eventIds, List<Serializable> conditionIds) {
+  public static String buildTableName(
+      List<Serializable> eventIds, List<Serializable> conditionIds) {
     StringBuilder sb = new StringBuilder("P(");
     sb.append(NodeUtils.formatIDsToString(eventIds));
     if (!conditionIds.isEmpty()) {

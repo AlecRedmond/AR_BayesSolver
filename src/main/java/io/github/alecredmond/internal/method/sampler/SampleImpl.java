@@ -5,7 +5,10 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.sampler.Sample;
 import io.github.alecredmond.internal.application.sampler.SampleData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -32,23 +35,34 @@ public class SampleImpl implements Sample {
   }
 
   public <T extends Collection<NodeState>, S extends T> T getDisplayedStates(Supplier<S> supplier) {
-    return SampleUtils.getSampleCollection(sampleData, supplier);
-  }
-
-  public void displayAllNodes() {
-    SampleUtils.resetExportArray(sampleData);
-    SampleUtils.rebuildStateCollection(sampleData, sampleData.getSupplier());
-  }
-
-  public void setDisplayedNodes(Collection<Node> nodes) {
-    SampleUtils.setExportArrayFromNodes(nodes, sampleData);
-    SampleUtils.rebuildStateCollection(sampleData, sampleData.getSupplier());
+    return SampleUtils.stateArrayToCollection(sampleData.getExportStateArray(), supplier);
   }
 
   @Override
   public String toString() {
     return "%s : %d"
         .formatted(
-            NodeUtils.formatStatesToString(sampleData.getStateCollection()), sampleData.getCount());
+            NodeUtils.formatStatesToString(sampleData.getRawStateSet()), sampleData.getCount());
+  }
+
+  public boolean containsAll(Collection<NodeState> states) {
+    return sampleData.getRawStateSet().containsAll(states);
+  }
+
+  public void displayAllNodes() {
+    sampleData.setExportStateArray(
+        Arrays.stream(sampleData.getRawStateArray()).toArray(NodeState[]::new));
+  }
+
+  public void setDisplayedNodes(Collection<Node> nodes) {
+    if (nodes.isEmpty()) {
+      displayAllNodes();
+      return;
+    }
+    Set<Node> nodeSet = new HashSet<>(nodes);
+    sampleData.setExportStateArray(
+        Arrays.stream(sampleData.getRawStateArray())
+            .filter(nodeState -> nodeSet.contains(nodeState.getNode()))
+            .toArray(NodeState[]::new));
   }
 }
