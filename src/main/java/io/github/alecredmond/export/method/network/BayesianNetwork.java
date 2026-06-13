@@ -36,8 +36,8 @@ import java.util.Set;
  * cliques, and the algorithm becomes no more efficient than standard IPFP. This does not affect
  * subsequent sampling as a new JTA instance is created upon completion of the solver's run.
  *
- * @author AR_TOOLS
- * @version 0.1.0-ALPHA
+ * @author Alec Redmond
+ * @version 1.0.0 RELEASE
  */
 @SuppressWarnings("unused")
 public interface BayesianNetwork {
