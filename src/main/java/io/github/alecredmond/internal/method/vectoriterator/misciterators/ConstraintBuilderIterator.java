@@ -28,10 +28,10 @@ public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateU
   private List<ProbabilityConstraint> built;
 
   public ConstraintBuilderIterator(ProbabilityTable table) {
-    this.odometer = new VectorOdometer(table.getVector());
-    this.iterator = new VectorIterator<>(odometer, this);
     this.events = table.getEvents();
     this.conditions = table.getConditions();
+    this.odometer = new VectorOdometer(table.getVector());
+    this.iterator = new VectorIterator<>(odometer, this);
     performRun();
   }
 
@@ -40,8 +40,25 @@ public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateU
     double[] p = odometer.getProbabilities();
     NodeState[] states = odometer.getStates();
     Runnable function =
-        conditions.isEmpty() ? createConditionals(p, states) : createMarginals(p, states);
+        conditions.isEmpty() ? createMarginals(p, states) : createConditionals(p, states);
     iterator.iterateOuter(function);
+  }
+
+  private Runnable createMarginals(double[] p, NodeState[] states) {
+    return () -> {
+      List<MarginalConstraint> constraints = new ArrayList<>();
+      int[] count = {0};
+      iterator.iterateInner(
+          (o, i) -> {
+            count[0]++;
+            double prob = p[i];
+            if (prob > 1.0 || prob < 0.0) return;
+            NodeState event = states[0];
+            constraints.add(new MarginalConstraint(event, prob));
+          });
+      validateConstraintSums(constraints, count[0]);
+      built.addAll(constraints);
+    };
   }
 
   private Runnable createConditionals(double[] p, NodeState[] states) {
@@ -57,38 +74,14 @@ public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateU
             NodeState event = getStatesFromSet(states, events).iterator().next();
             constraints.add(new ConditionalConstraint(event, conds, prob));
           });
-      validateConstraintsSumTo1(constraints, count[0]);
-      constraints.removeLast();
+      validateConstraintSums(constraints, count[0]);
       built.addAll(constraints);
     };
   }
 
-  private Runnable createMarginals(double[] p, NodeState[] states) {
-    return () -> {
-      List<MarginalConstraint> constraints = new ArrayList<>();
-      int[] count = {0};
-      iterator.iterateInner(
-          (o, i) -> {
-            count[0]++;
-            double prob = p[i];
-            if (prob > 1.0 || prob < 0.0) return;
-            NodeState event = states[0];
-            built.add(new MarginalConstraint(event, prob));
-          });
-      validateConstraintsSumTo1(constraints, count[0]);
-      constraints.removeLast();
-      built.addAll(constraints);
-    };
-  }
-
-  private Set<NodeState> getStatesFromSet(NodeState[] states, Set<Node> set) {
-    return Arrays.stream(states)
-        .filter(state -> set.contains(state.getNode()))
-        .collect(Collectors.toSet());
-  }
-
-  private void validateConstraintsSumTo1(
+  private void validateConstraintSums(
       List<? extends ProbabilityConstraint> constraints, int count) {
+    if (constraints.isEmpty()) return;
     Set<NodeState> condition = constraints.getFirst().getConditionStates();
     double sum = constraints.stream().mapToDouble(ProbabilityConstraint::getProbability).sum();
     if (constraints.size() < count && sum >= 1.0) {
@@ -97,20 +90,30 @@ public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateU
               .formatted(
                   events.iterator().next().getId(), NodeUtils.formatStatesToString(condition)));
     }
-    if (constraints.size() == count && !DoublePrecision.fuzzyEquals(sum, 1.0)) {
-      throw new ConstraintValidationException(
-          "Constraints on [%s] the condition [%s] do not sum to 1"
-              .formatted(
-                  events.iterator().next().getId(), NodeUtils.formatStatesToString(condition)));
+    if (constraints.size() != count) return;
+    if (DoublePrecision.fuzzyEquals(sum, 1.0)) {
+      // IPFP will automatically solve the last state if all others are known.
+      constraints.removeLast();
+      return;
     }
+    throw new ConstraintValidationException(
+        "Constraints on [%s] the condition [%s] do not sum to 1"
+            .formatted(
+                events.iterator().next().getId(), NodeUtils.formatStatesToString(condition)));
+  }
+
+  private Set<NodeState> getStatesFromSet(NodeState[] states, Set<Node> set) {
+    return Arrays.stream(states)
+        .filter(state -> set.contains(state.getNode()))
+        .collect(Collectors.toSet());
   }
 
   public ConstraintBuilderIterator(
       Set<Node> events, Set<Node> conditions, ProbabilityVector vector) {
-    this.odometer = new VectorOdometer(vector);
-    this.iterator = new VectorIterator<>(odometer, this);
     this.events = events;
     this.conditions = conditions;
+    this.odometer = new VectorOdometer(vector);
+    this.iterator = new VectorIterator<>(odometer, this);
   }
 
   @Override

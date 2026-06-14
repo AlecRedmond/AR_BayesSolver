@@ -14,7 +14,8 @@ public enum NetworkScenario {
   DIAMOND_NET(buildDiamondNetwork()),
   WEATHER_NETWORK(buildWeatherNetwork()),
   CAR_TRIMS(buildCarTrimNetwork()),
-  LOPSIDED(buildNetworkLopsided());
+  LOPSIDED(buildNetworkLopsided()),
+  ASIA_NETWORK(buildAsiaNetwork());
 
   private final Supplier<BayesianNetwork> supplier;
 
