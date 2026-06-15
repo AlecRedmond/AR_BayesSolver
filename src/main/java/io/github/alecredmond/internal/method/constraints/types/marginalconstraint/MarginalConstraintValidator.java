@@ -12,27 +12,25 @@ public class MarginalConstraintValidator extends ConstraintValidator<MarginalCon
   }
 
   @Override
-  public boolean validateInputs(ConstraintBuilderData data) {
-    return data.getConditionStates().isEmpty() && data.getEventStates().size() == 1;
-  }
-
-  @Override
   public Class<MarginalConstraint> getConstraintClass() {
     return MarginalConstraint.class;
   }
 
   @Override
-  protected void constraintSpecificValidation() {
-    boolean noConditions = constraint.getConditionStates().isEmpty();
+  public void validateInputs(ConstraintBuilderData data) {
+    boolean noConditions = data.getConditionStates().isEmpty();
     if (!noConditions) {
+      throw new ConstraintValidationException("Marginal Constraints must not have conditions!");
+    }
+    boolean oneEventState = data.getEventStates().size() == 1;
+    if (!oneEventState) {
       throw new ConstraintValidationException(
-          "Marginal ProbabilityConstraint %s contained conditional states!%n"
-              .formatted(constraint));
+          "Marginal Constraints must have only one event state!");
     }
   }
 
   @Override
-  protected MarginalConstraint constraintConstructorMethod(ConstraintBuilderData data) {
+  protected MarginalConstraint constructConstraint(ConstraintBuilderData data) {
     return new MarginalConstraint(
         data.getEventStates().stream().findAny().orElseThrow(), data.getProbability());
   }
