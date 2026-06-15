@@ -122,7 +122,7 @@ public class NodeUtils {
     return sb.toString();
   }
 
-  public static String formatIDsToString(Collection<Serializable> ids) {
+  public static <T extends Serializable> String formatIDsToString(Collection<T> ids) {
     return formatCollectionToString(ids);
   }
 

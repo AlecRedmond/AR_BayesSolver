@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.network.changehandlers;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
+import io.github.alecredmond.internal.method.constraints.NetworkConstraintHandler;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,7 +31,7 @@ public class RemovedNodeChangeHandler implements NetworkChangeHandler {
           removeNode(node::setChildren, node::getChildren, toRemove);
         });
 
-    NetworkConstraintUtils.removeConstraints(
+    NetworkConstraintHandler.removeConstraints(
         constraint -> constraint.getAllNodes().contains(toRemove), networkData);
   }
 

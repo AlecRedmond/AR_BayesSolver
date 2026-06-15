@@ -13,29 +13,76 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
-  protected BayesianNetworkData networkData;
-  protected T constraint;
 
-  protected ConstraintValidator() {
-    this.networkData = null;
-  }
-
-  public abstract boolean validateInputs(ConstraintBuilderData data);
+  protected ConstraintValidator() {}
 
   public abstract Class<T> getConstraintClass();
 
-  @SuppressWarnings("unchecked")
-  public void validateForNetwork(ConstraintBuilderData data) {
-    this.networkData = data.getNetworkData();
-    this.constraint = (T) data.getConstraint();
-    constraintSpecificValidation();
-    statesExistInNetwork();
-    noIdenticalConstraintsInNetwork();
+  public boolean checkInputsValid(ConstraintBuilderData data) {
+    try {
+      validateInputs(data);
+      return true;
+    } catch (ConstraintValidationException e) {
+      return false;
+    }
   }
 
-  protected abstract void constraintSpecificValidation() throws ConstraintValidationException;
+  protected abstract void validateInputs(ConstraintBuilderData data)
+      throws ConstraintValidationException;
 
-  private void statesExistInNetwork() {
+  public void buildFromInputs(ConstraintBuilderData data) {
+    instanceSpecificValidation(data);
+    data.setConstraint(constructConstraint(data));
+    validateForNetwork(data);
+  }
+
+  protected void instanceSpecificValidation(ConstraintBuilderData data) {
+    notConditionalOnSelf(data);
+    noSharedConditionNodes(data);
+    probabilityWithinBounds(data);
+  }
+
+  protected abstract T constructConstraint(ConstraintBuilderData data);
+
+  public void validateForNetwork(ConstraintBuilderData data) {
+    statesExistInNetwork(data);
+    noIdenticalConstraintsInNetwork(data);
+  }
+
+  protected void notConditionalOnSelf(ConstraintBuilderData data) {
+    Set<Node> eventNodes = data.getEventNodes();
+    Set<Node> conditionNodes = data.getConditionNodes();
+    boolean noCrossover = eventNodes.stream().noneMatch(conditionNodes::contains);
+    if (noCrossover) {
+      return;
+    }
+    throw new ConstraintValidationException(
+        "%s found events conditional upon themselves!".formatted(formatOutput(data)));
+  }
+
+  protected void noSharedConditionNodes(ConstraintBuilderData data) {
+    Set<NodeState> conditionStates = data.getConditionStates();
+    Set<Node> conditionNodes = data.getConditionNodes();
+    if (conditionStates.size() == conditionNodes.size()) {
+      return;
+    }
+    throw new ConstraintValidationException("%s Found condition states sharing a node!");
+  }
+
+  protected void probabilityWithinBounds(ConstraintBuilderData data) {
+    double probability = data.getProbability();
+    if (probability < 0) {
+      throw new ConstraintValidationException(
+          "%s has probability < 0".formatted(formatOutput(data)));
+    } else if (probability > 1) {
+      throw new ConstraintValidationException(
+          "%s has probability > 1".formatted(formatOutput(data)));
+    }
+  }
+
+  private void statesExistInNetwork(ConstraintBuilderData data) {
+    ProbabilityConstraint constraint = data.getConstraint();
+    BayesianNetworkData networkData = data.getNetworkData();
     Set<NodeState> states = new HashSet<>(constraint.getAllStates());
     states.removeAll(networkData.getNodeStateIDsMap().values());
     if (states.isEmpty()) {
@@ -46,7 +93,9 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
             .formatted(NodeUtils.formatStatesToString(states), constraint));
   }
 
-  protected void noIdenticalConstraintsInNetwork() {
+  protected void noIdenticalConstraintsInNetwork(ConstraintBuilderData data) {
+    ProbabilityConstraint constraint = data.getConstraint();
+    BayesianNetworkData networkData = data.getNetworkData();
     Set<NodeState> eventStates = constraint.getEventStates();
     Set<NodeState> conditionStates = constraint.getConditionStates();
     boolean parametersAreUnique =
@@ -63,43 +112,6 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
             NodeUtils.formatStatesToString(conditionStates)));
   }
 
-  public static void validateCommon(ConstraintBuilderData data) {
-    notConditionalOnSelf(data);
-    noSharedConditionNodes(data);
-    probabilityWithinBounds(data);
-  }
-
-  protected static void notConditionalOnSelf(ConstraintBuilderData data) {
-    Set<Node> eventNodes = data.getEventNodes();
-    Set<Node> conditionNodes = data.getConditionNodes();
-    boolean noCrossover = eventNodes.stream().noneMatch(conditionNodes::contains);
-    if (noCrossover) {
-      return;
-    }
-    throw new ConstraintValidationException(
-        "%s found events conditional upon themselves!".formatted(formatOutput(data)));
-  }
-
-  protected static void noSharedConditionNodes(ConstraintBuilderData data) {
-    Set<NodeState> conditionStates = data.getConditionStates();
-    Set<Node> conditionNodes = data.getConditionNodes();
-    if (conditionStates.size() == conditionNodes.size()) {
-      return;
-    }
-    throw new ConstraintValidationException("%s Found condition states sharing a node!");
-  }
-
-  protected static void probabilityWithinBounds(ConstraintBuilderData data) {
-    double probability = data.getProbability();
-    if (probability < 0) {
-      throw new ConstraintValidationException(
-          "%s has probability < 0".formatted(formatOutput(data)));
-    } else if (probability > 1) {
-      throw new ConstraintValidationException(
-          "%s has probability > 1".formatted(formatOutput(data)));
-    }
-  }
-
   protected static String formatOutput(ConstraintBuilderData data) {
     Set<NodeState> events = data.getEventStates();
     Set<NodeState> conditions = data.getConditionStates();
@@ -114,9 +126,9 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
             prob);
   }
 
-  public void buildConstraint(ConstraintBuilderData data) {
-    data.setConstraint(constraintConstructorMethod(data));
+  public void verifyConstraint(ConstraintBuilderData data) {
+    validateInputs(data);
+    instanceSpecificValidation(data);
+    validateForNetwork(data);
   }
-
-  protected abstract T constraintConstructorMethod(ConstraintBuilderData data);
 }
