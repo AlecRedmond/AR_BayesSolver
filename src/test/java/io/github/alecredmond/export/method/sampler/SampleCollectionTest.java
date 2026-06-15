@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -114,7 +115,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStateIds(measuredStateIds),
-          e -> e.getCurrentProbabilityById(measuredStateIds));
+          e -> e.getPosteriorProbabilityById(measuredStateIds));
     }
 
     void measureCount(
@@ -136,7 +137,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStates(measuredStates),
-          e -> e.getCurrentProbability(measuredStates));
+          e -> e.getPosteriorProbability(measuredStates));
     }
 
     @ParameterizedTest
@@ -147,7 +148,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStates(measuredState),
-          e -> e.getCurrentProbability(measuredState));
+          e -> e.getPosteriorProbability(measuredState));
     }
 
     @ParameterizedTest
@@ -157,7 +158,7 @@ class SampleCollectionTest {
       measureCount(
           samplePackage,
           sc -> sc.countSamplesIncludingStateIds(singleId),
-          e -> e.getCurrentProbabilityById(singleId));
+          e -> e.getPosteriorProbabilityById(singleId));
     }
 
     @ParameterizedTest
@@ -166,6 +167,22 @@ class SampleCollectionTest {
       int numberOfSamples = samplePackage.getNumberOfSamples();
       SampleCollection test = samplePackage.getTest();
       assertEquals(numberOfSamples, test.countSamples());
+    }
+
+    @Test
+    void testZeroSamples() {
+      BayesianNetwork net =
+          BayesianNetwork.newNetwork()
+              .addNewNode("X", List.of("X+", "X-"))
+              .addNewNode("Y", List.of("Y+", "Y-"))
+              .addParents("Y", "X")
+              .addConstraint("X+", 0.25)
+              .addConstraint("Y+", "X-", 0.0)
+              .solveNetwork();
+      Sampler sampler = Sampler.create(net);
+      SampleCollection collection = sampler.generateSamplesById(List.of("X-", "Y+"), 100);
+      assertEquals(0,collection.countSamples());
+      assertTrue(collection.getSamples().isEmpty());
     }
   }
 

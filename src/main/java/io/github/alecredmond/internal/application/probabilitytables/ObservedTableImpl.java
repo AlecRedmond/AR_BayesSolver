@@ -22,7 +22,7 @@ public class ObservedTableImpl extends SingleEventTable<ObservedTable, ObservedT
   }
 
   @Override
-  public Node getNode() {
+  public Node getMeasuredNode() {
     return eventNode;
   }
 

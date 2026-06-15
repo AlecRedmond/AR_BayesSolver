@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @Slf4j
 class TableHelperTest {
 
-  public static Stream<Arguments> provideMarginalizeTableArgs() {
+  public static Stream<Arguments> provideNormalizeTableArgs() {
     return provideArgs(
         (t, n) -> Stream.of(Arguments.of(t)), s -> s.get().buildNetworkData(), t -> true);
   }
@@ -156,12 +156,12 @@ class TableHelperTest {
   }
 
   @ParameterizedTest
-  @MethodSource("provideMarginalizeTableArgs")
-  void marginalizeTable(NetworkTable networkTable) {
+  @MethodSource("provideNormalizeTableArgs")
+  void normalizeTable(NetworkTable networkTable) {
     TableHelper<?> helper = networkTable.getHelper();
     double[] probs = networkTable.getVector().getProbabilities();
     Arrays.fill(probs, 1.0);
-    helper.marginalizeTable();
+    helper.normalizeTable();
     int numOfConditionCombos =
         networkTable.getConditions().stream()
             .mapToInt(c -> c.getNodeStates().size())

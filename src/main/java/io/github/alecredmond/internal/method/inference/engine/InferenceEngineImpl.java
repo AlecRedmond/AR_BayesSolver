@@ -45,7 +45,8 @@ public class InferenceEngineImpl implements InferenceEngine {
     if (!ensureSolved()) {
       return this;
     }
-    junctionTree.observeNetwork(NodeUtils.generateRequest(observed));
+    List<Node> orderedNodes = network.getNetworkData().getNodes();
+    junctionTree.observeNetwork(NodeUtils.generateOrderedRequest(observed, orderedNodes));
     junctionTree.writeObservations();
     return this;
   }
@@ -114,7 +115,7 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public double getCurrentProbability(Collection<NodeState> measuredStates) {
+  public double getPosteriorProbability(Collection<NodeState> measuredStates) {
     if (!ensureSolved()) {
       return 0.0;
     }
@@ -125,19 +126,20 @@ public class InferenceEngineImpl implements InferenceEngine {
   }
 
   @Override
-  public double getCurrentProbability(NodeState measuredState) {
-    return getCurrentProbability(List.of(measuredState));
+  public double getPosteriorProbability(NodeState measuredState) {
+    return getPosteriorProbability(List.of(measuredState));
   }
 
   @Override
-  public <T extends Serializable> double getCurrentProbabilityById(Collection<T> measuredStateIds) {
-    return getCurrentProbability(
+  public <T extends Serializable> double getPosteriorProbabilityById(
+      Collection<T> measuredStateIds) {
+    return getPosteriorProbability(
         NetworkDataUtils.getStatesByID(measuredStateIds, network.getNetworkData()));
   }
 
   @Override
-  public <T extends Serializable> double getCurrentProbabilityById(T measuredStateId) {
-    return getCurrentProbabilityById(List.of(measuredStateId));
+  public <T extends Serializable> double getPosteriorProbabilityById(T measuredStateId) {
+    return getPosteriorProbabilityById(List.of(measuredStateId));
   }
 
   @Override

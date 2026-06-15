@@ -33,6 +33,7 @@ public class NodeStateChangeHandler implements NetworkChangeHandler {
     new NetworkIdValidator().validateNewStates(analyzer,networkData);
     Map<Serializable, NodeState> map = networkData.getNodeStateIDsMap();
     analyzer.getRemoved().forEach(r -> map.remove(r.getId()));
+    //TODO - ENSURE THIS DOESN'T OVERWRITE OTHER NODE STATES
     analyzer.getAdded().forEach(a -> map.put(a.getId(), a));
   }
 

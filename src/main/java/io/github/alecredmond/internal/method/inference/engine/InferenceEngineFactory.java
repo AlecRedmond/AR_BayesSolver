@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.inference.engine;
 
-import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JOINT_TABLE_INFERENCE;
-import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_INFERENCE;
+import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.SINGLE_TABLE_ALGORITHM;
+import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_ALGORITHM;
 import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_INFERENCE;
 
 import io.github.alecredmond.export.method.inference.BayesSolver;
@@ -20,8 +20,8 @@ public class InferenceEngineFactory {
   public InferenceEngine create(BayesianNetwork network) {
     InferenceType inferenceType =
         new PropertiesLoader().loadBoolean(INFERENCE_USE_JTA_INFERENCE)
-            ? JUNCTION_TREE_INFERENCE
-            : JOINT_TABLE_INFERENCE;
+            ? JUNCTION_TREE_ALGORITHM
+            : SINGLE_TABLE_ALGORITHM;
     return create(network, inferenceType);
   }
 

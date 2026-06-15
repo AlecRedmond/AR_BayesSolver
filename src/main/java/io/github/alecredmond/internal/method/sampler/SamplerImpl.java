@@ -50,9 +50,12 @@ public abstract class SamplerImpl implements Sampler {
   }
 
   @Override
-  public SampleCollectionImpl generateSamples(Collection<NodeState> evidence, int numberOfSamples) {
+  public SampleCollectionImpl generateSamples(
+      Collection<NodeState> observedStates, int numberOfSamples) {
     try {
-      return generateSamples(NodeUtils.generateRequest(evidence), numberOfSamples);
+      return generateSamples(
+          NodeUtils.generateOrderedRequest(observedStates, network.getNetworkData().getNodes()),
+          numberOfSamples);
     } catch (NodeStateConflictException e) {
       log.error(e.getMessage());
       return null;
@@ -61,7 +64,7 @@ public abstract class SamplerImpl implements Sampler {
 
   @Override
   public <T extends Serializable> SampleCollectionImpl generateSamplesById(
-      Collection<T> evidenceIDs, int numberOfSamples) {
-    return generateSamples(network.getNodeStates(evidenceIDs), numberOfSamples);
+      Collection<T> observedStateIds, int numberOfSamples) {
+    return generateSamples(network.getNodeStates(observedStateIds), numberOfSamples);
   }
 }

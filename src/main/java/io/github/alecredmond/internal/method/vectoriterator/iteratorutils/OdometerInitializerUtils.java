@@ -27,12 +27,12 @@ public class OdometerInitializerUtils {
     boolean fireOnlyOnce = fastestPos < 0;
     initializer.setFastestPosition(fastestPos);
     initializer.setFireOnlyOnce(fireOnlyOnce);
-    int[] stepMultiplier = odometer.getStepMultiplier();
-    initializer.setInitialIndex(computeStartIndex(odometer.getStateIndexes(), stepMultiplier));
+    int[] strideLengths = odometer.getStrideLengths();
+    initializer.setInitialIndex(computeStartIndex(odometer.getStateIndexes(), strideLengths));
     if (fireOnlyOnce) return;
-    initializer.setBaseStride(stepMultiplier[fastestPos]);
+    initializer.setBaseStride(strideLengths[fastestPos]);
     initializer.setStrideIfLocked(
-        computeIndexCorrections(positionLocked, odometer.getNumberOfStates(), stepMultiplier));
+        computeIndexCorrections(positionLocked, odometer.getNumberOfStates(), strideLengths));
   }
 
   private static int findFastestPosition(boolean[] positionLocked) {
@@ -46,10 +46,10 @@ public class OdometerInitializerUtils {
     return fastestPosition;
   }
 
-  private static int computeStartIndex(int[] odometerValues, int[] stepMultiplier) {
+  private static int computeStartIndex(int[] odometerValues, int[] strideLengths) {
     int index = 0;
     for (int i = 0; i < odometerValues.length; i++) {
-      index += odometerValues[i] * stepMultiplier[i];
+      index += odometerValues[i] * strideLengths[i];
     }
     return index;
   }
@@ -65,7 +65,7 @@ public class OdometerInitializerUtils {
 
   public static void updateIterateInner(OdometerInitializer initializer, VectorOdometer odometer) {
     initializer.setInitialIndex(
-        computeStartIndex(odometer.getStateIndexes(), odometer.getStepMultiplier()));
+        computeStartIndex(odometer.getStateIndexes(), odometer.getStrideLengths()));
   }
 
   public static OdometerInitializer initIterateOuter(VectorOdometer odometer) {

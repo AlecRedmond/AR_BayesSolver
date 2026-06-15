@@ -75,7 +75,7 @@ public class NetworkDataBuilder {
   public void marginalizeAllTables() {
     networkData.getNetworkTablesMap().values().stream()
         .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::marginalizeTable);
+        .forEach(TableHelper::normalizeTable);
   }
 
   public void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
@@ -87,7 +87,7 @@ public class NetworkDataBuilder {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
               NetworkTable table = tableBuilder.buildTable(events, conditions);
-              table.getHelper().marginalizeTable();
+              table.getHelper().normalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

@@ -17,6 +17,16 @@ public class NodeUtils {
 
   private NodeUtils() {}
 
+  public static Map<Node, NodeState> generateOrderedRequest(
+      Collection<NodeState> states, List<Node> nodeOrder) {
+    Map<Node, NodeState> unordered = generateRequest(states);
+    Map<Node, NodeState> ordered = new LinkedHashMap<>();
+    nodeOrder.stream()
+        .filter(unordered::containsKey)
+        .forEach(node -> ordered.put(node, unordered.get(node)));
+    return ordered;
+  }
+
   public static Map<Node, NodeState> generateRequest(Collection<NodeState> states) {
     try {
       return states.stream()

@@ -87,12 +87,18 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
     Map<SampleImpl, Double> weightedSamples = samplerData.getWeightedSamples();
     Map<Set<NodeState>, Double> weightedStateSets = samplerData.getWeightedStateSets();
     weightedStateSets.forEach(
-        (set, weight) ->
-            weightedSamples.put(new SampleImpl(set.toArray(NodeState[]::new)), weight));
+        (set, weight) -> {
+          if (weight <= 0.0) return;
+          weightedSamples.put(new SampleImpl(set.toArray(NodeState[]::new)), weight);
+        });
   }
 
   private void distributeSamples() {
     Map<SampleImpl, Double> weightedSamples = samplerData.getWeightedSamples();
+    if (weightedSamples.isEmpty()) {
+      samplerData.setDistributedSamples(new HashMap<>());
+      return;
+    }
     int numberOfSamples = samplerData.getNumberOfSamples();
     Map<SampleImpl, Integer> distributedSamples = samplerData.getDistributedSamples();
     Map<SampleImpl, Double> remainderSamples = new HashMap<>();

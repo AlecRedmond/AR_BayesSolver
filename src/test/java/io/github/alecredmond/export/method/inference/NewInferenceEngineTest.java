@@ -56,7 +56,7 @@ public class NewInferenceEngineTest {
               constraint -> {
                 test.observeNetwork(constraint.getConditionStates());
                 double expected = constraint.getProbability();
-                double actual = test.getCurrentProbability(constraint.getEventStates());
+                double actual = test.getPosteriorProbability(constraint.getEventStates());
                 assertTrue(results.getResult(constraint).getLastError() < DELTA);
                 assertEquals(expected, actual, DELTA);
               });
@@ -97,7 +97,7 @@ public class NewInferenceEngineTest {
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
       assertNotNull(test.getObservedTableById(provider.controlNodeId));
       assertNotNull(test.copyObservedTableById(provider.controlNodeId));
-      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertEquals(1.0, test.getPosteriorProbabilityById(provider.evidenceAlwaysSucceeds));
       assertNull(test.getObservedTableById(provider.addedNodeId));
     }
 
@@ -111,7 +111,7 @@ public class NewInferenceEngineTest {
       network.removeNodeByID(provider.removedNodeId);
       assertDoesNotThrow(() -> test.getCurrentObservations());
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceAlwaysSucceeds));
-      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceAlwaysSucceeds));
+      assertEquals(1.0, test.getPosteriorProbabilityById(provider.evidenceAlwaysSucceeds));
       assertNull(test.getObservedTableById(provider.removedNodeId));
     }
 
@@ -131,7 +131,7 @@ public class NewInferenceEngineTest {
           added -> network.addConstraint(added.eventId, added.conditionIds, added.prob));
       assertDoesNotThrow(() -> test.getCurrentObservations());
       assertDoesNotThrow(() -> test.observeNetworkFromIds(provider.evidenceWithNewNodes));
-      assertEquals(1.0, test.getCurrentProbabilityById(provider.evidenceWithNewNodes));
+      assertEquals(1.0, test.getPosteriorProbabilityById(provider.evidenceWithNewNodes));
       assertNotNull(test.getObservedTableById(provider.addedNodeId));
     }
 

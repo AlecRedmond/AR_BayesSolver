@@ -12,7 +12,7 @@ public class VectorOdometer {
   private Node[] nodeArray;
   private NodeState[][] stateArrays;
   private int[] numberOfStates;
-  private int[] stepMultiplier;
+  private int[] strideLengths;
   private int[] stateIndexes;
   private NodeState[] states;
   private boolean[] outerIteratorLocks;
@@ -26,7 +26,7 @@ public class VectorOdometer {
     nodeArray = vector.getNodeArray();
     stateArrays = vector.getStateArrays();
     numberOfStates = vector.getNumberOfStates();
-    stepMultiplier = vector.getStepMultiplier();
+    strideLengths = vector.getStrideLengths();
     stateIndexes = new int[keyLength];
     states = new NodeState[keyLength];
     outerIteratorLocks = new boolean[keyLength];

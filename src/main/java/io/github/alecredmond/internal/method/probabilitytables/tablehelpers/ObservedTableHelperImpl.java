@@ -23,8 +23,8 @@ public class ObservedTableHelperImpl extends TableHelperBase<ObservedTable>
   }
 
   @Override
-  public Double getProbabilityById(Serializable id) {
-    return super.getProbabilityFromIDs(List.of(id));
+  public Double getProbabilityById(Serializable stateId) {
+    return super.getProbabilityFromIDs(List.of(stateId));
   }
 
   @Override
@@ -33,7 +33,7 @@ public class ObservedTableHelperImpl extends TableHelperBase<ObservedTable>
   }
 
   @Override
-  public void marginalizeTable() {
+  public void normalizeTable() {
     TableUtils.marginalizeJointTable(table);
   }
 

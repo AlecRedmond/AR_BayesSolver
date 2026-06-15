@@ -7,6 +7,6 @@ import lombok.Data;
 public class SerializedProbabilityVector implements Serializable {
   private Serializable[] nodeIdArray;
   private int[] numberOfStates;
-  private int[] stepMultiplier;
+  private int[] strideLengths;
   private double[] probabilities;
 }

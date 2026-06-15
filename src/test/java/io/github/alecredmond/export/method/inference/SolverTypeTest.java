@@ -22,7 +22,7 @@ class SolverTypeTest {
     if (!SOLVER_TYPE_SPEED_CHECK) return;
     network = BayesianNetwork.newNetwork("TEST SOLVER");
     solver = BayesSolver.create(network);
-    useSolver.put(JOINT_TABLE_IPFP, true);
+    useSolver.put(SINGLE_TABLE_IPFP, true);
     useSolver.put(JUNCTION_TREE_IPFP, true);
     Queue<Node> nodeQueue = new ArrayDeque<>();
     int numNodes = 0;
@@ -48,7 +48,7 @@ class SolverTypeTest {
   }
 
   private boolean checkSolve(int numNodes) {
-    Duration timeJoint = timeSolution(JOINT_TABLE_IPFP, numNodes);
+    Duration timeJoint = timeSolution(SINGLE_TABLE_IPFP, numNodes);
     boolean timeJointNull = timeJoint == null;
     Duration timeJTA = timeSolution(JUNCTION_TREE_IPFP, numNodes);
     boolean timeJtaNull = timeJTA == null;

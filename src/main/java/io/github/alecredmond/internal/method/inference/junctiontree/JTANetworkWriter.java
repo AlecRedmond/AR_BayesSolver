@@ -2,6 +2,7 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.probabilitytables.TableHelper;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
@@ -26,10 +27,10 @@ class JTANetworkWriter {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
       clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
-      clique.getTable().getHelper().marginalizeTable();
+      clique.getTable().getHelper().normalizeTable();
     }
     backupUnobservedData();
-    marginaliseSeparators();
+    resetSeparators();
   }
 
   private void setProbabilitiesToUnity(Clique clique) {
@@ -47,7 +48,7 @@ class JTANetworkWriter {
             });
   }
 
-  private void marginaliseSeparators() {
+  private void resetSeparators() {
     Arrays.stream(jtd.getSeparators()).forEach(Separator::resetSeparator);
   }
 
@@ -63,19 +64,20 @@ class JTANetworkWriter {
 
     jtd.getObservedTablesMap().values().stream()
         .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::marginalizeTable);
+        .forEach(TableHelper::normalizeTable);
 
-    networkData.getNodes().forEach(this::updateTableName);
+    Map<Node, NodeState> observationMap = Collections.unmodifiableMap(jtd.getObservedEvidence());
+    networkData.getNodes().forEach(node -> updateObservedTables(node, observationMap));
 
     log.info("...OBSERVATIONS WRITTEN!");
   }
 
-  private void updateTableName(Node node) {
-    ((ObservedTableImpl) jtd.getObservedTablesMap().get(node))
-        .setTableName(
-            TableUtils.buildTableName(
-                List.of(node.getId()),
-                NodeUtils.getNodeStateIds(jtd.getObservedEvidence().values())));
+  private void updateObservedTables(Node node, Map<Node, NodeState> observationMap) {
+    ObservedTableImpl oti = ((ObservedTableImpl) jtd.getObservedTablesMap().get(node));
+    oti.setObservations(observationMap);
+    oti.setTableName(
+        TableUtils.buildTableName(
+            List.of(node.getId()), NodeUtils.getNodeStateIds(jtd.getObservedEvidence().values())));
   }
 
   public void writeBackToCPTs() {
@@ -89,7 +91,7 @@ class JTANetworkWriter {
 
     bnd.getNetworkTablesMap().values().stream()
         .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::marginalizeTable);
+        .forEach(TableHelper::normalizeTable);
 
     log.info("NETWORK TABLES WRITTEN");
   }

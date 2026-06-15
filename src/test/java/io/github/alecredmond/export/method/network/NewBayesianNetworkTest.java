@@ -627,7 +627,7 @@ class NewBayesianNetworkTest {
       assertNotNull(engine);
       engine.observeNetworkFromIds(conditions);
       assertTrue(test.isSolved());
-      assertEquals(probability, engine.getCurrentProbabilityById(events), 1e-6);
+      assertEquals(probability, engine.getPosteriorProbabilityById(events), 1e-6);
     }
   }
 }

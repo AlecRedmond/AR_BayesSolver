@@ -117,7 +117,7 @@ class InferenceEngineTest {
     @Test
     void observeProbability_singleEvent_shouldReturnCorrectProb() {
       test.resetObservations();
-      double pRainTrue = test.getCurrentProbabilityById(List.of("RAIN:TRUE"));
+      double pRainTrue = test.getPosteriorProbabilityById(List.of("RAIN:TRUE"));
       assertEquals(0.2, pRainTrue, 1E-9);
     }
 
@@ -126,13 +126,13 @@ class InferenceEngineTest {
       test.resetObservations();
       // P(RAIN:TRUE, SPRINKLER:FALSE) = P(S:F | R:T) * P(R:T)
       // P(R:T, S:F) = 0.99 * 0.2 = 0.198
-      double pJoint = test.getCurrentProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
+      double pJoint = test.getPosteriorProbabilityById(List.of("RAIN:TRUE", "SPRINKLER:FALSE"));
       assertEquals(0.198, pJoint, 1E-9);
     }
 
     @Test
     void observeProbability_emptyEvent_shouldReturnOne() {
-      double pEmpty = test.getCurrentProbabilityById(List.of());
+      double pEmpty = test.getPosteriorProbabilityById(List.of());
       assertEquals(1.0, pEmpty, 1E-9);
     }
   }
@@ -162,7 +162,7 @@ class InferenceEngineTest {
 
     private void generateSamples(InferenceEngine engine, String includedNode, String testState) {
 
-      double observedProb = engine.getCurrentProbabilityById(List.of(testState));
+      double observedProb = engine.getPosteriorProbabilityById(List.of(testState));
       double expected = observedProb * NUMBER_OF_SAMPLES;
       double expectedDelta = Math.sqrt(NUMBER_OF_SAMPLES) * ALLOWED_STDEV;
       long lowerBound = Math.max(0, (long) (expected - expectedDelta));
