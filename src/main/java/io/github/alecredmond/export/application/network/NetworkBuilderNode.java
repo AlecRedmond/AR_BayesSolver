@@ -1,13 +1,12 @@
 package io.github.alecredmond.export.application.network;
 
-import lombok.Data;
-import lombok.NonNull;
+import static io.github.alecredmond.internal.method.node.NodeUtils.formatIDsToString;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.github.alecredmond.internal.method.node.NodeUtils.formatIDsToString;
+import lombok.Data;
+import lombok.NonNull;
 
 @Data
 public class NetworkBuilderNode {
@@ -18,7 +17,7 @@ public class NetworkBuilderNode {
   private final double[] cptValues;
 
   public <T extends Serializable> NetworkBuilderNode(@NonNull T nodeId, @NonNull List<T> stateIds) {
-    checkStateIds(nodeId, stateIds);
+    assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = null;
@@ -26,13 +25,13 @@ public class NetworkBuilderNode {
     this.cptValues = null;
   }
 
-  private static <T extends Serializable> void checkStateIds(T id, List<T> stateIds) {
+  private static <T extends Serializable> void assertStateIdsNotEmpty(T id, List<T> stateIds) {
     if (!stateIds.isEmpty()) return;
     throw new IllegalArgumentException("STATE IDs EMPTY FOR NODE ID : %s".formatted(id));
   }
 
   public <T extends Serializable> NetworkBuilderNode(T id, List<T> stateIds, double[] cptValues) {
-    checkStateIds(id, stateIds);
+    assertStateIdsNotEmpty(id, stateIds);
     this.nodeId = id;
     this.stateIds = stateIds;
     this.parentNodeIds = List.of();
@@ -42,7 +41,7 @@ public class NetworkBuilderNode {
 
   public <T extends Serializable> NetworkBuilderNode(
       @NonNull T nodeId, @NonNull List<T> stateIds, @NonNull List<T> parentNodeIds) {
-    checkStateIds(nodeId, stateIds);
+    assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = parentNodeIds;
@@ -55,7 +54,7 @@ public class NetworkBuilderNode {
       @NonNull List<T> stateIds,
       @NonNull List<T> cptStrideOrderDesc,
       @NonNull double[] cptValues) {
-    checkStateIds(nodeId, stateIds);
+    assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = buildParentIds(nodeId, cptStrideOrderDesc);

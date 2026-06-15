@@ -24,12 +24,43 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode
 public abstract class ProbabilityConstraint {
+  /**
+   * The measured {@link NodeState} values in the constraint. This represents {@code E} in the
+   * formula {@code P(E|C) = p}.
+   */
   @EqualsAndHashCode.Include @ToString.Include protected final Set<NodeState> eventStates;
+
+  /**
+   * The conditioning {@link NodeState} values in the constraint. This represents {@code C} in the
+   * formula {@code P(E|C) = p}.
+   */
   @EqualsAndHashCode.Include @ToString.Include protected final Set<NodeState> conditionStates;
+
+  /**
+   * All {@link NodeState} values present in the constraint. This is the union of the sets {@link
+   * #eventStates} and {@link #conditionStates}.
+   */
   protected final Set<NodeState> allStates;
+
+  /**
+   * The probability of the constraint. This represents {@code p} in the formula {@code P(E|C) = p}.
+   */
   @EqualsAndHashCode.Include @ToString.Include protected final double probability;
+
+  /**
+   * The set of {@link Node}s associated with the {@link NodeState} values in {@link #eventStates}.
+   */
   protected final Set<Node> eventNodes;
+
+  /**
+   * The set of {@link Node}s associated with the {@link NodeState} values in {@link
+   * #conditionStates}.
+   */
   protected final Set<Node> conditionNodes;
+
+  /**
+   * The set of {@link Node}s associated with the {@link NodeState} values in {@link #allStates}.
+   */
   protected final Set<Node> allNodes;
 
   protected ProbabilityConstraint(

@@ -1,12 +1,23 @@
 package io.github.alecredmond.export.method.network;
 
 import io.github.alecredmond.export.application.network.NetworkBuilderNode;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.method.network.NetworkInputBuilder;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 
+/**
+ * A builder object to streamline the construction of a {@link BayesianNetwork}. {@code
+ * BayesianNetworkBuilder} allows information about the network to be input at the {@link Node}
+ * level using its id, {@link NodeState} ids, parent {@link Node} ids, and known Conditional
+ * Probability Table (CPT) entries. This bypasses the strict input order which is necessary when
+ * manually building a {@link BayesianNetwork} from the interface.
+ *
+ * <p>
+ */
 @Data
 public class BayesianNetworkBuilder {
   private String networkName;
