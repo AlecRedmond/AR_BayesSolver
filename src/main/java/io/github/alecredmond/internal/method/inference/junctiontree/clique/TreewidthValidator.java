@@ -17,7 +17,8 @@ public class TreewidthValidator {
 
   public void verifyCliques(Collection<Set<Node>> nodeSets, JunctionTreeData jtd) {
     verifyTreeWidth(
-        nodeSets.stream().mapToDouble(this::getLogCardinality).max().orElseThrow(), jtd);
+        nodeSets.stream().mapToDouble(TreewidthValidator::getLogCardinality).max().orElseThrow(),
+        jtd);
   }
 
   private void verifyTreeWidth(double logMaxTableRank, JunctionTreeData jtd) {
@@ -29,7 +30,11 @@ public class TreewidthValidator {
             .formatted(equivalentTreeWidth));
   }
 
-  private double getLogCardinality(Collection<Node> nodes) {
+  private static double getLogCardinality(Collection<Node> nodes) {
     return nodes.stream().mapToInt(n -> n.getNodeStates().size()).mapToDouble(Math::log).sum();
+  }
+
+  public static boolean validateVectorLength(Collection<Node> nodes) {
+    return getLogCardinality(nodes) <= LOG_INT_MAX;
   }
 }

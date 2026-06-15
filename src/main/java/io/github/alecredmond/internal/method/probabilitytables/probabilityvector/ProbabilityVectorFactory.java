@@ -4,9 +4,9 @@ import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.internal.method.inference.junctiontree.clique.TreewidthValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
-import java.util.stream.IntStream;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,59 +15,53 @@ import lombok.extern.slf4j.Slf4j;
 public class ProbabilityVectorFactory {
 
   public ProbabilityVector build(List<Node> nodes) {
-    Node[] nodesArray = nodes.toArray(new Node[0]);
-    NodeState[][] stateArrays = buildStateArrays(nodesArray);
-    int[] cardinality = buildCardinalityArray(nodesArray);
-    int rank = Arrays.stream(cardinality).reduce(1, (x, y) -> x * y);
-    if (rank == 0) cardinalitySanityCheck(cardinality, nodesArray);
-    int[] multiplier = buildMultiplierArray(cardinality, rank);
-    double[] probability = new double[rank];
-    Arrays.fill(probability, 1.0);
-    Map<Node, Integer> nodeIndexMap = NodeUtils.buildNodeIndexMap(nodesArray);
-    Map<NodeState, Integer> stateValueMap = NodeUtils.buildStateIndexMap(nodesArray);
+    validateVectorLength(nodes);
+    Node[] nodeArray = nodes.toArray(Node[]::new);
+    int[] numberOfStates = new int[nodeArray.length];
+    int[] strideLengths = new int[nodeArray.length];
+    double[] probabilities = fillDataAndBuildProbs(numberOfStates, strideLengths, nodeArray);
     return new ProbabilityVector(
-        nodesArray, stateArrays, cardinality, multiplier, probability, nodeIndexMap, stateValueMap);
+        nodeArray,
+        buildStateArrays(nodeArray),
+        numberOfStates,
+        strideLengths,
+        probabilities,
+        NodeUtils.buildNodeIndexMap(nodeArray),
+        NodeUtils.buildStateIndexMap(nodeArray));
+  }
+
+  private void validateVectorLength(List<Node> nodes) {
+    List<Node> emptyStates = nodes.stream().filter(node -> node.getNodeStates().isEmpty()).toList();
+    if (!emptyStates.isEmpty()) {
+      throw new ProbabilityVectorFactoryException(
+          "Attempted to create a vector using nodes [%s], which have no NodeStates!"
+              .formatted(NodeUtils.formatNodesToString(emptyStates)));
+    }
+    if (!TreewidthValidator.validateVectorLength(nodes)) {
+      throw new ProbabilityVectorFactoryException(
+          "Attempted to create a Probability Vector that would exceed 2^31 - 1 entries with nodes: [%s]"
+              .formatted(NodeUtils.formatNodesToString(nodes)));
+    }
+  }
+
+  private double[] fillDataAndBuildProbs(int[] numberOfStates, int[] strideLengths, Node[] nodes) {
+    int strideLength = 1;
+    for (int i = nodes.length - 1; i >= 0; i--) {
+      int stateCount = nodes[i].getNodeStates().size();
+      numberOfStates[i] = stateCount;
+      strideLengths[i] = strideLength;
+      strideLength *= stateCount;
+    }
+    double[] probabilities = new double[strideLength];
+    Arrays.fill(probabilities, 1.0);
+    return probabilities;
   }
 
   public static NodeState[][] buildStateArrays(Node[] nodesArray) {
     NodeState[][] arrays = new NodeState[nodesArray.length][];
-    IntStream.range(0, nodesArray.length)
-        .forEach(i -> arrays[i] = nodesArray[i].getNodeStates().toArray(NodeState[]::new));
+    for (int i = 0; i < nodesArray.length; i++) {
+      arrays[i] = nodesArray[i].getNodeStates().toArray(NodeState[]::new);
+    }
     return arrays;
-  }
-
-  private int[] buildCardinalityArray(Node[] nodes) {
-    int[] cardinality = new int[nodes.length];
-    IntStream.range(0, nodes.length).forEach(i -> cardinality[i] = nodes[i].getNodeStates().size());
-    return cardinality;
-  }
-
-  private void cardinalitySanityCheck(int[] cardinality, Node[] nodes) {
-    List<Node> zeroCardinality =
-        IntStream.range(0, cardinality.length)
-            .filter(i -> cardinality[i] == 0)
-            .mapToObj(i -> nodes[i])
-            .toList();
-
-    if (!zeroCardinality.isEmpty()) {
-      throw new ProbabilityVectorFactoryException(
-          "Attempted to build a ProbabilityVector with stateless nodes: %s"
-              .formatted(NodeUtils.formatNodesToString(zeroCardinality)));
-    }
-    long rank = Arrays.stream(cardinality).mapToLong(i -> (long) i).reduce(1, (x, y) -> x * y);
-    if (rank >= Integer.MAX_VALUE) {
-      throw new ProbabilityVectorFactoryException("TABLE RANK WAS TOO LARGE!");
-    }
-    throw new ProbabilityVectorFactoryException("UNKNOWN TABLE RANK ISSUE");
-  }
-
-  private int[] buildMultiplierArray(int[] cardinality, int rank) {
-    int m = rank;
-    int[] multiplier = new int[cardinality.length];
-    for (int i = 0; i < cardinality.length; i++) {
-      m /= cardinality[i];
-      multiplier[i] = m;
-    }
-    return multiplier;
   }
 }
