@@ -1,6 +1,6 @@
 package io.github.alecredmond.export.method.network;
 
-import static io.github.alecredmond.internal.method.constraints.ConstraintTypes.*;
+import static io.github.alecredmond.internal.method.constraints.ConstraintType.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
@@ -11,7 +11,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.internal.method.constraints.ConstraintTypes;
+import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import java.beans.PropertyChangeListener;
@@ -563,7 +563,7 @@ class NewBayesianNetworkTest {
         List<Serializable> events,
         List<Serializable> conditions,
         double probability,
-        ConstraintTypes type) {
+        ConstraintType type) {
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
       assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
       assertTrue(test.removeConstraint(events, conditions));
@@ -580,7 +580,7 @@ class NewBayesianNetworkTest {
         Collection<Serializable> conditionIds,
         double probability,
         BayesianNetwork network,
-        ConstraintTypes type) {
+        ConstraintType type) {
       Set<NodeState> events = network.getNodeStates(eventIds);
       NodeState event = events.stream().findFirst().orElseThrow();
       Set<NodeState> conditions = network.getNodeStates(conditionIds);
@@ -609,7 +609,7 @@ class NewBayesianNetworkTest {
         List<Serializable> events,
         List<Serializable> conditions,
         double probability,
-        ConstraintTypes type) {
+        ConstraintType type) {
       Class<ConstraintValidationException> exceptionClass = ConstraintValidationException.class;
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
       assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));

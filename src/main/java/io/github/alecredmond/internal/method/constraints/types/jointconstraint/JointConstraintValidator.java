@@ -12,28 +12,25 @@ public class JointConstraintValidator extends ConstraintValidator<JointProbabili
   }
 
   @Override
-  public boolean validateInputs(ConstraintBuilderData data) {
-    boolean hasMultipleEvents = data.getEventStates().size() > 1;
-    boolean overDifferentNodes = data.getEventNodes().size() == data.getEventStates().size();
-    return hasMultipleEvents && overDifferentNodes;
-  }
-
-  @Override
   public Class<JointProbabilityConstraint> getConstraintClass() {
     return JointProbabilityConstraint.class;
   }
 
   @Override
-  protected void constraintSpecificValidation() {
-    if (constraint.getAllNodes().size() == constraint.getAllStates().size()) {
-      return;
+  public void validateInputs(ConstraintBuilderData data) {
+    boolean hasMultipleEvents = data.getEventStates().size() > 1;
+    if (!hasMultipleEvents) {
+      throw new ConstraintValidationException("A joint constraint must have multiple events!");
     }
-    throw new ConstraintValidationException(
-        "Constraint %s has multiple states sharing the same node!".formatted(constraint));
+    boolean overDifferentNodes = data.getEventNodes().size() == data.getEventStates().size();
+    if (!overDifferentNodes) {
+      throw new ConstraintValidationException(
+          "A joint constraint cannot have event states sharing the same node!");
+    }
   }
 
   @Override
-  protected JointProbabilityConstraint constraintConstructorMethod(ConstraintBuilderData data) {
+  protected JointProbabilityConstraint constructConstraint(ConstraintBuilderData data) {
     return new JointProbabilityConstraint(
         data.getEventStates(), data.getConditionStates(), data.getProbability());
   }

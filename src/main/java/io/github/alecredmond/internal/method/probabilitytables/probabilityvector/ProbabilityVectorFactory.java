@@ -56,8 +56,7 @@ public class ProbabilityVectorFactory {
     }
     long rank = Arrays.stream(cardinality).mapToLong(i -> (long) i).reduce(1, (x, y) -> x * y);
     if (rank >= Integer.MAX_VALUE) {
-      throw new ProbabilityVectorFactoryException(
-          "TABLE RANK WAS TOO LARGE, YOU MAY HAVE TO ATTEMPT TO USE THE JUNCTION TABLE METHOD!");
+      throw new ProbabilityVectorFactoryException("TABLE RANK WAS TOO LARGE!");
     }
     throw new ProbabilityVectorFactoryException("UNKNOWN TABLE RANK ISSUE");
   }

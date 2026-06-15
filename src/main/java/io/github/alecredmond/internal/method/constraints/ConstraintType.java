@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import lombok.Getter;
 
 @Getter
-public enum ConstraintTypes {
+public enum ConstraintType {
   MARGINAL(MarginalConstraint.class, MarginalConstraintStrategy::new),
   CONDITIONAL(ConditionalConstraint.class, ConditionalConstraintStrategy::new),
   JOINT(JointProbabilityConstraint.class, JointConstraintStrategy::new),
@@ -19,7 +19,7 @@ public enum ConstraintTypes {
   private final Class<? extends ProbabilityConstraint> constraintClass;
   private final Supplier<ConstraintStrategy<?>> strategySupplier;
 
-  ConstraintTypes(
+  ConstraintType(
       Class<? extends ProbabilityConstraint> constraintClass,
       Supplier<ConstraintStrategy<?>> strategySupplier) {
     this.constraintClass = constraintClass;

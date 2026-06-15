@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Set;
 import lombok.Data;
@@ -19,8 +18,6 @@ public class ConstraintBuilderData {
   private final double probability;
   private final BayesianNetworkData networkData;
   private ProbabilityConstraint constraint = null;
-  private Class<? extends ProbabilityConstraint> constraintClass = null;
-  private ConstraintValidator<? extends ProbabilityConstraint> validator = null;
   private ConstraintValidationException exception = null;
 
   public ConstraintBuilderData(
@@ -36,29 +33,12 @@ public class ConstraintBuilderData {
     this.conditionNodes = NodeUtils.getNodes(conditionStates);
   }
 
-  public ConstraintBuilderData(
-      BayesianNetworkData networkData,
-      ProbabilityConstraint constraint,
-      ConstraintValidator<? extends ProbabilityConstraint> validator) {
+  public ConstraintBuilderData(BayesianNetworkData networkData, ProbabilityConstraint constraint) {
     this.constraint = constraint;
     this.eventStates = constraint.getEventStates();
     this.conditionStates = constraint.getConditionStates();
     this.probability = constraint.getProbability();
     this.networkData = networkData;
-    this.validator = validator;
-    this.eventNodes = NodeUtils.getNodes(eventStates);
-    this.conditionNodes = NodeUtils.getNodes(conditionStates);
-  }
-
-  public ConstraintBuilderData(
-      BayesianNetworkData networkData,
-      ProbabilityConstraint constraint,
-      ConstraintValidationException exception) {
-    this.eventStates = constraint.getEventStates();
-    this.conditionStates = constraint.getConditionStates();
-    this.probability = constraint.getProbability();
-    this.networkData = networkData;
-    this.exception = exception;
     this.eventNodes = NodeUtils.getNodes(eventStates);
     this.conditionNodes = NodeUtils.getNodes(conditionStates);
   }

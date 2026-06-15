@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.network.changehandlers;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.method.constraints.NetworkConstraintUtils;
+import io.github.alecredmond.internal.method.constraints.NetworkConstraintHandler;
 import io.github.alecredmond.internal.method.network.validator.NetworkIdValidator;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
@@ -42,7 +42,7 @@ public class NodeStateChangeHandler implements NetworkChangeHandler {
         .getRemoved()
         .forEach(
             state ->
-                NetworkConstraintUtils.removeConstraints(
+                NetworkConstraintHandler.removeConstraints(
                     constraint -> constraint.getAllStates().contains(state), networkData));
   }
 }
