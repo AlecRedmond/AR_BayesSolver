@@ -14,12 +14,12 @@ import lombok.Data;
  *
  * <pre>{@code
  * // S = {N0_i, N1_j, ..., Nn_z}: state i of Node 0, state j of Node 1, ..., state z of Node n
- * index = (i * stepMultiplier[0]) + (j * stepMultiplier[1]) + ... + (z * stepMultiplier[n])
+ * index = (i * strideLengths[0]) + (j * strideLengths[1]) + ... + (z * strideLengths[n])
  * P(S) = probabilities[index]
  * }</pre>
  *
  * <p>Node ordering is defined by {@link #nodeArray}. The same index position applies consistently
- * across {@link #stateArrays}, {@link #numberOfStates}, and {@link #stepMultiplier}.
+ * across {@link #stateArrays}, {@link #numberOfStates}, and {@link #strideLengths}.
  *
  * @see ProbabilityTable
  * @author Alec Redmond
@@ -48,11 +48,11 @@ public class ProbabilityVector {
    * The stride values used to compute an index into {@link #probabilities} for a given state
    * combination, parallel to {@link #nodeArray}. The multiplier decreases along the length of the
    * array such that:<br>
-   * {@code stepMultiplier[i+1] = stepMultiplier[i] / numberOfStates[i]} <br>
+   * {@code strideLengths[i+1] = strideLengths[i] / numberOfStates[i]} <br>
    * The final element will always equal 1.<br>
    * See the class-level documentation for the full indexing formula.
    */
-  private final int[] stepMultiplier;
+  private final int[] strideLengths;
 
   /**
    * The probability value for each {@link NodeState} combination in the Cartesian product. The

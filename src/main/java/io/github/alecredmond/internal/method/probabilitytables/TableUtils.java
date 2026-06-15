@@ -27,12 +27,12 @@ public class TableUtils {
 
   public static int getIndex(Collection<NodeState> states, ProbabilityTable table) {
     ProbabilityVector vector = table.getVector();
-    int[] stepMultiplier = vector.getStepMultiplier();
+    int[] strideLengths = vector.getStrideLengths();
     int index = 0;
     for (NodeState state : states) {
       int stateValue = vector.getStateValueMap().getOrDefault(state, 0);
       int nodeIndex = vector.getNodeIndexMap().getOrDefault(state.getNode(), 0);
-      index += stepMultiplier[nodeIndex] * stateValue;
+      index += strideLengths[nodeIndex] * stateValue;
     }
     return index;
   }

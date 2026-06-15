@@ -17,7 +17,7 @@ public class ProbabilityVectorSerializer {
     SerializedProbabilityVector spv = new SerializedProbabilityVector();
     spv.setNodeIdArray(SerializerUtils.serializeArray(vector.getNodeArray(), Node::getId));
     spv.setNumberOfStates(vector.getNumberOfStates());
-    spv.setStepMultiplier(vector.getStepMultiplier());
+    spv.setStrideLengths(vector.getStrideLengths());
     spv.setProbabilities(vector.getProbabilities());
     return spv;
   }
@@ -31,7 +31,7 @@ public class ProbabilityVectorSerializer {
         nodeArray,
         stateArray,
         spv.getNumberOfStates(),
-        spv.getStepMultiplier(),
+        spv.getStrideLengths(),
         spv.getProbabilities(),
         NodeUtils.buildNodeIndexMap(nodeArray),
         NodeUtils.buildStateIndexMap(nodeArray));
