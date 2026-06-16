@@ -58,11 +58,10 @@ public class JTADataBuilder {
 
   private void logBuilt(BayesianNetworkData bnd, String type, JunctionTreeData jtd) {
     log.info(
-        "NETWORK '{}' SUCCESSFULLY BUILT IN {} CONFIGURATION; No. CLIQUES/SEPARATORS = {} / {}; EQUIVALENT TREEWIDTH = 2^{}",
+        "NETWORK '{}' SUCCESSFULLY BUILT IN {} CONFIGURATION; No. CLIQUES {}; EQUIVALENT TREEWIDTH = 2^{}",
         bnd.getNetworkName(),
         type,
         jtd.getCliques().length,
-        jtd.getSeparators().length,
         "%.2f".formatted(jtd.getEquivalentTreeWidth()));
   }
 
