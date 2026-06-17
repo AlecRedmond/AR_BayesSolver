@@ -64,7 +64,9 @@ public class NetworkBuilderNode {
 
   private <T extends Serializable> List<T> buildParentIds(T id, List<T> cptStrideOrderDesc) {
     List<T> parents = new ArrayList<>(cptStrideOrderDesc);
-    if (parents.remove(id)) return parents;
+    if (parents.remove(id)) {
+        return parents.isEmpty() ? null : parents;
+    }
     throw new IllegalArgumentException(
         "Stride Order list [%s] does not contain node id [%s]!"
             .formatted(formatIDsToString(cptStrideOrderDesc), id));
