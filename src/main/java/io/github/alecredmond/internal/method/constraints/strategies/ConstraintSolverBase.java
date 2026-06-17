@@ -5,6 +5,7 @@ import static io.github.alecredmond.internal.method.utils.DoublePrecision.*;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
@@ -110,15 +111,31 @@ public class ConstraintSolverBase
     return error;
   }
 
-  public void updateResults(Map<ProbabilityConstraint, double[]> results) {
-    if (results.containsKey(constraint)) {
-      double[] existing = results.get(constraint);
-      double thisSum = errors.stream().mapToDouble(Double::doubleValue).sum();
-      double existingSum = Arrays.stream(existing).sum();
-      if (existingSum >= thisSum) return;
+  public void updateResults(
+      Map<ProbabilityConstraint, double[]> results, int lastCycle, Set<Clique> cliques) {
+    int runsPerCycle = cliques.size();
+    double[] errorArray = new double[lastCycle + 1];
+    int cycle = 0;
+    int run = 0;
+    for (double error : errors) {
+      errorArray[cycle] += error;
+      run++;
+      if (run != runsPerCycle) continue;
+      run = 0;
+      cycle++;
     }
-    double[] newArray = errors.stream().mapToDouble(Double::doubleValue).toArray();
-    results.put(constraint, newArray);
+    if (constraintInMapWithHigherError(results, constraint, errorArray)) return;
+    results.put(constraint, errorArray);
+  }
+
+  private boolean constraintInMapWithHigherError(
+      Map<ProbabilityConstraint, double[]> results,
+      ProbabilityConstraint constraint,
+      double[] errorArray) {
+    if (!results.containsKey(constraint)) return false;
+    double previousError = Arrays.stream(results.get(constraint)).sum();
+    double currentError = Arrays.stream(errorArray).sum();
+    return previousError > currentError;
   }
 
   @Override

@@ -7,6 +7,7 @@ import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -50,11 +51,10 @@ public class JTASolver {
     boolean thresholdReached = false;
     boolean timeLimitReached = false;
     int cycle;
-    double[] adder = {0.0};
 
     for (cycle = 0; cycle < configs.getCyclesLimit(); cycle++) {
       lastError = error;
-      error = runSolverCycleAndReturnError(jta, solversPerClique, adder);
+      error = runSolverCycleAndReturnError(jta, solversPerClique);
       converge = error - lastError;
 
       now = Instant.now();
@@ -81,25 +81,17 @@ public class JTASolver {
     }
 
     jta.writeTablesToNetwork();
-    return writeResults(solversPerClique, cycle);
+    return writeResults(solversPerClique, cycle, now, start);
   }
 
   private double runSolverCycleAndReturnError(
-      JunctionTreeAlgorithm jta,
-      Map<Clique, List<ConstraintSolver>> solversPerClique,
-      double[] adder) {
-
-    adder[0] = 0.0;
-
-    solversPerClique.forEach(
-        (clique, constraintSolvers) ->
-            constraintSolvers.forEach(
-                solver -> {
-                  adder[0] += solver.adjustAndReturnError();
-                  jta.sumTransfer(clique);
-                }));
-
-    return adder[0];
+      JunctionTreeAlgorithm jta, Map<Clique, List<ConstraintSolver>> solversPerClique) {
+    double sum = 0;
+    for (Clique clique : solversPerClique.keySet()) {
+      sum += solversPerClique.values().parallelStream().mapToDouble(this::solveForClique).sum();
+      jta.sumTransfer(clique);
+    }
+    return sum;
   }
 
   @SuppressWarnings("StringConcatenationArgumentToLogCall")
@@ -130,11 +122,16 @@ public class JTASolver {
     logType.accept("SOLVER %s, ELAPSED TIME %d ms".formatted(statement, runTimeMs));
   }
 
-  private SolverResults writeResults(Map<Clique, List<ConstraintSolver>> constraintMap, int cycle) {
+  private SolverResults writeResults(
+      Map<Clique, List<ConstraintSolver>> constraintMap, int cycle, Instant now, Instant start) {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)
-        .forEach(handler -> handler.updateResults(resultsMap));
-    return new SolverResultsBuilder().buildResults(cycle, resultsMap);
+        .forEach(handler -> handler.updateResults(resultsMap,cycle,constraintMap.keySet()));
+    return new SolverResultsBuilder().buildResults(cycle, resultsMap, Duration.between(start, now));
+  }
+
+  private double solveForClique(List<ConstraintSolver> solvers) {
+    return solvers.stream().mapToDouble(ConstraintSolver::adjustAndReturnError).sum();
   }
 }
