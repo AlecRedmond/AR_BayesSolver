@@ -2,6 +2,7 @@ package io.github.alecredmond.export.application.inference;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.inference.BayesSolver;
+import java.time.Duration;
 import java.util.*;
 import lombok.Data;
 
@@ -30,6 +31,8 @@ public class SolverResults {
    * constraints, measured on the solver's final cycle.
    */
   private final double lastError;
+
+  private final Duration solverRunDuration;
 
   /**
    * Returns the detailed result for a single constraint over the course of the solver run,
