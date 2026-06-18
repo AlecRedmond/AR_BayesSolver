@@ -13,19 +13,19 @@ import java.util.List;
 import lombok.Data;
 
 /**
- * A builder object to streamline the construction of a {@link BayesianNetwork}. {@code
- * BayesianNetworkBuilder} allows information about the network to be input on a per-{@link Node}
- * level, using:
+ * Streamlines the construction of a {@link BayesianNetwork}.
+ *
+ * <p>This builder allows network configuration to be defined on a per-{@link Node} basis. This
+ * approach bypasses the strict input ordering required when manually constructing a {@link
+ * BayesianNetwork} via the standard interface. A node configuration relies on:
  *
  * <ul>
- *   <li>The {@link Serializable} id for the {@link Node}
- *   <li>The {@link Serializable} ids for the node's {@link NodeState}s
- *   <li>(Optionally) The {@link Serializable} ids of the node's parent nodes
- *   <li>(Optionally) The CPT values for the node, in the form of a {@code double[]} array.
+ *   <li>The {@link Serializable} identifier for the {@link Node}.
+ *   <li>The {@link Serializable} identifiers for the node's {@link NodeState}s.
+ *   <li>The identifiers of the node's parent nodes (for conditional nodes).
+ *   <li>The Conditional Probability Table (CPT) values, structured as a {@code double[]} array
+ *       (optional).
  * </ul>
- *
- * This bypasses the strict input order which is necessary when manually building a {@link
- * BayesianNetwork} from the interface.
  *
  * @see BayesianNetwork
  * @author Alec Redmond
@@ -36,46 +36,46 @@ public class BayesianNetworkBuilder {
   private List<NetworkBuilderNode> nodeInputs = new ArrayList<>();
 
   /**
-   * Constructs a new {@code BayesianNetworkBuilder}, with the default network name {@code "UNNAMED
-   * NETWORK"}.
+   * Constructs an empty {@code BayesianNetworkBuilder} with the default network name {@code
+   * "UNNAMED NETWORK"}.
    */
   public BayesianNetworkBuilder() {
     this.networkName = "UNNAMED NETWORK";
   }
 
   /**
-   * Constructs a new {@code BayesianNetworkBuilder}.
+   * Constructs an empty {@code BayesianNetworkBuilder} with the specified network name.
    *
-   * @param networkName the name to be given to the {@link BayesianNetwork}.
+   * @param networkName the name to assign to the resulting {@link BayesianNetwork}.
    */
   public BayesianNetworkBuilder(String networkName) {
     this.networkName = networkName;
   }
 
   /**
-   * Constructs and returns the {@link BayesianNetwork} using the current values in {@link
-   * #nodeInputs}.
+   * Constructs and returns the {@link BayesianNetwork} using the current node inputs.
    *
-   * @return a new {@link BayesianNetwork}
-   * @throws BayesNetIDException if any id was incorrectly mapped or duplicated.
-   * @throws NetworkStructureException if the network has disconnected sections, or if the
-   *     parent/child relationships would form a cycle.
-   * @throws ConstraintValidationException if a CPT array was not the correct length, or if the CPT
-   *     array was in an illegal configuration.
+   * @return a fully constructed {@link BayesianNetwork}.
+   * @throws BayesNetIDException if any identifier is incorrectly mapped or duplicated.
+   * @throws NetworkStructureException if the network contains disconnected sections, or if the
+   *     parent/child relationships form a cyclic graph.
+   * @throws ConstraintValidationException if a provided CPT array is of incorrect length, or if the
+   *     CPT probabilities represent an illegal configuration.
    */
   public BayesianNetwork build() {
     return new NetworkInputBuilder().buildNetwork(networkName, nodeInputs);
   }
 
   /**
-   * Adds a {@link NetworkBuilderNode} to this {@code BayesianNetworkBuilder} representing a root
-   * (unparented) {@link Node}.
+   * Adds a root (unparented) {@link Node} configuration to this builder.
    *
-   * @param nodeId the id for the root {@link Node}.
-   * @param stateIds the ids for the {@link NodeState} values associated with the {@link Node}.
-   * @param <T> the {@link Serializable} class of the ids.
-   * @return this instance for chaining.
-   * @throws IllegalArgumentException if {@code stateIds} is an empty list.
+   * @param nodeId the identifier for the root {@link Node}.
+   * @param stateIds the identifiers for the {@link NodeState} values associated with the {@link
+   *     Node}.
+   * @param <T> the {@link Serializable} type of the identifiers.
+   * @return this builder instance for method chaining.
+   * @throws NullPointerException if any input parameter is {@code null}.
+   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
   public <T extends Serializable> BayesianNetworkBuilder addRootNode(T nodeId, List<T> stateIds) {
     nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds));
@@ -83,26 +83,27 @@ public class BayesianNetworkBuilder {
   }
 
   /**
-   * Adds a {@link NetworkBuilderNode} to this {@code BayesianNetworkBuilder} representing a root
-   * (unparented) {@link Node}.
+   * Adds a root (unparented) {@link Node} configuration, including its CPT values, to this builder.
    *
-   * <p>This method allows CPT values to be entered as a {@code double[]} array. For root nodes, the
-   * length of this array should be the size of the {@code stateIds} list, and maintain the same
-   * order. A valid example follows:
+   * <p>For root nodes, the length of the {@code cptValues} array must exactly match the size of the
+   * {@code stateIds} list. The probabilities must be provided in the same order as the declared
+   * states. For example:
    *
    * <pre>{@code
    * String nodeId = "RAIN";
-   * List<String> stateIds = List.of("RAIN:T","RAIN:F");
-   * double[] rainCPT = {0.2,0.8}; //20% chance of RAIN:T, 80% of RAIN:F
-   * bayesianNetworkBuilder.addRootNode(nodeId,stateIds,rainCPT);
+   * List<String> stateIds = List.of("RAIN:T", "RAIN:F");
+   * double[] rainCPT = {0.2, 0.8}; // 20% chance of RAIN:T, 80% chance of RAIN:F
+   * bayesianNetworkBuilder.addRootNode(nodeId, stateIds, rainCPT);
    * }</pre>
    *
-   * @param nodeId the id for the root {@link Node}.
-   * @param stateIds the ids for the {@link NodeState} values associated with the {@link Node}.
-   * @param cptValues the CPT array for this root {@link Node}.
-   * @param <T> the {@link Serializable} class of the ids.
-   * @return this instance for chaining.
-   * @throws IllegalArgumentException if {@code stateIds} is an empty list.
+   * @param nodeId the identifier for the root {@link Node}.
+   * @param stateIds the identifiers for the {@link NodeState} values associated with the {@link
+   *     Node}.
+   * @param cptValues the marginal probabilities for this root {@link Node}.
+   * @param <T> the {@link Serializable} type of the identifiers.
+   * @return this builder instance for method chaining.
+   * @throws NullPointerException if any input parameter is {@code null}.
+   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
   public <T extends Serializable> BayesianNetworkBuilder addRootNode(
       T nodeId, List<T> stateIds, double[] cptValues) {
@@ -111,16 +112,17 @@ public class BayesianNetworkBuilder {
   }
 
   /**
-   * Adds a {@link NetworkBuilderNode} to this {@code BayesianNetworkBuilder} representing a
-   * conditional (parented) {@link Node}.
+   * Adds a conditional (parented) {@link Node} configuration to this builder.
    *
-   * @param nodeId the id for the {@link Node}.
-   * @param stateIds the ids for the {@link NodeState} values associated with the {@link Node}.
-   * @param parentIds the ids of the parent {@link Node}s. These must also be declared in this
-   *     {@code BayesianNetworkBuilder} instance.
-   * @param <T> the {@link Serializable} class of the ids.
-   * @return this instance for chaining.
-   * @throws IllegalArgumentException if {@code stateIds} is an empty list.
+   * @param nodeId the identifier for this {@link Node}.
+   * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
+   *     Node}.
+   * @param parentIds the identifiers of the parent {@link Node}s. These must correspond to nodes
+   *     added to this builder before calling {@link #build()}.
+   * @param <T> the {@link Serializable} type of the identifiers.
+   * @return this builder instance for method chaining.
+   * @throws NullPointerException if any input parameter is {@code null}.
+   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(
       T nodeId, List<T> stateIds, List<T> parentIds) {
@@ -129,52 +131,56 @@ public class BayesianNetworkBuilder {
   }
 
   /**
-   * Adds a {@link NetworkBuilderNode} to this {@code BayesianNetworkBuilder} representing a
-   * conditional (parented) {@link Node}.
+   * Adds a conditional (parented) {@link Node} configuration, including its CPT values, to this
+   * builder.
    *
-   * <p>This method allows CPT values to be entered as a {@code double[]} array. For conditional
-   * nodes, the length of this array should be equal to the product of all {@code stateIds} list
-   * sizes for itself and its parents. The order this follows is associated with the {@code
-   * cptStrideOrderDesc} parameter, which should include the {@code nodeId} and the ids of all its
-   * parent nodes.
+   * <p>For conditional nodes, the length of the {@code cptValues} array must equal the product of
+   * the number of states for this node and all of its parents.
    *
-   * <p>The Cartesian product of the {@code stateIds} for all node ids involved will be cycled
-   * through in order, starting with the last node in {@code cptStrideOrderDesc}, with every
-   * overflow incrementing the position to the left. For example, consider 3 nodes, each having
-   * {@code List.of("{nodeId}:T","{nodeId}:F")} as their stateIds. The order of the CPT would be as
-   * follows:
+   * <p>The correct ordering of the {@code cptValues} array is determined by the {@code
+   * cptNodeOrder} parameter, which must contain the identifiers of this node and all its parents.
+   * The builder iterates through the Cartesian product of the states for these nodes. The iteration
+   * cycles fastest through the right-most (last) node in the {@code cptNodeOrder} list,
+   * incrementing the node to its left whenever it overflows.
+   *
+   * <p>Consider three nodes representing {@code P(WET_GRASS | RAIN, SPRINKLER)}, each with {@code
+   * :T} and {@code :F} states:
    *
    * <pre>{@code
    * String nodeId = "WET_GRASS";
-   * List<String> stateIds = List.of("WET_GRASS:T","WET_GRASS:F");
-   * List<String> cptStrideOrderDesc = List.of("RAIN","SPRINKLER","WET_GRASS");
-   * // This represents P(WET_GRASS|RAIN,SPRINKLER)
-   * // The longest stride will be "RAIN", the shortest will be "WET_GRASS"
+   * List<String> stateIds = List.of("WET_GRASS:T", "WET_GRASS:F");
+   * // If the longest stride is "RAIN", and the shortest is "WET_GRASS":
+   * List<String> cptNodeOrder = List.of("RAIN", "SPRINKLER", "WET_GRASS");
    * double[] wetGrassCpt = new double[]{
-   *     0.99, // RAIN:T, SPRINKLER:T, WET_GRASS:T
-   *     0.01, // RAIN:T, SPRINKLER:T, WET_GRASS:F
-   *     0.80, // RAIN:T, SPRINKLER:F, WET_GRASS:T
-   *     0.20, // RAIN:T, SPRINKLER:F, WET_GRASS:F
-   *     0.90, // RAIN:F, SPRINKLER:T, WET_GRASS:T
-   *     0.10, // RAIN:F, SPRINKLER:T, WET_GRASS:F
-   *     0.00, // RAIN:F, SPRINKLER:F, WET_GRASS:T
-   *     1.00  // RAIN:F, SPRINKLER:F, WET_GRASS:F
-   * }
-   * bayesianNetworkBuilder.addNode(nodeId,stateIds,cptStrideOrderDesc,wetGrassCpt);
+   * 0.99, // RAIN:T, SPRINKLER:T, WET_GRASS:T
+   * 0.01, // RAIN:T, SPRINKLER:T, WET_GRASS:F
+   * 0.80, // RAIN:T, SPRINKLER:F, WET_GRASS:T
+   * 0.20, // RAIN:T, SPRINKLER:F, WET_GRASS:F
+   * 0.90, // RAIN:F, SPRINKLER:T, WET_GRASS:T
+   * 0.10, // RAIN:F, SPRINKLER:T, WET_GRASS:F
+   * 0.00, // RAIN:F, SPRINKLER:F, WET_GRASS:T
+   * 1.00  // RAIN:F, SPRINKLER:F, WET_GRASS:F
+   * };
+   * bayesianNetworkBuilder.addNode(nodeId, stateIds, cptNodeOrder, wetGrassCpt);
    * }</pre>
    *
-   * @param nodeId the id for the {@link Node}.
-   * @param stateIds the ids for the {@link NodeState} values associated with the {@link Node}.
-   * @param cptStrideOrderDesc the ids of the {@link Node} and its parents, ordered as described in
-   *     the method documentation.
-   * @param <T> the {@link Serializable} class of the ids.
-   * @return this instance for chaining.
-   * @throws IllegalArgumentException if {@code stateIds} is an empty list, or if {@code
-   *     cptStrideOrderDesc} does not contain {@code nodeId}.
+   * @param nodeId the identifier for this {@link Node}.
+   * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
+   *     Node}.
+   * @param cptNodeOrder the identifiers of the node and its parents, establishing the iteration
+   *     hierarchy used for the {@code cptValues} array. The parent identifiers must correspond to
+   *     nodes added to this builder before calling {@link #build()}.
+   * @param cptValues the conditional probabilities mapping to the Cartesian product of the node
+   *     states.
+   * @param <T> the {@link Serializable} type of the identifiers.
+   * @return this builder instance for method chaining.
+   * @throws NullPointerException if any input parameter is {@code null}.
+   * @throws IllegalArgumentException if {@code stateIds} or empty, or if {@code cptStrideOrderDesc}
+   *     does not contain the {@code nodeId}.
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(
-      T nodeId, List<T> stateIds, List<T> cptStrideOrderDesc, double[] cptValues) {
-    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, cptStrideOrderDesc, cptValues));
+      T nodeId, List<T> stateIds, List<T> cptNodeOrder, double[] cptValues) {
+    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, cptNodeOrder, cptValues));
     return this;
   }
 }

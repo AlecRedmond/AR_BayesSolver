@@ -13,7 +13,7 @@ public class NetworkBuilderNode {
   private final Serializable nodeId;
   private final List<? extends Serializable> stateIds;
   private final List<? extends Serializable> parentNodeIds;
-  private final List<? extends Serializable> cptStrideOrderDesc;
+  private final List<? extends Serializable> cptNodeOrder;
   private final double[] cptValues;
 
   public <T extends Serializable> NetworkBuilderNode(@NonNull T nodeId, @NonNull List<T> stateIds) {
@@ -21,7 +21,7 @@ public class NetworkBuilderNode {
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = null;
-    this.cptStrideOrderDesc = null;
+    this.cptNodeOrder = null;
     this.cptValues = null;
   }
 
@@ -35,7 +35,7 @@ public class NetworkBuilderNode {
     this.nodeId = id;
     this.stateIds = stateIds;
     this.parentNodeIds = List.of();
-    this.cptStrideOrderDesc = List.of(nodeId);
+    this.cptNodeOrder = List.of(nodeId);
     this.cptValues = cptValues;
   }
 
@@ -45,30 +45,30 @@ public class NetworkBuilderNode {
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = parentNodeIds;
-    this.cptStrideOrderDesc = null;
+    this.cptNodeOrder = null;
     this.cptValues = null;
   }
 
   public <T extends Serializable> NetworkBuilderNode(
       @NonNull T nodeId,
       @NonNull List<T> stateIds,
-      @NonNull List<T> cptStrideOrderDesc,
+      @NonNull List<T> cptNodeOrder,
       @NonNull double[] cptValues) {
     assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
-    this.parentNodeIds = buildParentIds(nodeId, cptStrideOrderDesc);
-    this.cptStrideOrderDesc = cptStrideOrderDesc;
+    this.parentNodeIds = buildParentIds(nodeId, cptNodeOrder);
+    this.cptNodeOrder = cptNodeOrder;
     this.cptValues = cptValues;
   }
 
   private <T extends Serializable> List<T> buildParentIds(T id, List<T> cptStrideOrderDesc) {
     List<T> parents = new ArrayList<>(cptStrideOrderDesc);
     if (parents.remove(id)) {
-        return parents.isEmpty() ? null : parents;
+      return parents.isEmpty() ? null : parents;
     }
     throw new IllegalArgumentException(
-        "Stride Order list [%s] does not contain node id [%s]!"
+        "cptNodeOrder list {%s} does not contain node id {%s}!"
             .formatted(formatIDsToString(cptStrideOrderDesc), id));
   }
 }

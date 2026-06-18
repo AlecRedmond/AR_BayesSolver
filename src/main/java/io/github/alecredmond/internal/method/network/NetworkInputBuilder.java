@@ -51,7 +51,7 @@ public class NetworkInputBuilder {
   }
 
   private ConstraintBuilderIterator buildConstraintBuilderIterator(NetworkBuilderNode nodeInput) {
-    List<? extends Serializable> cptStrideOrderIds = nodeInput.getCptStrideOrderDesc();
+    List<? extends Serializable> cptStrideOrderIds = nodeInput.getCptNodeOrder();
     double[] cptValues = nodeInput.getCptValues();
     List<Node> nodes = convertToNodes(cptStrideOrderIds);
     ProbabilityVector vector = vectorFactory.build(nodes);
