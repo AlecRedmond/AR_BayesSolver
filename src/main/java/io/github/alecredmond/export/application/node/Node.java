@@ -13,21 +13,21 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * A Node representing one of the variables in the {@link BayesianNetwork}. Each node contains a
- * list of its {@link NodeState}s as well as its parents and children. A {@link NodeState} is a
- * state that a {@code Node} can exhibit, such as {@code "NODE:TRUE"} or {@code "NODE:FALSE"}. A
- * {@code Node} is conditionally dependent on its parents, while its children are conditionally
- * dependent on it.
+ * Represents a variable within a {@link BayesianNetwork}.
  *
- * <p>Note: All nodes in a network MUST be registered in the {@link BayesianNetwork} instance before
- * attempting to connect them to their parents or children through the methods defined here.
+ * <p>Each node contains a list of its {@link NodeState}s as well as its parents and children. A
+ * {@link NodeState} is a state that a {@code Node} can exhibit, such as {@code "NODE:TRUE"} or
+ * {@code "NODE:FALSE"}. A {@code Node} is conditionally dependent on its parents, while its
+ * children are conditionally dependent on it.
+ *
+ * <p><b>Note:</b> All nodes in a network MUST be registered in the {@link BayesianNetwork} instance
+ * before attempting to connect them to their parents or children through the methods defined here.
  *
  * @see NodeState
  * @see BayesianNetwork
@@ -46,8 +46,8 @@ public class Node {
   @EqualsAndHashCode.Include private final Serializable id;
 
   /**
-   * Property Change Support, used in {@link BayesianNetwork} when a field change occurs in this
-   * {@code Node}.
+   * The property change support utility, used within the {@link BayesianNetwork} to listen for
+   * field changes in this {@code Node}.
    */
   private final PropertyChangeSupport support = new PropertyChangeSupport(this);
 
@@ -61,12 +61,14 @@ public class Node {
   private List<Node> children;
 
   /**
-   * Constructs a new {@code Node} from its identifier and the identifiers of its {@link NodeState}
-   * values.
+   * Constructs a new {@code Node} using its identifier and a collection of state identifiers.
    *
-   * @param nodeId the {@link Serializable} identifier of the {@code Node}.
-   * @param stateIDs the {@link Serializable} identifiers of the {@link NodeState} values.
-   * @throws NullPointerException if the node identifier is {@code null}.
+   * @param nodeId the {@link Serializable} identifier of the {@code Node}
+   * @param stateIDs the collection of {@link Serializable} identifiers for the {@link NodeState}
+   *     values
+   * @param <T> the type of the node identifier
+   * @param <E> the type of the state identifiers
+   * @throws NullPointerException if the node identifier is {@code null}
    */
   public <T extends Serializable, E extends Serializable> Node(
       @NonNull T nodeId, Collection<E> stateIDs) {
@@ -78,10 +80,11 @@ public class Node {
   }
 
   /**
-   * Constructs a new {@code Node} from its identifier
+   * Constructs a new {@code Node} using only its identifier.
    *
-   * @param nodeId the {@link Serializable} identifier of the {@code Node}.
-   * @throws NullPointerException if the node identifier is {@code null}.
+   * @param nodeId the {@link Serializable} identifier of the {@code Node}
+   * @param <T> the type of the node identifier
+   * @throws NullPointerException if the node identifier is {@code null}
    */
   public <T extends Serializable> Node(@NonNull T nodeId) {
     this.id = nodeId;
@@ -91,14 +94,15 @@ public class Node {
   }
 
   /**
-   * Sets a list of {@link NodeState} values as the new active states for this {@code Node}. This
-   * will fire a property change event with the label {@code "NODE_STATES_UPDATED"}. If validation
-   * of the new list fails, the error will be logged and the previous {@link NodeState} list will be
-   * restored.
+   * Sets a list of {@link NodeState} values as the new active states for this {@code Node}.
+   *
+   * <p>This method fires a property change event with the label {@code "NODE_STATES_UPDATED"}. If
+   * validation of the new list fails, the error will be logged and the previous {@link NodeState}
+   * list will be restored.
    *
    * @param nodeStates the new list of {@link NodeState}s associated with this {@code Node}
-   * @return {@code true} if the new list was successfully set, or {@code false} if an error was
-   *     logged.
+   * @return {@code true} if the new list was successfully set, or {@code false} if validation
+   *     failed
    */
   public boolean setNodeStates(List<NodeState> nodeStates) {
     List<NodeState> oldStates = this.nodeStates;
@@ -114,13 +118,14 @@ public class Node {
   }
 
   /**
-   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire the
-   * property change event {@code "NODE_PARENTS_UPDATED"}. If validation of the new list fails, the
-   * error will be logged and the previous parent list will be restored.
+   * Sets a list of {@link Node}s as the new parents for this {@code Node}.
+   *
+   * <p>This method fires the property change event {@code "NODE_PARENTS_UPDATED"}. If validation of
+   * the new list fails, the error will be logged and the previous parent list will be restored.
    *
    * @param parents the new list of parents connected to this {@code Node}.
-   * @return {@code true} if the new list was successfully set, or {@code false} if an error was
-   *     logged.
+   * @return {@code true} if the new list was successfully set, or {@code false} if validation
+   *     failed.
    */
   public boolean setParents(List<Node> parents) {
     List<Node> oldParents = this.parents;
@@ -136,13 +141,15 @@ public class Node {
   }
 
   /**
-   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire the
-   * property change event {@code "NODE_CHILDREN_UPDATED"}. If validation of the new list fails, the
-   * error will be logged and the previous children list will be restored.
+   * Sets a list of {@link Node}s as the new children for this {@code Node}.
+   *
+   * <p>This method fires the property change event {@code "NODE_CHILDREN_UPDATED"}. If validation
+   * of the new list fails, the error will be logged and the previous children list will be
+   * restored.
    *
    * @param children the new list of children connected to this {@code Node}.
-   * @return {@code true} if the new list was successfully set, or {@code false} if an error was
-   *     logged.
+   * @return {@code true} if the new list was successfully set, or {@code false} if validation
+   *     failed.
    */
   public boolean setChildren(List<Node> children) {
     List<Node> oldChildren = this.children;
@@ -157,32 +164,53 @@ public class Node {
     }
   }
 
+  /**
+   * Adds a new state to this {@code Node} using the provided identifier.
+   *
+   * @param stateID the identifier for the new {@link NodeState}
+   * @param <T> the type of the state identifier.
+   * @return the newly created {@link NodeState}, or {@code null} if the given state identifier
+   *     already existed in the list.
+   */
   public <T extends Serializable> NodeState addState(T stateID) {
-    try {
-      return NodeUtils.addNodeState(this, stateID);
-    } catch (NoSuchElementException e) {
-      return null;
-    }
+    return NodeUtils.addNodeState(this, stateID);
   }
 
+  /**
+   * Removes an existing state from this {@code Node} matching the provided identifier.
+   *
+   * @param stateID the identifier of the {@link NodeState} to be removed.
+   * @param <E> the type of the state identifier.
+   */
   public <E extends Serializable> void removeState(E stateID) {
     NodeUtils.removeState(this, stateID);
   }
 
+  /**
+   * Adds a {@link Node} as a parent to this node.
+   *
+   * @param parent the {@link Node} to add as a parent.
+   */
   public void addParent(Node parent) {
     NodeUtils.addParent(this, parent);
   }
 
+  /**
+   * Removes a specific {@link Node} from this node's list of parents.
+   *
+   * @param parent the {@link Node} parent to remove.
+   */
   public void removeParent(Node parent) {
     NodeUtils.removeParent(this, parent);
   }
 
   /**
    * Adds this {@code Node} to a {@link PropertyChangeListener} and fires the property change event
-   * {@code "NODE_ADDED_TO_NETWORK"}. This method is used internally by the implementation of {@link
-   * BayesianNetwork}.
+   * {@code "NODE_ADDED_TO_NETWORK"}.
    *
-   * @param listener a {@link PropertyChangeListener} instance.
+   * <p>This method is used internally by the implementation of {@link BayesianNetwork}.
+   *
+   * @param listener the {@link PropertyChangeListener} instance to attach.
    */
   public void addPropertyChangeListener(PropertyChangeListener listener) {
     support.addPropertyChangeListener(listener);
@@ -191,10 +219,11 @@ public class Node {
 
   /**
    * Removes this {@code Node} from a {@link PropertyChangeListener} and fires the property change
-   * event {@code "NODE_REMOVED_FROM_NETWORK"}. This method is used internally by the implementation
-   * of {@link BayesianNetwork}.
+   * event {@code "NODE_REMOVED_FROM_NETWORK"}.
    *
-   * @param listener a {@link PropertyChangeListener} instance listening to this {@code Node}.
+   * <p>This method is used internally by the implementation of {@link BayesianNetwork}.
+   *
+   * @param listener the {@link PropertyChangeListener} instance to remove.
    */
   public void removePropertyChangeListener(PropertyChangeListener listener) {
     support.firePropertyChange(NODE_REMOVED_FROM_NETWORK.name(), this, null);
