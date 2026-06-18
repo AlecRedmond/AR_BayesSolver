@@ -297,8 +297,8 @@ class NewBayesianNetworkTest {
           nodeId,
           newStateIds,
           expectedConstraints,
-          (n, a) -> a.getAdded().forEach(added -> n.addState(added.getId())),
-          (n, a) -> a.getRemoved().forEach(added -> n.removeState(added.getId())));
+          (n, a) -> a.getAdded().forEach(added -> assertTrue(n.addState(added.getId()))),
+          (n, a) -> a.getRemoved().forEach(added -> assertTrue(n.removeState(added.getId()))));
     }
 
     @ParameterizedTest
@@ -308,7 +308,7 @@ class NewBayesianNetworkTest {
       try {
         Node node = test.getNode(nodeId);
         Set<NodeState> states = new HashSet<>(node.getNodeStates());
-        node.addState(stateId);
+        assertFalse(node.addState(stateId));
         assertEquals(states, new HashSet<>(node.getNodeStates()));
       } catch (Exception e) {
         assertEquals(e.getClass(), exceptionClass);

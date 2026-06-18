@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -46,22 +45,21 @@ public class NodeUtils {
 
   public static void addParent(Node child, Node parent) {
     if (!child.getParents().contains(parent)) {
-      addToList(child.getParents(), parent, child::setParents);
+      List<Node> newParents = addToList(child.getParents(), parent);
+      child.setParents(newParents);
     }
     if (!parent.getChildren().contains(child)) {
-      addToList(parent.getChildren(), child, parent::setChildren);
+      List<Node> newChildren = addToList(parent.getChildren(), child);
+      parent.setChildren(newChildren);
     }
   }
 
-  private static <E> List<E> addToList(List<E> list, E element, Consumer<List<E>> setter) {
-    return addAllToList(list, List.of(element), setter);
+  public static <T> List<T> addToList(List<T> list, T elementToAdd) {
+    return addAllToList(list, List.of(elementToAdd));
   }
 
-  private static <E> List<E> addAllToList(
-      List<E> list, Collection<E> elements, Consumer<List<E>> setter) {
-    List<E> newList = Stream.concat(list.stream(), elements.stream()).toList();
-    setter.accept(newList);
-    return newList;
+  public static <T> List<T> addAllToList(List<T> list, List<T> elementsToAdd) {
+    return Stream.concat(list.stream(), elementsToAdd.stream()).toList();
   }
 
   public static List<Set<NodeState>> splitStatesSharingNodes(Collection<NodeState> states) {
@@ -142,35 +140,22 @@ public class NodeUtils {
     return nodes.stream().flatMap(n -> n.getNodeStates().stream()).map(NodeState::getId).toList();
   }
 
-  public static <T extends Serializable> NodeState addNodeState(Node node, T stateID) {
-    if (node.getNodeStates().stream().map(NodeState::getId).anyMatch(stateID::equals)) {
-      return null;
-    }
-    return addToList(node.getNodeStates(), new NodeState(stateID, node), node::setNodeStates)
-        .getLast();
-  }
-
-  public static <E extends Serializable> void addNodeStates(Node node, Collection<E> stateIDs) {
-    List<NodeState> newStates = stateIDs.stream().map(id -> new NodeState(id, node)).toList();
-    addAllToList(node.getNodeStates(), newStates, node::setNodeStates);
-  }
-
-  public static <E extends Serializable> void removeState(Node node, E stateID) {
-    removeFromList(node.getNodeStates(), s -> s.getId().equals(stateID), node::setNodeStates);
-  }
-
-  private static <E> void removeFromList(
-      List<E> list, Predicate<E> predicate, Consumer<List<E>> setter) {
-    setter.accept(list.stream().filter(predicate.negate()).toList());
+  public static <E extends Serializable> List<NodeState> statesWithoutId(
+      List<NodeState> nodeStates, E removalId) {
+    return nodeStates.stream().filter(t -> !t.getId().equals(removalId)).toList();
   }
 
   public static void removeParent(Node node, Node parent) {
     if (node.getParents().contains(parent)) {
-      removeFromList(node.getParents(), parent::equals, node::setParents);
+      node.setParents(removeFromList(node.getParents(), parent::equals));
     }
     if (parent.getChildren().contains(node)) {
-      removeFromList(parent.getChildren(), node::equals, parent::setChildren);
+      parent.setChildren(removeFromList(parent.getChildren(), node::equals));
     }
+  }
+
+  private static <E> List<E> removeFromList(List<E> list, Predicate<E> predicate) {
+    return list.stream().filter(predicate.negate()).toList();
   }
 
   public static Set<Node> getOverlap(Set<Node> nodesA, Set<Node> nodesB) {

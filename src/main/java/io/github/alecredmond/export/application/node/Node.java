@@ -75,8 +75,7 @@ public class Node {
     this.id = nodeId;
     this.parents = List.of();
     this.children = List.of();
-    this.nodeStates = List.of();
-    NodeUtils.addNodeStates(this, stateIDs);
+    this.nodeStates = stateIDs.stream().map(stateId -> new NodeState(stateId, this)).toList();
   }
 
   /**
@@ -91,30 +90,6 @@ public class Node {
     this.parents = List.of();
     this.children = List.of();
     this.nodeStates = List.of();
-  }
-
-  /**
-   * Sets a list of {@link NodeState} values as the new active states for this {@code Node}.
-   *
-   * <p>This method fires a property change event with the label {@code "NODE_STATES_UPDATED"}. If
-   * validation of the new list fails, the error will be logged and the previous {@link NodeState}
-   * list will be restored.
-   *
-   * @param nodeStates the new list of {@link NodeState}s associated with this {@code Node}
-   * @return {@code true} if the new list was successfully set, or {@code false} if validation
-   *     failed
-   */
-  public boolean setNodeStates(List<NodeState> nodeStates) {
-    List<NodeState> oldStates = this.nodeStates;
-    this.nodeStates = Collections.unmodifiableList(nodeStates);
-    try {
-      support.firePropertyChange(NODE_STATES_UPDATED.name(), oldStates, nodeStates);
-      return true;
-    } catch (BayesNetIDException e) {
-      log.error("Error setting states, '{}' reverting...", e.getMessage());
-      this.nodeStates = oldStates;
-      return false;
-    }
   }
 
   /**
@@ -169,9 +144,36 @@ public class Node {
    *
    * @param stateID the identifier for the new {@link NodeState}
    * @param <T> the type of the state identifier.
+   * @return {@code true} if new state was successfully added, or {@code false} if validation
+   *     failed.
    */
-  public <T extends Serializable> void addState(T stateID) {
-    NodeUtils.addNodeState(this, stateID);
+  public <T extends Serializable> boolean addState(@NonNull T stateID) {
+    NodeState newState = new NodeState(stateID, this);
+    return setNodeStates(NodeUtils.addToList(nodeStates, newState));
+  }
+
+  /**
+   * Sets a list of {@link NodeState} values as the new active states for this {@code Node}.
+   *
+   * <p>This method fires a property change event with the label {@code "NODE_STATES_UPDATED"}. If
+   * validation of the new list fails, the error will be logged and the previous {@link NodeState}
+   * list will be restored.
+   *
+   * @param nodeStates the new list of {@link NodeState}s associated with this {@code Node}
+   * @return {@code true} if the new list was successfully set, or {@code false} if validation
+   *     failed
+   */
+  public boolean setNodeStates(List<NodeState> nodeStates) {
+    List<NodeState> oldStates = this.nodeStates;
+    this.nodeStates = Collections.unmodifiableList(nodeStates);
+    try {
+      support.firePropertyChange(NODE_STATES_UPDATED.name(), oldStates, nodeStates);
+      return true;
+    } catch (BayesNetIDException e) {
+      log.error("Error setting states, '{}' reverting...", e.getMessage());
+      this.nodeStates = oldStates;
+      return false;
+    }
   }
 
   /**
@@ -179,9 +181,11 @@ public class Node {
    *
    * @param stateID the identifier of the {@link NodeState} to be removed.
    * @param <E> the type of the state identifier.
+   * @return {@code true} if the {@link NodeState} was successfully removed, or {@code false} if
+   *     validation failed
    */
-  public <E extends Serializable> void removeState(E stateID) {
-    NodeUtils.removeState(this, stateID);
+  public <E extends Serializable> boolean removeState(E stateID) {
+    return setNodeStates(NodeUtils.statesWithoutId(nodeStates, stateID));
   }
 
   /**
