@@ -46,7 +46,7 @@ public interface ObservedTableHelper extends TableHelper<ObservedTable> {
    * the given {@link NodeState} to be in the measured node's state list, otherwise {@code null}
    * will be returned.
    *
-   * @param stateId the id of a state within the {@link ObservedTable}'s measured node to be
+   * @param stateId the identifier of a state within the {@link ObservedTable}'s measured node to be
    *     queried.
    * @return the probability table entry associated with the input state, or {@code null} if safe
    *     mode validation fails.

@@ -44,8 +44,8 @@ public interface TableHelper<T extends ProbabilityTable> {
    * {@link NodeState} for every {@link Node} within the table, otherwise {@code null} will be
    * returned.
    *
-   * @param <S> the class of the {@link NodeState} ids.
-   * @param stateIds the collection of all {@link NodeState} ids to be queried.
+   * @param <S> the class of the {@link NodeState} identifiers.
+   * @param stateIds the collection of all {@link NodeState} identifiers to be queried.
    * @return the probability table entry associated with the input states, or {@code null} if safe
    *     mode validation fails.
    */

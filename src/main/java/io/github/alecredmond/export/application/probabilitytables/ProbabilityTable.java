@@ -24,18 +24,18 @@ import java.util.Set;
  */
 public interface ProbabilityTable {
   /**
-   * Returns a map from each {@link NodeState} id to its corresponding {@link NodeState} instance
-   * within this table.
+   * Returns a map from each {@link NodeState} identifier to its corresponding {@link NodeState}
+   * instance within this table.
    *
-   * @return an unmodifiable map from {@link NodeState} id to {@link NodeState} instances.
+   * @return an unmodifiable map from {@link NodeState} identifier to {@link NodeState} instances.
    */
   Map<Serializable, NodeState> getNodeStateIDMap();
 
   /**
-   * Returns a map from each {@link Node} id to its corresponding {@link Node} instance within this
-   * table.
+   * Returns a map from each {@link Node} identifier to its corresponding {@link Node} instance
+   * within this table.
    *
-   * @return an unmodifiable map from {@link Node} id to {@link Node} instances.
+   * @return an unmodifiable map from {@link Node} identifier to {@link Node} instances.
    */
   Map<Serializable, Node> getNodeIDMap();
 
@@ -74,8 +74,8 @@ public interface ProbabilityTable {
 
   /**
    * Returns the name of this table, typically of the form {@code P(E1,...,En|C1,...,Cm)}, where
-   * {@code E1,...,En} are the ids of the event nodes and {@code C1,...,Cm} are the ids of the
-   * condition nodes.
+   * {@code E1,...,En} are the identifiers of the event nodes and {@code C1,...,Cm} are the
+   * identifiers of the condition nodes.
    *
    * @return the name of this table.
    */

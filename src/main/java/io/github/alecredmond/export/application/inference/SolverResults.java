@@ -32,6 +32,7 @@ public class SolverResults {
    */
   private final double lastError;
 
+  /** The total duration of the solver's run. */
   private final Duration solverRunDuration;
 
   /**

@@ -153,8 +153,10 @@ class NewBayesianNetworkTest {
 
     @ParameterizedTest
     @MethodSource("nodeInputArgs_nodeIdErrors")
-    void addNewNode_onlyId_shouldThrowError(Serializable id) {
-      assertThrows(BayesNetIDException.class, () -> test.addNewNode(id));
+    void addNewNode_onlyId_shouldThrowError(
+        Serializable id, List<Serializable> stateIds, Class<Exception> exceptionClass) {
+      assertFalse(stateIds.isEmpty());
+      assertThrows(exceptionClass, () -> test.addNewNode(id));
     }
 
     @NoArgsConstructor

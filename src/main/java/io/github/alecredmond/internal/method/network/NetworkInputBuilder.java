@@ -1,5 +1,6 @@
 package io.github.alecredmond.internal.method.network;
 
+import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.network.NetworkBuilderNode;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
@@ -50,7 +51,7 @@ public class NetworkInputBuilder {
   }
 
   private ConstraintBuilderIterator buildConstraintBuilderIterator(NetworkBuilderNode nodeInput) {
-    List<? extends Serializable> cptStrideOrderIds = nodeInput.getCptStrideOrderDesc();
+    List<? extends Serializable> cptStrideOrderIds = nodeInput.getCptNodeOrder();
     double[] cptValues = nodeInput.getCptValues();
     List<Node> nodes = convertToNodes(cptStrideOrderIds);
     ProbabilityVector vector = vectorFactory.build(nodes);
@@ -70,7 +71,7 @@ public class NetworkInputBuilder {
       double[] cptValues, ProbabilityVector vector, List<Node> nodes) {
     int vectorLength = vector.getProbabilities().length;
     if (cptValues.length != vectorLength) {
-      throw new IllegalArgumentException(
+      throw new ConstraintValidationException(
           "CPT input for %s requires array length %d, but was length %d."
               .formatted(NodeUtils.formatNodesToString(nodes), vectorLength, cptValues.length));
     }

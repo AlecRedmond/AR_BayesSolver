@@ -143,6 +143,9 @@ public class NodeUtils {
   }
 
   public static <T extends Serializable> NodeState addNodeState(Node node, T stateID) {
+    if (node.getNodeStates().stream().map(NodeState::getId).anyMatch(stateID::equals)) {
+      return null;
+    }
     return addToList(node.getNodeStates(), new NodeState(stateID, node), node::setNodeStates)
         .getLast();
   }

@@ -53,8 +53,6 @@ class JTANetworkWriter {
   }
 
   public void writeObservations() {
-    log.info("WRITING OBSERVATIONS...");
-
     BayesianNetworkData networkData = jtd.getNetworkData();
 
     Arrays.stream(jtd.getCliques())
@@ -68,8 +66,6 @@ class JTANetworkWriter {
 
     Map<Node, NodeState> observationMap = Collections.unmodifiableMap(jtd.getObservedEvidence());
     networkData.getNodes().forEach(node -> updateObservedTables(node, observationMap));
-
-    log.info("...OBSERVATIONS WRITTEN!");
   }
 
   private void updateObservedTables(Node node, Map<Node, NodeState> observationMap) {
