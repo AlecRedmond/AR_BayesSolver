@@ -98,24 +98,24 @@ public interface InferenceEngine {
 
   /**
    * Replaces the current observed states in the inference network with the given {@link NodeState},
-   * identified by its id. This will lock its associated {@link Node} to that value. This will
+   * referenced by its identifier. This will lock its associated {@link Node} to that value. This will
    * change all measured probability values in this instance to posterior probabilities, conditional
    * on this state.
    *
-   * @param observedStateId the id of the single state to be observed.
-   * @param <T> the type of the state id.
+   * @param observedStateId the identifier of the single state to be observed.
+   * @param <T> the type of the state identifier.
    * @return this instance for chaining.
    */
   <T extends Serializable> InferenceEngine observeNetworkFromIds(T observedStateId);
 
   /**
    * Replaces the current observed states in the inference network with the given states, identified
-   * by their ids. Each {@link NodeState} will lock its associated {@link Node} to that value. This
+   * by their identifiers. Each {@link NodeState} will lock its associated {@link Node} to that value. This
    * will change all measured probability values in this instance to posterior probabilities,
    * conditional on these states.
    *
-   * @param observedStateIDs the collection of ids associated with the states to be observed.
-   * @param <T> the type of the state ids.
+   * @param observedStateIDs the collection of identifiers associated with the states to be observed.
+   * @param <T> the type of the state identifiers.
    * @return this instance for chaining.
    * @throws NodeStateConflictException if multiple {@link NodeState} values would map to the same
    *     {@link Node}.
@@ -137,10 +137,10 @@ public interface InferenceEngine {
    * probability otherwise. The values on this table are not deep-copied and will change if the
    * observations on this instance change.
    *
-   * @param nodeId the id of the {@link Node} associated with the {@link ObservedTable}.
-   * @param <T> the type of the node id.
+   * @param nodeId the identifier of the {@link Node} associated with the {@link ObservedTable}.
+   * @param <T> the type of the node identifier.
    * @return a {@link ObservedTable} mapping a single node's states to their current probability.
-   * @throws NullPointerException if the id was not associated with any {@link Node}.
+   * @throws NullPointerException if the identifier was not associated with any {@link Node}.
    */
   <T extends Serializable> ObservedTable getObservedTableById(T nodeId);
 
@@ -163,8 +163,8 @@ public interface InferenceEngine {
    * probability otherwise. This will provide a deep copy of the table, and the probability values
    * will not change if the observations on the instance change.
    *
-   * @param nodeId the id of the {@link Node} associated with the {@link ObservedTable}.
-   * @param <T> the type of the node id.
+   * @param nodeId the identifier of the {@link Node} associated with the {@link ObservedTable}.
+   * @param <T> the type of the node identifier.
    * @return a {@link ObservedTable} mapping a single node's states to their probability given the
    *     conditions when constructed.
    * @throws NullPointerException if the id was not associated with any {@link Node}.
@@ -220,8 +220,8 @@ public interface InferenceEngine {
    * probability if this {@code InferenceEngine} is unobserved. This measures {@code P(S|O)} where S
    * is the intersection of all queried states and O is the current observations.
    *
-   * @param measuredStateIds the ids of all {@link NodeState} values to be queried.
-   * @param <T> the type of the measured {@link NodeState} ids.
+   * @param measuredStateIds the identifiers of all {@link NodeState} values to be queried.
+   * @param <T> the type of the measured {@link NodeState} identifiers.
    * @return the posterior probability of all measured {@link NodeState} values.
    * @throws NullPointerException if any id was not associated with a {@link NodeState}.
    */
@@ -232,8 +232,8 @@ public interface InferenceEngine {
    * probability if this {@code InferenceEngine} is unobserved. This measures {@code P(s|O)} where s
    * is the queried state and O is the current observations.
    *
-   * @param measuredStateId the id of the {@link NodeState} to be queried.
-   * @param <T> the type of the measured {@link NodeState} id.
+   * @param measuredStateId the identifier of the {@link NodeState} to be queried.
+   * @param <T> the type of the measured {@link NodeState} identifier.
    * @return the posterior probability of the measured {@link NodeState} value.
    * @throws NullPointerException if the id was not associated with any {@link NodeState}.
    */
@@ -255,13 +255,13 @@ public interface InferenceEngine {
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
    * printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
-   * @param nodeIds the ids of all {@link Node} values where the associated {@link ObservedTable}
+   * @param nodeIds the identifiers of all {@link Node} values where the associated {@link ObservedTable}
    *     should be printed.
-   * @param <T> the type of the {@link Node} ids.
+   * @param <T> the type of the {@link Node} identifiers.
    * @return this instance for chaining.
    * @throws NetworkPrinterException if the printer is unable to successfully complete the
    *     operation.
-   * @throws NullPointerException if any ids were not associated with a {@link Node}.
+   * @throws NullPointerException if any identifiers were not associated with a {@link Node}.
    */
   <T extends Serializable> InferenceEngine printObservedById(Collection<T> nodeIds);
 
@@ -270,13 +270,13 @@ public interface InferenceEngine {
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
    * printer can be defined within {@code app.properties} under the {@code app.printer} section.
    *
-   * @param nodeId the id of the {@link Node} where the associated {@link ObservedTable} should be
+   * @param nodeId the identifier of the {@link Node} where the associated {@link ObservedTable} should be
    *     printed.
-   * @param <T> the class of the {@link Node} id.
+   * @param <T> the class of the {@link Node} identifier.
    * @return this instance for chaining.
    * @throws NetworkPrinterException if the printer is unable to successfully complete the
    *     operation.
-   * @throws NullPointerException if the id was not associated with any {@link Node}.
+   * @throws NullPointerException if the identifier was not associated with any {@link Node}.
    */
   <T extends Serializable> InferenceEngine printObservedById(T nodeId);
 

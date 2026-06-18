@@ -45,7 +45,7 @@ public interface RootNodeTableHelper extends NetworkTableHelper<RootNodeTable> {
    * the given {@link NodeState} to be in the root node's state list, otherwise {@code null} will be
    * returned.
    *
-   * @param stateId the id of the {@link NodeState} within the {@link RootNodeTable}'s network node
+   * @param stateId the identifier of the {@link NodeState} within the {@link RootNodeTable}'s network node
    *     to be queried.
    * @return the probability table entry associated with the input state, or {@code null} if safe
    *     mode validation fails.

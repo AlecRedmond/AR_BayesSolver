@@ -81,25 +81,25 @@ public interface SampleCollection {
 
   /**
    * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
-   * contain every {@link NodeState} identified by the given IDs. This is equivalent to {@code
+   * contain every {@link NodeState} identified by the given identifiers. This is equivalent to {@code
    * P(X|obs) * n}, where {@code X} is the set of queried {@link NodeState} values, {@code obs} is
    * the set of observations used during the {@link Sampler} run, and {@code n} is the total number
    * of samples generated.
    *
-   * @param <T> the serializable ID type.
-   * @param stateIds the IDs of the {@link NodeState} values to query.
+   * @param <T> the serializable identifier type.
+   * @param stateIds the identifiers of the {@link NodeState} values to query.
    * @return the combined frequency of all {@link Sample}s containing every specified state.
    */
   <T extends Serializable> int countSamplesIncludingStateIds(Collection<T> stateIds);
 
   /**
    * Returns the combined frequency of all {@link Sample}s in this {@code SampleCollection} that
-   * contain the {@link NodeState} identified by the given ID. This is equivalent to {@code P(x|obs)
+   * contain the {@link NodeState} identified by the given identifier. This is equivalent to {@code P(x|obs)
    * * n}, where {@code x} is the queried {@link NodeState}, {@code obs} is the set of observations
    * used during the {@link Sampler} run, and {@code n} is the total number of samples generated.
    *
-   * @param <T> the serializable ID type.
-   * @param stateId the ID of the {@link NodeState} value to query.
+   * @param <T> the serializable identifier type.
+   * @param stateId the identifier of the {@link NodeState} value to query.
    * @return the combined frequency of all {@link Sample}s containing the specified state.
    * @throws NullPointerException if {@code stateId} is not mapped to any valid {@link NodeState}.
    */
@@ -137,24 +137,24 @@ public interface SampleCollection {
 
   /**
    * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
-   * every {@link NodeState} identified by the given IDs. Each {@link Sample} contains a unique
+   * every {@link NodeState} identified by the given identifiers. Each {@link Sample} contains a unique
    * combination of {@link NodeState} values and the frequency of its occurrence in the {@link
    * Sampler} run.
    *
-   * @param <T> the serializable ID type.
-   * @param stateIds the IDs of the {@link NodeState} values to query.
+   * @param <T> the serializable identifier type.
+   * @param stateIds the identifiers of the {@link NodeState} values to query.
    * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
    */
   <T extends Serializable> List<Sample> getSamplesIncludingStatesById(Collection<T> stateIds);
 
   /**
    * Returns a list of all distinct {@link Sample}s in this {@code SampleCollection} that contain
-   * the {@link NodeState} identified by the given ID. Each {@link Sample} contains a unique
+   * the {@link NodeState} identified by the given identifier. Each {@link Sample} contains a unique
    * combination of {@link NodeState} values and the frequency of its occurrence in the {@link
    * Sampler} run.
    *
-   * @param <T> the serializable ID type.
-   * @param stateId the ID of the {@link NodeState} value to query.
+   * @param <T> the serializable identifier type.
+   * @param stateId the identifier of the {@link NodeState} value to query.
    * @return an unmodifiable {@link List} of the matching {@link Sample} objects.
    * @throws NullPointerException if {@code stateId} is not mapped to any valid {@link NodeState}.
    */
@@ -198,30 +198,30 @@ public interface SampleCollection {
 
   /**
    * Restricts the displayed {@link Node}s in each {@link Sample} to those identified by the given
-   * IDs. After this call, {@link Sample} methods such as {@link Sample#getDisplayedStates()} will
+   * identifiers. After this call, {@link Sample} methods such as {@link Sample#getDisplayedStates()} will
    * only return the {@link NodeState}s associated with the specified {@link Node}s. This
    * restriction can be reset by calling {@link #displayAllNodes()} on this {@code
    * SampleCollection}, or on a per-sample basis by calling {@link Sample#displayAllNodes()}. This
    * only affects the states exported on a per-sample basis and does not affect count methods such
    * as {@link #countSamplesIncludingStates(Collection)}.
    *
-   * @param <T> the serializable ID type.
-   * @param nodeIds the IDs of the {@link Node} objects each {@link Sample} will be restricted to.
+   * @param <T> the serializable identifier type.
+   * @param nodeIds the identifiers of the {@link Node} objects each {@link Sample} will be restricted to.
    * @see #displayAllNodes()
    */
   <T extends Serializable> void setDisplayedNodesById(Collection<T> nodeIds);
 
   /**
    * Restricts the displayed {@link Node} in each {@link Sample} to the single instance identified
-   * by the given ID. After this call, {@link Sample} methods such as {@link
+   * by the given identifier. After this call, {@link Sample} methods such as {@link
    * Sample#getDisplayedStates()} will only return the {@link NodeState} associated with the
    * specified {@link Node}. This restriction can be reset by calling {@link #displayAllNodes()} on
    * this {@code SampleCollection}, or on a per-sample basis by calling {@link
    * Sample#displayAllNodes()}. This only affects the states exported on a per-sample basis and does
    * not affect count methods such as {@link #countSamplesIncludingStates(Collection)}.
    *
-   * @param <T> the serializable ID type.
-   * @param nodeId the ID of the {@link Node} each {@link Sample} will be restricted to.
+   * @param <T> the serializable identifier type.
+   * @param nodeId the identifier of the {@link Node} each {@link Sample} will be restricted to.
    * @throws NullPointerException if {@code nodeId} is not mapped to any valid {@link Node}.
    * @see #displayAllNodes()
    */
