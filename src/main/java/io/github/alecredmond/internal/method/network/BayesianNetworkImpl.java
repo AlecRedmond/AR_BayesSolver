@@ -10,7 +10,7 @@ import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.network.NetworkErrorPolicy;
+import io.github.alecredmond.internal.application.network.NetworkErrorPolicy;
 import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;

@@ -1,4 +1,4 @@
-package io.github.alecredmond.export.method.network;
+package io.github.alecredmond.internal.application.network;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;

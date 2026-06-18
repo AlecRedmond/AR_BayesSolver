@@ -5,6 +5,7 @@ import static io.github.alecredmond.internal.method.network.changehandlers.Netwo
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.method.network.BayesianNetworkBuilder;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -30,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see NodeState
  * @see BayesianNetwork
+ * @see BayesianNetworkBuilder
  * @see ProbabilityConstraint
  * @author Alec Redmond
  */
@@ -58,17 +60,31 @@ public class Node {
   /** The children of this {@code Node} in the {@link BayesianNetwork} structure */
   private List<Node> children;
 
+  /**
+   * Constructs a new {@code Node} from its identifier and the identifiers of its {@link NodeState}
+   * values.
+   *
+   * @param nodeId the {@link Serializable} identifier of the {@code Node}.
+   * @param stateIDs the {@link Serializable} identifiers of the {@link NodeState} values.
+   * @throws NullPointerException if the node identifier is {@code null}.
+   */
   public <T extends Serializable, E extends Serializable> Node(
-      @NonNull T id, Collection<E> stateIDs) {
-    this.id = id;
+      @NonNull T nodeId, Collection<E> stateIDs) {
+    this.id = nodeId;
     this.parents = List.of();
     this.children = List.of();
     this.nodeStates = List.of();
     NodeUtils.addNodeStates(this, stateIDs);
   }
 
-  public <T extends Serializable> Node(T id) {
-    this.id = id;
+  /**
+   * Constructs a new {@code Node} from its identifier
+   *
+   * @param nodeId the {@link Serializable} identifier of the {@code Node}.
+   * @throws NullPointerException if the node identifier is {@code null}.
+   */
+  public <T extends Serializable> Node(@NonNull T nodeId) {
+    this.id = nodeId;
     this.parents = List.of();
     this.children = List.of();
     this.nodeStates = List.of();
@@ -98,9 +114,9 @@ public class Node {
   }
 
   /**
-   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire a
-   * property change event called {@code "NODE_PARENTS_UPDATED"}. If validation of the new list
-   * fails, the error will be logged and the previous parent list will be restored.
+   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire the
+   * property change event {@code "NODE_PARENTS_UPDATED"}. If validation of the new list fails, the
+   * error will be logged and the previous parent list will be restored.
    *
    * @param parents the new list of parents connected to this {@code Node}.
    * @return {@code true} if the new list was successfully set, or {@code false} if an error was
@@ -120,9 +136,9 @@ public class Node {
   }
 
   /**
-   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire a
-   * property change event called {@code "NODE_CHILDREN_UPDATED"}. If validation of the new list
-   * fails, the error will be logged and the previous children list will be restored.
+   * Sets a list of {@link Node}s as the new parents for this {@code Node}. This will fire the
+   * property change event {@code "NODE_CHILDREN_UPDATED"}. If validation of the new list fails, the
+   * error will be logged and the previous children list will be restored.
    *
    * @param children the new list of children connected to this {@code Node}.
    * @return {@code true} if the new list was successfully set, or {@code false} if an error was
@@ -161,11 +177,25 @@ public class Node {
     NodeUtils.removeParent(this, parent);
   }
 
+  /**
+   * Adds this {@code Node} to a {@link PropertyChangeListener} and fires the property change event
+   * {@code "NODE_ADDED_TO_NETWORK"}. This method is used internally by the implementation of {@link
+   * BayesianNetwork}.
+   *
+   * @param listener a {@link PropertyChangeListener} instance.
+   */
   public void addPropertyChangeListener(PropertyChangeListener listener) {
     support.addPropertyChangeListener(listener);
     support.firePropertyChange(NODE_ADDED_TO_NETWORK.name(), null, this);
   }
 
+  /**
+   * Removes this {@code Node} from a {@link PropertyChangeListener} and fires the property change
+   * event {@code "NODE_REMOVED_FROM_NETWORK"}. This method is used internally by the implementation
+   * of {@link BayesianNetwork}.
+   *
+   * @param listener a {@link PropertyChangeListener} instance listening to this {@code Node}.
+   */
   public void removePropertyChangeListener(PropertyChangeListener listener) {
     support.firePropertyChange(NODE_REMOVED_FROM_NETWORK.name(), this, null);
     support.removePropertyChangeListener(listener);
