@@ -169,11 +169,9 @@ public class Node {
    *
    * @param stateID the identifier for the new {@link NodeState}
    * @param <T> the type of the state identifier.
-   * @return the newly created {@link NodeState}, or {@code null} if the given state identifier
-   *     already existed in the list.
    */
-  public <T extends Serializable> NodeState addState(T stateID) {
-    return NodeUtils.addNodeState(this, stateID);
+  public <T extends Serializable> void addState(T stateID) {
+    NodeUtils.addNodeState(this, stateID);
   }
 
   /**

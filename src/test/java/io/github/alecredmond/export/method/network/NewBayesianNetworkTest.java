@@ -233,6 +233,17 @@ class NewBayesianNetworkTest {
           Arguments.of("A", List.of(), 0));
     }
 
+    static Stream<Arguments> failedStateAdditions() {
+      return Stream.of(
+          Arguments.of("A", "A+", null),
+          Arguments.of("A", "A-", null),
+          Arguments.of("A", "B", null),
+          Arguments.of("A", null, NullPointerException.class),
+          Arguments.of(null, "A", NullPointerException.class),
+          Arguments.of("E", "A", NullPointerException.class),
+          Arguments.of("A", "B+", null));
+    }
+
     @BeforeEach
     void addConstraints() {
       test.addConstraint("A+", 0.5)
@@ -288,6 +299,36 @@ class NewBayesianNetworkTest {
           expectedConstraints,
           (n, a) -> a.getAdded().forEach(added -> n.addState(added.getId())),
           (n, a) -> a.getRemoved().forEach(added -> n.removeState(added.getId())));
+    }
+
+    @ParameterizedTest
+    @MethodSource("failedStateAdditions")
+    void addNodeStates_shouldNotSucceed(
+        Serializable nodeId, Serializable stateId, Class<Exception> exceptionClass) {
+      try {
+        Node node = test.getNode(nodeId);
+        Set<NodeState> states = new HashSet<>(node.getNodeStates());
+        node.addState(stateId);
+        assertEquals(states, new HashSet<>(node.getNodeStates()));
+      } catch (Exception e) {
+        assertEquals(e.getClass(), exceptionClass);
+      }
+    }
+
+    @ParameterizedTest
+    @MethodSource("failedStateAdditions")
+    void setNewNodeStates_shouldNotSucceed(
+        Serializable nodeId, Serializable stateId, Class<Exception> exceptionClass) {
+      try {
+        Node node = test.getNode(nodeId);
+        Set<NodeState> originalStates = new HashSet<>(node.getNodeStates());
+        List<NodeState> toSet = new ArrayList<>(node.getNodeStates());
+        toSet.add(new NodeState(stateId, node));
+        assertFalse(node.setNodeStates(toSet));
+        assertEquals(originalStates, new HashSet<>(node.getNodeStates()));
+      } catch (Exception e) {
+        assertEquals(e.getClass(), exceptionClass);
+      }
     }
   }
 
