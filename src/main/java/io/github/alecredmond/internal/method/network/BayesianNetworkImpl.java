@@ -2,6 +2,7 @@ package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
+import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
@@ -10,9 +11,9 @@ import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.application.network.NetworkErrorPolicy;
 import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.internal.application.network.NetworkErrorPolicy;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintHandler;
 import io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
@@ -259,17 +261,19 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   // ----------------------------------CONSTRAINT GETTERS------------------------------------------
   // ----------------------------------------------------------------------------------------------
 
-  public <T extends Serializable> ProbabilityConstraint getConstraint(T eventStateId) {
-    return getConstraint(List.of(eventStateId), List.of());
+  public <T extends Serializable> MarginalConstraint getConstraint(@NonNull T eventStateId) {
+    ProbabilityConstraint constraint = getConstraint(List.of(eventStateId), List.of());
+    if (constraint instanceof MarginalConstraint mc) return mc;
+    return null;
   }
 
   public <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
-      T eventStateId, Collection<E> conditionStateIds) {
+      @NonNull T eventStateId, @NonNull Collection<E> conditionStateIds) {
     return getConstraint(List.of(eventStateId), conditionStateIds);
   }
 
   public <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
-      Collection<T> eventStateIds, Collection<E> conditionStateIds) {
+      @NonNull Collection<T> eventStateIds, @NonNull Collection<E> conditionStateIds) {
     return networkConstraintHandler.getConstraint(
         getNodeStates(eventStateIds), getNodeStates(conditionStateIds));
   }

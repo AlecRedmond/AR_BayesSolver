@@ -12,6 +12,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
 import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
@@ -49,7 +50,7 @@ public interface BayesianNetwork {
   /**
    * Creates a new, empty Bayesian Network with the default name "UNNAMED NETWORK".
    *
-   * @return a new BayesianNetwork instance.
+   * @return a new {@code BayesianNetwork} instance.
    */
   static BayesianNetwork newNetwork() {
     return new BayesianNetworkImpl();
@@ -59,23 +60,23 @@ public interface BayesianNetwork {
    * Creates a new, empty Bayesian Network with a specified name.
    *
    * @param networkName the name for the new network.
-   * @return a new BayesianNetwork instance.
+   * @return a new {@code BayesianNetwork} instance.
    */
   static BayesianNetwork newNetwork(String networkName) {
     return new BayesianNetworkImpl(networkName);
   }
 
   /**
-   * Loads a saved BayesianNetwork from a JFileChooser window
+   * Loads a saved {@code BayesianNetwork} from a JFileChooser window
    *
-   * @return a loaded BayesianNetwork instance
+   * @return a loaded {@code BayesianNetwork} instance
    */
   static BayesianNetwork loadNetworkFromFile() {
     return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork();
   }
 
   /**
-   * Loads a saved BayesianNetwork.
+   * Loads a saved {@code BayesianNetwork}.
    *
    * @param file the selected .bayes file to load
    * @return a loaded BayesianNetwork instance
@@ -85,7 +86,7 @@ public interface BayesianNetwork {
   }
 
   /**
-   * Loads a saved BayesianNetwork.
+   * Loads a saved {@code BayesianNetwork}.
    *
    * @param filePath the absolute path to a .bayes file
    * @return a loaded BayesianNetwork instance
@@ -403,20 +404,17 @@ public interface BayesianNetwork {
    *     - if probability p is outwith 0 <= p <= 1 <br>
    *     - if attempting to make a state conditional on another state from the same node <br>
    *     - if attempting to add a MarginalConstraint with non-empty conditions
-   * @return this instance for chaining
+   * @return this instance for method chaining
    */
   BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint);
 
   /**
-   * Adds a collection probability constraints to the network.
+   * Adds a collection of {@link ProbabilityConstraint}s to this {@code BayesianNetwork}.
    *
-   * @param probabilityConstraints a collection of ProbabilityConstraint objects such as {@link
-   *     MarginalConstraint} or {@link ConditionalConstraint}
-   * @throws ConstraintValidationException <br>
-   *     - if probability p is outwith 0 <= p <= 1 <br>
-   *     - if attempting to make a state conditional on another state from the same node <br>
-   *     - if attempting to add a MarginalConstraint with non-empty conditions
-   * @return this instance for chaining
+   * @param probabilityConstraints a collection of {@link ProbabilityConstraint}s to be added.
+   * @return this instance for method chaining.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
    */
   BayesianNetwork addConstraints(Collection<ProbabilityConstraint> probabilityConstraints);
 
@@ -425,27 +423,41 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Searches the network for a marginal constraint with an event NodeState matching the given ID.
+   * Searches this {@code BayesianNetwork} for a {@link MarginalConstraint} with an event {@link
+   * NodeState} matching the given identifier.
    *
-   * @param eventStateId the id of the NodeState of a marginal constraint
-   * @param <T> the class of the event state ID
-   * @throws IllegalArgumentException if the state is not found within the data.
-   * @return the associated MarginalConstraint, or null if it does not exist
+   * @param eventStateId the identifier of a {@link NodeState}.
+   * @param <T> the class of the event {@link NodeState} identifier.
+   * @return the associated {@link MarginalConstraint}, or {@code null} if it does not exist.
+   * @throws NullPointerException if the parameter is {@code null}.
    */
-  <T extends Serializable> ProbabilityConstraint getConstraint(T eventStateId);
+  <T extends Serializable> MarginalConstraint getConstraint(T eventStateId);
 
   /**
-   * Searches the network for a conditional or marginal constraint with event and condition
-   * NodeStates matching the given IDs.
+   * Searches this {@code BayesianNetwork} for a {@link ProbabilityConstraint} with event and
+   * condition {@link NodeState}s matching the given identifiers.
    *
-   * @param eventStateId the id of the NodeState of a marginal constraint
-   * @param <T> the class of the event state ID
-   * @throws IllegalArgumentException if the states are not found within the data.
-   * @return the associated constraint, or null if it does not exist
+   * @param eventStateId the identifier of the event {@link NodeState}.
+   * @param conditionStateIds the identifiers of the condition {@link NodeState}s.
+   * @param <T> the class of the event {@link NodeState} identifier.
+   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @return the associated {@link ProbabilityConstraint}, or {@code null} if it does not exist.
+   * @throws NullPointerException if any parameter is {@code null}.
    */
   <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
       T eventStateId, Collection<E> conditionStateIds);
 
+  /**
+   * Searches this {@code BayesianNetwork} for a {@link ProbabilityConstraint} with event and
+   * condition {@link NodeState}s matching the given identifiers.
+   *
+   * @param eventStateIds the identifiers of the event {@link NodeState}s.
+   * @param conditionStateIds the identifiers of the condition {@link NodeState}s.
+   * @param <T> the class of the event {@link NodeState} identifiers.
+   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @return the associated {@link ProbabilityConstraint}, or {@code null} if it does not exist.
+   * @throws NullPointerException if any parameter is {@code null}.
+   */
   <T extends Serializable, E extends Serializable> ProbabilityConstraint getConstraint(
       Collection<T> eventStateIds, Collection<E> conditionStateIds);
 
@@ -454,43 +466,58 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Removes a constraint from the network.
+   * Removes a {@link ProbabilityConstraint} from this {@code BayesianNetwork}.
    *
-   * @param probabilityConstraint the constraint to remove
-   * @return true if the constraint existed in the network
+   * @param probabilityConstraint the {@link ProbabilityConstraint} to remove.
+   * @return {@code true} if the {@link ProbabilityConstraint} existed in the network.
    */
   boolean removeConstraint(ProbabilityConstraint probabilityConstraint);
 
   /**
-   * Removes a marginal constraint from the network.
+   * Removes a {@link MarginalConstraint} matching the given event {@link NodeState}'s identifier
+   * from this {@code BayesianNetwork}.
    *
-   * @param eventStateId the id of the event NodeState in the constraint
-   * @param <T> the class of the event NodeState's id.
-   * @throws IllegalArgumentException if the state is not found within the data.
-   * @return true if the constraint existed in the network
+   * @param eventStateId the identifier of the event {@link NodeState} in the {@link
+   *     MarginalConstraint}.
+   * @param <T> the class of the event {@link NodeState} identifier.
+   * @return {@code true} if a matching {@link MarginalConstraint} existed in the network
    */
   <T extends Serializable> boolean removeConstraint(T eventStateId);
 
   /**
-   * Removes a constraint from the network.
+   * Removes a {@link ProbabilityConstraint} matching the given inputs from this {@code
+   * BayesianNetwork}.
    *
-   * @param eventStateId the id of the event NodeState in the constraint
-   * @param <T> the class of the event NodeState's id.
-   * @param conditionStateIds the collected ids of all condition NodeStates in the constraint
-   * @param <E> the class of the condition NodeState ids
-   * @throws IllegalArgumentException if the states are not found within the data.
-   * @return true if the constraint existed in the network
+   * @param eventStateId the identifier of the event {@link NodeState} in the {@link
+   *     ProbabilityConstraint}.
+   * @param conditionStateIds the collected ids of all condition {@link NodeState}s in the {@link
+   *     ProbabilityConstraint}.
+   * @param <T> the class of the event {@link NodeState} identifier.
+   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @return {@code true} if a matching {@link ProbabilityConstraint} existed in the network
    */
   <T extends Serializable, E extends Serializable> boolean removeConstraint(
       T eventStateId, Collection<E> conditionStateIds);
 
+  /**
+   * Removes a {@link ProbabilityConstraint} matching the given inputs from this {@code
+   * BayesianNetwork}.
+   *
+   * @param eventStateIds the identifiers of the event {@link NodeState}s in the {@link
+   *     ProbabilityConstraint}.
+   * @param conditionStateIds the collected ids of all condition {@link NodeState}s in the {@link
+   *     ProbabilityConstraint}.
+   * @param <T> the class of the event {@link NodeState} identifiers.
+   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @return {@code true} if a matching {@link ProbabilityConstraint} existed in the network
+   */
   <T extends Serializable, E extends Serializable> boolean removeConstraint(
       Collection<T> eventStateIds, Collection<E> conditionStateIds);
 
   /**
-   * Removes all constraints defined on the network.
+   * Removes all {@link ProbabilityConstraint}s from this {@code BayesianNetwork}.
    *
-   * @return true if any constraints existed in the network
+   * @return {@code true} if any {@link ProbabilityConstraint}s existed in the network.
    */
   boolean removeAllConstraints();
 
@@ -499,20 +526,26 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Runs a BayesSolver instance to find the best fit for the constraints provided. Other methods
-   * that involve sampling, observing, and printing from the network implicitly run this method. If
-   * analysis of the solver convergence is required, consider creating a new {@link BayesSolver}
-   * instance using {@code BayesSolver.create(network)}
+   * Runs a {@link BayesSolver} instance to find the best fit for the constraints provided. Other
+   * methods that involve sampling, observing, and printing from the network implicitly run this
+   * method. If analysis of the solver convergence is required, consider creating a new {@link
+   * BayesSolver} instance using {@code BayesSolver.create(network)}.
    *
    * @return this instance for method chaining.
    */
   BayesianNetwork solveNetwork();
 
+  /**
+   * Checks if this {@code BayesianNetwork} is in a solved configuration.
+   *
+   * @return {@code true} if this {@code BayesianNetwork} has been solved.
+   */
   boolean isSolved();
 
   /**
-   * Prints the results of the most recent observation (posterior probabilities) according to
-   * current printer configurations.
+   * Prints the CPTs of this {@code BayesianNetwork}, either to a {@code .txt} file or to the
+   * console. Parameters for the printer can be defined within {@code app.properties} under the
+   * {@code app.printer} section.
    *
    * @return this instance for method chaining.
    */
@@ -527,9 +560,10 @@ public interface BayesianNetwork {
   BayesianNetwork buildNetworkData();
 
   /**
-   * Retrieves the underlying data object containing all network information.
+   * Retrieves the data object containing all network information pertinent to this {@code
+   * BayesianNetwork}. It is advisable to not modify this data in any way.
    *
-   * @return the raw data class associated with the Bayesian network.
+   * @return the data object for this {@code BayesianNetwork}.
    */
   BayesianNetworkData getNetworkData();
 
@@ -543,14 +577,24 @@ public interface BayesianNetwork {
   <T extends Serializable> NetworkTable getNetworkTable(T nodeID);
 
   /**
-   * Builds a new InferenceEngine from the current BayesianNetwork
+   * Builds a new {@link InferenceEngine} from the current {@code BayesianNetwork}. An {@link
+   * InferenceEngine} provides utilities for running direct inference on a network, including
+   * setting observations, querying prior and posterior probabilities, and printing posterior
+   * probability tables. This method will construct the default variant set in {@code
+   * app.properties}, see the {@link InferenceType} documentation for further information.
    *
-   * @return a new InferenceEngine instance
+   * @return a new {@link InferenceEngine} referencing this {@code BayesianNetwork}.
    */
   InferenceEngine buildInferenceEngine();
 
+  /**
+   * Creates a new Monte Carlo {@link Sampler} from this {@code BayesianNetwork}. A {@link Sampler}
+   * provides utilities for running indirect inference on a {@code BayesianNetwork}.
+   *
+   * @return a new {@link Sampler} referencing this {@code BayesianNetwork}.
+   */
   Sampler buildSampler();
 
-  /** resets all data in the network, excluding the network name */
+  /** Removes all data from this {@code BayesianNetwork}, excluding the network name. */
   void resetAllData();
 }
