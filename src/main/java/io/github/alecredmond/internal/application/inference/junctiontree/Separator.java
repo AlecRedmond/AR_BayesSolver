@@ -22,7 +22,7 @@ public class Separator {
   }
 
   public void resetSeparator() {
-    double marginalised = 1.0 / table.getVector().getProbabilities().length;
-    Arrays.fill(table.getVector().getProbabilities(), marginalised);
+    double marginalised = 1.0 / table.getProbabilities().length;
+    Arrays.fill(table.getProbabilities(), marginalised);
   }
 }

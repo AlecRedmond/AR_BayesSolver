@@ -27,14 +27,14 @@ class JTANetworkWriter {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
       clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
-      clique.getTable().getHelper().normalizeTable();
+      clique.normalizeTable();
     }
     backupUnobservedData();
     resetSeparators();
   }
 
   private void setProbabilitiesToUnity(Clique clique) {
-    Arrays.fill(clique.getTable().getVector().getProbabilities(), 1.0);
+    Arrays.fill(clique.getTable().getProbabilities(), 1.0);
   }
 
   private void backupUnobservedData() {

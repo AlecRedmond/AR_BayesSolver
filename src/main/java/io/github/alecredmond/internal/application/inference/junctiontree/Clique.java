@@ -13,7 +13,6 @@ import lombok.EqualsAndHashCode;
 public class Clique {
   @EqualsAndHashCode.Include private final Set<Node> nodes;
   private final JunctionTreeTable table;
-  private JunctionTreeTableHelper handler;
   private Map<Clique, Separator> separatorMap;
   private List<TableTransfer> writeFromCPTs;
   private List<TableTransfer> writeToCPTs;
@@ -22,11 +21,22 @@ public class Clique {
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;
     this.table = table;
-    this.handler = table.getHelper();
     this.separatorMap = new HashMap<>();
     this.writeFromCPTs = new ArrayList<>();
     this.writeToCPTs = new ArrayList<>();
     this.writeToObserved = new ArrayList<>();
+  }
+
+  public JunctionTreeTableHelper getHandler() {
+    return table.getHelper();
+  }
+
+  public void normalizeTable() {
+    table.getHelper().normalizeTable();
+  }
+
+  public void resetObservations() {
+    table.getHelper().resetObservations();
   }
 
   @Override
