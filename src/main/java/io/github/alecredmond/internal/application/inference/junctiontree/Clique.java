@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.application.inference.junctiontree;
 
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelper;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
@@ -37,6 +38,10 @@ public class Clique {
 
   public void resetObservations() {
     table.getHelper().resetObservations();
+  }
+
+  public void setObserved(Set<NodeState> observedStates) {
+    table.getHelper().setObserved(observedStates);
   }
 
   @Override

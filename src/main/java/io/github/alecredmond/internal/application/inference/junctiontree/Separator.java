@@ -17,7 +17,7 @@ public class Separator {
   @EqualsAndHashCode.Include private Map<Clique, Clique> connected;
   private Map<Clique, TableTransfer> messagePassers;
 
-  public void run(Clique start) {
+  public void passMessageFrom(Clique start) {
     messagePassers.get(start).transfer();
   }
 

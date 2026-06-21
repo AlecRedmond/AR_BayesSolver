@@ -44,10 +44,10 @@ public class JunctionTreeAlgorithm {
   }
 
   public void observeNetwork(Map<Node, NodeState> observed) {
-    data.setObservedEvidence(observed);
     resetObservations();
     if (observed.isEmpty()) passMessages(data.getCliques()[0]);
     else applyObservations(observed);
+    data.setObservedEvidence(observed);
     data.setJointProbability(getJointProbOfMeasured(new HashSet<>()));
     networkWriter.writeObservations();
   }
@@ -65,11 +65,11 @@ public class JunctionTreeAlgorithm {
   private void applyObservations(Map<Node, NodeState> observed) {
     Set<Node> nodesRemaining = new HashSet<>(observed.keySet());
     while (!nodesRemaining.isEmpty()) {
-      ObservationOverlap bestOverlap = findBestOverlap(nodesRemaining, observed);
-      nodesRemaining.removeAll(bestOverlap.nodeOverlap);
-      Clique bestClique = bestOverlap.clique;
-      bestClique.getHandler().setObserved(bestOverlap.evidenceStates);
-      passMessages(bestClique);
+      ObservationOverlap overlap = findLargestOverlap(nodesRemaining, observed);
+      nodesRemaining.removeAll(overlap.nodeOverlap);
+      Clique clique = overlap.clique;
+      clique.setObserved(overlap.evidenceStates);
+      passMessages(clique);
     }
   }
 
@@ -93,7 +93,7 @@ public class JunctionTreeAlgorithm {
           .forEach(
               (nextClique, separator) -> {
                 if (visited.contains(nextClique)) return;
-                collectionRuns.add(() -> separator.run(nextClique));
+                collectionRuns.add(() -> separator.passMessageFrom(nextClique));
                 queue.add(nextClique);
               });
     }
@@ -112,16 +112,17 @@ public class JunctionTreeAlgorithm {
           .forEach(
               (nextClique, separator) -> {
                 if (visited.contains(nextClique)) return;
-                separator.run(clique);
+                separator.passMessageFrom(clique);
                 queue.add(nextClique);
               });
     }
   }
 
-  private ObservationOverlap findBestOverlap(
+  private ObservationOverlap findLargestOverlap(
       Set<Node> nodesRemaining, Map<Node, NodeState> observed) {
     return Arrays.stream(data.getCliques())
         .map(c -> buildObservationOverlap(c, nodesRemaining, observed))
+        .filter(Objects::nonNull)
         .max(Comparator.comparingInt(c -> c.nodeOverlap.size()))
         .orElseThrow();
   }
@@ -138,6 +139,7 @@ public class JunctionTreeAlgorithm {
   private ObservationOverlap buildObservationOverlap(
       Clique clique, Set<Node> nodesRemaining, Map<Node, NodeState> observed) {
     Set<Node> overlap = NodeUtils.getOverlap(clique.getNodes(), nodesRemaining);
+    if (overlap.isEmpty()) return null;
     Set<NodeState> states = overlap.stream().map(observed::get).collect(Collectors.toSet());
     return new ObservationOverlap(clique, overlap, states);
   }

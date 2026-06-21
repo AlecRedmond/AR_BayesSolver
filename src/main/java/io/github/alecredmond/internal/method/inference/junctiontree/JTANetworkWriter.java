@@ -26,7 +26,7 @@ class JTANetworkWriter {
   public void initializeJunctionTreeFromNetwork() {
     for (Clique clique : jtd.getCliques()) {
       setProbabilitiesToUnity(clique);
-      clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
+      multiplyInFromCPTs(clique);
       clique.normalizeTable();
     }
     backupUnobservedData();
@@ -35,6 +35,10 @@ class JTANetworkWriter {
 
   private void setProbabilitiesToUnity(Clique clique) {
     Arrays.fill(clique.getTable().getProbabilities(), 1.0);
+  }
+
+  private void multiplyInFromCPTs(Clique clique) {
+    clique.getWriteFromCPTs().forEach(TableTransfer::transfer);
   }
 
   private void backupUnobservedData() {
@@ -58,9 +62,10 @@ class JTANetworkWriter {
     Arrays.stream(jtd.getCliques())
         .map(Clique::getWriteToObserved)
         .flatMap(Collection::stream)
+        .parallel()
         .forEach(TableTransfer::transfer);
 
-    jtd.getObservedTablesMap().values().stream()
+    jtd.getObservedTablesMap().values().parallelStream()
         .map(ProbabilityTable::getHelper)
         .forEach(TableHelper::normalizeTable);
 
@@ -77,18 +82,16 @@ class JTANetworkWriter {
   }
 
   public void writeBackToCPTs() {
-    log.info("WRITING TO NETWORK");
 
     BayesianNetworkData bnd = jtd.getNetworkData();
 
     Arrays.stream(jtd.getCliques())
         .flatMap(c -> c.getWriteToCPTs().stream())
+        .parallel()
         .forEach(TableTransfer::transfer);
 
-    bnd.getNetworkTablesMap().values().stream()
+    bnd.getNetworkTablesMap().values().parallelStream()
         .map(ProbabilityTable::getHelper)
         .forEach(TableHelper::normalizeTable);
-
-    log.info("NETWORK TABLES WRITTEN");
   }
 }
