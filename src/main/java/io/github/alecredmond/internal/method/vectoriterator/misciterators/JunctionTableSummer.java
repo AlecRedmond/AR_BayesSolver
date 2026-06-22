@@ -35,7 +35,7 @@ public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater
     this.requestNodes = NodeUtils.getNodes(states);
     iterator.reset();
 
-    double[] p = table.getVector().getProbabilities();
+    double[] p = table.getProbabilities();
     int[] stateIndexes = odometer.getStateIndexes();
     boolean[][] stateIsEvent = odometer.getNodeStateEvidenceArray();
 

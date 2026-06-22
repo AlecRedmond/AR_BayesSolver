@@ -8,6 +8,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
+import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
 import java.util.*;
@@ -17,15 +18,11 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class CliqueBuilder {
-  private final JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
-  private final TreewidthValidator treewidthValidator = new TreewidthValidator();
 
   public void buildCliques(JunctionTreeData jtd) {
-    if (checkUseJta(jtd)) {
-      buildJtaCliques(jtd);
-    } else {
-      buildIPFPClique(jtd);
-    }
+    if (checkUseJta(jtd)) buildJtaCliques(jtd);
+    else buildIPFPClique(jtd);
+    new CliqueJoiner().joinCliques(jtd);
   }
 
   private void triangulate(Map<Node, Set<Node>> edgeGraph) {
@@ -44,8 +41,9 @@ public class CliqueBuilder {
     BayesianNetworkData bnd = jtd.getNetworkData();
     Clique[] cliques = new Clique[1];
     Set<Node> linkedNodes = new LinkedHashSet<>(bnd.getNodes());
-    treewidthValidator.verifyClique(linkedNodes, jtd);
-    cliques[0] = new Clique(linkedNodes, tableBuilder.buildTable(linkedNodes, bnd));
+    new TreewidthValidator().verifyClique(linkedNodes, jtd);
+    JunctionTreeTable jointTable = new JunctionTreeTableBuilder().buildTable(linkedNodes, bnd);
+    cliques[0] = new Clique(linkedNodes, jointTable);
     jtd.setCliques(cliques);
   }
 
@@ -55,11 +53,12 @@ public class CliqueBuilder {
     moralizeGraph(edgeGraph, bnd);
     triangulate(edgeGraph);
     Set<Set<Node>> maximalSets = findMaximalCliques(edgeGraph);
-    treewidthValidator.verifyCliques(maximalSets, jtd);
+    new TreewidthValidator().verifyCliques(maximalSets, jtd);
     jtd.setCliques(buildCliqueArray(maximalSets, bnd));
   }
 
   private Clique[] buildCliqueArray(Set<Set<Node>> maximalCliques, BayesianNetworkData bnd) {
+    JunctionTreeTableBuilder tableBuilder = new JunctionTreeTableBuilder();
     return maximalCliques.stream()
         .map(nodes -> new Clique(nodes, tableBuilder.buildTable(nodes, bnd)))
         .toArray(Clique[]::new);
@@ -153,7 +152,7 @@ public class CliqueBuilder {
       return;
     }
 
-    Node pivot = unionOf(candidateNodes, processedNodes).stream().findAny().orElseThrow();
+    Node pivot = unionOf(candidateNodes, processedNodes).iterator().next();
     Set<Node> vertexSet = new HashSet<>(candidateNodes);
     vertexSet.removeAll(edges.get(pivot));
 

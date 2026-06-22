@@ -39,9 +39,9 @@ public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdomete
   }
 
   @Override
-  default void updateInitializer(
-      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateInitializer(odometer, positionLocks, initializer);
+  default void updateInnerInitializer(
+          OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.resetInitializer(odometer, positionLocks, innerInitializer);
   }
 
   default Function<Node, NodeState> initialStatePositionSetter() {

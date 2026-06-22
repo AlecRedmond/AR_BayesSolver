@@ -2,6 +2,16 @@ package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
 import java.util.*;
 
+/**
+ * General Minimal Triangulation algorithm. This class has been made generic for simpler unit tests.
+ * Algorithm source:
+ *
+ * <p><i>Do Le Paul Minh, Truong Thi Thuy Duong, Bayesian networks: The minimal triangulations of a
+ * graph, Theoretical Computer Science, Volume 795, 2019, Pages 1-8, ISSN 0304-3975.</i>
+ *
+ * <p>The algorithm has been annotated with numbers corresponding to the numbered steps in the GMT
+ * section.
+ */
 public class GraphTriangulator<T> {
   public Map<T, List<T>> getFillInEdges(Map<T, ? extends Collection<T>> edges) {
     // 1.

@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
@@ -14,7 +13,6 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueBuilder;
-import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueJoiner;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
 import java.util.*;
@@ -43,7 +41,6 @@ public class JTADataBuilder {
       JunctionTreeData junctionTreeData, BayesianNetworkData bayesianNetworkData) {
     junctionTreeData.setNetworkData(bayesianNetworkData);
     new CliqueBuilder().buildCliques(junctionTreeData);
-    buildInternalMessagePassers(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
   }
 
@@ -65,35 +62,31 @@ public class JTADataBuilder {
         "%.2f".formatted(jtd.getEquivalentTreeWidth()));
   }
 
-  private void buildInternalMessagePassers(JunctionTreeData jtd) {
-    new CliqueJoiner(jtd).joinCliques();
-  }
-
   private void buildExternalMessagePassers(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    boolean writeBackToNetwork = jtd.isSolverConfig();
+    TransferIteratorFactory iteratorFactory = new TransferIteratorFactory();
     Clique[] cliques = jtd.getCliques();
-
-    TransferIteratorFactory builder = new TransferIteratorFactory();
-
     Map<Node, NetworkTable> networkTables = bnd.getNetworkTablesMap();
     Map<Node, ObservedTable> observedTables = jtd.getObservedTablesMap();
+    boolean writeBackToCPTs = jtd.isSolverConfig();
 
     for (Node node : bnd.getNodes()) {
-      ProbabilityTable networkTable = networkTables.get(node);
-
+      NetworkTable networkTable = networkTables.get(node);
       Clique bestClique = getContainsScope(cliques, networkTable.getNodes());
       JunctionTreeTable cliqueTable = bestClique.getTable();
 
-      bestClique.getWriteFromCPTs().add(builder.buildMultiplyInTransfer(networkTable, cliqueTable));
-
-      if (writeBackToNetwork) {
-        bestClique.getWriteToCPTs().add(builder.buildMarginalTransfer(cliqueTable, networkTable));
-        continue;
-      }
-
       bestClique
-          .getWriteToObserved()
-          .add(builder.buildMarginalTransfer(cliqueTable, observedTables.get(node)));
+          .getWriteFromCPTs()
+          .add(iteratorFactory.buildMultiplyInTransfer(networkTable, cliqueTable));
+
+      if (writeBackToCPTs) {
+        bestClique
+            .getWriteToCPTs()
+            .add(iteratorFactory.buildMarginalTransfer(cliqueTable, networkTable));
+      } else {
+        bestClique
+            .getWriteToObserved()
+            .add(iteratorFactory.buildMarginalTransfer(cliqueTable, observedTables.get(node)));
+      }
     }
   }
 

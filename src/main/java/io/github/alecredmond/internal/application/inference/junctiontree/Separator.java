@@ -17,12 +17,12 @@ public class Separator {
   @EqualsAndHashCode.Include private Map<Clique, Clique> connected;
   private Map<Clique, TableTransfer> messagePassers;
 
-  public void run(Clique start) {
+  public void passMessageFrom(Clique start) {
     messagePassers.get(start).transfer();
   }
 
   public void resetSeparator() {
-    double marginalised = 1.0 / table.getVector().getProbabilities().length;
-    Arrays.fill(table.getVector().getProbabilities(), marginalised);
+    double marginalised = 1.0 / table.getProbabilities().length;
+    Arrays.fill(table.getProbabilities(), marginalised);
   }
 }

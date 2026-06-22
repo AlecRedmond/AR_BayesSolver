@@ -18,20 +18,18 @@ public class OdometerController<T extends VectorOdometer> {
     this.odometer = odometer;
     this.resetLogic = resetLogic;
     this.updateConsumer = updateLogic.update();
+    this.initOuter = new OdometerInitializer(odometer);
+    this.initInner = new OdometerInitializer(odometer);
   }
 
   public OdometerInitializer getInitInner() {
-    resetLogic.updateInitializer(initInner, odometer, odometer.getInnerIteratorLocks());
+    resetLogic.updateInnerInitializer(initInner, odometer, odometer.getInnerIteratorLocks());
     return initInner;
   }
 
   public void reset() {
     resetLogic.resetOdometer(odometer);
-    resetInitializers();
-  }
-
-  public void resetInitializers() {
-    initInner = OdometerInitializerUtils.initIterateInner(odometer);
-    initOuter = OdometerInitializerUtils.initIterateOuter(odometer);
+    OdometerInitializerUtils.resetInnerInitializer(odometer, initInner);
+    OdometerInitializerUtils.resetOuterInitializer(odometer, initOuter);
   }
 }
