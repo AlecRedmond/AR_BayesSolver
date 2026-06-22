@@ -47,7 +47,6 @@ public class InferenceEngineImpl implements InferenceEngine {
     }
     List<Node> orderedNodes = network.getNetworkData().getNodes();
     junctionTree.observeNetwork(NodeUtils.generateOrderedRequest(observed, orderedNodes));
-    junctionTree.writeObservations();
     return this;
   }
 

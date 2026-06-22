@@ -5,22 +5,20 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Junctio
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import java.util.*;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class CliqueJoiner {
-  private final JunctionTreeData jtd;
-  private final SeparatorFactory separatorFactory;
 
-  public CliqueJoiner(JunctionTreeData jtd) {
-    this.jtd = jtd;
-    this.separatorFactory = new SeparatorFactory(jtd);
-  }
-
-  public void joinCliques() {
+  public void joinCliques(JunctionTreeData jtd) {
+    SeparatorFactory separatorFactory = new SeparatorFactory(jtd);
     Clique[] cliques = jtd.getCliques();
+
     if (cliques.length <= 1) {
       jtd.setSeparators(new Separator[0]);
       return;
     }
+
     List<CliqueEdge> candidates = orderCandidateEdges(cliques);
     Map<Clique, Clique> branchRoots = new HashMap<>();
     for (Clique clique : cliques) branchRoots.put(clique, clique);

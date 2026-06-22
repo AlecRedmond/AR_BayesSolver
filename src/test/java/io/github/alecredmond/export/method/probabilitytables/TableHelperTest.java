@@ -159,7 +159,7 @@ class TableHelperTest {
   @MethodSource("provideNormalizeTableArgs")
   void normalizeTable(NetworkTable networkTable) {
     TableHelper<?> helper = networkTable.getHelper();
-    double[] probs = networkTable.getVector().getProbabilities();
+    double[] probs = networkTable.getProbabilities();
     Arrays.fill(probs, 1.0);
     helper.normalizeTable();
     int numOfConditionCombos =
@@ -202,7 +202,7 @@ class TableHelperTest {
   void setSafeMode(NetworkTable networkTable) {
     NetworkTableHelper<?> helper = networkTable.getHelper();
     Node networkNode = networkTable.getNetworkNode();
-    double[] probs = networkTable.getVector().getProbabilities();
+    double[] probs = networkTable.getProbabilities();
     List<NodeState> eventStates = networkNode.getNodeStates();
     eventStates.forEach(
         state -> {
@@ -223,7 +223,7 @@ class TableHelperTest {
   void buildProbabilitySetMap(ConditionalTable conditionalTable) {
     ConditionalTableHelper helper = conditionalTable.getHelper();
     Map<Set<NodeState>, Double> map = helper.buildProbabilitySetMap();
-    double[] probs = conditionalTable.getVector().getProbabilities();
+    double[] probs = conditionalTable.getProbabilities();
     int index = 0;
     for (Double p : map.values()) {
       assertEquals(probs[index], p, DOUBLE_EQUALITY);

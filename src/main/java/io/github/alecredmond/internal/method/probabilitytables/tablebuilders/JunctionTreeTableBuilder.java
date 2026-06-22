@@ -20,8 +20,7 @@ public class JunctionTreeTableBuilder extends BaseTableBuilder
   public JunctionTreeTable buildTable(List<Node> events, List<Node> conditions) {
     TableBuilderData data = buildData(events, conditions);
     ProbabilityVector backupVector = buildProbabilityVector(events);
-    JunctionTreeTableImpl table =
-        new JunctionTreeTableImpl(data, backupVector, new LinkedHashSet<>());
+    JunctionTreeTableImpl table = new JunctionTreeTableImpl(data, backupVector);
     table.setHelper(new JunctionTreeTableHelperImpl(table));
     return table;
   }
@@ -35,6 +34,5 @@ public class JunctionTreeTableBuilder extends BaseTableBuilder
     double[] oldProbBackup = original.getBackupVector().getProbabilities();
     double[] newProbBackup = copied.getBackupVector().getProbabilities();
     System.arraycopy(oldProbBackup, 0, newProbBackup, 0, oldProbBackup.length);
-    copied.getObservedStates().addAll(original.getObservedStates());
   }
 }

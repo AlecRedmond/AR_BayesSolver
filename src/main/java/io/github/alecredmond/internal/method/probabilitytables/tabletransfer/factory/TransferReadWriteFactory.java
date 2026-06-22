@@ -40,9 +40,9 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
   }
 
   @Override
-  public void updateInitializer(
-      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateIterateInner(initializer, odometer);
+  public void updateInnerInitializer(
+      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
   }
 
   public abstract T build();

@@ -139,9 +139,9 @@ public class ConstraintSolverBase
   }
 
   @Override
-  public void updateInitializer(
-      OdometerInitializer initializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateIterateInner(initializer, odometer);
+  public void updateInnerInitializer(
+          OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
+    OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
   }
 
   @Override

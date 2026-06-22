@@ -35,13 +35,12 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
   }
 
   @Override
-  public void setObserved(Set<NodeState> evidenceInTable) {
-    table.getObservedStates().clear();
-    table.getObservedStates().addAll(evidenceInTable);
-    writeFromBackup(evidenceInTable);
+  protected Supplier<TableBuilder<JunctionTreeTable>> supplyTableBuilder() {
+    return JunctionTreeTableBuilder::new;
   }
 
-  private void writeFromBackup(Set<NodeState> evidenceInTable) {
+  @Override
+  public void setObserved(Set<NodeState> evidenceInTable) {
     if (!evidenceInTable.isEmpty()) {
       copier.observeTable(evidenceInTable);
       return;
@@ -53,8 +52,7 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
 
   @Override
   public void resetObservations() {
-    table.getObservedStates().clear();
-    writeFromBackup(new HashSet<>());
+    setObserved(new HashSet<>());
   }
 
   @Override
@@ -65,10 +63,5 @@ public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTab
   @Override
   public JunctionTreeTable getTable() {
     return table;
-  }
-
-  @Override
-  protected Supplier<TableBuilder<JunctionTreeTable>> supplyTableBuilder() {
-    return JunctionTreeTableBuilder::new;
   }
 }

@@ -20,7 +20,7 @@ public class TableNormalizer implements BaseOdometerResetLogic, BlankUpdater {
   }
 
   public void normalize() {
-    double[] probabilities = table.getVector().getProbabilities();
+    double[] probabilities = table.getProbabilities();
     iterator.iterateOuter(
         () -> {
           adder[0] = 0.0;
