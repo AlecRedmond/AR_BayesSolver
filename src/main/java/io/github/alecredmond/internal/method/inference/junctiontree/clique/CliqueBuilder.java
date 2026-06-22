@@ -152,7 +152,7 @@ public class CliqueBuilder {
       return;
     }
 
-    Node pivot = unionOf(candidateNodes, processedNodes).stream().findAny().orElseThrow();
+    Node pivot = unionOf(candidateNodes, processedNodes).iterator().next();
     Set<Node> vertexSet = new HashSet<>(candidateNodes);
     vertexSet.removeAll(edges.get(pivot));
 
