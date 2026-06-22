@@ -12,6 +12,6 @@ public interface OdometerResetLogic<T extends VectorOdometer> {
 
   Predicate<Node> checkLockInner();
 
-  void updateInitializer(
-      OdometerInitializer initInner, VectorOdometer odometer, boolean[] positionLocks);
+  void updateInnerInitializer(
+      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks);
 }
