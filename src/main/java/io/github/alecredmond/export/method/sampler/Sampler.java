@@ -90,15 +90,16 @@ public interface Sampler {
 
   /**
    * Runs the sampler for the given number of cycles and returns a {@link SampleCollection}
-   * containing the results. The {@link NodeState} values identified by the given IDs are applied as
-   * observations, so the resulting sample set will converge toward the posterior distribution of
-   * the {@link BayesianNetwork} conditional on those states as {@code numberOfSamples} increases.
+   * containing the results. The {@link NodeState} values identified by the given identifiers are
+   * applied as observations, so the resulting sample set will converge toward the posterior
+   * distribution of the {@link BayesianNetwork} conditional on those states as {@code
+   * numberOfSamples} increases.
    *
-   * @param <T> the serializable ID type.
-   * @param observedStateIds the IDs of the {@link NodeState} values to treat as observations; the
-   *     corresponding states will be present in every generated {@link Sample}.
+   * @param observedStateIds the identifiers of the {@link NodeState} values to treat as
+   *     observations; the corresponding states will be present in every generated {@link Sample}.
    * @param numberOfSamples the number of sampling cycles to run, which equals the total sample
    *     count in the returned {@link SampleCollection}.
+   * @param <T> the type of the {@link NodeState} identifiers.
    * @return a new {@link SampleCollection} representing the posterior distribution.
    * @throws NodeStateConflictException if two or more resolved {@link NodeState}s belong to the
    *     same {@link Node}.

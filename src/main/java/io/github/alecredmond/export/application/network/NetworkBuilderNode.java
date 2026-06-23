@@ -23,10 +23,22 @@ import lombok.NonNull;
  */
 @Data
 public class NetworkBuilderNode {
+  /** The identifier for the {@link Node}. */
   private final Serializable nodeId;
+
+  /** The identifiers for the {@link NodeState} values */
   private final List<? extends Serializable> stateIds;
+
+  /** The identifiers of the parent {@link Node}s. */
   private final List<? extends Serializable> parentNodeIds;
+
+  /**
+   * The permutation ordering of the node and parent identifiers. Further documentation may be found
+   * here: {@link #NetworkBuilderNode(Serializable, List, List, double[])}.
+   */
   private final List<? extends Serializable> cptNodeOrder;
+
+  /** All values of the conditional probability table associated with this {@link Node}. */
   private final double[] cptValues;
 
   /**
@@ -148,7 +160,7 @@ public class NetworkBuilderNode {
    * @param nodeId the identifier for this {@link Node}.
    * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
    *     Node}.
-   * @param cptNodeOrder the identifiers of the node and its parents, establishing the iteration
+   * @param cptNodeOrder the identifiers of the node and its parents, ordered by the iteration
    *     hierarchy used for the {@code cptValues} array.
    * @param cptValues the conditional probabilities mapping to the Cartesian product of the node
    *     states.
