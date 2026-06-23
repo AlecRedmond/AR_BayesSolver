@@ -167,7 +167,7 @@ public class BayesianNetworkBuilder {
    * @param nodeId the identifier for this {@link Node}.
    * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
    *     Node}.
-   * @param cptNodeOrder the identifiers of the node and its parents, establishing the iteration
+   * @param cptNodeOrder the identifiers of the node and its parents, ordered by the iteration
    *     hierarchy used for the {@code cptValues} array. The parent identifiers must correspond to
    *     nodes added to this builder before calling {@link #build()}.
    * @param cptValues the conditional probabilities mapping to the Cartesian product of the node

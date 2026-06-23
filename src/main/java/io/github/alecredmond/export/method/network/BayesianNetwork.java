@@ -3,7 +3,6 @@ package io.github.alecredmond.export.method.network;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -21,22 +20,49 @@ import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import javax.swing.JFileChooser;
 
 /**
- * An interface that provides a toolset for building, solving, and providing direct inference on a
- * Bayesian Network.
+ * Provides a toolset to structure and query a Bayesian Network. A Bayesian Network is a directed
+ * acyclic graph that represents the probability of a group of {@link Node} variables, which can
+ * each exhibit a set of mutually exclusive {@link NodeState}s. Each node is associated with a
+ * conditional probability table (CPT) containing the discrete probability distribution {@code
+ * P(X|Pa(X))}, where {@code X} is a single node in the graph, {@code Pa(X)} are its parent nodes.
  *
- * <p>Marginal and Conditional probability values are not directly entered into the network, but as
- * <i>constraints</i> on the network. An Iterative Proportional Fitting Procedure (IPFP) is then
- * carried out to find a 'best fit' for the network tables based on the given constraints.
+ * <p>In a {@code BayesianNetwork} instance, the CPTs are not directly input; instead an individual
+ * CPT entry is entered as a {@link ProbabilityConstraint}. A {@link BayesSolver} is then used to
+ * run an Iterative Proportional Fitting Algorithm (IPFP) to provide a CPT mapping best fitting
+ * these constraints. This allows finding the best fit CPTs from incomplete domain data, or from
+ * known conditional or marginal probabilities which do not follow the graph structure ordering
+ * {@code P(X|Pa(X))}. These constraints may even span conditionally independent nodes, although
+ * these definitions may be lost when mapped back to the {@code BayesianNetwork}'s CPTs after
+ * solving. If all CPTs are known in advance, the construction of the constraints may be expedited
+ * by building a {@code BayesianNetwork} instance using a {@link BayesianNetworkBuilder}.
  *
- * <p>It is worth noting that for each node on the network linked by a constraint outside its scope
- * (i.e. not linked to a parent or child node), another virtual edge is created on the network's
- * graph. If enough additional edges are created, the solver will not subdivide the graph into
- * cliques, and the algorithm becomes no more efficient than standard IPFP. This does not affect
- * subsequent sampling as a new JTA instance is created upon completion of the solver's run.
+ * <p>The hard limit on each CPT in the network is 2<sup>31</sup>&minus;1 entries, but in practice
+ * this limit will be smaller, as the solver will combine multiple tables to perform the IPFP
+ * process. The solver may be run by calling {@link #solveNetwork()}, or will automatically be run
+ * when calling a method that requires a solved network, such as {@link #buildInferenceEngine()}.
  *
+ * <p>A {@code BayesianNetwork} requires all relevant {@link Node} values to be present within the
+ * network before graph structure/parent-child relations, and all relevant {@link NodeState} values
+ * to be present before adding {@link ProbabilityConstraint}s. It is advisable to use only the
+ * {@code BayesianNetwork} interface to manipulate the graph structure, but if it is necessary to
+ * call structuring methods on individual {@link Node} objects, for example {@link
+ * Node#setParents(List)}, care should be taken to ensure all associated nodes already exist in the
+ * {@code BayesianNetwork}.
+ *
+ * <p>Instances of this interface are not thread-safe. External synchronisation is required for
+ * concurrent access.
+ *
+ * @see BayesianNetworkBuilder
+ * @see BayesSolver
+ * @see InferenceEngine
+ * @see Sampler
+ * @see NetworkTable
  * @author Alec Redmond
  * @version 1.0.0 RELEASE
  */
@@ -48,51 +74,65 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Creates a new, empty Bayesian Network with the default name "UNNAMED NETWORK".
+   * Creates a new {@code BayesianNetwork} with the name "UNNAMED NETWORK".
    *
-   * @return a new {@code BayesianNetwork} instance.
+   * @return a new {@code BayesianNetwork}.
    */
   static BayesianNetwork newNetwork() {
     return new BayesianNetworkImpl();
   }
 
   /**
-   * Creates a new, empty Bayesian Network with a specified name.
+   * Creates a new {@code BayesianNetwork} with the specified name.
    *
    * @param networkName the name for the new network.
-   * @return a new {@code BayesianNetwork} instance.
+   * @return a new {@code BayesianNetwork}.
    */
   static BayesianNetwork newNetwork(String networkName) {
     return new BayesianNetworkImpl(networkName);
   }
 
   /**
-   * Loads a saved {@code BayesianNetwork} from a JFileChooser window
+   * Loads a saved {@code BayesianNetwork} from a {@code .bayes} file on the disk. This will open a
+   * {@link JFileChooser} window.
    *
-   * @return a loaded {@code BayesianNetwork} instance
+   * @return a new {@code BayesianNetwork}, loaded from the file.
    */
   static BayesianNetwork loadNetworkFromFile() {
     return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork();
   }
 
   /**
-   * Loads a saved {@code BayesianNetwork}.
+   * Loads a saved {@code BayesianNetwork} from a {@code .bayes} file on the disk.
    *
-   * @param file the selected .bayes file to load
-   * @return a loaded BayesianNetwork instance
+   * @param file a {@code .bayes} file.
+   * @return a new {@code BayesianNetwork}, loaded from the file.
    */
   static BayesianNetwork loadNetworkFromFile(File file) {
     return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(file);
   }
 
   /**
-   * Loads a saved {@code BayesianNetwork}.
+   * Loads a saved {@code BayesianNetwork} from a {@code .bayes} file on the disk.
    *
-   * @param filePath the absolute path to a .bayes file
-   * @return a loaded BayesianNetwork instance
+   * @param filePath the absolute path to a {@code .bayes} file.
+   * @return a new {@code BayesianNetwork}, loaded from the file.
    */
   static BayesianNetwork loadNetworkFromFile(String filePath) {
     return new NetworkFileIO(new BayesianNetworkSerializer()).loadNetwork(filePath);
+  }
+
+  /**
+   * De-serializes and loads a new {@code BayesianNetwork} from a {@link SerializedBayesianNetwork}.
+   * {@link SerializedBayesianNetwork}s are constructed by calling {@link #serializeNetwork()} on an
+   * active {@link BayesianNetwork}, which provides a deep-copy of the network in a format suitable
+   * for file I/O operations.
+   *
+   * @param serializedNetwork a {@link SerializedBayesianNetwork} instance.
+   * @return a new copy of the serialized {@code BayesianNetwork}.
+   */
+  static BayesianNetwork loadNetwork(SerializedBayesianNetwork serializedNetwork) {
+    return new BayesianNetworkSerializer().deSerialize(serializedNetwork);
   }
 
   // ----------------------------------------------------------------------------------------------
@@ -100,32 +140,37 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Saves the network to the disk
+   * Serializes and saves this {@code BayesianNetwork} to the disk.
    *
-   * @param file the new file
-   * @return <code>true</code> if the save operation was successful
+   * @param file the file to write.
+   * @return {@code true} if the save operation was successful.
    */
   boolean saveNetworkToFile(File file);
 
   /**
-   * Saves the network to the disk
+   * Serializes and saves this {@code BayesianNetwork} to the disk.
    *
-   * @param filePath path to the new file
-   * @return <code>true</code> if the save operation was successful
+   * @param filePath path to the new file.
+   * @return {@code true} if the save operation was successful.
    */
   boolean saveNetworkToFile(String filePath);
 
   /**
-   * Saves the network to the disk from a JFileChooser window.
+   * Serializes and saves this {@code BayesianNetwork} to the disk. This will open a {@link
+   * JFileChooser} window.
    *
-   * @return <code>true</code> if the save operation was successful
+   * @return {@code true} if the save operation was successful.
    */
   boolean saveNetworkToFile();
 
   /**
-   * Returns a new serialized Bayesian network for IO operations
+   * Returns a new {@link Serializable} version of this {@code BayesianNetwork}. A {@link
+   * SerializedBayesianNetwork} is, in essence, a deep copy of the network's {@link
+   * BayesianNetworkData} object, with every {@link Node} and {@link NodeState} replaced with their
+   * identifiers. This saves the current state of the {@code BayesianNetwork}, and is used in file
+   * I/O operations such as {@link #saveNetworkToFile()} and {@link #loadNetworkFromFile()}.
    *
-   * @return a serialization of the current bayesian network data
+   * @return a new {@link SerializedBayesianNetwork} mapping of this {@code BayesianNetwork}.
    */
   SerializedBayesianNetwork serializeNetwork();
 
@@ -134,63 +179,71 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Adds a node to the network. The node will be associated with a Conditional Probability Table
-   * (CPT) of the form P(N|Parents(N)).
+   * Adds a {@link Node} to this {@code BayesianNetwork}. A {@link Node} is associated with a single
+   * conditional probability table (CPT) within this {@code BayesianNetwork}.
    *
-   * @param node the node to be added to the network
-   * @throws BayesNetIDException if the nodeID is not unique
+   * @param node the {@link Node} to be added to this {@code BayesianNetwork}
+   * @throws BayesNetIDException if the {@link Node} identifier is not unique within this {@code
+   *     BayesianNetwork}.
    * @return this instance for method chaining.
    */
   BayesianNetwork addNode(Node node);
 
   /**
-   * Adds a node to the network. The node will be associated with a Conditional Probability Table
-   * (CPT) of the form P(N|Parents(N)).
+   * Adds a new {@link Node} to this {@code BayesianNetwork}. A {@link Node} is associated with a
+   * single conditional probability table (CPT) within this {@code BayesianNetwork}.
    *
-   * @param nodeID the unique identifier for the node.
-   * @param <T> the class of the node ID
-   * @throws BayesNetIDException if the nodeID is not unique
+   * @param nodeID the new {@link Node} identifier.
+   * @param <T> the class of the new {@link Node} identifier.
+   * @throws BayesNetIDException if the {@link Node} identifier is not unique within this {@code
+   *     BayesianNetwork}.
    * @return this instance for method chaining.
    */
   <T extends Serializable> BayesianNetwork addNewNode(T nodeID);
 
   /**
-   * Adds a node (N) with a specified set of possible states. The states represent the mutually
-   * exclusive values the node's variable can take, e.g., {N:TRUE, N:FALSE} or {N:LOW, N:MEDIUM,
-   * N:HIGH}. If using descriptive IDs, it is highly recommended to pre-append the nodeID to each
-   * nodeStateID, as each nodeState in the network requires a unique identifier.
+   * Adds a new {@link Node}, with the specified list of {@link NodeState}s, to this {@code
+   * BayesianNetwork}. A {@link Node} is associated with a single conditional probability table
+   * (CPT) within this {@code BayesianNetwork}. The {@link NodeState}s represent the mutually
+   * exclusive states the {@link Node} can exhibit.
    *
-   * @param nodeID the unique identifier for the node.
-   * @param nodeStateIDs a collection of unique identifiers for each state.
-   * @param <T> the class of the Node ID
-   * @param <E> the class of the NodeState IDs
-   * @throws BayesNetIDException if the nodeID or each nodeStateID is not unique
+   * <p>Every identifier in this {@code BayesianNetwork} must be unique. If using descriptive {@link
+   * String} identifiers, it is recommended to pre-append the {@link Node} identifier to each {@link
+   * NodeState} identifier, for example:<br>
+   * {@code List<String> rainStateIds = List.of("RAIN:TRUE","RAIN:FALSE");}
+   *
+   * @param nodeID the new {@link Node} identifier.
+   * @param nodeStateIDs the new {@link NodeState} identifiers.
+   * @param <T> the class of the new {@link Node} identifier.
+   * @param <E> the class of the new {@link NodeState} identifiers.
+   * @throws BayesNetIDException if the {@link Node} identifier or any {@link NodeState} identifier
+   *     is not unique within this {@code BayesianNetwork}.
    * @return this instance for method chaining.
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork addNewNode(
       T nodeID, Collection<E> nodeStateIDs);
 
   /**
-   * Removes a node and all associated edges from the network.
+   * Removes a {@link Node} and all associated edges from this {@code BayesianNetwork}.
    *
-   * @param node the node to remove.
-   * @return true if the network contained the specified Node.
+   * @param node the {@link Node} to remove.
+   * @return {@code true} if this {@code BayesianNetwork} contained the specified {@link Node}.
    */
   boolean removeNode(Node node);
 
   /**
-   * Removes a node and all associated edges from the network.
+   * Removes a {@link Node} and all associated edges from this {@code BayesianNetwork}.
    *
-   * @param nodeID the identifier of the node to remove.
-   * @param <T> the class of the Node ID
-   * @return true if the network contained the specified Node
+   * @param nodeID the identifier of the {@link Node} to remove.
+   * @param <T> the class of the {@link Node} identifier.
+   * @return {@code true} if this {@code BayesianNetwork} contained the specified {@link Node}.
    */
   <T extends Serializable> boolean removeNodeByID(T nodeID);
 
   /**
-   * Removes all nodes from the network, resetting it to an empty state.
+   * Removes all {@link Node}s from this {@code BayesianNetwork}.
    *
-   * @return true if the network contained any nodes.
+   * @return {@code true} if this {@code BayesianNetwork} contained any {@link Node}s.
    */
   boolean removeAllNodes();
 
@@ -199,40 +252,47 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Returns a node from its input ID
+   * Returns a {@link Node} from its identifier in this {@code BayesianNetwork}.
    *
-   * @param <T> class of the Node ID
-   * @param nodeID the node ID
-   * @throws IllegalArgumentException if the node ID is not mapped to a node value
-   * @return the Node object associated with the ID
+   * @param <T> class of the {@link Node} identifier.
+   * @param nodeID the {@link Node} identifier.
+   * @return the {@link Node} associated with the identifier, or {@code null} if no associated
+   *     {@link Node} was found in this {@code BayesianNetwork}.
    */
   <T extends Serializable> Node getNode(T nodeID);
 
   /**
-   * Returns a set of nodes from their input ID
+   * Returns a set of {@link Node}s from their identifiers in this {@code BayesianNetwork}.
    *
-   * @param <T> class of the Node ID
-   * @param nodeIDs the node IDs
-   * @throws IllegalArgumentException if the node IDs are not mapped to a node value
-   * @return the Node object associated with the ID
+   * @param <T> class of the {@link Node} identifiers.
+   * @param nodeIDs the {@link Node} identifiers.
+   * @return the {@link Node} associated with the identifiers.
    */
   <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
-   * Returns a Node State from its input ID
+   * Returns of all {@link Node}s in this {@code BayesianNetwork}
    *
-   * @param <E> class of the Node State ID
-   * @param nodeStateID the Node State ID
-   * @return the Node State object associated with the ID
+   * @return a new set containing every {@link Node} in this {@code BayesianNetwork}.
+   */
+  Set<Node> getNodes();
+
+  /**
+   * Returns a {@link NodeState} from its identifier in this {@code BayesianNetwork}.
+   *
+   * @param <E> class of the {@link NodeState} identifier.
+   * @param nodeStateID {@link NodeState} identifier.
+   * @return the {@link NodeState} associated with the identifier, or {@code null} if no associated
+   *     {@link NodeState} was found in this {@code BayesianNetwork}.
    */
   <E extends Serializable> NodeState getNodeState(E nodeStateID);
 
   /**
-   * Returns a set of NodeStates from their input IDs
+   * Returns a set of {@link NodeState}s from their identifiers in this {@code BayesianNetwork}.
    *
-   * @param <E> class of the Node State IDs
-   * @param nodeStateIDs the Node State IDs
-   * @return a set of Node State objects associated with their IDs
+   * @param <E> class of the {@link NodeState} identifiers.
+   * @param nodeStateIDs the {@link NodeState} identifiers.
+   * @return a new set of {@link NodeState}s associated with the identifiers.
    */
   <E extends Serializable> Set<NodeState> getNodeStates(Collection<E> nodeStateIDs);
 
@@ -241,87 +301,91 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
+   * Defines parent-child relationships by adding directed edges from parent {@link Node}s to a
+   * child {@link Node}.
    *
-   * @param child the child node.
-   * @param parents a collection of parent nodes.
-   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @param child the child {@link Node}.
+   * @param parents a collection of parent {@link Node}s.
+   * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
+   *     the graph
    * @return this instance for method chaining.
    */
   BayesianNetwork addParents(Node child, Collection<Node> parents);
 
   /**
-   * Defines parent-child relationships by adding directed edges from parent nodes to a child node.
+   * Defines parent-child relationships by adding directed edges from parent {@link Node}s to a
+   * child {@link Node}.
    *
-   * @param childID the identifier of the child node.
-   * @param parentIDs a collection of identifiers for the parent nodes.
-   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @param childID the identifier of the child {@link Node}.
+   * @param parentIDs a collection of identifiers for the parent {@link Node}s.
+   * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
+   *     the graph
    * @return this instance for method chaining.
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork addParents(
       T childID, Collection<E> parentIDs);
 
   /**
-   * Defines a parent-child relationship by adding a directed edge from a parent node to a child
-   * node.
+   * Defines a parent-child relationship by adding a directed edge from a parent {@link Node} to a
+   * child {@link Node}.
    *
-   * @param child the child node.
-   * @param parent the parent node
-   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @param child the child {@link Node}.
+   * @param parent the parent {@link Node}.
+   * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
+   *     the graph
    * @return this instance for method chaining.
    */
   BayesianNetwork addParents(Node child, Node parent);
 
   /**
-   * Defines a parent-child relationship by adding a directed edge from a parent node to a child
-   * node.
+   * Defines a parent-child relationship by adding a directed edge from a parent {@link Node} to a
+   * child {@link Node}.
    *
-   * @param childID the identifier of the child node.
-   * @param parentID the identifier of the parent node.
-   * @param <T> the class of the Child Node ID
-   * @param <E> the class of the Parent Node ID
-   * @throws NetworkStructureException if the node would parent itself or cause a cycle in the graph
+   * @param childID the identifier of the child {@link Node}.
+   * @param parentID the identifier of the parent {@link Node}.
+   * @param <T> the class of the Child {@link Node} identifier.
+   * @param <E> the class of the Parent {@link Node} identifier.
+   * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
+   *     the graph.
    * @return this instance for method chaining.
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork addParents(
       T childID, E parentID);
 
   /**
-   * Removes a directed edge between a parent and a child node.
+   * Removes a directed edge between a parent and a child {@link Node}.
    *
-   * @param child the child node.
-   * @param parent the node to remove.
+   * @param child the child {@link Node}.
+   * @param parent the {@link Node} to remove.
    * @return this instance for method chaining.
    */
   BayesianNetwork removeParent(Node child, Node parent);
 
   /**
-   * Removes a directed edge between a parent and a child node.
+   * Removes a directed edge between a parent and a child {@link Node}.
    *
-   * @param childID the identifier of the child node.
-   * @param parentID the identifier of the parent node to remove.
-   * @param <T> the class of the Child Node ID
-   * @param <E> the class of the Parent Node ID
+   * @param childID the identifier of the child {@link Node}.
+   * @param parentID the identifier of the parent {@link Node} to remove.
+   * @param <T> the class of the Child {@link Node} identifier.
+   * @param <E> the class of the Parent {@link Node} identifier.
    * @return this instance for method chaining.
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork removeParent(
       T childID, E parentID);
 
   /**
-   * Removes all parent relationships for a given child node, removing all incoming edges from the
-   * child node.
+   * Removes all parent relationships for a given child {@link Node}.
    *
-   * @param child the child node whose parents will be removed.
+   * @param child the child {@link Node} whose parents will be removed.
    * @return this instance for method chaining.
    */
   BayesianNetwork removeParents(Node child);
 
   /**
-   * Removes all parent relationships for a given child node, removing all incoming edges from the
-   * child node.
+   * Removes all parent relationships for a given child {@link Node}.
    *
-   * @param childID the identifier of the child node whose parents will be removed.
-   * @param <T> the class of the Child Node ID
+   * @param childID the identifier of the child {@link Node} whose parents will be removed.
+   * @param <T> the class of the Child {@link Node} identifier.
    * @return this instance for method chaining.
    */
   <T extends Serializable> BayesianNetwork removeParents(T childID);
@@ -331,85 +395,164 @@ public interface BayesianNetwork {
   // ----------------------------------------------------------------------------------------------
 
   /**
-   * Adds a marginal probability constraint on the network, P(event) = probability. This can be
-   * either a prior probability on a node which has no parents, or a known marginal outcome on a
-   * child node.
+   * Adds a new {@link MarginalConstraint} to this {@code BayesianNetwork}. During the solving
+   * process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
    *
-   * @param eventStateID the state of the root node.
-   * @param probability the prior probability value.
-   * @param <T> the class of the event state ID
-   * @throws IllegalArgumentException if the state is not found within the data.
-   * @throws ConstraintValidationException <br>
-   *     - if probability p is outwith 0 <= p <= 1 <br>
-   *     - if the state is not found within the data.
-   * @return this instance for method chaining.
+   * <p>{@link MarginalConstraint}s are unconditional constraints given in the form {@code P(e) =
+   * p}, where:
+   *
+   * <ul>
+   *   <li>{@code e} is the event {@link NodeState}.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
+   *
+   * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
+   * @param probability the probability of the events given the conditions.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
+   * @return this instance for method chaining
    */
   <T extends Serializable> BayesianNetwork addConstraint(T eventStateID, double probability);
 
   /**
-   * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
-   * This constraint doesn't have to be within the scope of the network's structure, but each
-   * conditional constraint will add another virtual "edge" to the graph during the solving process.
-   * This may prevent the Junction Tree solver from decomposing the graph into cliques, potentially
-   * increasing the time complexity from its base of {@code O(2^Max(Parents/Node))} up to a maximum
-   * of {@code O(2^Nodes)}.
+   * Adds a new {@link ProbabilityConstraint} to this {@code BayesianNetwork}. During the solving
+   * process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
    *
-   * @param eventStateID the id of the event NodeState.
-   * @param conditionStateId the id Condition NodeState.
-   * @param probability the conditional probability value.
-   * @param <T> the class of the event state ID
-   * @param <E> the class of the condition state IDs
-   * @throws ConstraintValidationException <br>
-   *     - if attempting to make a state conditional on another state from the same node <br>
-   *     - if probability p is outwith 0 <= p <= 1
-   * @return this instance for method chaining.
+   * <p>Constraints are given in the form {@code P(E|C) = p}, where:
+   *
+   * <ul>
+   *   <li>{@code E} are the event {@link NodeState}s.
+   *   <li>{@code C} are the condition {@link NodeState}s.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
+   *
+   * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
+   * @param conditionStateId the identifier of the condition {@link NodeState} in the constraint.
+   * @param probability the probability of the events given the conditions.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
+   * @return this instance for method chaining
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       T eventStateID, E conditionStateId, double probability);
 
   /**
-   * Adds a conditional probability constraint to the network: P(event | conditions) = probability.
-   * This constraint doesn't have to be within the scope of the network's structure, but each
-   * conditional constraint will add another virtual "edge" to the graph during the solving process.
-   * This may prevent the Junction Tree solver from decomposing the graph into cliques, potentially
-   * increasing the time complexity from its base of {@code O(2^Max(Parents/Node))} up to a maximum
-   * of {@code O(2^Nodes)}.
+   * Adds a new {@link ProbabilityConstraint} to this {@code BayesianNetwork}. During the solving
+   * process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
    *
-   * @param eventStateID the state of the child node.
-   * @param conditionStateIDs the combination of parent states.
-   * @param probability the conditional probability value.
-   * @param <T> the class of the event state ID
-   * @param <E> the class of the condition state IDs
-   * @throws ConstraintValidationException <br>
-   *     - if attempting to make a state conditional on another state from the same node <br>
-   *     - if probability p is outwith 0 <= p <= 1
-   * @return this instance for method chaining.
+   * <p>Constraints are given in the form {@code P(E|C) = p}, where:
+   *
+   * <ul>
+   *   <li>{@code E} are the event {@link NodeState}s.
+   *   <li>{@code C} are the condition {@link NodeState}s.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
+   *
+   * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
+   * @param conditionStateIDs the identifiers of the condition {@link NodeState}s in the constraint.
+   * @param probability the probability of the events given the conditions.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
+   * @return this instance for method chaining
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       T eventStateID, Collection<E> conditionStateIDs, double probability);
 
+  /**
+   * Adds a new {@link ProbabilityConstraint} to this {@code BayesianNetwork}. During the solving
+   * process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
+   *
+   * <p>Constraints are given in the form {@code P(E|C) = p}, where:
+   *
+   * <ul>
+   *   <li>{@code E} are the event {@link NodeState}s.
+   *   <li>{@code C} are the condition {@link NodeState}s.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
+   *
+   * @param eventStateIDs the identifiers of the event {@link NodeState}s in the constraint.
+   * @param conditionStateIDs the identifiers of the condition {@link NodeState}s in the constraint.
+   * @param probability the probability of the events given the conditions.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
+   * @return this instance for method chaining
+   */
   <T extends Serializable, E extends Serializable> BayesianNetwork addConstraint(
       Collection<T> eventStateIDs, Collection<E> conditionStateIDs, double probability);
 
   /**
-   * Adds a probability constraint to the network This constraint doesn't have to be within the
-   * scope of the network's structure, but each conditional constraint will add another virtual
-   * "edge" to the graph during the solving process. This may prevent the Junction Tree solver from
-   * decomposing the graph into cliques, potentially increasing the time complexity from its base of
-   * {@code O(2^Max(Parents/Node))} up to a maximum of {@code O(2^Nodes)}.
+   * Adds a {@link ProbabilityConstraint} to this {@code BayesianNetwork}. During the solving
+   * process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
    *
-   * @param probabilityConstraint a ProbabilityConstraint object such as {@link MarginalConstraint}
-   *     or {@link ConditionalConstraint}
-   * @throws ConstraintValidationException <br>
-   *     - if probability p is outwith 0 <= p <= 1 <br>
-   *     - if attempting to make a state conditional on another state from the same node <br>
-   *     - if attempting to add a MarginalConstraint with non-empty conditions
+   * <p>Constraints are given in the form {@code P(E|C) = p}, where:
+   *
+   * <ul>
+   *   <li>{@code E} are the event {@link NodeState}s.
+   *   <li>{@code C} are the condition {@link NodeState}s.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
+   *
+   * @param probabilityConstraint a {@link ProbabilityConstraint} object containing {@link
+   *     NodeState}s from this {@code BayesianNetwork}.
+   * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
+   *     configuration.
    * @return this instance for method chaining
    */
   BayesianNetwork addConstraint(ProbabilityConstraint probabilityConstraint);
 
   /**
-   * Adds a collection of {@link ProbabilityConstraint}s to this {@code BayesianNetwork}.
+   * Adds a collection of {@link ProbabilityConstraint}s to this {@code BayesianNetwork}. During the
+   * solving process, the solver will attempt to find a solution minimizing the divergence from the
+   * constraints assigned to it.
+   *
+   * <p>Constraints are given in the form {@code P(E|C) = p}, where:
+   *
+   * <ul>
+   *   <li>{@code E} are the event {@link NodeState}s.
+   *   <li>{@code C} are the condition {@link NodeState}s.
+   *   <li>{@code p} is the conditional probability.
+   * </ul>
+   *
+   * <p>Constraints do not need to follow the network's graph ordering, {@code P(X|Pa(X))}. However,
+   * constraints that span conditionally independent nodes cannot be losslessly projected back to
+   * individual CPT entries, and may produce different inference results after fitting. Such
+   * constraints may also add another virtual edge to the graph's structure during solving, which
+   * can increase the treewidth.
    *
    * @param probabilityConstraints a collection of {@link ProbabilityConstraint}s to be added.
    * @return this instance for method chaining.
@@ -575,6 +718,15 @@ public interface BayesianNetwork {
    * @return the probability table for the specified node.
    */
   <T extends Serializable> NetworkTable getNetworkTable(T nodeID);
+
+  /**
+   * Returns a new connecting each {@link Node} in this {@code BayesianNetwork} to its associated
+   * Conditional Probability Table (CPT).
+   *
+   * @return a new map with of each {@link Node} and its associated {@link NetworkTable} CPT, or an
+   *     empty map if this {@code BayesianNetwork} has not been solved.
+   */
+  Map<Node, NetworkTable> getNetworkTables();
 
   /**
    * Builds a new {@link InferenceEngine} from the current {@code BayesianNetwork}. An {@link

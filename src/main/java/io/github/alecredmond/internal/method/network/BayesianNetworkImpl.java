@@ -150,6 +150,13 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return NetworkDataUtils.getNodesByID(nodeIDs, networkData);
   }
 
+  public Set<Node> getNodes() {
+    if (networkData.isSolved()) {
+      return Set.copyOf(new LinkedHashSet<>(networkData.getNodes()));
+    }
+    return Set.copyOf(networkData.getNodeIDsMap().values());
+  }
+
   public <E extends Serializable> NodeState getNodeState(E nodeStateID) {
     return NetworkDataUtils.getStateById(nodeStateID, networkData);
   }
@@ -320,7 +327,6 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return this;
   }
 
-  @Override
   public boolean isSolved() {
     return networkData.isSolved();
   }
@@ -339,6 +345,11 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   public <T extends Serializable> NetworkTable getNetworkTable(T nodeID) {
     if (!networkData.isSolved()) solveNetwork();
     return networkData.getNetworkTableById(nodeID);
+  }
+
+  public Map<Node, NetworkTable> getNetworkTables() {
+    if (!networkData.isSolved()) return Map.of();
+    return Map.copyOf(networkData.getNetworkTablesMap());
   }
 
   public InferenceEngine buildInferenceEngine() {
