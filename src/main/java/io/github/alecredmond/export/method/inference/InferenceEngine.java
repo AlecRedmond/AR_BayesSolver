@@ -272,7 +272,7 @@ public interface InferenceEngine {
    *
    * @param nodeId the identifier of the {@link Node} where the associated {@link ObservedTable} should be
    *     printed.
-   * @param <T> the class of the {@link Node} identifier.
+   * @param <T> the type of the {@link Node} identifier.
    * @return this instance for chaining.
    * @throws NetworkPrinterException if the printer is unable to successfully complete the
    *     operation.

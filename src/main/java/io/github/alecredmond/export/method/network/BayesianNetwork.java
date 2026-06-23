@@ -26,26 +26,29 @@ import java.util.Set;
 import javax.swing.JFileChooser;
 
 /**
- * Provides a toolset to structure and query a Bayesian Network. A Bayesian Network is a directed
- * acyclic graph that represents the probability of a group of {@link Node} variables, which can
- * each exhibit a set of mutually exclusive {@link NodeState}s. Each node is associated with a
- * conditional probability table (CPT) containing the discrete probability distribution {@code
- * P(X|Pa(X))}, where {@code X} is a single node in the graph, {@code Pa(X)} are its parent nodes.
+ * Provides a toolset to structure and query a Bayesian Network.
+ *
+ * <p>A Bayesian Network is a directed acyclic graph that represents the probability of a group of
+ * {@link Node} variables, which can each exhibit a set of mutually exclusive {@link NodeState}s.
+ * Each node is associated with a conditional probability table (CPT) containing the discrete
+ * probability distribution {@code P(X|Pa(X))}, where {@code X} is a single node in the graph,
+ * {@code Pa(X)} are its parent nodes.
  *
  * <p>In a {@code BayesianNetwork} instance, the CPTs are not directly input; instead an individual
- * CPT entry is entered as a {@link ProbabilityConstraint}. A {@link BayesSolver} is then used to
- * run an Iterative Proportional Fitting Algorithm (IPFP) to provide a CPT mapping best fitting
- * these constraints. This allows finding the best fit CPTs from incomplete domain data, or from
- * known conditional or marginal probabilities which do not follow the graph structure ordering
- * {@code P(X|Pa(X))}. These constraints may even span conditionally independent nodes, although
- * these definitions may be lost when mapped back to the {@code BayesianNetwork}'s CPTs after
- * solving. If all CPTs are known in advance, the construction of the constraints may be expedited
- * by building a {@code BayesianNetwork} instance using a {@link BayesianNetworkBuilder}.
+ * CPT entry is entered as a {@link ProbabilityConstraint}. A {@link BayesSolver} uses an Iterative
+ * Proportional Fitting Algorithm (IPFP) to provide a CPT mapping that best fits these constraints.
+ * This allows finding the best fit CPTs from incomplete domain data, or from known conditional or
+ * marginal probabilities which do not follow the graph structure ordering {@code P(X|Pa(X))}.
+ * <i>Note: Constraints that span conditionally independent nodes may lose their exact definitions
+ * when mapped back to the network's CPTs after solving.</i>
  *
- * <p>The hard limit on each CPT in the network is 2<sup>31</sup>&minus;1 entries, but in practice
- * this limit will be smaller, as the solver will combine multiple tables to perform the IPFP
- * process. The solver may be run by calling {@link #solveNetwork()}, or will automatically be run
- * when calling a method that requires a solved network, such as {@link #buildInferenceEngine()}.
+ * <p>If all CPTs are known in advance, the construction of the constraints may be expedited by
+ * building a {@code BayesianNetwork} instance using a {@link BayesianNetworkBuilder}.
+ *
+ * <p>The hard limit on each CPT in the network is 2<sup>31</sup>&minus;1 entries. In practice this
+ * limit will be smaller as the solver combines multiple tables during the IPFP process. The solver
+ * may be run manually by calling {@link #solveNetwork()}, or will automatically be run when calling
+ * a method that requires the network in a solved state, such as {@link #buildInferenceEngine()}.
  *
  * <p>A {@code BayesianNetwork} requires all relevant {@link Node} values to be present within the
  * network before graph structure/parent-child relations, and all relevant {@link NodeState} values
@@ -194,7 +197,7 @@ public interface BayesianNetwork {
    * single conditional probability table (CPT) within this {@code BayesianNetwork}.
    *
    * @param nodeID the new {@link Node} identifier.
-   * @param <T> the class of the new {@link Node} identifier.
+   * @param <T> the type of the new {@link Node} identifier.
    * @throws BayesNetIDException if the {@link Node} identifier is not unique within this {@code
    *     BayesianNetwork}.
    * @return this instance for method chaining.
@@ -214,8 +217,8 @@ public interface BayesianNetwork {
    *
    * @param nodeID the new {@link Node} identifier.
    * @param nodeStateIDs the new {@link NodeState} identifiers.
-   * @param <T> the class of the new {@link Node} identifier.
-   * @param <E> the class of the new {@link NodeState} identifiers.
+   * @param <T> the type of the new {@link Node} identifier.
+   * @param <E> the type of the new {@link NodeState} identifiers.
    * @throws BayesNetIDException if the {@link Node} identifier or any {@link NodeState} identifier
    *     is not unique within this {@code BayesianNetwork}.
    * @return this instance for method chaining.
@@ -235,7 +238,7 @@ public interface BayesianNetwork {
    * Removes a {@link Node} and all associated edges from this {@code BayesianNetwork}.
    *
    * @param nodeID the identifier of the {@link Node} to remove.
-   * @param <T> the class of the {@link Node} identifier.
+   * @param <T> the type of the {@link Node} identifier.
    * @return {@code true} if this {@code BayesianNetwork} contained the specified {@link Node}.
    */
   <T extends Serializable> boolean removeNodeByID(T nodeID);
@@ -271,7 +274,7 @@ public interface BayesianNetwork {
   <T extends Serializable> Set<Node> getNodes(Collection<T> nodeIDs);
 
   /**
-   * Returns of all {@link Node}s in this {@code BayesianNetwork}
+   * Returns a set of all {@link Node}s in this {@code BayesianNetwork}
    *
    * @return a new set containing every {@link Node} in this {@code BayesianNetwork}.
    */
@@ -318,6 +321,8 @@ public interface BayesianNetwork {
    *
    * @param childID the identifier of the child {@link Node}.
    * @param parentIDs a collection of identifiers for the parent {@link Node}s.
+   * @param <T> the type of the Child {@link Node} identifier.
+   * @param <E> the type of the Parent {@link Node} identifiers.
    * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
    *     the graph
    * @return this instance for method chaining.
@@ -343,8 +348,8 @@ public interface BayesianNetwork {
    *
    * @param childID the identifier of the child {@link Node}.
    * @param parentID the identifier of the parent {@link Node}.
-   * @param <T> the class of the Child {@link Node} identifier.
-   * @param <E> the class of the Parent {@link Node} identifier.
+   * @param <T> the type of the Child {@link Node} identifier.
+   * @param <E> the type of the Parent {@link Node} identifier.
    * @throws NetworkStructureException if the {@link Node} would parent itself or cause a cycle in
    *     the graph.
    * @return this instance for method chaining.
@@ -366,8 +371,8 @@ public interface BayesianNetwork {
    *
    * @param childID the identifier of the child {@link Node}.
    * @param parentID the identifier of the parent {@link Node} to remove.
-   * @param <T> the class of the Child {@link Node} identifier.
-   * @param <E> the class of the Parent {@link Node} identifier.
+   * @param <T> the type of the Child {@link Node} identifier.
+   * @param <E> the type of the Parent {@link Node} identifier.
    * @return this instance for method chaining.
    */
   <T extends Serializable, E extends Serializable> BayesianNetwork removeParent(
@@ -385,7 +390,7 @@ public interface BayesianNetwork {
    * Removes all parent relationships for a given child {@link Node}.
    *
    * @param childID the identifier of the child {@link Node} whose parents will be removed.
-   * @param <T> the class of the Child {@link Node} identifier.
+   * @param <T> the type of the Child {@link Node} identifier.
    * @return this instance for method chaining.
    */
   <T extends Serializable> BayesianNetwork removeParents(T childID);
@@ -415,6 +420,7 @@ public interface BayesianNetwork {
    *
    * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
    * @param probability the probability of the events given the conditions.
+   * @param <T> the type of the event {@link NodeState} identifier.
    * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
    *     configuration.
    * @return this instance for method chaining
@@ -443,6 +449,8 @@ public interface BayesianNetwork {
    * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
    * @param conditionStateId the identifier of the condition {@link NodeState} in the constraint.
    * @param probability the probability of the events given the conditions.
+   * @param <T> the type of the event {@link NodeState} identifier.
+   * @param <E> the type of the condition {@link NodeState} identifier.
    * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
    *     configuration.
    * @return this instance for method chaining
@@ -472,6 +480,8 @@ public interface BayesianNetwork {
    * @param eventStateID the identifier of the event {@link NodeState} in the constraint.
    * @param conditionStateIDs the identifiers of the condition {@link NodeState}s in the constraint.
    * @param probability the probability of the events given the conditions.
+   * @param <T> the type of the event {@link NodeState} identifier.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
    *     configuration.
    * @return this instance for method chaining
@@ -501,6 +511,8 @@ public interface BayesianNetwork {
    * @param eventStateIDs the identifiers of the event {@link NodeState}s in the constraint.
    * @param conditionStateIDs the identifiers of the condition {@link NodeState}s in the constraint.
    * @param probability the probability of the events given the conditions.
+   * @param <T> the type of the event {@link NodeState} identifiers.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @throws ConstraintValidationException if any {@link ProbabilityConstraint} is in an illegal
    *     configuration.
    * @return this instance for method chaining
@@ -570,7 +582,7 @@ public interface BayesianNetwork {
    * NodeState} matching the given identifier.
    *
    * @param eventStateId the identifier of a {@link NodeState}.
-   * @param <T> the class of the event {@link NodeState} identifier.
+   * @param <T> the type of the event {@link NodeState} identifier.
    * @return the associated {@link MarginalConstraint}, or {@code null} if it does not exist.
    * @throws NullPointerException if the parameter is {@code null}.
    */
@@ -582,8 +594,8 @@ public interface BayesianNetwork {
    *
    * @param eventStateId the identifier of the event {@link NodeState}.
    * @param conditionStateIds the identifiers of the condition {@link NodeState}s.
-   * @param <T> the class of the event {@link NodeState} identifier.
-   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @param <T> the type of the event {@link NodeState} identifier.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @return the associated {@link ProbabilityConstraint}, or {@code null} if it does not exist.
    * @throws NullPointerException if any parameter is {@code null}.
    */
@@ -596,8 +608,8 @@ public interface BayesianNetwork {
    *
    * @param eventStateIds the identifiers of the event {@link NodeState}s.
    * @param conditionStateIds the identifiers of the condition {@link NodeState}s.
-   * @param <T> the class of the event {@link NodeState} identifiers.
-   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @param <T> the type of the event {@link NodeState} identifiers.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @return the associated {@link ProbabilityConstraint}, or {@code null} if it does not exist.
    * @throws NullPointerException if any parameter is {@code null}.
    */
@@ -622,7 +634,7 @@ public interface BayesianNetwork {
    *
    * @param eventStateId the identifier of the event {@link NodeState} in the {@link
    *     MarginalConstraint}.
-   * @param <T> the class of the event {@link NodeState} identifier.
+   * @param <T> the type of the event {@link NodeState} identifier.
    * @return {@code true} if a matching {@link MarginalConstraint} existed in the network
    */
   <T extends Serializable> boolean removeConstraint(T eventStateId);
@@ -635,8 +647,8 @@ public interface BayesianNetwork {
    *     ProbabilityConstraint}.
    * @param conditionStateIds the collected ids of all condition {@link NodeState}s in the {@link
    *     ProbabilityConstraint}.
-   * @param <T> the class of the event {@link NodeState} identifier.
-   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @param <T> the type of the event {@link NodeState} identifier.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @return {@code true} if a matching {@link ProbabilityConstraint} existed in the network
    */
   <T extends Serializable, E extends Serializable> boolean removeConstraint(
@@ -650,8 +662,8 @@ public interface BayesianNetwork {
    *     ProbabilityConstraint}.
    * @param conditionStateIds the collected ids of all condition {@link NodeState}s in the {@link
    *     ProbabilityConstraint}.
-   * @param <T> the class of the event {@link NodeState} identifiers.
-   * @param <E> the class of the condition {@link NodeState} identifiers.
+   * @param <T> the type of the event {@link NodeState} identifiers.
+   * @param <E> the type of the condition {@link NodeState} identifiers.
    * @return {@code true} if a matching {@link ProbabilityConstraint} existed in the network
    */
   <T extends Serializable, E extends Serializable> boolean removeConstraint(
@@ -720,11 +732,11 @@ public interface BayesianNetwork {
   <T extends Serializable> NetworkTable getNetworkTable(T nodeID);
 
   /**
-   * Returns a new connecting each {@link Node} in this {@code BayesianNetwork} to its associated
-   * Conditional Probability Table (CPT).
+   * Returns a new map connecting each {@link Node} in this {@code BayesianNetwork} to its
+   * associated Conditional Probability Table (CPT).
    *
-   * @return a new map with of each {@link Node} and its associated {@link NetworkTable} CPT, or an
-   *     empty map if this {@code BayesianNetwork} has not been solved.
+   * @return a new map containing each {@link Node} and its associated {@link NetworkTable} CPT, or
+   *     an empty map if this {@code BayesianNetwork} has not been solved.
    */
   Map<Node, NetworkTable> getNetworkTables();
 
