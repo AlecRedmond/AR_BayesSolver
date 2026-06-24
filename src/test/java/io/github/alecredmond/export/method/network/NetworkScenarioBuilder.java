@@ -453,8 +453,8 @@ public class NetworkScenarioBuilder {
     Function<String, List<String>> statesOf = str -> List.of(str + ":TRUE", str + ":FALSE");
     return () ->
         new BayesianNetworkBuilder("ASIA VISIT")
-                .addRootNode(a,statesOf.apply(a),                  new double[]{0.01, 0.99})
-                .addRootNode(s,statesOf.apply(s),                  new double[]{0.50, 0.50})
+                .addNode(a,statesOf.apply(a),                  new double[]{0.01, 0.99})
+                .addNode(s,statesOf.apply(s),                  new double[]{0.50, 0.50})
                 .addNode(t,statesOf.apply(t),List.of(a,t),     new double[]{0.05,0.95,0.01,1-0.01})
                 .addNode(l,statesOf.apply(l),List.of(s,l),     new double[]{0.1,1-0.1,0.01,1-0.01})
                 .addNode(b,statesOf.apply(b),List.of(s,b),     new double[]{0.6,-1,0.3,-1})
