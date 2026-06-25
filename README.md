@@ -13,8 +13,8 @@
 AR_BayesSolver is a Java library providing a high-level toolset for working with Bayesian Networks. Bayesian Networks
 can be constructed from either full or partial domain knowledge of the network's Conditional Probability Tables (CPTs),
 solved using an Iterative Proportional Fitting Procedure (IPFP), and queried with direct inference or Monte Carlo
-sampling. These tools are designed with high performance in mind, using the Junction Tree Algorithm by default for
-both IPFP and direct inference, and is suitable for Bayesian Networks with fewer than 2<sup>31</sup> total CPT entries.
+sampling. The solving and inference processes are accelerated using the Junction Tree Algorithm, and high performance
+can be expected for Bayesian Networks with fewer than ~200 Nodes. 
 
 # Features
 
@@ -22,7 +22,7 @@ both IPFP and direct inference, and is suitable for Bayesian Networks with fewer
 - Allows full CPT imputation or CPT estimation from a partially-constrained network.
 - Support for probability constraints that are independent of the network's parent/child structure.
 - Perform direct probabilistic inference to query prior or posterior probabilities.
-- Generate random samples, with or without fixed evidence.
+- Generate random samples, with or without fixed observations.
 
 # Installation
 
@@ -96,7 +96,7 @@ wetGrassNetwork
         .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
 ```
 
-### 5. Solving and Creating Inference Engines
+### 5. Solving and Direct Inference
 
 We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given constraints.
 
@@ -127,31 +127,23 @@ engine.resetObservations();
 
 For the next steps, we will keep the observation `WET_GRASS:TRUE`.
 
-### 6. Printing the CPTs and Marginals
+If we now want to know the probability of `RAIN:TRUE`, conditional on `WET_GRASS:TRUE`, we can call the following method:
 
-You can print the network's solved CPTs and the current observed marginals to a .txt file.
+```java
+double posteriorRainTrue = engine.getPosteriorProbabilityById("RAIN:TRUE");
+System.out.printf("P(RAIN:TRUE|WET_GRASS:TRUE) = %.3f", posteriorRainTrue);
 
-```Java
-// Configure the printer
-PrinterConfigs printerConfigs = network.getPrinterConfigs();
-printerConfigs.
-
-setProbDecimalPlaces(3);
-printerConfigs.
-
-setPrintToConsole(false); // If set to true, no files will be written
-printerConfigs.
-
-setOpenFileOnCreation(true);
+>> P(RAIN:TRUE|WET_GRASS:TRUE) = 0.385
 ```
 
+### 6. Printing the CPTs and Posterior Probabilities
+
+You can print the network's solved CPTs or the inference engine's observed probability tables to a .txt file. 
 By default, the printer will save files to the directory ```$user_home$/AR_Tools/bayes_solver/output/```
 
 ```Java
-network.printNetwork()   // Prints the full, solved CPTs
-       .
-
-printObserved(); // Prints marginals, conditional on current evidence
+network.printNetwork();   // Prints the solved CPTs
+engine.printObserved();   // Prints the posterior probabilities over each node
 ```
 
 This should automatically open two files, which will look like this:
@@ -191,37 +183,42 @@ P(SPRINKLER|WET_GRASS:TRUE)
 [...]
 ```
 
+Settings for the printer can be modified within `app.properties`.
+
 ### 7. Generating Random Samples
 
-Generate samples based on the current set of observations.
+Build a sampler from the BayesianNetwork instance:
 
 ```Java
-int numberOfSamples = 10;
-// Samples will be conditional on "WET_GRASS:TRUE"
-List<List<String>> samples = network.generateSamples(numberOfSamples, String.class);
-
-/* Potential Samples: 
-{"RAIN:TRUE", "SPRINKLER:FALSE", "WET_GRASS:TRUE"}, 
-{"RAIN:TRUE", "SPRINKLER:FALSE", "WET_GRASS:TRUE"}, 
-[...]
-{"RAIN:FALSE", "SPRINKLER:TRUE", "WET_GRASS:TRUE"}, 
-{"RAIN:FALSE", "SPRINKLER:TRUE", "WET_GRASS:TRUE"}
-*/
+Sampler sampler = wetGrassNetwork.buildSampler();
 ```
 
-You can also specify which nodes to include in the sample list:
+You can apply the observations from the inference engine to generate samples with certain fixed states:
 
-```Java
-List<String> includedNodeIDs = List.of("RAIN");
-List<List<String>> samples = network.generateSamples(includedNodeIDs, numberOfSamples, String.class);
+```java
+int numberOfSamples = 1000;
+SampleCollection sampleCollection = sampler.generateSamples(engine, numberOfSamples);
+int samplesWithWetGrassTrue = sampleCollection.countSamplesIncludingStateIds("WET_GRASS:TRUE");
+System.out.println(samplesWithWetGrassTrue);
 
-/* Potential Samples:
-{"RAIN:TRUE"},
-{"RAIN:TRUE"},
-[...]
-{"RAIN:FALSE"}, 
-{"RAIN:FALSE"}
-*/
+>> 1000
+```
+
+Samples contain a specific combination of node states and the frequency of its occurrence in the sampler run.
+
+```java
+List<Sample> samples = sampleCollection.getSamples();
+Sample firstSample = samples.getFirst();
+System.out.println(firstSample);
+
+>> RAIN:TRUE, SPRINKLER:TRUE, WET_GRASS:TRUE : 4
+
+List<NodeState> sampledStates = firstSample.getDisplayedStates(ArrayList::new);
+double directInferenceProb = engine.getPosteriorProbability(sampledStates);
+System.out.printf("%.2f", directInferenceProb * numberOfSamples);
+
+// P(RAIN:TRUE,SPRINKLER:TRUE|WET_GRASS:TRUE) * 1000
+>> 4.23 
 ```
 
 ### 8. Using ProbabilityTables from the network.
@@ -229,16 +226,22 @@ List<List<String>> samples = network.generateSamples(includedNodeIDs, numberOfSa
 You can extract the raw probability tables for use in your application.
 
 ```Java
-// Get a solved CPT (a "Network Table")
-ProbabilityTable wetGrassCPT = network.getNetworkTable("WET_GRASS");
-List<String> cptIDs = List.of("WET_GRASS:TRUE", "SPRINKLER:FALSE", "RAIN:TRUE");
-double cptProb = wetGrassCPT.getProbability(cptIDs);
-// cptProb == 0.9
+// Extract and query a CPT from the BayesianNetwork
+NetworkTable wetGrassCpt = wetGrassNetwork.getNetworkTable("WET_GRASS");
+List<String> cptRequestIds = List.of("RAIN:TRUE","SPRINKLER:FALSE","WET_GRASS:TRUE");
+double cptRequestProb = wetGrassCpt.getHelper().getProbabilityFromIDs(cptRequestIds);
+System.out.printf("%.2f",cptRequestProb);
 
-// Get an observed marginal table
-MarginalTable wetGrassObserved = network.getObservedTable("WET_GRASS");
-double marginalProb = wetGrassObserved.getProbability("WET_GRASS:TRUE");
-// marginalProb == 1.0 (because it was our evidence)
+// P(WET_GRASS:TRUE|RAIN:TRUE, SPRINKLER:FALSE)
+>> 0.90
+
+// Extract and query a posterior table from the InferenceEngine.
+ObservedTable rainObservedTable = engine.getObservedTableById("RAIN");
+double rainFalsePosterior = rainObservedTable.getHelper().getProbabilityById("RAIN:FALSE");
+System.out.printf("%.2f", rainFalsePosterior);
+
+// P(RAIN:FALSE|WET_GRASS:TRUE)
+>> 0.62
 ```
 
 # API

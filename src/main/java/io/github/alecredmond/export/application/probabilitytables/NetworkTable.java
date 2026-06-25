@@ -37,6 +37,5 @@ public interface NetworkTable extends ProbabilityTable {
    *
    * @return the {@link NetworkTableHelper} for this {@code NetworkTable}.
    */
-  @SuppressWarnings("rawtypes")
-  NetworkTableHelper getHelper();
+  NetworkTableHelper<?> getHelper();
 }
