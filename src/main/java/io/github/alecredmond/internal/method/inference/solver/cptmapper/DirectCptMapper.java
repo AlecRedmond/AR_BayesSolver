@@ -10,11 +10,10 @@ import io.github.alecredmond.export.application.probabilitytables.ConditionalTab
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.application.network.CptMapperData;
+import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.types.marginalconstraint.MarginalConstraintValidator;
-
 import java.util.*;
-import java.util.function.BiFunction;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -88,21 +87,19 @@ public class DirectCptMapper {
 
   private boolean allCPTsMappedSuccessfully() {
     MarginalConstraintValidator mcv = new MarginalConstraintValidator();
+    Map<Node, RootNodeTable> roots = mapperData.getRootNodeTableMap();
     ConditionalConstraintValidator ccv = new ConditionalConstraintValidator();
+    Map<Node, ConditionalTable> conds = mapperData.getConditionalTableMap();
     try {
-      runMapperIterators(
-          mapperData.getRootNodeTableMap(),
-          MarginalConstraint.class,
-          (table, constraints) -> new RootCPTMapperIterator(table, constraints, mcv, networkData));
-      runMapperIterators(
-          mapperData.getConditionalTableMap(),
-          ConditionalConstraint.class,
-          (table, constraints) ->
-              new ConditionalCPTMapperIterator(table, constraints, ccv, networkData));
+      runMapperIterators(roots, mcv, RootCPTMapperIterator::new);
+      runMapperIterators(conds, ccv, ConditionalCPTMapperIterator::new);
       return true;
     } catch (CptDirectMappingException e) {
       revertMappedValues();
       return false;
+    } catch (Exception e) {
+      revertMappedValues();
+      throw e;
     }
   }
 
@@ -116,8 +113,7 @@ public class DirectCptMapper {
 
   private boolean meetsMinimumConstraintsRequired(NetworkTable table) {
     Node networkNode = table.getNetworkNode();
-    if (!mapperData.getCptConstraints().containsKey(networkNode)) return false;
-    int numConstraints = mapperData.getCptConstraints().get(networkNode).size();
+    int numConstraints = mapperData.getCptConstraints().getOrDefault(networkNode, List.of()).size();
     int cptEntries = table.getProbabilities().length;
     if (numConstraints == cptEntries) return true;
     int numEventStates = networkNode.getNodeStates().size();
@@ -127,21 +123,22 @@ public class DirectCptMapper {
 
   private <
           T extends NetworkTable,
+          I extends CptMapperIterator<T, P>,
           P extends ProbabilityConstraint,
-          I extends CptMapperIterator<T, P>>
+          V extends CPTConstraintValidator<P>>
       void runMapperIterators(
           Map<Node, T> tableMap,
-          Class<P> constraintClass,
-          BiFunction<T, List<P>, I> mapperConstructor) {
+          V validator,
+          CPTMapperIteratorConstructor<T, P, I, V> constructor) {
     tableMap.forEach(
         (node, table) -> {
+          Class<P> constraintClass = validator.getConstraintClass();
           List<P> constraints =
               mapperData.getCptConstraints().get(node).stream()
                   .filter(constraintClass::isInstance)
                   .map(constraintClass::cast)
                   .toList();
-
-          I iterator = mapperConstructor.apply(table, constraints);
+          I iterator = constructor.apply(table, constraints, validator);
           List<P> addedConstraints = iterator.directMapCPTs();
           addedConstraints.forEach(mapperData.getAllConstraints()::add);
           mapperData.getDirectInputSuccess().add(node);
@@ -156,5 +153,14 @@ public class DirectCptMapper {
               Arrays.fill(table.getProbabilities(), 1.0);
               table.getHelper().normalizeTable();
             });
+  }
+
+  @FunctionalInterface
+  interface CPTMapperIteratorConstructor<
+      T extends NetworkTable,
+      P extends ProbabilityConstraint,
+      I extends CptMapperIterator<T, P>,
+      V extends CPTConstraintValidator<P>> {
+    I apply(T networkTable, Collection<P> constraints, V validator);
   }
 }

@@ -1,7 +1,6 @@
 package io.github.alecredmond.internal.method.inference.solver.cptmapper;
 
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.method.constraints.types.marginalconstraint.MarginalConstraintValidator;
@@ -12,9 +11,8 @@ public class RootCPTMapperIterator extends CptMapperIterator<RootNodeTable, Marg
   public RootCPTMapperIterator(
       RootNodeTable networkTable,
       Collection<MarginalConstraint> constraints,
-      MarginalConstraintValidator validator,
-      BayesianNetworkData networkData) {
-    super(networkTable, constraints, validator, networkData);
+      MarginalConstraintValidator validator) {
+    super(networkTable, constraints, validator);
   }
 
   @Override

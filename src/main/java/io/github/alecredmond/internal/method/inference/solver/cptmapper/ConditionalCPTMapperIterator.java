@@ -1,7 +1,6 @@
 package io.github.alecredmond.internal.method.inference.solver.cptmapper;
 
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
@@ -16,9 +15,8 @@ public class ConditionalCPTMapperIterator
   public ConditionalCPTMapperIterator(
       ConditionalTable networkTable,
       Collection<ConditionalConstraint> constraints,
-      ConditionalConstraintValidator validator,
-      BayesianNetworkData networkData) {
-    super(networkTable, constraints, validator, networkData);
+      ConditionalConstraintValidator validator) {
+    super(networkTable, constraints, validator);
   }
 
   @Override

@@ -3,14 +3,12 @@ package io.github.alecredmond.internal.method.inference.solver.cptmapper;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.CptDirectMappingException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
@@ -23,17 +21,12 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   protected final T networkTable;
   protected final List<P> constraints;
   protected final VectorIterator<VectorOdometer> iterator;
-  protected final ConstraintValidator<P> validator;
-  protected final BayesianNetworkData networkData;
+  protected final CPTConstraintValidator<P> validator;
 
   protected CptMapperIterator(
-      T networkTable,
-      Collection<P> constraints,
-      ConstraintValidator<P> validator,
-      BayesianNetworkData networkData) {
+      T networkTable, Collection<P> constraints, CPTConstraintValidator<P> validator) {
     this.networkTable = networkTable;
     this.validator = validator;
-    this.networkData = networkData;
     this.constraints = radixSortConstraints(networkTable, constraints);
     this.iterator = new VectorIterator<>(new VectorOdometer(networkTable.getVector()), this);
   }
@@ -43,18 +36,21 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     Map<NodeState, Integer> stateValueMap = vector.getStateValueMap();
     Comparator<P> comparator =
         Arrays.stream(vector.getNodeArray())
-            .map(
-                node ->
-                    Comparator.comparingInt(
-                        (P c) ->
-                            c.getAllStates().stream()
-                                .filter(s -> s.getNode().equals(node))
-                                .findAny()
-                                .map(stateValueMap::get)
-                                .orElseThrow()))
+            .map(node -> compareByStateIndexInNode(node, stateValueMap))
             .reduce(Comparator::thenComparing)
             .orElseThrow();
     return constraints.stream().distinct().sorted(comparator).toList();
+  }
+
+  private Comparator<P> compareByStateIndexInNode(
+      Node node, Map<NodeState, Integer> stateValueMap) {
+    return Comparator.comparingInt(
+        (P constraint) ->
+            constraint.getAllStates().stream()
+                .filter(state -> state.getNode().equals(node))
+                .findAny()
+                .map(stateValueMap::get)
+                .orElseThrow());
   }
 
   public List<P> directMapCPTs() {
@@ -65,7 +61,7 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
         () -> {
           entryCheck.setNewRow();
           iterator.iterateInner((o, i) -> checkRowEntry(o, i, entryCheck));
-          validateRowAndBuildMissing(entryCheck,addedConstraints);
+          validateRowAndBuildMissing(entryCheck, addedConstraints);
           constraintIndexMap.putAll(entryCheck.indexMap);
         });
     double[] probs = networkTable.getProbabilities();
@@ -75,16 +71,12 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
 
   private void checkRowEntry(VectorOdometer odometer, int index, MissingEntryCheck entryCheck) {
     NodeState[] states = odometer.getStates();
-    P constraint = entryCheck.constraintQueue.peek();
-    boolean constraintMatches =
-        constraint != null && Arrays.stream(states).allMatch(constraint.getAllStates()::contains);
-    if (constraintMatches) {
+    Optional<P> constraintOpt = getNextConstraintIfEntryMatches(entryCheck, states);
+    if (constraintOpt.isPresent()) {
+      P constraint = constraintOpt.get();
       double probability = constraint.getProbability();
-      if (probability > 1.0 || probability < 0.0) {
-        throwProbabilityError(constraint);
-      }
+      validateProbability(probability, constraint);
       entryCheck.sum -= probability;
-      entryCheck.constraintQueue.poll();
       entryCheck.indexMap.put(constraint, index);
     } else {
       entryCheck.missingInRow++;
@@ -96,17 +88,23 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   private void validateRowAndBuildMissing(MissingEntryCheck entryCheck, List<P> addedConstraints) {
     switch (entryCheck.missingInRow) {
       case 0 -> checkProbabilitiesValid(entryCheck);
-      case 1 -> fillMissingEvent(entryCheck,addedConstraints);
-      default ->
-          throw new CptDirectMappingException(
-              "Cannot direct impute CPTs in %s, %d missing from row"
-                  .formatted(networkTable.getTableName(), entryCheck.missingInRow));
+      case 1 -> fillMissingEvent(entryCheck, addedConstraints);
+      default -> cannotPerformDirectMap(entryCheck);
     }
   }
 
-  private void throwProbabilityError(P constraint) {
-    throw new ConstraintValidationException(
-        "Constraint %s had an illegal probability!".formatted(constraint));
+  private Optional<P> getNextConstraintIfEntryMatches(
+      MissingEntryCheck entryCheck, NodeState[] states) {
+    return Optional.ofNullable(entryCheck.constraintQueue.peek())
+        .filter(c -> Arrays.stream(states).allMatch(c.getAllStates()::contains))
+        .map(c -> entryCheck.constraintQueue.poll());
+  }
+
+  private void validateProbability(double probability, P constraint) {
+    if (probability > 1.0 || probability < 0.0) {
+      throw new ConstraintValidationException(
+          "Constraint %s had an illegal probability!".formatted(constraint));
+    }
   }
 
   private void checkProbabilitiesValid(MissingEntryCheck entryCheck) {
@@ -115,10 +113,16 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   }
 
   private void fillMissingEvent(MissingEntryCheck entryCheck, List<P> addedConstraints) {
-    P missing = buildMissingFromRow(entryCheck);
-    validator.verifyConstraint(new ConstraintBuilderData(networkData, missing));
-    addedConstraints.add(missing);
-    entryCheck.indexMap.put(missing, entryCheck.missingIndex);
+    P fillInConstraint = buildMissingFromRow(entryCheck);
+    validator.validateCPTConstraint(fillInConstraint);
+    addedConstraints.add(fillInConstraint);
+    entryCheck.indexMap.put(fillInConstraint, entryCheck.missingIndex);
+  }
+
+  private void cannotPerformDirectMap(MissingEntryCheck entryCheck) {
+    throw new CptDirectMappingException(
+        "Cannot direct impute CPTs in %s, %d missing from row"
+            .formatted(networkTable.getTableName(), entryCheck.missingInRow));
   }
 
   protected abstract String getIllegalSumString(MissingEntryCheck entryCheck);
@@ -147,7 +151,6 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
       constraintQueue = new ArrayDeque<>(constraints);
       missing = new HashSet<>();
       indexMap = new HashMap<>();
-      setNewRow();
     }
 
     protected void setNewRow() {
