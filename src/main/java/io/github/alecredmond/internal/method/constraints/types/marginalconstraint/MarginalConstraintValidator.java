@@ -3,9 +3,11 @@ package io.github.alecredmond.internal.method.constraints.types.marginalconstrai
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
+import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
-public class MarginalConstraintValidator extends ConstraintValidator<MarginalConstraint> {
+public class MarginalConstraintValidator extends ConstraintValidator<MarginalConstraint>
+    implements CPTConstraintValidator<MarginalConstraint> {
 
   public MarginalConstraintValidator() {
     super();
@@ -14,6 +16,13 @@ public class MarginalConstraintValidator extends ConstraintValidator<MarginalCon
   @Override
   public Class<MarginalConstraint> getConstraintClass() {
     return MarginalConstraint.class;
+  }
+
+  @Override
+  public void validateCPTConstraint(MarginalConstraint constraint) {
+    ConstraintBuilderData data = new ConstraintBuilderData(constraint);
+    validateInputs(data);
+    instanceSpecificValidation(data);
   }
 
   @Override

@@ -1,7 +1,13 @@
 package io.github.alecredmond.export.method.inference;
 
+import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.inference.SolverResults;
+import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
 
@@ -42,6 +48,11 @@ public interface BayesSolver {
    * app.solver.useJunctionTreeSolver} (default: {@code true}). Any exception thrown during the
    * process is caught and logged rather than propagated.
    *
+   * <p><i>Note: This method will first call {@link #writeConstraintsToCPTs()}, which will run in
+   * place of the IPFP algorithm in cases where all constraints can be mapped directly to the
+   * network's CPTs. To force the use of an IPFP variant, use the method {@link
+   * #forceSolve(SolverType)}.</i>
+   *
    * @return {@code true} if the solver procedure completes successfully, or the network was already
    *     solved; {@code false} if an error was encountered.
    */
@@ -62,6 +73,11 @@ public interface BayesSolver {
    * whether the network has already been solved. The active variant is controlled by {@code
    * app.solver.useJunctionTreeSolver} (default: {@code true}). Any exception thrown during the
    * solving process is caught and logged rather than propagated.
+   *
+   * <p><i>Note: This method will first call {@link #writeConstraintsToCPTs()}, which will run in
+   * place of the IPFP algorithm in cases where all constraints can be mapped directly to the
+   * network's CPTs. To force the use of an IPFP variant, use the method {@link
+   * #forceSolve(SolverType)}.</i>
    *
    * @return {@code true} if the solver completes successfully; {@code false} if an error was
    *     encountered.
@@ -85,6 +101,28 @@ public interface BayesSolver {
    * @return {@code true} if the network is already solved; {@code false} otherwise.
    */
   boolean isSolved();
+
+  /**
+   * Maps all constraints in the {@link BayesianNetwork} to their CPT entries, if it is possible to
+   * do so. For this to succeed every constraint must be either:
+   *
+   * <ul>
+   *   <li>A {@link MarginalConstraint} mapping an entry in a valid {@link RootNodeTable}.
+   *   <li>A {@link ConditionalConstraint} mapping an entry in a valid {@link ConditionalTable}.
+   * </ul>
+   *
+   * For every condition {@link NodeState} combination in a given table, there must be at least
+   * {@code n - 1} valid constraints where {@code n} is the number of {@link NodeState}s in the
+   * table's event {@link Node}. The final constraint will be filled in automatically.
+   *
+   * <p><i>Note: This is run automatically when {@link #solve()} or {@link #forceSolve()} are called
+   * and will bypass IPFP if successful. To force the use of an IPFP variant, use the method {@link
+   * #forceSolve(SolverType)}.</i>
+   *
+   * @return {@code true} if all constraints were successfully mapped directly to the network's
+   *     CPTs.
+   */
+  boolean writeConstraintsToCPTs();
 
   /**
    * Returns the results of the most recent solver run on this instance, including per-cycle error
