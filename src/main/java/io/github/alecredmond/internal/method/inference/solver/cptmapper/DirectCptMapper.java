@@ -14,6 +14,7 @@ import io.github.alecredmond.internal.application.network.cptmapper.DirectMapper
 import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperNodeInput;
 import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperRootNodeInput;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings("rawtypes")
@@ -42,17 +43,11 @@ public class DirectCptMapper {
   }
 
   private void fillMapperNodes() {
-    mapperData.reset();
-    for (NetworkTable networkTable : networkData.getNetworkTablesMap().values()) {
-      Node node = networkTable.getNetworkNode();
-      DirectMapperNodeInput mapperNode;
-      switch (networkTable) {
-        case RootNodeTable rnt -> mapperNode = buildRootNodeMapper(node, rnt);
-        case ConditionalTable ct -> mapperNode = buildConditionalNodeMapper(node, ct);
-        default -> throw new IllegalStateException("Unexpected value: " + networkTable);
-      }
-      mapperData.getMapperNodes().put(node, mapperNode);
-    }
+    mapperData.setMapperNodes(
+        networkData.getNetworkTablesMap().values().parallelStream()
+            .map(this::buildNodeMapper)
+            .map(input -> Map.entry(input.getNode(), input))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   private boolean marginalConstraintsMatchRootNodeTables() {
@@ -88,10 +83,10 @@ public class DirectCptMapper {
 
   private boolean directCPTMappingRanSuccessfully() {
     try {
-      mapperData.getMapperNodes().values().stream()
+      mapperData.getMapperNodes().values().parallelStream()
           .filter(DirectMapperNodeInput::runIterator)
-          .filter(this::addToSuccessList)
           .map(DirectMapperNodeInput::getAddedConstraints)
+          .sequential()
           .forEach(mapperData.getAllConstraints()::addAll);
       return true;
     } catch (CptDirectMappingException e) {
@@ -103,12 +98,15 @@ public class DirectCptMapper {
     }
   }
 
-  private DirectMapperNodeInput buildRootNodeMapper(Node node, RootNodeTable rnt) {
-    return new DirectMapperRootNodeInput(node, rnt, mapperData.getMarginalValidator());
-  }
-
-  private DirectMapperNodeInput buildConditionalNodeMapper(Node node, ConditionalTable ct) {
-    return new DirectMapperConditionalNodeInput(node, ct, mapperData.getConditionalValidator());
+  private DirectMapperNodeInput buildNodeMapper(NetworkTable table) {
+    Node node = table.getNetworkNode();
+    DirectMapperNodeInput mapperNode;
+    switch (table) {
+      case RootNodeTable rnt -> mapperNode = buildRootNodeMapper(node, rnt);
+      case ConditionalTable ct -> mapperNode = buildConditionalNodeMapper(node, ct);
+      default -> throw new IllegalStateException("Unexpected value: " + table);
+    }
+    return mapperNode;
   }
 
   private <T extends ProbabilityConstraint> List<T> getAllConstraints(Class<T> tClass) {
@@ -125,17 +123,22 @@ public class DirectCptMapper {
     return numConstraints >= minimumRequired;
   }
 
-  private boolean addToSuccessList(DirectMapperNodeInput input) {
-    return mapperData.getDirectInputSuccess().add(input.getNode());
-  }
-
   private void revertMappedValues() {
-    mapperData.getDirectInputSuccess().stream()
-        .map(networkData.getNetworkTablesMap()::get)
+    mapperData.getMapperNodes().values().parallelStream()
+        .filter(DirectMapperNodeInput::isRunSuccess)
+        .map(DirectMapperNodeInput::getNetworkTable)
         .forEach(
             table -> {
               Arrays.fill(table.getProbabilities(), 1.0);
               table.getHelper().normalizeTable();
             });
+  }
+
+  private DirectMapperNodeInput buildRootNodeMapper(Node node, RootNodeTable rnt) {
+    return new DirectMapperRootNodeInput(node, rnt, mapperData.getMarginalValidator());
+  }
+
+  private DirectMapperNodeInput buildConditionalNodeMapper(Node node, ConditionalTable ct) {
+    return new DirectMapperConditionalNodeInput(node, ct, mapperData.getConditionalValidator());
   }
 }

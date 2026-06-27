@@ -18,6 +18,7 @@ public abstract class DirectMapperNodeInput<
   protected final int minimumCPTEntries;
   protected final List<P> validConstraints;
   protected final List<P> addedConstraints;
+  protected boolean runSuccess;
 
   protected DirectMapperNodeInput(Node node, T networkTable, V validator) {
     this.node = node;
@@ -35,7 +36,8 @@ public abstract class DirectMapperNodeInput<
   }
 
   public boolean runIterator() {
-    return addedConstraints.addAll(buildIterator().directMapCPTs());
+    addedConstraints.addAll(buildIterator().directMapCPTs());
+    return true;
   }
 
   protected abstract CptMapperIterator<T, P> buildIterator();
