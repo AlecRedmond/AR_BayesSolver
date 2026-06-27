@@ -6,7 +6,6 @@ import io.github.alecredmond.export.application.constraints.MarginalConstraint;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -22,107 +21,116 @@ import lombok.Getter;
 @Getter
 public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateUpdater {
   private final VectorIterator<VectorOdometer> iterator;
-  private final Set<Node> events;
-  private final Set<Node> conditions;
+  private final Node event;
   private final VectorOdometer odometer;
   private List<ProbabilityConstraint> built;
 
-  public ConstraintBuilderIterator(ProbabilityTable table) {
-    this.events = table.getEvents();
-    this.conditions = table.getConditions();
-    this.odometer = new VectorOdometer(table.getVector());
-    this.iterator = new VectorIterator<>(odometer, this);
-    performRun();
-  }
-
-  public void performRun() {
-    built = new ArrayList<>();
-    double[] p = odometer.getProbabilities();
-    NodeState[] states = odometer.getStates();
-    Runnable function =
-        conditions.isEmpty() ? createMarginals(p, states) : createConditionals(p, states);
-    iterator.iterateOuter(function);
-  }
-
-  private Runnable createMarginals(double[] p, NodeState[] states) {
-    return () -> {
-      List<MarginalConstraint> constraints = new ArrayList<>();
-      int[] count = {0};
-      iterator.iterateInner(
-          (o, i) -> {
-            count[0]++;
-            double prob = p[i];
-            if (prob > 1.0 || prob < 0.0) return;
-            NodeState event = states[0];
-            constraints.add(new MarginalConstraint(event, prob));
-          });
-      validateConstraintSums(constraints, count[0]);
-      built.addAll(constraints);
-    };
-  }
-
-  private Runnable createConditionals(double[] p, NodeState[] states) {
-    return () -> {
-      List<ConditionalConstraint> constraints = new ArrayList<>();
-      Set<NodeState> conds = getStatesFromSet(states, conditions);
-      int[] count = {0};
-      iterator.iterateInner(
-          (o, i) -> {
-            count[0]++;
-            double prob = p[i];
-            if (prob > 1.0 || prob < 0.0) return;
-            NodeState event = getStatesFromSet(states, events).iterator().next();
-            constraints.add(new ConditionalConstraint(event, conds, prob));
-          });
-      validateConstraintSums(constraints, count[0]);
-      built.addAll(constraints);
-    };
-  }
-
-  private void validateConstraintSums(
-      List<? extends ProbabilityConstraint> constraints, int count) {
-    if (constraints.isEmpty()) return;
-    Set<NodeState> condition = constraints.getFirst().getConditionStates();
-    double sum = constraints.stream().mapToDouble(ProbabilityConstraint::getProbability).sum();
-    if (constraints.size() < count && sum >= 1.0) {
-      throw new ConstraintValidationException(
-          "Constraints on [%s] the condition [%s] would sum to > 1"
-              .formatted(
-                  events.iterator().next().getId(), NodeUtils.formatStatesToString(condition)));
-    }
-    if (constraints.size() != count) return;
-    if (DoublePrecision.fuzzyEquals(sum, 1.0)) {
-      // IPFP will automatically solve the last state if all others are known.
-      constraints.removeLast();
-      return;
-    }
-    throw new ConstraintValidationException(
-        "Constraints on [%s] the condition [%s] do not sum to 1"
-            .formatted(
-                events.iterator().next().getId(), NodeUtils.formatStatesToString(condition)));
-  }
-
-  private Set<NodeState> getStatesFromSet(NodeState[] states, Set<Node> set) {
-    return Arrays.stream(states)
-        .filter(state -> set.contains(state.getNode()))
-        .collect(Collectors.toSet());
-  }
-
-  public ConstraintBuilderIterator(
-      Set<Node> events, Set<Node> conditions, ProbabilityVector vector) {
-    this.events = events;
-    this.conditions = conditions;
+  public ConstraintBuilderIterator(Node event, ProbabilityVector vector) {
+    this.event = event;
     this.odometer = new VectorOdometer(vector);
     this.iterator = new VectorIterator<>(odometer, this);
   }
 
+  public List<ProbabilityConstraint> buildConstraints() {
+    built = new ArrayList<>();
+    double[] probabilities = odometer.getProbabilities();
+    NodeState[] states = odometer.getStates();
+    if (states.length == 1) {
+      createMarginals(probabilities, states);
+    } else {
+      createConditionals(probabilities, states);
+    }
+    return built;
+  }
+
   @Override
   public Predicate<Node> checkLockOuter() {
-    return events::contains;
+    return event::equals;
   }
 
   @Override
   public Predicate<Node> checkLockInner() {
-    return conditions::contains;
+    return node -> !event.equals(node);
+  }
+
+  private void createMarginals(double[] probabilities, NodeState[] states) {
+    List<MarginalConstraint> constraints = new ArrayList<>();
+    int[] count = {0};
+    iterator.iterateOuter(
+        () -> {
+          constraints.clear();
+          count[0] = 0;
+          iterator.iterateInner(
+              (o, i) -> {
+                count[0]++;
+                double prob = probabilities[i];
+                if (prob > 1.0 || prob < 0.0) return;
+                NodeState eventState = states[0];
+                constraints.add(new MarginalConstraint(eventState, prob));
+              });
+          validateConstraintSums(constraints, count[0]);
+          built.addAll(constraints);
+        });
+  }
+
+  private void createConditionals(double[] probabilities, NodeState[] states) {
+    List<ConditionalConstraint> constraints = new ArrayList<>();
+    int[] count = {0};
+    iterator.iterateOuter(
+        () -> {
+          constraints.clear();
+          count[0] = 0;
+          Set<NodeState> conditionStates = getConditionStates(states);
+          iterator.iterateInner(
+              (o, i) -> {
+                count[0]++;
+                double prob = probabilities[i];
+                if (prob > 1.0 || prob < 0.0) return;
+                NodeState eventState = getEventState(states);
+                constraints.add(new ConditionalConstraint(eventState, conditionStates, prob));
+              });
+          validateConstraintSums(constraints, count[0]);
+          built.addAll(constraints);
+        });
+  }
+
+  private void validateConstraintSums(
+      List<? extends ProbabilityConstraint> constraints, int numEventStates) {
+    double sum = constraints.stream().mapToDouble(ProbabilityConstraint::getProbability).sum();
+    if (numEventStates == constraints.size()) {
+      assertSumEqualsOne(constraints, sum);
+    } else {
+      assertSumWouldNotExceedOne(constraints, sum);
+    }
+  }
+
+  private void assertSumEqualsOne(List<? extends ProbabilityConstraint> constraints, double sum) {
+    if (DoublePrecision.fuzzyEquals(sum, 1.0)) return;
+    Set<NodeState> condition = constraints.getFirst().getConditionStates();
+    throw new ConstraintValidationException(
+        "Constraints on [%s] the condition [%s] do not sum to 1"
+            .formatted(event.getId(), NodeUtils.formatStatesToString(condition)));
+  }
+
+  private void assertSumWouldNotExceedOne(
+      List<? extends ProbabilityConstraint> constraints, double sum) {
+    if (sum < 1.0) return;
+    Set<NodeState> condition = constraints.getFirst().getConditionStates();
+    throw new ConstraintValidationException(
+        "Constraints on [%s] the condition [%s] would sum to > 1"
+            .formatted(event.getId(), NodeUtils.formatStatesToString(condition)));
+  }
+
+  private Set<NodeState> getConditionStates(NodeState[] states) {
+    return Arrays.stream(states)
+        .filter(state -> !event.equals(state.getNode()))
+        .collect(Collectors.toSet());
+  }
+
+  private NodeState getEventState(NodeState[] states) {
+    return Arrays.stream(states)
+        .filter(state -> event.equals(state.getNode()))
+        .findFirst()
+        .orElseThrow();
   }
 }

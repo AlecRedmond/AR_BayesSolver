@@ -294,19 +294,19 @@ public class NetworkScenarioBuilder {
 
   public static Supplier<BayesianNetwork> buildRainNetwork() {
     return () ->
-        BayesianNetwork.newNetwork("RAIN_SPRINKLER_GRASS")
-            .addNewNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"))
-            .addNewNode("SPRINKLER", List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"))
-            .addNewNode("WET_GRASS", List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"))
-            .addParents("SPRINKLER", "RAIN")
-            .addParents("WET_GRASS", List.of("SPRINKLER", "RAIN"))
-            .addConstraint("RAIN:TRUE", 0.2)
-            .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
-            .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
-            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
-            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
-            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
-            .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
+        new BayesianNetworkBuilder("RAIN_SPRINKLER_GRASS")
+            .addNode("RAIN", List.of("RAIN:TRUE", "RAIN:FALSE"), new double[] {0.2, 0.8})
+            .addNode(
+                "SPRINKLER",
+                List.of("SPRINKLER:TRUE", "SPRINKLER:FALSE"),
+                List.of("RAIN", "SPRINKLER"),
+                new double[] {0.01, 0.99, 0.4, 0.6})
+            .addNode(
+                "WET_GRASS",
+                List.of("WET_GRASS:TRUE", "WET_GRASS:FALSE"),
+                List.of("RAIN", "SPRINKLER", "WET_GRASS"),
+                new double[] {0.99, 0.01, 0.9, 0.1, 0.9, 0.1, 0.0, 1.0})
+            .build();
   }
 
   public static Supplier<BayesianNetwork> buildDiamondNetwork() {

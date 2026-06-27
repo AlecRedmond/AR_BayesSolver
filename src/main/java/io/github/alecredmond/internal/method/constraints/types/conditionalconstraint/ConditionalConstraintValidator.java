@@ -3,9 +3,11 @@ package io.github.alecredmond.internal.method.constraints.types.conditionalconst
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
+import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
 
-public class ConditionalConstraintValidator extends ConstraintValidator<ConditionalConstraint> {
+public class ConditionalConstraintValidator extends ConstraintValidator<ConditionalConstraint>
+    implements CPTConstraintValidator<ConditionalConstraint> {
 
   public ConditionalConstraintValidator() {
     super();
@@ -14,6 +16,13 @@ public class ConditionalConstraintValidator extends ConstraintValidator<Conditio
   @Override
   public Class<ConditionalConstraint> getConstraintClass() {
     return ConditionalConstraint.class;
+  }
+
+  @Override
+  public void validateCPTConstraint(ConditionalConstraint constraint) {
+    ConstraintBuilderData data = new ConstraintBuilderData(constraint);
+    validateInputs(data);
+    instanceSpecificValidation(data);
   }
 
   @Override

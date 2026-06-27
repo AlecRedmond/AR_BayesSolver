@@ -39,7 +39,17 @@ public class ConstraintBuilderData {
     this.conditionStates = constraint.getConditionStates();
     this.probability = constraint.getProbability();
     this.networkData = networkData;
-    this.eventNodes = NodeUtils.getNodes(eventStates);
-    this.conditionNodes = NodeUtils.getNodes(conditionStates);
+    this.eventNodes = constraint.getEventNodes();
+    this.conditionNodes = constraint.getConditionNodes();
+  }
+
+  public ConstraintBuilderData(ProbabilityConstraint cptInputConstraint) {
+    this.constraint = cptInputConstraint;
+    this.eventStates = constraint.getEventStates();
+    this.conditionStates = constraint.getConditionStates();
+    this.probability = constraint.getProbability();
+    this.networkData = null;
+    this.eventNodes = cptInputConstraint.getEventNodes();
+    this.conditionNodes = cptInputConstraint.getConditionNodes();
   }
 }
