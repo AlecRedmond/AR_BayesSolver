@@ -9,13 +9,14 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
-import io.github.alecredmond.internal.application.network.CptMapperData;
-import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.types.marginalconstraint.MarginalConstraintValidator;
+import io.github.alecredmond.internal.application.network.cptmapper.CptMapperData;
+import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperConditionalNodeInput;
+import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperNodeInput;
+import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperRootNodeInput;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("rawtypes")
 @Slf4j
 public class DirectCptMapper {
   private final BayesianNetworkData networkData;
@@ -24,29 +25,15 @@ public class DirectCptMapper {
   public DirectCptMapper(BayesianNetworkData networkData) {
     this.networkData = networkData;
     this.mapperData = new CptMapperData(networkData);
-    fillCptTables();
-  }
-
-  private void fillCptTables() {
-    mapperData.getConditionalTableMap().clear();
-    mapperData.getRootNodeTableMap().clear();
-    for (NetworkTable networkTable : networkData.getNetworkTablesMap().values()) {
-      if (networkTable instanceof RootNodeTable rnt) {
-        mapperData.getRootNodeTableMap().put(networkTable.getNetworkNode(), rnt);
-      } else if (networkTable instanceof ConditionalTable ct) {
-        mapperData.getConditionalTableMap().put(networkTable.getNetworkNode(), ct);
-      }
-    }
   }
 
   public boolean tryDirectImpute() {
-    mapperData.reset();
-    fillCptTables();
     if (!onlyConditionalAndMarginalConstraintsInNetwork()) return false;
-    if (!marginalConstraintsMatchRootNodeTables()) return false;
-    if (!conditionalConstraintsMatchConditionalTables()) return false;
-    if (!hasRequiredNumberOfConstraintsPerCPT()) return false;
-    return allCPTsMappedSuccessfully();
+    fillMapperNodes();
+    return marginalConstraintsMatchRootNodeTables()
+        && conditionalConstraintsMatchConditionalTables()
+        && hasNecessaryNumberOfConstraintsPerCPT()
+        && directCPTMappingRanSuccessfully();
   }
 
   private boolean onlyConditionalAndMarginalConstraintsInNetwork() {
@@ -54,45 +41,58 @@ public class DirectCptMapper {
         .allMatch(p -> p instanceof MarginalConstraint || p instanceof ConditionalConstraint);
   }
 
+  private void fillMapperNodes() {
+    mapperData.reset();
+    for (NetworkTable networkTable : networkData.getNetworkTablesMap().values()) {
+      Node node = networkTable.getNetworkNode();
+      DirectMapperNodeInput mapperNode;
+      switch (networkTable) {
+        case RootNodeTable rnt -> mapperNode = buildRootNodeMapper(node, rnt);
+        case ConditionalTable ct -> mapperNode = buildConditionalNodeMapper(node, ct);
+        default -> throw new IllegalStateException("Unexpected value: " + networkTable);
+      }
+      mapperData.getMapperNodes().put(node, mapperNode);
+    }
+  }
+
   private boolean marginalConstraintsMatchRootNodeTables() {
-    Map<Node, List<ProbabilityConstraint>> constraintMap = mapperData.getCptConstraints();
-    Map<Node, RootNodeTable> rootNodeTables = mapperData.getRootNodeTableMap();
-    for (MarginalConstraint constraint : getConstraints(MarginalConstraint.class)) {
+    Map<Node, DirectMapperNodeInput> mapperNodes = mapperData.getMapperNodes();
+    for (MarginalConstraint constraint : getAllConstraints(MarginalConstraint.class)) {
       Node node = constraint.getEventNode();
-      if (!rootNodeTables.containsKey(node)) return false;
-      constraintMap.computeIfAbsent(node, n -> new ArrayList<>());
-      constraintMap.get(node).add(constraint);
+      if (!(mapperNodes.get(node) instanceof DirectMapperRootNodeInput rootInput)) {
+        return false;
+      }
+      rootInput.getValidConstraints().add(constraint);
     }
     return true;
   }
 
   private boolean conditionalConstraintsMatchConditionalTables() {
-    Map<Node, List<ProbabilityConstraint>> constraintMap = mapperData.getCptConstraints();
-    Map<Node, ConditionalTable> conditionalTableMap = mapperData.getConditionalTableMap();
-    for (ConditionalConstraint constraint : getConstraints(ConditionalConstraint.class)) {
+    Map<Node, DirectMapperNodeInput> mapperNodes = mapperData.getMapperNodes();
+    for (ConditionalConstraint constraint : getAllConstraints(ConditionalConstraint.class)) {
       Node node = constraint.getEventNode();
-      if (!conditionalTableMap.containsKey(node)) return false;
-      ConditionalTable table = conditionalTableMap.get(node);
+      if (!(mapperNodes.get(node) instanceof DirectMapperConditionalNodeInput conditionalInput)) {
+        return false;
+      }
+      ConditionalTable table = conditionalInput.getNetworkTable();
       if (!table.getConditions().equals(constraint.getConditionNodes())) return false;
-      constraintMap.computeIfAbsent(node, n -> new ArrayList<>());
-      constraintMap.get(node).add(constraint);
+      conditionalInput.getValidConstraints().add(constraint);
     }
     return true;
   }
 
-  private boolean hasRequiredNumberOfConstraintsPerCPT() {
-    return networkData.getNetworkTablesMap().values().stream()
+  private boolean hasNecessaryNumberOfConstraintsPerCPT() {
+    return mapperData.getMapperNodes().values().stream()
         .allMatch(this::meetsMinimumConstraintsRequired);
   }
 
-  private boolean allCPTsMappedSuccessfully() {
-    MarginalConstraintValidator mcv = new MarginalConstraintValidator();
-    Map<Node, RootNodeTable> roots = mapperData.getRootNodeTableMap();
-    ConditionalConstraintValidator ccv = new ConditionalConstraintValidator();
-    Map<Node, ConditionalTable> conds = mapperData.getConditionalTableMap();
+  private boolean directCPTMappingRanSuccessfully() {
     try {
-      runMapperIterators(roots, mcv, RootCPTMapperIterator::new);
-      runMapperIterators(conds, ccv, ConditionalCPTMapperIterator::new);
+      mapperData.getMapperNodes().values().stream()
+          .filter(DirectMapperNodeInput::runIterator)
+          .filter(this::addToSuccessList)
+          .map(DirectMapperNodeInput::getAddedConstraints)
+          .forEach(mapperData.getAllConstraints()::addAll);
       return true;
     } catch (CptDirectMappingException e) {
       revertMappedValues();
@@ -103,7 +103,15 @@ public class DirectCptMapper {
     }
   }
 
-  private <T extends ProbabilityConstraint> List<T> getConstraints(Class<T> tClass) {
+  private DirectMapperNodeInput buildRootNodeMapper(Node node, RootNodeTable rnt) {
+    return new DirectMapperRootNodeInput(node, rnt, mapperData.getMarginalValidator());
+  }
+
+  private DirectMapperNodeInput buildConditionalNodeMapper(Node node, ConditionalTable ct) {
+    return new DirectMapperConditionalNodeInput(node, ct, mapperData.getConditionalValidator());
+  }
+
+  private <T extends ProbabilityConstraint> List<T> getAllConstraints(Class<T> tClass) {
     return mapperData.getAllConstraints().stream()
         .filter(tClass::isInstance)
         .map(tClass::cast)
@@ -111,38 +119,14 @@ public class DirectCptMapper {
         .toList();
   }
 
-  private boolean meetsMinimumConstraintsRequired(NetworkTable table) {
-    Node networkNode = table.getNetworkNode();
-    int numConstraints = mapperData.getCptConstraints().getOrDefault(networkNode, List.of()).size();
-    int cptEntries = table.getProbabilities().length;
-    if (numConstraints == cptEntries) return true;
-    int numEventStates = networkNode.getNodeStates().size();
-    int minimumEntries = (cptEntries / numEventStates) * (numEventStates - 1);
-    return numConstraints >= minimumEntries;
+  private boolean meetsMinimumConstraintsRequired(DirectMapperNodeInput mapperNode) {
+    int numConstraints = mapperNode.getValidConstraints().size();
+    int minimumRequired = mapperNode.getMinimumCPTEntries();
+    return numConstraints >= minimumRequired;
   }
 
-  private <
-          T extends NetworkTable,
-          I extends CptMapperIterator<T, P>,
-          P extends ProbabilityConstraint,
-          V extends CPTConstraintValidator<P>>
-      void runMapperIterators(
-          Map<Node, T> tableMap,
-          V validator,
-          CPTMapperIteratorConstructor<T, P, I, V> constructor) {
-    tableMap.forEach(
-        (node, table) -> {
-          Class<P> constraintClass = validator.getConstraintClass();
-          List<P> constraints =
-              mapperData.getCptConstraints().get(node).stream()
-                  .filter(constraintClass::isInstance)
-                  .map(constraintClass::cast)
-                  .toList();
-          I iterator = constructor.apply(table, constraints, validator);
-          List<P> addedConstraints = iterator.directMapCPTs();
-          addedConstraints.forEach(mapperData.getAllConstraints()::add);
-          mapperData.getDirectInputSuccess().add(node);
-        });
+  private boolean addToSuccessList(DirectMapperNodeInput input) {
+    return mapperData.getDirectInputSuccess().add(input.getNode());
   }
 
   private void revertMappedValues() {
@@ -153,14 +137,5 @@ public class DirectCptMapper {
               Arrays.fill(table.getProbabilities(), 1.0);
               table.getHelper().normalizeTable();
             });
-  }
-
-  @FunctionalInterface
-  interface CPTMapperIteratorConstructor<
-      T extends NetworkTable,
-      P extends ProbabilityConstraint,
-      I extends CptMapperIterator<T, P>,
-      V extends CPTConstraintValidator<P>> {
-    I apply(T networkTable, Collection<P> constraints, V validator);
   }
 }
