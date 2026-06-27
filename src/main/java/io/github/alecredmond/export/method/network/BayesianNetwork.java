@@ -735,8 +735,7 @@ public interface BayesianNetwork {
    * Returns a new map connecting each {@link Node} in this {@code BayesianNetwork} to its
    * associated Conditional Probability Table (CPT).
    *
-   * @return a new map containing each {@link Node} and its associated {@link NetworkTable} CPT, or
-   *     an empty map if this {@code BayesianNetwork} has not been solved.
+   * @return a new map containing each {@link Node} and its associated {@link NetworkTable} CPT.
    */
   Map<Node, NetworkTable> getNetworkTables();
 

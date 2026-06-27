@@ -186,19 +186,9 @@ class InferenceEngineTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
+
       BayesianNetwork net = AH_NETWORK.get();
-      BayesSolverImpl solver = new BayesSolverImpl(net);
-      solver.solve();
-      Clique[] cliques = solver.getJta().getData().getCliques();
-      System.out.println("SOLVER CLIQUES:");
-      for (Clique clique : cliques) {
-        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
-      }
-      assertDoesNotThrow(() -> test = net.buildInferenceEngine());
-      cliques = ((InferenceEngineImpl) test).getJunctionTree().getData().getCliques();
-      for (Clique clique : cliques) {
-        System.out.println(NodeUtils.formatNodesToString(clique.getNodes()));
-      }
+      test = net.buildInferenceEngine();
 
       if (PRINT_TABLES) {
         net.printNetwork();

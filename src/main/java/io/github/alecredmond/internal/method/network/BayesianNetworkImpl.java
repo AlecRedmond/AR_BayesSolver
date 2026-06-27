@@ -343,12 +343,10 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
   }
 
   public <T extends Serializable> NetworkTable getNetworkTable(T nodeID) {
-    if (!networkData.isSolved()) solveNetwork();
     return networkData.getNetworkTableById(nodeID);
   }
 
   public Map<Node, NetworkTable> getNetworkTables() {
-    if (!networkData.isSolved()) return Map.of();
     return Map.copyOf(networkData.getNetworkTablesMap());
   }
 

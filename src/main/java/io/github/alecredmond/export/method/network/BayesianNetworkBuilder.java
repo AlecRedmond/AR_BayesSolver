@@ -77,7 +77,7 @@ public class BayesianNetworkBuilder {
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
-  public <T extends Serializable> BayesianNetworkBuilder addRootNode(T nodeId, List<T> stateIds) {
+  public <T extends Serializable> BayesianNetworkBuilder addNode(T nodeId, List<T> stateIds) {
     nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds));
     return this;
   }
@@ -105,7 +105,7 @@ public class BayesianNetworkBuilder {
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
-  public <T extends Serializable> BayesianNetworkBuilder addRootNode(
+  public <T extends Serializable> BayesianNetworkBuilder addNode(
       T nodeId, List<T> stateIds, double[] cptValues) {
     nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, cptValues));
     return this;
