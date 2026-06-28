@@ -18,16 +18,17 @@ import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
  * solving, per-constraint error and loss results can be reviewed via {@link #getResults()}.
  *
  * <p>Two IPFP variants are currently available; a full joint-distribution procedure ({@link
- * SolverType#SINGLE_TABLE_IPFP}), and a Junction Tree Algorithm-derived procedure ({@link
- * SolverType#JUNCTION_TREE_IPFP}). The default variant is controlled by {@code
- * app.solver.useJunctionTreeSolver} in {@code app.properties} (default: {@code true}).
+ * SolverAlgorithm#SINGLE_TABLE_IPFP}), and a Junction Tree Algorithm-derived procedure ({@link
+ * SolverAlgorithm#JUNCTION_TREE_IPFP}). The default variant is controlled by {@code
+ * app.solver.defaultSolverAlgorithm} in {@code app.properties} (default: {@code
+ * JUNCTION_TREE_IPFP}).
  *
  * <p>Additional solver properties - including the maximum number of cycles, time limits, and
  * convergence thresholds - are configurable under the {@code app.solver} section of {@code
  * app.properties}.
  *
  * @see SolverResults
- * @see SolverType
+ * @see SolverAlgorithm
  * @author Alec Redmond
  */
 public interface BayesSolver {
@@ -45,13 +46,13 @@ public interface BayesSolver {
   /**
    * Runs the solver using the IPFP variant configured in {@code app.properties}, unless the network
    * has already been solved. The active variant is controlled by {@code
-   * app.solver.useJunctionTreeSolver} (default: {@code true}). Any exception thrown during the
-   * process is caught and logged rather than propagated.
+   * app.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
+   * during the process is caught and logged rather than propagated.
    *
-   * <p><i>Note: This method will first call {@link #writeConstraintsToCPTs()}, which will run in
+   * <p><i>Note: This method will first call {@link #writeCPTsFromConstraints()}, which will run in
    * place of the IPFP algorithm in cases where all constraints can be mapped directly to the
    * network's CPTs. To force the use of an IPFP variant, use the method {@link
-   * #forceSolve(SolverType)}.</i>
+   * #forceSolve(SolverAlgorithm)}.</i>
    *
    * @return {@code true} if the solver procedure completes successfully, or the network was already
    *     solved; {@code false} if an error was encountered.
@@ -62,22 +63,22 @@ public interface BayesSolver {
    * Runs the solver using the specified IPFP variant, unless the network has already been solved.
    * Any exception thrown during the solving process is caught and logged rather than propagated.
    *
-   * @param solverType the IPFP variant to use.
+   * @param solverAlgorithm the IPFP variant to use.
    * @return {@code true} if the solver completes successfully, or the network was already solved;
    *     {@code false} if an error was encountered.
    */
-  boolean solve(SolverType solverType);
+  boolean solve(SolverAlgorithm solverAlgorithm);
 
   /**
    * Runs the solver using the IPFP variant configured in {@code app.properties}, regardless of
    * whether the network has already been solved. The active variant is controlled by {@code
-   * app.solver.useJunctionTreeSolver} (default: {@code true}). Any exception thrown during the
-   * solving process is caught and logged rather than propagated.
+   * app.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
+   * during the solving process is caught and logged rather than propagated.
    *
-   * <p><i>Note: This method will first call {@link #writeConstraintsToCPTs()}, which will run in
+   * <p><i>Note: This method will first call {@link #writeCPTsFromConstraints()}, which will run in
    * place of the IPFP algorithm in cases where all constraints can be mapped directly to the
    * network's CPTs. To force the use of an IPFP variant, use the method {@link
-   * #forceSolve(SolverType)}.</i>
+   * #forceSolve(SolverAlgorithm)}.</i>
    *
    * @return {@code true} if the solver completes successfully; {@code false} if an error was
    *     encountered.
@@ -89,11 +90,11 @@ public interface BayesSolver {
    * been solved. Any exception thrown during the solving process is caught and logged rather than
    * propagated.
    *
-   * @param solverType the IPFP variant to use.
+   * @param solverAlgorithm the IPFP variant to use.
    * @return {@code true} if the solver completes successfully; {@code false} if an error was
    *     encountered.
    */
-  boolean forceSolve(SolverType solverType);
+  boolean forceSolve(SolverAlgorithm solverAlgorithm);
 
   /**
    * Returns whether the network has already been solved.
@@ -117,12 +118,12 @@ public interface BayesSolver {
    *
    * <p><i>Note: This is run automatically when {@link #solve()} or {@link #forceSolve()} are called
    * and will bypass IPFP if successful. To force the use of an IPFP variant, use the method {@link
-   * #forceSolve(SolverType)}.</i>
+   * #forceSolve(SolverAlgorithm)}.</i>
    *
    * @return {@code true} if all constraints were successfully mapped directly to the network's
    *     CPTs.
    */
-  boolean writeConstraintsToCPTs();
+  boolean writeCPTsFromConstraints();
 
   /**
    * Returns the results of the most recent solver run on this instance, including per-cycle error
@@ -131,62 +132,4 @@ public interface BayesSolver {
    * @return the results of the most recent run, or {@code null} if no run has been performed.
    */
   SolverResults getResults();
-
-  /**
-   * The Iterative Proportional Fitting Procedure (IPFP) variant used during the solving process.
-   *
-   * <ul>
-   *   <li>
-   *       <p><b>SINGLE_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
-   *       Cartesian product of all node states is mapped to a single joint probability table, and
-   *       all constraints are applied to that table.
-   *       <p><b>Time complexity: O(2<sup>n</sup>), where n is the number of nodes in the
-   *       network.</b>
-   *       <p>This method has a low overhead and will typically converge faster for small networks
-   *       where the joint table would contain fewer than 2<sup>10</sup> entries. Performance
-   *       degrades exponentially beyond this threshold. The absolute upper limit is
-   *       2<sup>31</sup>&minus;1 entries, the maximum length of a Java array.
-   *   <li>
-   *       <p><b>JUNCTION_TREE_IPFP</b> decomposes the network into a junction tree of smaller
-   *       cliques, each with its own joint sub-table, connected by separators formed from their
-   *       shared nodes. Constraints are batched per clique, solved locally, and the results
-   *       propagated through the separators.
-   *       <p><b>Time complexity: O(c &times; 2<sup>t</sup>), where t is the treewidth and c is the
-   *       number of cliques in the junction tree.</b>
-   *       <p>This variant carries higher overhead but scales with treewidth rather than total node
-   *       count, typically yielding an exponential speed improvement over {@link
-   *       SolverType#SINGLE_TABLE_IPFP} as nodes are added. It is also the only option for networks
-   *       whose full joint Cartesian product would exceed 2<sup>31</sup>&minus;1 entries.
-   * </ul>
-   */
-  enum SolverType {
-    /**
-     * <b>SINGLE_TABLE_IPFP</b> is the most basic form of iterative proportional fitting. The
-     * Cartesian product of all node states is mapped to a single joint probability table, and all
-     * constraints are applied to that table.
-     *
-     * <p><b>Time complexity: O(2<sup>n</sup>), where n is the number of nodes in the network.</b>
-     *
-     * <p>This method has a low overhead and will typically converge faster for small networks where
-     * the joint table would contain fewer than 2<sup>10</sup> entries. Performance degrades
-     * exponentially beyond this threshold. The absolute upper limit is 2<sup>31</sup>&minus;1
-     * entries, the maximum length of a Java array.
-     */
-    SINGLE_TABLE_IPFP,
-    /**
-     * <b>JUNCTION_TREE_IPFP</b> decomposes the network into a junction tree of smaller cliques,
-     * each with its own joint sub-table, connected by separators formed from their shared nodes.
-     * Constraints are batched per clique, solved locally, and the results propagated through the
-     * separators.
-     *
-     * <p><b>Time complexity: O(c &times; 2<sup>t</sup>), where t is the treewidth and c is the
-     * number of cliques in the junction tree.</b>
-     *
-     * <p>This variant carries higher overhead but scales with treewidth rather than total node
-     * count, typically yielding an exponential speed improvement over {@link
-     * SolverType#SINGLE_TABLE_IPFP} as nodes are added. It is also the only option for networks
-     * whose full joint Cartesian product would exceed 2<sup>31</sup>&minus;1 entries.
-     */
-    JUNCTION_TREE_IPFP
-  }
 }

@@ -32,7 +32,7 @@ public class JTASolver {
     Instant start = Instant.now();
 
     if (writeLogs) {
-      log.info("STARTING SOLVER IN MODE = {}", configs.getSolverType());
+      log.info("STARTING SOLVER IN MODE = {}", configs.getSolverAlgorithm());
     }
 
     jta = JunctionTreeAlgorithm.buildForSolver(network.getNetworkData(), configs);
@@ -61,7 +61,7 @@ public class JTASolver {
       thresholdReached = Math.abs(converge) <= configs.getConvergeThreshold();
       timeLimitReached = now.isAfter(endTime);
 
-      if (thresholdReached || timeLimitReached) {
+      if (thresholdReached || timeLimitReached || Double.isNaN(error)) {
         break;
       }
 
@@ -127,7 +127,7 @@ public class JTASolver {
     Map<ProbabilityConstraint, double[]> resultsMap = new HashMap<>();
     constraintMap.values().stream()
         .flatMap(Collection::stream)
-        .forEach(handler -> handler.updateResults(resultsMap,cycle,constraintMap.keySet()));
+        .forEach(handler -> handler.updateResults(resultsMap, cycle, constraintMap.keySet()));
     return new SolverResultsBuilder().buildResults(cycle, resultsMap, Duration.between(start, now));
   }
 

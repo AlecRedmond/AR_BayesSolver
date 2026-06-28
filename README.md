@@ -10,21 +10,25 @@
 
 # Overview
 
-AR_BayesSolver is a library that enables easy Bayesian Network construction and inference without requiring the user to define the full Conditional Probability Tables (CPTs). Instead, the user defines *constraints* on the network, either marginal (e.g `P(RAIN=true) = 0.2`) or conditional (e.g `P(SPRINKLER=false | RAIN=true) = 0.95`). Using a Junction Tree Algorithm (JTA) accelerated Iterative Proportional Fitting Procedure (IPFP), a "best-fit" probability distribution is calculated that conforms to the given constraints. This is best suited in situations where the user only has partial domain knowledge (i.e. does not have the complete CPT for every node).
+AR_BayesSolver is a Java library providing a high-level toolset for working with Bayesian Networks. Bayesian Networks
+can be constructed from either full or partial domain knowledge of the network's Conditional Probability Tables (CPTs),
+solved using an Iterative Proportional Fitting Procedure (IPFP), and queried with direct inference or Monte Carlo
+sampling. The solving and inference processes are accelerated using the Junction Tree Algorithm, and high performance
+can be expected for Bayesian Networks with fewer than ~200 Nodes. 
 
 # Features
 
 - Simple API for constructing Bayesian Network structures.
 - Allows full CPT imputation or CPT estimation from a partially-constrained network.
 - Support for probability constraints that are independent of the network's parent/child structure.
-- Perform direct probabilistic inference to query for marginal and joint probabilities.
-- Generate random samples, with or without fixed evidence.
+- Perform direct probabilistic inference to query prior or posterior probabilities.
+- Generate random samples, with or without fixed observations.
 
 # Installation
 
 - Planned release on Maven Central soon.
 
-# Quick Start 
+# Quick Start
 
 <figure>
 	<img src="https://i.imgur.com/p7yt72o.png" width="512" alt="Simple Bayesian Network diagram">
@@ -33,95 +37,138 @@ AR_BayesSolver is a library that enables easy Bayesian Network construction and 
 	</figcaption>
 </figure>
 <br>
-This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network (Fig. 1). We will create the network, define its structure, add partial constraints, and then perform inference and sampling.
+
+This demonstration will show how to build the Rain - Sprinkler - Wet Grass Bayesian Network (Fig. 1). We will create the
+network, define its structure, add partial constraints, and then perform inference and sampling.
 
 ### 1. Create a Network
 
 Most interactions use the `BayesianNetwork` interface.
 
 ```Java
-BayesianNetwork network = BayesianNetwork.newNetwork("RAIN_SPRINKLER_WET_GRASS");
+BayesianNetwork wetGrassNetwork = BayesianNetwork.newNetwork("WET GRASS NETWORK");
 ```
 
 ### 2. Adding Nodes
 
-Add nodes with their states, either manually or using the API.
+Add nodes with their states using the desired identifiers.
 
 ```Java 
-// Manual Creation 
-
-Node rain = new Node("RAIN",List.of("RAIN:TRUE","RAIN:FALSE"));
-network.addNode(rain);
-
-// Using the BayesianNetwork instance (recommended)
-
-network.addNode("SPRINKLER",List.of("SPRINKLER:TRUE","SPRINKLER:FALSE"))
-	   .addNode("WET_GRASS",List.of("WET_GRASS:TRUE","WET_GRASS:FALSE"));
-
+wetGrassNetwork
+        .addNewNode("RAIN",List.of("RAIN:TRUE", "RAIN:FALSE"))
+        .addNewNode("SPRINKLER",List.of("SPRINKLER:TRUE","SPRINKLER:FALSE"))
+        .addNewNode("WET_GRASS",List.of("WET_GRASS:TRUE","WET_GRASS:FALSE"));
 ```
 
-**Note:** All node IDs and node state IDs must be unique! It is recommended to prefix states with the node name (e.g. `"RAIN:TRUE"`) if manually defining them using Strings. Node and State IDs may be any object, but it is *highly* recommended to keep all Node IDs/State IDs as the same type. 
+**Note:** All node and node states may use any Serializable type as their identifier, but each identifier must be
+unique in the network. If using descriptive Strings, as in the above example, it is advisable to prefix the state
+identifiers with the node name (e.g.`"RAIN:TRUE"`).
 
 ### 3. Defining the graph structure:
 
-Define parent/child relationships using the node IDs. 
+Define parent/child relationships using the node identifiers.
 
 ```Java
-network.addParent("SPRINKLER","RAIN")
-       .addParents("WET_GRASS",List.of("RAIN","SPRINKLER"));
+wetGrassNetwork
+        .addParents("SPRINKLER","RAIN")
+        .addParents("WET_GRASS",List.of("SPRINKLER","RAIN"));
 ```
 
 ### 4. Adding Constraints
 
-Constraints are built using the node state IDs. A key feature is that **constraints do not have to be aligned with the network structure**; for example, a marginal constraint can be defined on a node with parents, or an ancestor node's state can be conditional on a descendant node's state. 
+Constraints are built using the node state identifiers. **Constraints do not have to be aligned with the
+network structure**; for example, a marginal constraint can be defined on a node with parents, or an ancestor node's
+state can be conditional on a descendant node's state. 
 
-For this demo, we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
+For this demo, we will define CPT entries within the graph, but we will provide only *some* of the CPT entries from 
+Fig.1. The complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be 
+defined.
 
 ```Java
-// Marginal constraint
-network.addConstraint("RAIN:TRUE", 0.2)
-// Conditional Constraints
-       .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
-       .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
-       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
-       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
-       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
-       .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
+wetGrassNetwork
+        // Non-conditional probability P(event) = p
+        .addConstraint("RAIN:TRUE", 0.2)
+        // Conditional Probabilities P(event|conditions) = p
+        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:TRUE"), 0.01)
+        .addConstraint("SPRINKLER:TRUE", List.of("RAIN:FALSE"), 0.4)
+        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:TRUE"), 0.99)
+        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:TRUE", "SPRINKLER:FALSE"), 0.9)
+        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:TRUE"), 0.9)
+        .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
 ```
 
-### 5. Solving and Setting Evidence
+### 5. Using BayesSolver
 
-We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given constraints.
-```Java
-network.solveNetwork();
-```
-Once solved, we can set the evidence (observations) for inference.
-```Java
-//Sets the inference engine to always observe "WET_GRASS:TRUE" 
-network.observeNetwork(List.of("WET_GRASS:TRUE")); 
-```
-Further queries will be conditional on this evidence. To clear observations, simply observe the marginals:
-```Java
-network.observeMarginals(); 
-```
-For the next steps, we will keep the evidence `WET_GRASS:TRUE`.
+Networks can be solved from the instance, or we can create a BayesSolver for more fine
+control:
 
-### 6. Printing the CPTs and Marginals
+```java
+// Uses default configurations found in app.properties.solver
+wetGrassNetwork.solveNetwork(); 
 
-You can print the network's solved CPTs and the current observed marginals to a .txt file.
-```Java
-// Configure the printer
-PrinterConfigs printerConfigs = network.getPrinterConfigs();
-printerConfigs.setProbDecimalPlaces(3);
-printerConfigs.setPrintToConsole(false); // If set to true, no files will be written
-printerConfigs.setOpenFileOnCreation(true);
+BayesSolver solver = BayesSolver.create(wetGrassNetwork);
+
+// If every CPT entry can be inferred from the constraints, write them directly.
+boolean directWriteSuccess = solver.writeCPTsFromConstraints();
+
+// If we can't write them directly, run IPFP
+if (!directWriteSuccess) {
+    solver.solve(SolverAlgorithm.JUNCTION_TREE_IPFP);
+}
+
+// Equivalent to running the previous lines
+solver.solve();
 ```
+
+As we defined the constraints in such a way that every `FALSE` entry can be inferred, our network will be written 
+directly to the CPTs, with no IPFP required.
+
+### 6. Direct Inference
+
+Once solved, we can perform direct inference by building an inference engine from the solved network.
+
+```Java 
+InferenceEngine engine = wetGrassNetwork.buildInferenceEngine();
+```
+
+This can be used to query for specific posterior or prior probabilities.
+For example, let's set the engine to observe `WET_GRASS:TRUE`. 
+
+```Java 
+engine.observeNetworkFromIds("WET_GRASS:TRUE");
+```
+
+Further queries will measure the posterior probability, conditional on `WET_GRASS:TRUE`. In other words, all 
+measurements now assume the `WET_GRASS` node is locked in the `TRUE` position. Observations can be cleared with the 
+following call:
+
+```Java
+engine.resetObservations(); 
+```
+
+For the next steps, we will keep the observation `WET_GRASS:TRUE`.
+
+If we now want to know the probability of `RAIN:TRUE`, conditional on `WET_GRASS:TRUE`, we can call the following method:
+
+```java
+double posteriorRainTrue = engine.getPosteriorProbabilityById("RAIN:TRUE");
+System.out.printf("P(RAIN:TRUE|WET_GRASS:TRUE) = %.3f", posteriorRainTrue);
+
+>> P(RAIN:TRUE|WET_GRASS:TRUE) = 0.385
+```
+
+### 7. Printing the CPTs and Posterior Probabilities
+
+You can print the network's solved CPTs or the inference engine's observed probability tables to a .txt file. 
 By default, the printer will save files to the directory ```$user_home$/AR_Tools/bayes_solver/output/```
+
 ```Java
-network.printNetwork()   // Prints the full, solved CPTs
-       .printObserved(); // Prints marginals, conditional on current evidence
+network.printNetwork();   // Prints the solved CPTs
+engine.printObserved();   // Prints the posterior probabilities over each node
 ```
-This should automatically open two files, which will look like this: 
+
+This should automatically open two files, which will look like this:
+
 ```
 NETWORK TABLES:
 
@@ -142,6 +189,7 @@ P(WET_GRASS|RAIN,SPRINKLER)
 ---------------------------------------------------------------------
 [...]
 ```
+
 ```
 OBSERVED TABLES:
 
@@ -155,50 +203,66 @@ P(SPRINKLER|WET_GRASS:TRUE)
 -----------------------------------
 [...]
 ```
-### 7. Generating Random Samples 
 
-Generate samples based on the current set of observations.  
+Settings for the printer can be modified within `app.properties`.
+
+### 8. Generating Random Samples
+
+Build a sampler from the BayesianNetwork instance:
+
 ```Java
-int numberOfSamples = 10;
-// Samples will be conditional on "WET_GRASS:TRUE"
-List<List<String>> samples = network.generateSamples(numberOfSamples,String.class);
-
-/* Potential Samples: 
-{"RAIN:TRUE", "SPRINKLER:FALSE", "WET_GRASS:TRUE"}, 
-{"RAIN:TRUE", "SPRINKLER:FALSE", "WET_GRASS:TRUE"}, 
-[...]
-{"RAIN:FALSE", "SPRINKLER:TRUE", "WET_GRASS:TRUE"}, 
-{"RAIN:FALSE", "SPRINKLER:TRUE", "WET_GRASS:TRUE"}
-*/
-```
-You can also specify which nodes to include in the sample list:
-```Java
-List<String> includedNodeIDs = List.of("RAIN");
-List<List<String>> samples = network.generateSamples(includedNodeIDs,numberOfSamples,String.class);
-
-/* Potential Samples:
-{"RAIN:TRUE"},
-{"RAIN:TRUE"},
-[...]
-{"RAIN:FALSE"}, 
-{"RAIN:FALSE"}
-*/
+Sampler sampler = wetGrassNetwork.buildSampler();
 ```
 
-### 8. Using ProbabilityTables from the network. 
+You can apply the observations from the inference engine to generate samples with certain fixed states:
+
+```java
+int numberOfSamples = 1000;
+SampleCollection sampleCollection = sampler.generateSamples(engine, numberOfSamples);
+int samplesWithWetGrassTrue = sampleCollection.countSamplesIncludingStateIds("WET_GRASS:TRUE");
+System.out.println(samplesWithWetGrassTrue);
+
+>> 1000
+```
+
+Samples contain a specific combination of node states and the frequency of its occurrence in the sampler run.
+
+```java
+List<Sample> samples = sampleCollection.getSamples();
+Sample firstSample = samples.getFirst();
+System.out.println(firstSample);
+
+>> RAIN:TRUE, SPRINKLER:TRUE, WET_GRASS:TRUE : 4
+
+List<NodeState> sampledStates = firstSample.getDisplayedStates(ArrayList::new);
+double directInferenceProb = engine.getPosteriorProbability(sampledStates);
+System.out.printf("%.2f", directInferenceProb * numberOfSamples);
+
+// P(RAIN:TRUE,SPRINKLER:TRUE|WET_GRASS:TRUE) * 1000
+>> 4.23 
+```
+
+### 9. Using ProbabilityTables from the network.
+
 You can extract the raw probability tables for use in your application.
 
 ```Java
-// Get a solved CPT (a "Network Table")
-ProbabilityTable wetGrassCPT = network.getNetworkTable("WET_GRASS");
-List<String> cptIDs = List.of("WET_GRASS:TRUE","SPRINKLER:FALSE","RAIN:TRUE");
-double cptProb = wetGrassCPT.getProbability(cptIDs);
-// cptProb == 0.9
+// Extract and query a CPT from the BayesianNetwork
+NetworkTable wetGrassCpt = wetGrassNetwork.getNetworkTable("WET_GRASS");
+List<String> cptRequestIds = List.of("RAIN:TRUE","SPRINKLER:FALSE","WET_GRASS:TRUE");
+double cptRequestProb = wetGrassCpt.getHelper().getProbabilityFromIDs(cptRequestIds);
+System.out.printf("%.2f",cptRequestProb);
 
-// Get an observed marginal table
-MarginalTable wetGrassObserved = network.getObservedTable("WET_GRASS");
-double marginalProb = wetGrassObserved.getProbability("WET_GRASS:TRUE");
-// marginalProb == 1.0 (because it was our evidence)
+// P(WET_GRASS:TRUE|RAIN:TRUE, SPRINKLER:FALSE)
+>> 0.90
+
+// Extract and query a posterior table from the InferenceEngine.
+ObservedTable rainObservedTable = engine.getObservedTableById("RAIN");
+double rainFalsePosterior = rainObservedTable.getHelper().getProbabilityById("RAIN:FALSE");
+System.out.printf("%.2f", rainFalsePosterior);
+
+// P(RAIN:FALSE|WET_GRASS:TRUE)
+>> 0.62
 ```
 
 # API

@@ -1,21 +1,20 @@
 package io.github.alecredmond.export.method.inference;
 
-import static io.github.alecredmond.export.method.inference.BayesSolver.SolverType.*;
+import static io.github.alecredmond.export.method.inference.SolverAlgorithm.*;
 
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.method.inference.BayesSolver.SolverType;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
-class SolverTypeTest {
+class SolverAlgorithmTest {
   static final boolean SOLVER_TYPE_SPEED_CHECK = false;
   static final int RACE_TIMEOUT_SECS = 5;
   BayesianNetwork network;
   BayesSolver solver;
-  Map<SolverType, Boolean> useSolver = new EnumMap<>(SolverType.class);
+  Map<SolverAlgorithm, Boolean> useSolver = new EnumMap<>(SolverAlgorithm.class);
 
   @Test
   void checkSolverSpeeds() {
@@ -85,14 +84,14 @@ class SolverTypeTest {
         0.20);
   }
 
-  private Duration timeSolution(SolverType solverType, int numNodes) {
-    if (!useSolver.get(solverType)) return null;
+  private Duration timeSolution(SolverAlgorithm solverAlgorithm, int numNodes) {
+    if (!useSolver.get(solverAlgorithm)) return null;
     Instant now = Instant.now();
-    solver.forceSolve(solverType);
+    solver.forceSolve(solverAlgorithm);
     Duration duration = Duration.between(now, Instant.now());
     if (duration.getSeconds() > RACE_TIMEOUT_SECS) {
-      useSolver.put(solverType, false);
-      System.out.printf("TIMING OUT %s AT %d NODES!%n", solverType, numNodes);
+      useSolver.put(solverAlgorithm, false);
+      System.out.printf("TIMING OUT %s AT %d NODES!%n", solverAlgorithm, numNodes);
     }
     return duration;
   }

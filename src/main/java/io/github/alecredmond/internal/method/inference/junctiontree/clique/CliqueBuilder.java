@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
-import static io.github.alecredmond.export.method.inference.BayesSolver.SolverType.JUNCTION_TREE_IPFP;
-import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_ALGORITHM;
+import static io.github.alecredmond.export.method.inference.SolverAlgorithm.JUNCTION_TREE_IPFP;
+import static io.github.alecredmond.export.method.inference.InferenceAlgorithm.JUNCTION_TREE_ALGORITHM;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -33,8 +33,8 @@ public class CliqueBuilder {
 
   private boolean checkUseJta(JunctionTreeData jtd) {
     return jtd.isSolverConfig()
-        ? jtd.getSolverType().equals(JUNCTION_TREE_IPFP)
-        : jtd.getInferenceType().equals(JUNCTION_TREE_ALGORITHM);
+        ? jtd.getSolverAlgorithm().equals(JUNCTION_TREE_IPFP)
+        : jtd.getInferenceAlgorithm().equals(JUNCTION_TREE_ALGORITHM);
   }
 
   private void buildIPFPClique(JunctionTreeData jtd) {

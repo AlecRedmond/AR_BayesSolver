@@ -3,6 +3,7 @@ package io.github.alecredmond.internal.method.inference.solver;
 import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.method.inference.BayesSolver;
+import io.github.alecredmond.export.method.inference.SolverAlgorithm;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.method.inference.solver.cptmapper.DirectCptMapper;
@@ -26,16 +27,16 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
   }
 
   @Override
-  public boolean solve(SolverType solverType) {
+  public boolean solve(SolverAlgorithm solverAlgorithm) {
     if (isSolved()) return true;
-    return forceSolve(solverType);
+    return forceSolve(solverAlgorithm);
   }
 
   @Override
-  public boolean forceSolve(SolverType solverType) {
+  public boolean forceSolve(SolverAlgorithm solverAlgorithm) {
     try {
       configs.updateConfigs();
-      configs.setSolverType(solverType);
+      configs.setSolverAlgorithm(solverAlgorithm);
       network.buildNetworkData();
       return forceSolveCommon();
     } catch (Exception e) {
@@ -54,7 +55,7 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
     try {
       configs.updateConfigs();
       network.buildNetworkData();
-      if (writeConstraintsToCPTs()) return true;
+      if (writeCPTsFromConstraints()) return true;
       return forceSolveCommon();
     } catch (Exception e) {
       log.error(e.getLocalizedMessage(), e);
@@ -62,7 +63,7 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
     }
   }
 
-  public boolean writeConstraintsToCPTs() {
+  public boolean writeCPTsFromConstraints() {
     boolean mapped = directCptMapper.tryDirectImpute();
     if (mapped) {
       log.info(

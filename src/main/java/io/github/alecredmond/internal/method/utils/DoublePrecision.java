@@ -7,6 +7,6 @@ public class DoublePrecision {
   private DoublePrecision() {}
 
   public static boolean fuzzyEquals(double x, double y) {
-    return Math.abs(x - y) < PRECISION_DELTA;
+    return Math.abs(x - y) <= PRECISION_DELTA;
   }
 }

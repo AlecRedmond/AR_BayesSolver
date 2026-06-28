@@ -11,7 +11,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.export.method.sampler.Sampler;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
@@ -744,7 +744,7 @@ public interface BayesianNetwork {
    * InferenceEngine} provides utilities for running direct inference on a network, including
    * setting observations, querying prior and posterior probabilities, and printing posterior
    * probability tables. This method will construct the default variant set in {@code
-   * app.properties}, see the {@link InferenceType} documentation for further information.
+   * app.properties}, see the {@link InferenceAlgorithm} documentation for further information.
    *
    * @return a new {@link InferenceEngine} referencing this {@code BayesianNetwork}.
    */

@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.inference.junctiontree;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
@@ -33,13 +33,13 @@ public class JunctionTreeAlgorithm {
   }
 
   public static JunctionTreeAlgorithm buildForInference(
-      BayesianNetworkData bnd, InferenceType inferenceType) {
+      BayesianNetworkData bnd, InferenceAlgorithm inferenceAlgorithm) {
     return new JunctionTreeAlgorithm(
-        new JTADataBuilder().buildNewInferenceConfiguration(bnd, inferenceType));
+        new JTADataBuilder().buildNewInferenceConfiguration(bnd, inferenceAlgorithm));
   }
 
-  public void rebuildJTA(BayesianNetworkData bnd, InferenceType inferenceType) {
-    new JTADataBuilder().buildInferenceConfiguration(data, bnd, inferenceType);
+  public void rebuildJTA(BayesianNetworkData bnd, InferenceAlgorithm inferenceAlgorithm) {
+    new JTADataBuilder().buildInferenceConfiguration(data, bnd, inferenceAlgorithm);
     networkWriter.initializeJunctionTreeFromNetwork();
   }
 

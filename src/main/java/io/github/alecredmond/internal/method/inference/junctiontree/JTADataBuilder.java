@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
@@ -30,7 +30,7 @@ public class JTADataBuilder {
       BayesianNetworkData bayesianNetworkData, SolverConfigs configs) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
     junctionTreeData.setSolverConfig(true);
-    junctionTreeData.setSolverType(configs.getSolverType());
+    junctionTreeData.setSolverAlgorithm(configs.getSolverAlgorithm());
     buildCommon(junctionTreeData, bayesianNetworkData);
     buildSolversPerClique(junctionTreeData, bayesianNetworkData);
     logBuilt(bayesianNetworkData, "SOLVER", junctionTreeData);
@@ -113,16 +113,16 @@ public class JTADataBuilder {
   }
 
   public JunctionTreeData buildNewInferenceConfiguration(
-      BayesianNetworkData bayesianNetworkData, InferenceType inferenceType) {
+      BayesianNetworkData bayesianNetworkData, InferenceAlgorithm inferenceAlgorithm) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
-    buildInferenceConfiguration(junctionTreeData, bayesianNetworkData, inferenceType);
+    buildInferenceConfiguration(junctionTreeData, bayesianNetworkData, inferenceAlgorithm);
     return junctionTreeData;
   }
 
   public void buildInferenceConfiguration(
-      JunctionTreeData jtd, BayesianNetworkData bnd, InferenceType inferenceType) {
+      JunctionTreeData jtd, BayesianNetworkData bnd, InferenceAlgorithm inferenceAlgorithm) {
     jtd.setSolverConfig(false);
-    jtd.setInferenceType(inferenceType);
+    jtd.setInferenceAlgorithm(inferenceAlgorithm);
     buildObserved(jtd, bnd);
     buildCommon(jtd, bnd);
     logBuilt(bnd, "INFERENCE", jtd);

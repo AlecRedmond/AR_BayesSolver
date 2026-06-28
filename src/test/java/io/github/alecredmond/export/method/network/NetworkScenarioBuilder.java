@@ -453,14 +453,14 @@ public class NetworkScenarioBuilder {
     Function<String, List<String>> statesOf = str -> List.of(str + ":TRUE", str + ":FALSE");
     return () ->
         new BayesianNetworkBuilder("ASIA VISIT")
-            .addNode(a, statesOf.apply(a),                   new double[] {0.01, 0.99})
-            .addNode(s, statesOf.apply(s),                   new double[] {0.50, 0.50})
-            .addNode(t, statesOf.apply(t), List.of(a, t),    new double[] {0.05, 0.95, 0.01, 1 - 0.01})
-            .addNode(l, statesOf.apply(l), List.of(s, l),    new double[] {0.1, 1 - 0.1, 0.01, 1 - 0.01})
-            .addNode(b, statesOf.apply(b), List.of(s, b),    new double[] {0.6, -1, 0.3, -1})
-            .addNode(e, statesOf.apply(e), List.of(l, t, e), new double[] {1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0})
-            .addNode(x, statesOf.apply(x), List.of(e, x),    new double[] {0.98, 0.02, 0.05, 0.95})
-            .addNode(d, statesOf.apply(d), List.of(e, b, d), new double[] {0.9, 2, 0.7, 2, 0.8, 2, 0.1, 2})
-            .build();
+                .addNode(a,statesOf.apply(a),                  new double[]{0.01, 0.99})
+                .addNode(s,statesOf.apply(s),                  new double[]{0.50, 0.50})
+                .addNode(t,statesOf.apply(t),List.of(a,t),     new double[]{0.05,0.95,0.01,1-0.01})
+                .addNode(l,statesOf.apply(l),List.of(s,l),     new double[]{0.1,1-0.1,0.01,1-0.01})
+                .addNode(b,statesOf.apply(b),List.of(s,b),     new double[]{0.6,-1,0.3,-1})
+                .addNode(e,statesOf.apply(e),List.of(l,t,e),   new double[]{1.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0})
+                .addNode(x,statesOf.apply(x),List.of(e,x),     new double[]{0.98,0.02,0.05,0.95})
+                .addNode(d,statesOf.apply(d),List.of(e,b,d),   new double[]{0.9,2,0.7,2,0.8,2,0.1,2})
+                .build();
   }
 }

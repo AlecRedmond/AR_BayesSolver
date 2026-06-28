@@ -69,6 +69,33 @@ public class ConstraintSolverBase
     return storeError(Math.pow(actualProb - expectedProb, 2));
   }
 
+  public void updateResults(
+      Map<ProbabilityConstraint, double[]> results, int lastCycle, Set<Clique> cliques) {
+    int runsPerCycle = cliques.size();
+    double[] errorArray = new double[lastCycle + 1];
+    int cycle = 0;
+    int run = 0;
+    for (double error : errors) {
+      errorArray[cycle] += error;
+      run++;
+      if (run != runsPerCycle) continue;
+      run = 0;
+      cycle++;
+    }
+    if (constraintInMapWithHigherError(results, constraint, errorArray)) return;
+    results.put(constraint, errorArray);
+  }
+
+  private boolean constraintInMapWithHigherError(
+      Map<ProbabilityConstraint, double[]> results,
+      ProbabilityConstraint constraint,
+      double[] errorArray) {
+    if (!results.containsKey(constraint)) return false;
+    double previousError = Arrays.stream(results.get(constraint)).sum();
+    double currentError = Arrays.stream(errorArray).sum();
+    return previousError > currentError;
+  }
+
   private void resetAccumulators() {
     eventJointProb[0] = 0.0;
     conditionJointProb[0] = 0.0;
@@ -111,36 +138,9 @@ public class ConstraintSolverBase
     return error;
   }
 
-  public void updateResults(
-      Map<ProbabilityConstraint, double[]> results, int lastCycle, Set<Clique> cliques) {
-    int runsPerCycle = cliques.size();
-    double[] errorArray = new double[lastCycle + 1];
-    int cycle = 0;
-    int run = 0;
-    for (double error : errors) {
-      errorArray[cycle] += error;
-      run++;
-      if (run != runsPerCycle) continue;
-      run = 0;
-      cycle++;
-    }
-    if (constraintInMapWithHigherError(results, constraint, errorArray)) return;
-    results.put(constraint, errorArray);
-  }
-
-  private boolean constraintInMapWithHigherError(
-      Map<ProbabilityConstraint, double[]> results,
-      ProbabilityConstraint constraint,
-      double[] errorArray) {
-    if (!results.containsKey(constraint)) return false;
-    double previousError = Arrays.stream(results.get(constraint)).sum();
-    double currentError = Arrays.stream(errorArray).sum();
-    return previousError > currentError;
-  }
-
   @Override
   public void updateInnerInitializer(
-          OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
+      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
     OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
   }
 
