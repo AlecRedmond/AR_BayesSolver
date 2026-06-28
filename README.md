@@ -250,7 +250,7 @@ You can extract the raw probability tables for use in your application.
 // Extract and query a CPT from the BayesianNetwork
 NetworkTable wetGrassCpt = wetGrassNetwork.getNetworkTable("WET_GRASS");
 List<String> cptRequestIds = List.of("RAIN:TRUE","SPRINKLER:FALSE","WET_GRASS:TRUE");
-double cptRequestProb = wetGrassCpt.getHelper().getProbabilityFromIDs(cptRequestIds);
+double cptRequestProb = wetGrassCpt.getQueryTool().getProbabilityFromIDs(cptRequestIds);
 System.out.printf("%.2f",cptRequestProb);
 
 // P(WET_GRASS:TRUE|RAIN:TRUE, SPRINKLER:FALSE)
