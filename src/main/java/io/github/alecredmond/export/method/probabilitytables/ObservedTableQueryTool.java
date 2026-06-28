@@ -10,16 +10,16 @@ import java.util.Map;
 
 /**
  * A helper attached to an {@link ObservedTable} which provides additional methods for the table.
- * This provides all the methods contained within {@link TableHelper}, alongside additional methods
- * to query probabilities using a single {@link NodeState}, and a method to return a map linking
- * each state to its current prior or posterior probability.
+ * This provides all the methods contained within {@link TableQueryTool}, alongside additional
+ * methods to query probabilities using a single {@link NodeState}, and a method to return a map
+ * linking each state to its current prior or posterior probability.
  *
- * @see TableHelper
+ * @see TableQueryTool
  * @see ObservedTable
  * @see InferenceEngine
  * @author Alec Redmond
  */
-public interface ObservedTableHelper extends TableHelper<ObservedTable> {
+public interface ObservedTableQueryTool extends TableQueryTool {
   /**
    * Returns the probability associated with a state within {@link ObservedTable#getMeasuredNode()}
    * in the form {@code P(X=x|Obs)}, where {@code X} is the measured node, {@code x} is one of its
@@ -62,4 +62,13 @@ public interface ObservedTableHelper extends TableHelper<ObservedTable> {
    *     probability table entry.
    */
   Map<NodeState, Double> buildProbabilityMap();
+
+  /**
+   * Builds a copy of the {@link ObservedTable} this handler is connected to. This deep-copies
+   * everything except the {@link Node} and {@link NodeState} values, which maintain the original
+   * references.
+   *
+   * @return a copy of the current table.
+   */
+  ObservedTable copyTable();
 }

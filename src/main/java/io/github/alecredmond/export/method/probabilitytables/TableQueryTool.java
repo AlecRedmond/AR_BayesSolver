@@ -12,11 +12,11 @@ import java.util.Collection;
  * provides methods for probability queries, table deep-copying, and toggling {@link NodeState}
  * validation (safe mode).
  *
- * @see NetworkTableHelper
- * @see ObservedTableHelper
+ * @see NetworkTableQueryTool
+ * @see ObservedTableQueryTool
  * @author Alec Redmond
  */
-public interface TableHelper<T extends ProbabilityTable> {
+public interface TableQueryTool {
 
   /**
    * Returns the probability associated with all the given states in the form {@code
@@ -58,7 +58,7 @@ public interface TableHelper<T extends ProbabilityTable> {
    *
    * @return a copy of the current table.
    */
-  T copyTable();
+  ProbabilityTable copyTable();
 
   /**
    * Normalizes the {@link ProbabilityTable} this handler is connected to. For non-conditional
@@ -69,7 +69,7 @@ public interface TableHelper<T extends ProbabilityTable> {
   void normalizeTable();
 
   /**
-   * Sets the safe mode flag for this {@code TableHelper} (default: {@code true}). Safe mode runs a
+   * Sets the safe mode flag for this {@code TableQueryTool} (default: {@code true}). Safe mode runs a
    * validation check on any method that processes a {@link NodeState} collection to ensure that
    * every {@link Node} relevant to the method is queried. For example, the method {@link
    * #getProbability(Collection)} requires one {@link NodeState} for every {@link Node} in {@link

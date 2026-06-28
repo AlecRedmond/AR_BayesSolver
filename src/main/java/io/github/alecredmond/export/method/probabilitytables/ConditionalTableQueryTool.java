@@ -10,16 +10,16 @@ import java.util.Set;
 
 /**
  * A helper attached to a {@link ConditionalTable} which provides additional methods for the table.
- * This includes methods all methods found in {@link NetworkTableHelper}, alongside an additional
+ * This includes methods all methods found in {@link NetworkTableQueryTool}, alongside an additional
  * method to obtain a map linking the Cartesian product of all {@link NodeState} values in the table
  * to their associated conditional probability value.
  *
- * @see TableHelper
- * @see NetworkTableHelper
- * @see RootNodeTableHelper
+ * @see TableQueryTool
+ * @see NetworkTableQueryTool
+ * @see RootNodeTableQueryTool
  * @author Alec Redmond
  */
-public interface ConditionalTableHelper extends NetworkTableHelper<ConditionalTable> {
+public interface ConditionalTableQueryTool extends NetworkTableQueryTool {
   /**
    * Returns a map of each {@link NodeState} combination within the table, paired to its associated
    * probability value. The key is a {@link LinkedHashSet}, ordered by the position of each state's
@@ -33,4 +33,13 @@ public interface ConditionalTableHelper extends NetworkTableHelper<ConditionalTa
    *     conditional probability.
    */
   Map<Set<NodeState>, Double> buildProbabilitySetMap();
+
+  /**
+   * Builds a copy of the {@link ConditionalTable} this handler is connected to. This deep-copies
+   * everything except the {@link Node} and {@link NodeState} values, which maintain the original
+   * references.
+   *
+   * @return a copy of the current table.
+   */
+  ConditionalTable copyTable();
 }

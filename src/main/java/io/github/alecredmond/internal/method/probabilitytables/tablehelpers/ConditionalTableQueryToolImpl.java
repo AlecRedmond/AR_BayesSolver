@@ -4,7 +4,7 @@ import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.ConditionalTableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ConditionalTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
@@ -15,11 +15,11 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ConditionalTableHelperImpl extends TableHelperBase<ConditionalTable>
-    implements ConditionalTableHelper {
+public class ConditionalTableQueryToolImpl extends QueryToolBase<ConditionalTable>
+    implements ConditionalTableQueryTool {
   private final TableNormalizer normalizer;
 
-  public ConditionalTableHelperImpl(ConditionalTable table) {
+  public ConditionalTableQueryToolImpl(ConditionalTable table) {
     super(table);
     this.normalizer = new TableNormalizer(table);
   }

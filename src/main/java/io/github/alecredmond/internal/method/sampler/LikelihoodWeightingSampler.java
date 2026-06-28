@@ -5,13 +5,12 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.NetworkTableQueryTool;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
 import java.util.*;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
-@SuppressWarnings("rawtypes")
 @Slf4j
 public class LikelihoodWeightingSampler extends SamplerImpl {
   private final LikelihoodWeightingSamplerData samplerData;
@@ -24,10 +23,10 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   private LikelihoodWeightingSamplerData buildSamplerData() {
     BayesianNetworkData networkData = network.getNetworkData();
     Node[] nodes = networkData.getNodes().toArray(Node[]::new);
-    NetworkTableHelper[] helpers = new NetworkTableHelper[nodes.length];
+    NetworkTableQueryTool[] helpers = new NetworkTableQueryTool[nodes.length];
     Map<Node, NetworkTable> networkTables = networkData.getNetworkTablesMap();
     IntStream.range(0, nodes.length)
-        .forEach(i -> helpers[i] = networkTables.get(nodes[i]).getHelper());
+        .forEach(i -> helpers[i] = networkTables.get(nodes[i]).getQueryTool());
     return new LikelihoodWeightingSamplerData(nodes, helpers);
   }
 
@@ -69,7 +68,7 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   private void generateWeightedStateSets() {
     NodeState[] defaultSample = samplerData.getDefaultSample();
     Node[] nodes = samplerData.getNodes();
-    NetworkTableHelper<?>[] helpers = samplerData.getTableHelpers();
+    NetworkTableQueryTool[] helpers = samplerData.getTableHelpers();
     Map<Set<NodeState>, Double> weightedStateSets = samplerData.getWeightedStateSets();
 
     for (int s = 0; s < samplerData.getNumberOfSamples(); s++) {
@@ -124,7 +123,7 @@ public class LikelihoodWeightingSampler extends SamplerImpl {
   }
 
   private double selectNextState(
-      Set<NodeState> newSample, NodeState observedNextState, NetworkTableHelper<?> helper) {
+      Set<NodeState> newSample, NodeState observedNextState, NetworkTableQueryTool helper) {
     if (observedNextState != null) {
       newSample.add(observedNextState);
       return helper.getProbability(newSample);

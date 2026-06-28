@@ -96,7 +96,7 @@ public class TableUtils {
   }
 
   public static Map<NodeState, Double> buildMarginalProbMap(ProbabilityTable table) {
-    if (!(table instanceof SingleEventTable<?, ?> singleEventTable)) return new HashMap<>();
+    if (!(table instanceof SingleEventTable<?> singleEventTable)) return new HashMap<>();
     List<NodeState> states = singleEventTable.getEventNode().getNodeStates();
     double[] prob = table.getProbabilities();
     Map<NodeState, Double> map = new LinkedHashMap<>();

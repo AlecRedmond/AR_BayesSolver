@@ -9,16 +9,16 @@ import java.util.Map;
 
 /**
  * A helper attached to a {@link RootNodeTable} which provides additional methods for the table.
- * This includes methods all methods found in {@link NetworkTableHelper}, alongside additional
+ * This includes methods all methods found in {@link NetworkTableQueryTool}, alongside additional
  * methods to query probabilities using a single {@link NodeState}, and a method to return a map
  * linking each state to its unconditional probability.
  *
- * @see TableHelper
- * @see NetworkTableHelper
- * @see ConditionalTableHelper
+ * @see TableQueryTool
+ * @see NetworkTableQueryTool
+ * @see ConditionalTableQueryTool
  * @author Alec Redmond
  */
-public interface RootNodeTableHelper extends NetworkTableHelper<RootNodeTable> {
+public interface RootNodeTableQueryTool extends NetworkTableQueryTool {
   /**
    * Returns the probability associated with a state within {@link RootNodeTable#getNetworkNode()}
    * in the form:<br>
@@ -45,8 +45,8 @@ public interface RootNodeTableHelper extends NetworkTableHelper<RootNodeTable> {
    * the given {@link NodeState} to be in the root node's state list, otherwise {@code null} will be
    * returned.
    *
-   * @param stateId the identifier of the {@link NodeState} within the {@link RootNodeTable}'s network node
-   *     to be queried.
+   * @param stateId the identifier of the {@link NodeState} within the {@link RootNodeTable}'s
+   *     network node to be queried.
    * @return the probability table entry associated with the input state, or {@code null} if safe
    *     mode validation fails.
    */
@@ -61,4 +61,13 @@ public interface RootNodeTableHelper extends NetworkTableHelper<RootNodeTable> {
    *     probability table entry.
    */
   Map<NodeState, Double> buildProbabilityMap();
+
+  /**
+   * Builds a copy of the {@link RootNodeTable} this handler is connected to. This deep-copies
+   * everything except the {@link Node} and {@link NodeState} values, which maintain the original
+   * references.
+   *
+   * @return a copy of the current table.
+   */
+  RootNodeTable copyTable();
 }

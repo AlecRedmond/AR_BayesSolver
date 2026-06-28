@@ -3,7 +3,8 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
+
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Set;
 /**
  * A probability table for use within a Bayesian network, solver, or inference engine. Each table
  * holds a reference to its event and condition {@link Node}s, a {@link ProbabilityVector} that maps
- * the Cartesian product of all node states to a probability array, and a {@link TableHelper} for
+ * the Cartesian product of all node states to a probability array, and a {@link TableQueryTool} for
  * querying the table.
  *
  * <p>Instances of this interface are not thread-safe. External synchronisation is required for
@@ -82,25 +83,24 @@ public interface ProbabilityTable {
   Serializable getTableName();
 
   /**
-   * Returns the base {@link TableHelper} for this table. The {@link TableHelper} provides utility
+   * Returns the base {@link TableQueryTool} for this table. The {@link TableQueryTool} provides utility
    * methods applicable to all {@code ProbabilityTable} types, such as querying probabilities for
    * {@link NodeState} combinations and creating table copies.
    *
    * <p>Subtypes of {@code ProbabilityTable} override this method to return a more specific helper;
-   * see {@link NetworkTable#getHelper()}, {@link ObservedTable#getHelper()}, etc.
+   * see {@link NetworkTable#getQueryTool()}, {@link ObservedTable#getQueryTool()}, etc.
    *
-   * @return the {@link TableHelper} for this table.
+   * @return the {@link TableQueryTool} for this table.
    */
-  @SuppressWarnings("rawtypes")
-  TableHelper getHelper();
+  TableQueryTool getQueryTool();
 
   /**
    * Returns the raw probability array for this table. The array contains one entry for every {@link
    * NodeState} combination in the Cartesian product of the table's nodes; see {@link
    * ProbabilityVector} for details on how combinations are indexed.
    *
-   * <p>For standard queries, prefer using the {@link TableHelper} returned by {@link #getHelper()},
-   * which provides a safer, higher-level interface.
+   * <p>For standard queries, prefer using the {@link TableQueryTool} returned by {@link
+   * #getQueryTool()}, which provides a safer, higher-level interface.
    *
    * @return the probability array for this table.
    */

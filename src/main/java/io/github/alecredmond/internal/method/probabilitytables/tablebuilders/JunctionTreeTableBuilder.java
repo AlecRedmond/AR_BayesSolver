@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableHelperImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryToolImpl;
 import java.util.*;
 
 public class JunctionTreeTableBuilder extends BaseTableBuilder
@@ -21,7 +21,7 @@ public class JunctionTreeTableBuilder extends BaseTableBuilder
     TableBuilderData data = buildData(events, conditions);
     ProbabilityVector backupVector = buildProbabilityVector(events);
     JunctionTreeTableImpl table = new JunctionTreeTableImpl(data, backupVector);
-    table.setHelper(new JunctionTreeTableHelperImpl(table));
+    table.setQueryTool(new JunctionTreeTableQueryToolImpl(table));
     return table;
   }
 

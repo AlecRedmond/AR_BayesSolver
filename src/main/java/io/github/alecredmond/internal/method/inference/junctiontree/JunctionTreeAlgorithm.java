@@ -131,7 +131,7 @@ public class JunctionTreeAlgorithm {
       T[] array, Function<T, JunctionTreeTable> tableFunction, Collection<NodeState> newEvidence) {
     return Arrays.stream(array)
         .map(tableFunction)
-        .map(JunctionTreeTable::getHelper)
+        .map(JunctionTreeTable::getQueryTool)
         .mapToDouble(helper -> helper.sumProbabilities(newEvidence))
         .reduce(1.0, (x, y) -> x * y);
   }

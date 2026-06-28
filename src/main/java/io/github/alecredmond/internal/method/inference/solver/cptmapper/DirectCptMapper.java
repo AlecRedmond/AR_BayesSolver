@@ -130,7 +130,7 @@ public class DirectCptMapper {
         .forEach(
             table -> {
               Arrays.fill(table.getProbabilities(), 1.0);
-              table.getHelper().normalizeTable();
+              table.getQueryTool().normalizeTable();
             });
   }
 

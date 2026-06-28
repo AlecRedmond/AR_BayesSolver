@@ -4,7 +4,8 @@ import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableHelperImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableQueryToolImpl;
+
 import java.util.List;
 
 public class ConditionalTableBuilder extends BaseTableBuilder
@@ -16,7 +17,7 @@ public class ConditionalTableBuilder extends BaseTableBuilder
           "Attempted to build a Conditional table with more than 1 event!");
     }
     return buildTable(
-        events, conditions, ConditionalTableImpl::new, ConditionalTableHelperImpl::new);
+        events, conditions, ConditionalTableImpl::new, ConditionalTableQueryToolImpl::new);
   }
 
   @Override

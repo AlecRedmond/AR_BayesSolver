@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 import io.github.alecredmond.internal.method.network.validator.ValidatorType;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
 import java.io.Serializable;
@@ -74,8 +74,8 @@ public class NetworkDataBuilder {
 
   public void marginalizeAllTables() {
     networkData.getNetworkTablesMap().values().stream()
-        .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::normalizeTable);
+        .map(ProbabilityTable::getQueryTool)
+        .forEach(TableQueryTool::normalizeTable);
   }
 
   public void buildNetworkTablesMap(Map<Node, Integer> layerMap) {
@@ -87,7 +87,7 @@ public class NetworkDataBuilder {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
               NetworkTable table = tableBuilder.buildTable(events, conditions);
-              table.getHelper().normalizeTable();
+              table.getQueryTool().normalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

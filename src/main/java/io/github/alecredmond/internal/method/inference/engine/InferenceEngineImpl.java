@@ -101,12 +101,12 @@ public class InferenceEngineImpl implements InferenceEngine {
 
   @Override
   public <T extends Serializable> ObservedTable copyObservedTableById(T nodeId) {
-    return getObservedTableById(nodeId).getHelper().copyTable();
+    return getObservedTableById(nodeId).getQueryTool().copyTable();
   }
 
   @Override
   public ObservedTable copyObservedTable(Node node) {
-    return getObservedTable(node).getHelper().copyTable();
+    return getObservedTable(node).getQueryTool().copyTable();
   }
 
   @Override

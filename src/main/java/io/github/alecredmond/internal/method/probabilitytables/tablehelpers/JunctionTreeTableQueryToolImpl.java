@@ -13,12 +13,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class JunctionTreeTableHelperImpl extends TableHelperBase<JunctionTreeTable>
-    implements JunctionTreeTableHelper {
+public class JunctionTreeTableQueryToolImpl extends QueryToolBase<JunctionTreeTable>
+    implements JunctionTreeTableQueryTool {
   private final JunctionTableSummer summer;
   private final ObservationCopier copier;
 
-  public JunctionTreeTableHelperImpl(JunctionTreeTable table) {
+  public JunctionTreeTableQueryToolImpl(JunctionTreeTable table) {
     super(table);
     this.summer = new JunctionTableSummer(table);
     this.copier = new ObservationCopier(table);

@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
-class TableHelperTest {
+class TableQueryToolTest {
 
   public static Stream<Arguments> provideNormalizeTableArgs() {
     return provideArgs(
@@ -73,7 +73,7 @@ class TableHelperTest {
   }
 
   public static Stream<Arguments> provideGetConditionProbArgs() {
-    return provideSolvedArgs(TableHelperTest::allConditionsForTable, t -> true);
+    return provideSolvedArgs(TableQueryToolTest::allConditionsForTable, t -> true);
   }
 
   private static Stream<Arguments> allConditionsForTable(NetworkTable t, BayesianNetwork n) {
@@ -116,7 +116,7 @@ class TableHelperTest {
   }
 
   static Stream<Arguments> provideGetProbArgs() {
-    return provideSolvedArgs(TableHelperTest::buildGetProbArgs, t -> true);
+    return provideSolvedArgs(TableQueryToolTest::buildGetProbArgs, t -> true);
   }
 
   static Stream<Arguments> buildGetProbArgs(NetworkTable table, BayesianNetwork network) {
@@ -133,7 +133,7 @@ class TableHelperTest {
   @MethodSource("provideGetProbArgs")
   void getProbability_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     Set<NodeState> allStates = constraint.getAllStates();
-    TableHelper<?> helper = table.getHelper();
+    TableQueryTool helper = table.getQueryTool();
     assertEquals(constraint.getProbability(), helper.getProbability(allStates), DOUBLE_EQUALITY);
   }
 
@@ -141,7 +141,7 @@ class TableHelperTest {
   @MethodSource("provideGetProbArgs")
   void getProbabilityFromIDs_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     List<Serializable> stateIds = NodeUtils.getNodeStateIds(constraint.getAllStates());
-    TableHelper<?> helper = table.getHelper();
+    TableQueryTool helper = table.getQueryTool();
     assertEquals(
         constraint.getProbability(), helper.getProbabilityFromIDs(stateIds), DOUBLE_EQUALITY);
   }
@@ -149,7 +149,7 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideCopyTableArgs")
   void copyTable(NetworkTable networkTable) {
-    NetworkTableHelper<?> helper = networkTable.getHelper();
+    NetworkTableQueryTool helper = networkTable.getQueryTool();
     NetworkTable copied = helper.copyTable();
     assertNotSame(copied, networkTable);
     assertEquals(copied, networkTable);
@@ -158,7 +158,7 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideNormalizeTableArgs")
   void normalizeTable(NetworkTable networkTable) {
-    TableHelper<?> helper = networkTable.getHelper();
+    TableQueryTool helper = networkTable.getQueryTool();
     double[] probs = networkTable.getProbabilities();
     Arrays.fill(probs, 1.0);
     helper.normalizeTable();
@@ -176,7 +176,7 @@ class TableHelperTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    NetworkTableHelper<?> helper = networkTable.getHelper();
+    NetworkTableQueryTool helper = networkTable.getQueryTool();
     Map<NodeState, Double> probs = helper.getConditionalProb(conditionStates);
     constraintMap.forEach(
         (event, constraint) ->
@@ -189,7 +189,7 @@ class TableHelperTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    NetworkTableHelper<?> helper = networkTable.getHelper();
+    NetworkTableQueryTool helper = networkTable.getQueryTool();
     Map<NodeState, Double> probs =
         helper.getConditionalProbByIds(NodeUtils.getNodeStateIds(conditionStates));
     constraintMap.forEach(
@@ -200,7 +200,7 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideSafeModeArgs")
   void setSafeMode(NetworkTable networkTable) {
-    NetworkTableHelper<?> helper = networkTable.getHelper();
+    NetworkTableQueryTool helper = networkTable.getQueryTool();
     Node networkNode = networkTable.getNetworkNode();
     double[] probs = networkTable.getProbabilities();
     List<NodeState> eventStates = networkNode.getNodeStates();
@@ -221,7 +221,7 @@ class TableHelperTest {
   @ParameterizedTest
   @MethodSource("provideProbabilitySetMapTables")
   void buildProbabilitySetMap(ConditionalTable conditionalTable) {
-    ConditionalTableHelper helper = conditionalTable.getHelper();
+    ConditionalTableQueryTool helper = conditionalTable.getQueryTool();
     Map<Set<NodeState>, Double> map = helper.buildProbabilitySetMap();
     double[] probs = conditionalTable.getProbabilities();
     int index = 0;
