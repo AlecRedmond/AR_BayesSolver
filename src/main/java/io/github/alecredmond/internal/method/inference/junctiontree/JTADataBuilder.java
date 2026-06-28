@@ -42,6 +42,7 @@ public class JTADataBuilder {
     junctionTreeData.setNetworkData(bayesianNetworkData);
     new CliqueBuilder().buildCliques(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
+    buildCollectionDistributionPlaceHolders(junctionTreeData);
   }
 
   private void buildSolversPerClique(JunctionTreeData jtd, BayesianNetworkData bnd) {
@@ -88,6 +89,12 @@ public class JTADataBuilder {
             .add(iteratorFactory.buildMarginalTransfer(cliqueTable, observedTables.get(node)));
       }
     }
+  }
+
+  private void buildCollectionDistributionPlaceHolders(JunctionTreeData jtd) {
+    int cliquesLength = jtd.getCliques().length;
+    jtd.setDistributionRuns(new Runnable[cliquesLength][]);
+    jtd.setCollectionRuns(new Runnable[cliquesLength][]);
   }
 
   private List<ConstraintSolver> matchConstraints(

@@ -18,6 +18,7 @@ public class Clique {
   private List<TableTransfer> writeFromCPTs;
   private List<TableTransfer> writeToCPTs;
   private List<TableTransfer> writeToObserved;
+  private int cliqueIndex;
 
   public Clique(Set<Node> nodes, JunctionTreeTable table) {
     this.nodes = nodes;

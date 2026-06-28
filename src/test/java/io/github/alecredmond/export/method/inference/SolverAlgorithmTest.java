@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class SolverAlgorithmTest {
   static final boolean SOLVER_TYPE_SPEED_CHECK = false;
-  static final int RACE_TIMEOUT_SECS = 5;
+  static final int RACE_TIMEOUT_SECS = 1;
   BayesianNetwork network;
   BayesSolver solver;
   Map<SolverAlgorithm, Boolean> useSolver = new EnumMap<>(SolverAlgorithm.class);
