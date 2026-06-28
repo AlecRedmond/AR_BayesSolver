@@ -80,8 +80,9 @@ Constraints are built using the node state identifiers. **Constraints do not hav
 network structure**; for example, a marginal constraint can be defined on a node with parents, or an ancestor node's
 state can be conditional on a descendant node's state. 
 
-For this demo, we will CPT entries within the graph, but we will provide only *some* of the CPT entries from Fig.1. Due to the nature of IPFP, complementary
-constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be defined.
+For this demo, we will define CPT entries within the graph, but we will provide only *some* of the CPT entries from 
+Fig.1. The complementary constraints (e.g., `P(RAIN:FALSE) = 0.8`) are inferred automatically and do not need to be 
+defined.
 
 ```Java
 wetGrassNetwork
@@ -96,13 +97,33 @@ wetGrassNetwork
         .addConstraint("WET_GRASS:TRUE", List.of("RAIN:FALSE", "SPRINKLER:FALSE"), 0.0);
 ```
 
-### 5. Solving and Direct Inference
+### 5. Using BayesSolver
 
-We will now run the JTA/IPFP algorithm to find the best-fit probability distribution that honours all given constraints.
+Networks can be solved from the instance, or we can create a BayesSolver for more fine
+control:
 
-```Java
-wetGrassNetwork.solveNetwork();
+```java
+// Uses default configurations found in app.properties.solver
+wetGrassNetwork.solveNetwork(); 
+
+BayesSolver solver = BayesSolver.create(wetGrassNetwork);
+
+// If every CPT entry can be inferred from the constraints, write them directly.
+boolean directWriteSuccess = solver.writeCPTsFromConstraints();
+
+// If we can't write them directly, run IPFP
+if (!directWriteSuccess) {
+    solver.solve(SolverAlgorithm.JUNCTION_TREE_IPFP);
+}
+
+// Equivalent to running the previous lines
+solver.solve();
 ```
+
+As we defined the constraints in such a way that every `FALSE` entry can be inferred, our network will be written 
+directly to the CPTs, with no IPFP required.
+
+### 6. Direct Inference
 
 Once solved, we can perform direct inference by building an inference engine from the solved network.
 
@@ -136,7 +157,7 @@ System.out.printf("P(RAIN:TRUE|WET_GRASS:TRUE) = %.3f", posteriorRainTrue);
 >> P(RAIN:TRUE|WET_GRASS:TRUE) = 0.385
 ```
 
-### 6. Printing the CPTs and Posterior Probabilities
+### 7. Printing the CPTs and Posterior Probabilities
 
 You can print the network's solved CPTs or the inference engine's observed probability tables to a .txt file. 
 By default, the printer will save files to the directory ```$user_home$/AR_Tools/bayes_solver/output/```
@@ -185,7 +206,7 @@ P(SPRINKLER|WET_GRASS:TRUE)
 
 Settings for the printer can be modified within `app.properties`.
 
-### 7. Generating Random Samples
+### 8. Generating Random Samples
 
 Build a sampler from the BayesianNetwork instance:
 
@@ -221,7 +242,7 @@ System.out.printf("%.2f", directInferenceProb * numberOfSamples);
 >> 4.23 
 ```
 
-### 8. Using ProbabilityTables from the network.
+### 9. Using ProbabilityTables from the network.
 
 You can extract the raw probability tables for use in your application.
 

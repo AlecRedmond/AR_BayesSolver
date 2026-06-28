@@ -10,10 +10,10 @@ public enum AppProperty {
   DIRECTORY_SAVE("app.directory.saveDirectory"),
 
   // Inference Properties
-  INFERENCE_USE_JTA_INFERENCE("app.inference.useJunctionTreeInference"),
+  INFERENCE_ALGORITHM("app.inference.defaultInferenceAlgorithm"),
 
   // Solver Properties
-  SOLVER_USE_JTA("app.solver.useJunctionTreeSolver"),
+  SOLVER_ALGORITHM("app.solver.defaultSolverAlgorithm"),
   SOLVER_CYCLES_LIMIT("app.solver.cyclesLimit"),
   SOLVER_TIME_LIMIT_SECONDS("app.solver.timeLimitSeconds"),
   SOLVER_LOG_PROGRESS("app.solver.logSolverProgress"),

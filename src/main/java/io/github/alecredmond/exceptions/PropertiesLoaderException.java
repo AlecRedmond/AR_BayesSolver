@@ -5,4 +5,8 @@ public class PropertiesLoaderException extends RuntimeException {
   public PropertiesLoaderException(Throwable cause) {
     super(cause);
   }
+
+  public PropertiesLoaderException(String string) {
+    super(string);
+  }
 }

@@ -4,8 +4,8 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.method.inference.BayesSolver.SolverType;
-import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
+import io.github.alecredmond.export.method.inference.SolverAlgorithm;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class JunctionTreeData {
   private Map<Node, NodeState> observedEvidence;
   private boolean solverConfig;
   private double jointProbability;
-  private SolverType solverType;
-  private InferenceType inferenceType;
+  private SolverAlgorithm solverAlgorithm;
+  private InferenceAlgorithm inferenceAlgorithm;
   private double equivalentTreeWidth;
 }

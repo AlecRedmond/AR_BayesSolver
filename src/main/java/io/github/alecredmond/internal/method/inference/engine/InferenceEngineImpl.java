@@ -5,6 +5,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.network.NetworkDataUtils;
@@ -21,17 +22,17 @@ public class InferenceEngineImpl implements InferenceEngine {
   private final BayesianNetwork network;
   private final BayesSolver solver;
   private final JunctionTreeAlgorithm junctionTree;
-  private final InferenceType inferenceType;
+  private final InferenceAlgorithm inferenceAlgorithm;
 
   public InferenceEngineImpl(
       BayesianNetwork network,
       BayesSolver solver,
       JunctionTreeAlgorithm junctionTree,
-      InferenceType inferenceType) {
+      InferenceAlgorithm inferenceAlgorithm) {
     this.network = network;
     this.junctionTree = junctionTree;
     this.solver = solver;
-    this.inferenceType = inferenceType;
+    this.inferenceAlgorithm = inferenceAlgorithm;
     resetObservations();
   }
 
@@ -58,7 +59,7 @@ public class InferenceEngineImpl implements InferenceEngine {
         "Modifications were detected on network {}, solver will be re-run",
         network.getNetworkData().getNetworkName());
     if (solver.solve()) {
-      junctionTree.rebuildJTA(network.getNetworkData(), inferenceType);
+      junctionTree.rebuildJTA(network.getNetworkData(), inferenceAlgorithm);
       return true;
     }
     log.error("Could not solve network {}!", network.getNetworkData().getNetworkName());

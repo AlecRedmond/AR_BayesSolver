@@ -32,7 +32,7 @@ public class JTASolver {
     Instant start = Instant.now();
 
     if (writeLogs) {
-      log.info("STARTING SOLVER IN MODE = {}", configs.getSolverType());
+      log.info("STARTING SOLVER IN MODE = {}", configs.getSolverAlgorithm());
     }
 
     jta = JunctionTreeAlgorithm.buildForSolver(network.getNetworkData(), configs);

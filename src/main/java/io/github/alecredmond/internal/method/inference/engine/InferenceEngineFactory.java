@@ -1,15 +1,16 @@
 package io.github.alecredmond.internal.method.inference.engine;
 
-import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.SINGLE_TABLE_ALGORITHM;
-import static io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType.JUNCTION_TREE_ALGORITHM;
-import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_USE_JTA_INFERENCE;
+import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_ALGORITHM;
 
+import io.github.alecredmond.exceptions.PropertiesLoaderException;
 import io.github.alecredmond.export.method.inference.BayesSolver;
+import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.inference.InferenceEngine.InferenceType;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,14 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 public class InferenceEngineFactory {
 
   public InferenceEngine create(BayesianNetwork network) {
-    InferenceType inferenceType =
-        new PropertiesLoader().loadBoolean(INFERENCE_USE_JTA_INFERENCE)
-            ? JUNCTION_TREE_ALGORITHM
-            : SINGLE_TABLE_ALGORITHM;
-    return create(network, inferenceType);
+    return create(network, getInferenceAlgorithm());
   }
 
-  public InferenceEngine create(BayesianNetwork network, InferenceType inferenceType) {
+  public InferenceEngine create(BayesianNetwork network, InferenceAlgorithm inferenceAlgorithm) {
 
     BayesSolver solver = BayesSolver.create(network);
     if (!attemptSolve(network, solver)) {
@@ -35,8 +32,27 @@ public class InferenceEngineFactory {
     return new InferenceEngineImpl(
         network,
         solver,
-        JunctionTreeAlgorithm.buildForInference(network.getNetworkData(), inferenceType),
-        inferenceType);
+        JunctionTreeAlgorithm.buildForInference(network.getNetworkData(), inferenceAlgorithm),
+        inferenceAlgorithm);
+  }
+
+  private InferenceAlgorithm getInferenceAlgorithm() {
+    String inferenceTypeString =
+        new PropertiesLoader()
+                .loadString(INFERENCE_ALGORITHM)
+                .toUpperCase()
+                .replaceAll("\\s+", "");
+    try {
+      return InferenceAlgorithm.valueOf(inferenceTypeString);
+    } catch (IllegalArgumentException e) {
+      throw new PropertiesLoaderException(
+          "'%s' is not a valid inference type! Valid options are [%s]"
+              .formatted(
+                  inferenceTypeString,
+                  Arrays.stream(InferenceAlgorithm.values())
+                      .map(Enum::toString)
+                      .collect(Collectors.joining(" "))));
+    }
   }
 
   private boolean attemptSolve(BayesianNetwork network, BayesSolver solver) {
