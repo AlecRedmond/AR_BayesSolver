@@ -56,11 +56,11 @@ public class NetworkConstraintHandler {
   }
 
   public boolean removeAllConstraints() {
-    List<ProbabilityConstraint> probabilityConstraints = networkData.getConstraints();
+    Set<ProbabilityConstraint> probabilityConstraints = networkData.getConstraints();
     if (probabilityConstraints.isEmpty()) {
       return false;
     }
-    networkData.setConstraints(new ArrayList<>());
+    networkData.getConstraints().clear();
     return true;
   }
 

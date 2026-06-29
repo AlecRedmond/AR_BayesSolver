@@ -44,6 +44,14 @@ public class NetworkDataUtils {
     return getById(id, data.getNodeStateIDsMap(), NodeState.class, data.getNetworkName());
   }
 
+  public static void resetAll(BayesianNetworkData networkData) {
+    networkData.getNodes().clear();
+    networkData.getNodeIDsMap().clear();
+    networkData.getNodeStateIDsMap().clear();
+    networkData.getNetworkTablesMap().clear();
+    networkData.getConstraints().clear();
+  }
+
   static <E extends Serializable> Set<NodeState> getStatesByIdOrThrow(
       Collection<E> stateIds, BayesianNetworkData networkData) {
     return stateIds.stream()

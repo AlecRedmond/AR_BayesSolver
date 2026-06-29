@@ -46,7 +46,7 @@ public class JTADataBuilder {
   }
 
   private void buildSolversPerClique(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    List<ProbabilityConstraint> constraints = bnd.getConstraints();
+    Collection<ProbabilityConstraint> constraints = bnd.getConstraints();
     Map<Clique, List<ConstraintSolver>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
@@ -98,7 +98,7 @@ public class JTADataBuilder {
   }
 
   private List<ConstraintSolver> matchConstraints(
-      Clique clique, List<ProbabilityConstraint> constraints) {
+      Clique clique, Collection<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
         .map(constraint -> buildConstraintHandler(constraint, clique))
