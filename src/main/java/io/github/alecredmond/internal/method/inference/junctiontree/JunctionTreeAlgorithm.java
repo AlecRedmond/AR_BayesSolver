@@ -19,10 +19,12 @@ import lombok.Getter;
 public class JunctionTreeAlgorithm {
   private final JunctionTreeData data;
   private final JTANetworkWriter networkWriter;
+  private final MessagePasser messagePasser;
 
   public JunctionTreeAlgorithm(JunctionTreeData data) {
     this.data = data;
     this.networkWriter = new JTANetworkWriter(data);
+    this.messagePasser = new MessagePasser(data);
     networkWriter.initializeJunctionTreeFromNetwork();
   }
 
@@ -58,8 +60,8 @@ public class JunctionTreeAlgorithm {
   }
 
   private void passMessages(Clique clique) {
-    collectEvidence(clique);
-    distributeEvidence(clique);
+    messagePasser.collectMessages(clique);
+    messagePasser.distributeMessages(clique);
   }
 
   private void applyObservations(Map<Node, NodeState> observed) {
@@ -80,44 +82,6 @@ public class JunctionTreeAlgorithm {
     return cliqueSums / separatorSums;
   }
 
-  private void collectEvidence(Clique startClique) {
-    Queue<Clique> queue = new ArrayDeque<>();
-    Set<Clique> visited = new HashSet<>();
-    List<Runnable> collectionRuns = new ArrayList<>();
-    queue.add(startClique);
-    while (!queue.isEmpty()) {
-      Clique clique = queue.poll();
-      visited.add(clique);
-      clique
-          .getSeparatorMap()
-          .forEach(
-              (nextClique, separator) -> {
-                if (visited.contains(nextClique)) return;
-                collectionRuns.add(() -> separator.passMessageFrom(nextClique));
-                queue.add(nextClique);
-              });
-    }
-    collectionRuns.reversed().forEach(Runnable::run);
-  }
-
-  private void distributeEvidence(Clique startClique) {
-    Queue<Clique> queue = new ArrayDeque<>();
-    Set<Clique> visited = new HashSet<>();
-    queue.add(startClique);
-    while (!queue.isEmpty()) {
-      Clique clique = queue.poll();
-      visited.add(clique);
-      clique
-          .getSeparatorMap()
-          .forEach(
-              (nextClique, separator) -> {
-                if (visited.contains(nextClique)) return;
-                separator.passMessageFrom(clique);
-                queue.add(nextClique);
-              });
-    }
-  }
-
   private ObservationOverlap findLargestOverlap(
       Set<Node> nodesRemaining, Map<Node, NodeState> observed) {
     return Arrays.stream(data.getCliques())
@@ -131,7 +95,7 @@ public class JunctionTreeAlgorithm {
       T[] array, Function<T, JunctionTreeTable> tableFunction, Collection<NodeState> newEvidence) {
     return Arrays.stream(array)
         .map(tableFunction)
-        .map(JunctionTreeTable::getHelper)
+        .map(JunctionTreeTable::getQueryTool)
         .mapToDouble(helper -> helper.sumProbabilities(newEvidence))
         .reduce(1.0, (x, y) -> x * y);
   }
@@ -158,7 +122,7 @@ public class JunctionTreeAlgorithm {
   }
 
   public void sumTransfer(Clique clique) {
-    distributeEvidence(clique);
+    messagePasser.distributeMessages(clique);
   }
 
   private record ObservationOverlap(

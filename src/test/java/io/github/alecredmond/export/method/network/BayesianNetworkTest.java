@@ -283,7 +283,7 @@ class BayesianNetworkTest {
     @Test
     void addConstraint_prior_shouldSucceed() {
       assertDoesNotThrow(() -> net.addConstraint("A_T", 0.2));
-      double prob = net.getNetworkData().getConstraints().getFirst().getProbability();
+      double prob = net.getNetworkData().getConstraints().iterator().next().getProbability();
       assertEquals(0.2, prob);
     }
 

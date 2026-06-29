@@ -4,7 +4,8 @@ import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableHelperImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableQueryToolImpl;
+
 import java.util.List;
 
 public class RootNodeTableBuilder extends BaseTableBuilder implements TableBuilder<RootNodeTable> {
@@ -17,7 +18,7 @@ public class RootNodeTableBuilder extends BaseTableBuilder implements TableBuild
     if (events.size() != 1) {
       throw new TableBuilderException("Attempted to build a Root table with more than 1 event!");
     }
-    return buildTable(events, conditions, RootNodeTableImpl::new, RootNodeTableHelperImpl::new);
+    return buildTable(events, conditions, RootNodeTableImpl::new, RootNodeTableQueryToolImpl::new);
   }
 
   @Override

@@ -3,8 +3,6 @@ package io.github.alecredmond.internal.serialization.structure;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
 import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
 import io.github.alecredmond.export.serialization.node.SerializedNode;
@@ -13,9 +11,7 @@ import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import lombok.NoArgsConstructor;
 
@@ -63,43 +59,43 @@ public class NetworkDataSerializer {
   }
 
   public BayesianNetworkData deSerialize(
-      SerializedBayesianNetwork serialized, SerializationData data) {
-    Map<Serializable, Node> nodeIDsMap = data.getNodeIdMap();
-    Map<Serializable, NodeState> nodeStateIDsMap = data.getNodeStateIdMap();
-    return new BayesianNetworkData(
-        serialized.getNetworkName(),
-        deSerializeNodeSTOs(serialized.getSerializedNodes(), data),
-        nodeIDsMap,
-        nodeStateIDsMap,
-        deSerializeNetworkTables(serialized, data, nodeIDsMap),
-        deSerializeConstraints(serialized.getSerializedConstraints(), data),
-        serialized.isSolved());
+      SerializedBayesianNetwork serialized, SerializationData serializationData) {
+    BayesianNetworkData networkData = serializationData.getNetworkData();
+    networkData.setNetworkName(serialized.getNetworkName());
+    deSerializeNodeSTOs(serialized.getSerializedNodes(), serializationData);
+    deSerializeNetworkTables(serialized, serializationData);
+    deSerializeConstraints(serialized.getSerializedConstraints(), serializationData);
+    networkData.setSolved(serialized.isSolved());
+    return networkData;
   }
 
-  private List<Node> deSerializeNodeSTOs(
-      List<SerializedNode> serializedNodes, SerializationData data) {
+  private void deSerializeNodeSTOs(List<SerializedNode> serializedNodes, SerializationData data) {
     NodeSerializer serializer = new NodeSerializer();
-    return serializedNodes.stream()
+    List<Node> nodes = data.getNetworkData().getNodes();
+    serializedNodes.stream()
         .map(serializedNode -> serializer.deSerialize(serializedNode, data))
-        .toList();
+        .forEach(nodes::add);
   }
 
-  private Map<Node, NetworkTable> deSerializeNetworkTables(
-      SerializedBayesianNetwork serialized,
-      SerializationData data,
-      Map<Serializable, Node> nodeIDsMap) {
+  private void deSerializeNetworkTables(
+      SerializedBayesianNetwork serialized, SerializationData data) {
     NetworkTableSerializer serializer = new NetworkTableSerializer();
-    return convertMap(
-        serialized.getSerializedCptMap(),
-        nodeIDsMap::get,
-        serializedTable -> serializer.deSerialize(serializedTable, data));
+    Map<Serializable, Node> nodeIDsMap = data.getNodeIdMap();
+    data.getNetworkData()
+        .getNetworkTablesMap()
+        .putAll(
+            convertMap(
+                serialized.getSerializedCptMap(),
+                nodeIDsMap::get,
+                serializedTable -> serializer.deSerialize(serializedTable, data)));
   }
 
-  private <T extends ProbabilityConstraint> List<ProbabilityConstraint> deSerializeConstraints(
+  private <T extends ProbabilityConstraint> void deSerializeConstraints(
       List<SerializedProbabilityConstraint<T>> serializedConstraints, SerializationData data) {
-    return serializedConstraints.stream()
+    Set<ProbabilityConstraint> constraints = data.getNetworkData().getConstraints();
+    serializedConstraints.stream()
         .map(serialized -> deSerializeConstraint(serialized, data))
-        .toList();
+        .forEach(constraints::add);
   }
 
   private <T extends ProbabilityConstraint> ProbabilityConstraint deSerializeConstraint(

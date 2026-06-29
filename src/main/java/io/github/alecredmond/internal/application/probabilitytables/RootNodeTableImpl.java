@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.export.method.probabilitytables.RootNodeTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryTool;
 import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class RootNodeTableImpl extends SingleEventTable<RootNodeTable, RootNodeTableHelper>
+public class RootNodeTableImpl extends SingleEventTable<RootNodeTableQueryTool>
     implements RootNodeTable {
   public RootNodeTableImpl(TableBuilderData tableBuilderData) {
     super(tableBuilderData);

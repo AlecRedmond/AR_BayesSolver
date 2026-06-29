@@ -360,10 +360,6 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
 
   public void resetAllData() {
     removeAllNodes();
-    networkData.setNodes(new ArrayList<>());
-    networkData.setNodeIDsMap(new HashMap<>());
-    networkData.setNodeStateIDsMap(new HashMap<>());
-    networkData.setNetworkTablesMap(new HashMap<>());
-    networkData.setConstraints(new ArrayList<>());
+    NetworkDataUtils.resetAll(networkData);
   }
 }

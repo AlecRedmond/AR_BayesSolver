@@ -10,14 +10,14 @@ import java.util.Map;
 
 /**
  * A helper attached to a {@link NetworkTable} which provides additional methods for the table. This
- * provides all the methods contained within {@link TableHelper}, plus additional methods to query
- * the conditional probability of the CPTs within the network.
+ * provides all the methods contained within {@link TableQueryTool}, plus additional methods to
+ * query the conditional probability of the CPTs within the network.
  *
- * @see ConditionalTableHelper
- * @see RootNodeTableHelper
+ * @see ConditionalTableQueryTool
+ * @see RootNodeTableQueryTool
  * @author Alec Redmond
  */
-public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<T> {
+public interface NetworkTableQueryTool extends TableQueryTool {
   /**
    * Returns a cross-section of probabilities for every {@link NodeState} in the Network {@link
    * Node}, under the given conditions.
@@ -49,4 +49,13 @@ public interface NetworkTableHelper<T extends NetworkTable> extends TableHelper<
    */
   <S extends Serializable> Map<NodeState, Double> getConditionalProbByIds(
       Collection<S> conditionIDs);
+
+  /**
+   * Builds a copy of the {@link NetworkTable} this handler is connected to. This deep-copies
+   * everything except the {@link Node} and {@link NodeState} values, which maintain the original
+   * references.
+   *
+   * @return a copy of the current table.
+   */
+  NetworkTable copyTable();
 }

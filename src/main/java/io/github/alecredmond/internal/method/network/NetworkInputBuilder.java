@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.NetworkBuilderNode;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
@@ -38,11 +39,13 @@ public class NetworkInputBuilder {
   }
 
   private void createCptConstraints() {
-    nodeInputs.stream()
+      nodeInputs.parallelStream()
         .filter(ni -> ni.getCptValues() != null)
         .map(this::buildConstraintBuilderIterator)
         .map(ConstraintBuilderIterator::buildConstraints)
-        .forEach(bayesianNetwork::addConstraints);
+        .flatMap(Collection::stream)
+        .sequential()
+        .forEach(bayesianNetwork.getNetworkData().getConstraints()::add);
   }
 
   private ConstraintBuilderIterator buildConstraintBuilderIterator(NetworkBuilderNode nodeInput) {

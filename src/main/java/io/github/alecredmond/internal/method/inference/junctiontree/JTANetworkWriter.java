@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.inference.junctiontree.Separator;
@@ -66,8 +66,8 @@ class JTANetworkWriter {
         .forEach(TableTransfer::transfer);
 
     jtd.getObservedTablesMap().values().parallelStream()
-        .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::normalizeTable);
+        .map(ProbabilityTable::getQueryTool)
+        .forEach(TableQueryTool::normalizeTable);
 
     Map<Node, NodeState> observationMap = Collections.unmodifiableMap(jtd.getObservedEvidence());
     networkData.getNodes().forEach(node -> updateObservedTables(node, observationMap));
@@ -91,7 +91,7 @@ class JTANetworkWriter {
         .forEach(TableTransfer::transfer);
 
     bnd.getNetworkTablesMap().values().parallelStream()
-        .map(ProbabilityTable::getHelper)
-        .forEach(TableHelper::normalizeTable);
+        .map(ProbabilityTable::getQueryTool)
+        .forEach(TableQueryTool::normalizeTable);
   }
 }

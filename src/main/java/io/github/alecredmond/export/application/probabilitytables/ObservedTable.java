@@ -3,8 +3,8 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.probabilitytables.ObservedTableHelper;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.export.method.probabilitytables.ObservedTableQueryTool;
+import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,11 +43,11 @@ public interface ObservedTable extends ProbabilityTable {
   Map<Node, NodeState> getObservations();
 
   /**
-   * Returns the {@link ObservedTableHelper} for this table. {@link ObservedTableHelper} extends the
-   * base {@link TableHelper} with additional methods specific to observed probability tables.
+   * Returns the {@link ObservedTableQueryTool} for this table. {@link ObservedTableQueryTool} extends the
+   * base {@link TableQueryTool} with additional methods specific to observed probability tables.
    *
-   * @return the {@link ObservedTableHelper} for this {@code ObservedTable}.
+   * @return the {@link ObservedTableQueryTool} for this {@code ObservedTable}.
    */
   @Override
-  ObservedTableHelper getHelper();
+  ObservedTableQueryTool getQueryTool();
 }

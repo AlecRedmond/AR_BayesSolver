@@ -11,8 +11,8 @@ import io.github.alecredmond.export.serialization.probabilitytable.SerializedMar
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedNetworkTable;
 import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
 import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableHelperImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableHelperImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableQueryToolImpl;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.io.Serializable;
@@ -73,7 +73,7 @@ public class NetworkTableSerializer {
             Set.of(eventNode),
             Set.of(),
             eventNode);
-    marginalTable.setHelper(new RootNodeTableHelperImpl(marginalTable));
+    marginalTable.setQueryTool(new RootNodeTableQueryToolImpl(marginalTable));
     marginalTable.setTableName(marginal.getTableName());
     return marginalTable;
   }
@@ -92,7 +92,7 @@ public class NetworkTableSerializer {
             Collections.unmodifiableSet(nodeDeSerialize(conditional.getEventNodeIds(), data)),
             Collections.unmodifiableSet(nodeDeSerialize(conditional.getConditionNodeIds(), data)),
             data.getNodeIdMap().get(conditional.getNetworkNodeId()));
-    conditionalTable.setHelper(new ConditionalTableHelperImpl(conditionalTable));
+    conditionalTable.setQueryTool(new ConditionalTableQueryToolImpl(conditionalTable));
     conditionalTable.setTableName(conditional.getTableName());
     return conditionalTable;
   }

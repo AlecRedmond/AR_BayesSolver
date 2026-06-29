@@ -16,11 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Setter
 @Slf4j
-public abstract class TableHelperBase<T extends ProbabilityTable> {
+public abstract class QueryToolBase<T extends ProbabilityTable> {
   protected T table;
   protected boolean safeMode = true;
 
-  protected TableHelperBase(T table) {
+  protected QueryToolBase(T table) {
     this.table = table;
   }
 

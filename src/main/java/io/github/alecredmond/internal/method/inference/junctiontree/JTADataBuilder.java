@@ -42,10 +42,11 @@ public class JTADataBuilder {
     junctionTreeData.setNetworkData(bayesianNetworkData);
     new CliqueBuilder().buildCliques(junctionTreeData);
     buildExternalMessagePassers(junctionTreeData, bayesianNetworkData);
+    buildCollectionDistributionPlaceHolders(junctionTreeData);
   }
 
   private void buildSolversPerClique(JunctionTreeData jtd, BayesianNetworkData bnd) {
-    List<ProbabilityConstraint> constraints = bnd.getConstraints();
+    Collection<ProbabilityConstraint> constraints = bnd.getConstraints();
     Map<Clique, List<ConstraintSolver>> map =
         Arrays.stream(jtd.getCliques())
             .map(clique -> Map.entry(clique, matchConstraints(clique, constraints)))
@@ -90,8 +91,14 @@ public class JTADataBuilder {
     }
   }
 
+  private void buildCollectionDistributionPlaceHolders(JunctionTreeData jtd) {
+    int cliquesLength = jtd.getCliques().length;
+    jtd.setDistributionRuns(new Runnable[cliquesLength][]);
+    jtd.setCollectionRuns(new Runnable[cliquesLength][]);
+  }
+
   private List<ConstraintSolver> matchConstraints(
-      Clique clique, List<ProbabilityConstraint> constraints) {
+      Clique clique, Collection<ProbabilityConstraint> constraints) {
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
         .map(constraint -> buildConstraintHandler(constraint, clique))

@@ -104,7 +104,7 @@ public class TableFormatter {
   private String renderHeaderRow(List<String> eventLabels, int eventWidth, int condWidth) {
     StringBuilder header = new StringBuilder("|");
     if (condWidth > 0) {
-      header.append(" ".repeat(condWidth)).append("|");
+      header.repeat(" ", condWidth).append("|");
     }
     for (String label : eventLabels) {
       header.append(padLeft(label, eventWidth)).append("|");
@@ -158,7 +158,7 @@ public class TableFormatter {
 
     eventCombos.stream()
         .map(events -> NodeUtils.combineStates(events, currentConditions))
-        .map(states -> table.getHelper().getProbability(states))
+        .map(states -> table.getQueryTool().getProbability(states))
         .map(probability -> String.format(probFormatter, probability))
         .map(probString -> padLeft(probString, eventWidth))
         .forEach(padded -> row.append(padded).append("|"));

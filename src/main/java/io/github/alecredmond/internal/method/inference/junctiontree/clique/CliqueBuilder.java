@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.inference.junctiontree.clique;
 
-import static io.github.alecredmond.export.method.inference.SolverAlgorithm.JUNCTION_TREE_IPFP;
 import static io.github.alecredmond.export.method.inference.InferenceAlgorithm.JUNCTION_TREE_ALGORITHM;
+import static io.github.alecredmond.export.method.inference.SolverAlgorithm.JUNCTION_TREE_IPFP;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
@@ -22,7 +22,15 @@ public class CliqueBuilder {
   public void buildCliques(JunctionTreeData jtd) {
     if (checkUseJta(jtd)) buildJtaCliques(jtd);
     else buildIPFPClique(jtd);
+    indexCliques(jtd);
     new CliqueJoiner().joinCliques(jtd);
+  }
+
+  private void indexCliques(JunctionTreeData jtd) {
+    Clique[] cliques = jtd.getCliques();
+    for (int i = 0; i < cliques.length; i++) {
+      cliques[i].setCliqueIndex(i);
+    }
   }
 
   private void triangulate(Map<Node, Set<Node>> edgeGraph) {

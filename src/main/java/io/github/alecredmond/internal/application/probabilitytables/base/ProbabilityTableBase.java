@@ -2,9 +2,8 @@ package io.github.alecredmond.internal.application.probabilitytables.base;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
-import io.github.alecredmond.export.method.probabilitytables.TableHelper;
+import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
 import java.util.Map;
@@ -15,14 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public abstract class ProbabilityTableBase<T extends ProbabilityTable, R extends TableHelper<T>> {
+public abstract class ProbabilityTableBase<R extends TableQueryTool> {
   protected final Map<Serializable, NodeState> nodeStateIDMap;
   protected final Map<Serializable, Node> nodeIDMap;
   protected final ProbabilityVector vector;
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
-  @EqualsAndHashCode.Exclude protected R helper;
+  @EqualsAndHashCode.Exclude protected R queryTool;
   @EqualsAndHashCode.Exclude protected Serializable tableName;
 
   protected ProbabilityTableBase(

@@ -17,19 +17,20 @@ public class RemovedNodeChangeHandler implements NetworkChangeHandler {
 
     Node toRemove = (Node) evt.getOldValue();
     networkData.getNodeIDsMap().remove(toRemove.getId());
+    networkData.getNodes().remove(toRemove);
 
     toRemove
         .getNodeStates()
         .forEach(state -> networkData.getNodeStateIDsMap().remove(state.getId()));
 
-    List<Node> newNodes = networkData.getNodeIDsMap().values().stream().toList();
-    networkData.setNodes(newNodes);
-
-    newNodes.forEach(
-        node -> {
-          removeNode(node::setParents, node::getParents, toRemove);
-          removeNode(node::setChildren, node::getChildren, toRemove);
-        });
+    networkData
+        .getNodeIDsMap()
+        .values()
+        .forEach(
+            node -> {
+              removeNode(node::setParents, node::getParents, toRemove);
+              removeNode(node::setChildren, node::getChildren, toRemove);
+            });
 
     NetworkConstraintHandler.removeConstraints(
         constraint -> constraint.getAllNodes().contains(toRemove), networkData);

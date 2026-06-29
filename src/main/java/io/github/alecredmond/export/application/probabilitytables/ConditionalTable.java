@@ -3,8 +3,8 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.probabilitytables.ConditionalTableHelper;
-import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.ConditionalTableQueryTool;
+import io.github.alecredmond.export.method.probabilitytables.NetworkTableQueryTool;
 
 /**
  * A conditional probability table (CPT) within a {@link BayesianNetwork}. CPTs map the probability
@@ -20,12 +20,12 @@ import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
  */
 public interface ConditionalTable extends NetworkTable {
   /**
-   * Returns the {@link ConditionalTableHelper} for this table. {@link ConditionalTableHelper}
-   * extends {@link NetworkTableHelper} with additional methods specific to conditional probability
+   * Returns the {@link ConditionalTableQueryTool} for this table. {@link ConditionalTableQueryTool}
+   * extends {@link NetworkTableQueryTool} with additional methods specific to conditional probability
    * tables.
    *
-   * @return the {@link ConditionalTableHelper} for this {@code ConditionalTable}.
+   * @return the {@link ConditionalTableQueryTool} for this {@code ConditionalTable}.
    */
   @Override
-  ConditionalTableHelper getHelper();
+  ConditionalTableQueryTool getQueryTool();
 }

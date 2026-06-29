@@ -12,12 +12,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BayesSolverImpl extends JTASolver implements BayesSolver {
   private final DirectCptMapper directCptMapper;
+  private final SolverValidator validator;
   private SolverResults results;
 
   public BayesSolverImpl(BayesianNetwork network) {
     super(network, new SolverConfigs());
     this.results = null;
     this.directCptMapper = new DirectCptMapper(network.getNetworkData());
+    this.validator = new SolverValidator(network);
   }
 
   @Override
@@ -37,9 +39,10 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
     try {
       configs.updateConfigs();
       configs.setSolverAlgorithm(solverAlgorithm);
-      network.buildNetworkData();
+      validator.validateDataBuilt();
       return forceSolveCommon();
     } catch (Exception e) {
+      results = null;
       log.error(e.getLocalizedMessage(), e);
       return false;
     }
@@ -54,16 +57,17 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
   public boolean forceSolve() {
     try {
       configs.updateConfigs();
-      network.buildNetworkData();
-      if (writeCPTsFromConstraints()) return true;
+      validator.validateDataBuilt();
+      if (tryDirectCPTInput()) return true;
       return forceSolveCommon();
     } catch (Exception e) {
+      results = null;
       log.error(e.getLocalizedMessage(), e);
       return false;
     }
   }
 
-  public boolean writeCPTsFromConstraints() {
+  private boolean tryDirectCPTInput() {
     boolean mapped = directCptMapper.tryDirectImpute();
     if (mapped) {
       log.info(
@@ -77,10 +81,15 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
   private boolean forceSolveCommon() {
     BayesianNetworkData data = network.getNetworkData();
     data.setSolved(false);
-    results = null;
+    validator.resetNetworkTables();
     results = solveNetwork();
     data.setSolved(true);
     return true;
+  }
+
+  public boolean writeCPTsFromConstraints() {
+    validator.validateDataBuilt();
+    return tryDirectCPTInput();
   }
 
   @Override

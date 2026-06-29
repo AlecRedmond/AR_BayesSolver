@@ -3,8 +3,8 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.probabilitytables.NetworkTableHelper;
-import io.github.alecredmond.export.method.probabilitytables.RootNodeTableHelper;
+import io.github.alecredmond.export.method.probabilitytables.NetworkTableQueryTool;
+import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryTool;
 
 /**
  * An unconditional probability table for a root {@link Node} within a {@link BayesianNetwork}. Root
@@ -21,11 +21,11 @@ import io.github.alecredmond.export.method.probabilitytables.RootNodeTableHelper
  */
 public interface RootNodeTable extends NetworkTable {
   /**
-   * Returns the {@link RootNodeTableHelper} for this table. {@link RootNodeTableHelper} extends
-   * {@link NetworkTableHelper} with additional methods specific to unconditional root node tables.
+   * Returns the {@link RootNodeTableQueryTool} for this table. {@link RootNodeTableQueryTool} extends
+   * {@link NetworkTableQueryTool} with additional methods specific to unconditional root node tables.
    *
-   * @return the {@link RootNodeTableHelper} for this {@code RootNodeTable}.
+   * @return the {@link RootNodeTableQueryTool} for this {@code RootNodeTable}.
    */
   @Override
-  RootNodeTableHelper getHelper();
+  RootNodeTableQueryTool getQueryTool();
 }
