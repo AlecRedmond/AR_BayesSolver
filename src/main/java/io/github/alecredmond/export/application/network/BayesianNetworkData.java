@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
+import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import java.io.Serializable;
@@ -66,13 +66,13 @@ public class BayesianNetworkData {
   private boolean solved = false;
 
   /**
-   * Returns the network's conditional probability table (CPT) associated with the given Node's ID.
-   * This be a {@link ObservedTable} if referencing a root node, or a {@link ConditionalTable}
-   * otherwise.
+   * Returns the network's conditional probability table (CPT) associated with the given Node's
+   * identifier. This be a {@link RootNodeTable} if referencing a root node, or a {@link
+   * ConditionalTable} otherwise.
    *
-   * @param <T> the class of the Node's ID
-   * @param nodeID an ID associated with a node in the network
-   * @return the network CPT associated with the Node
+   * @param <T> the type of the {@link Node} identifier.
+   * @param nodeID an identifier associated with a {@link Node}.
+   * @return the network CPT associated with the {@link Node}.
    */
   public <T extends Serializable> NetworkTable getNetworkTableById(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
