@@ -19,6 +19,9 @@ import lombok.Data;
  *
  * <p><b>WARNING: MODIFYING THIS DATA MAY CAUSE UNDEFINED BEHAVIOUR!</b> The methods given in {@link
  * BayesianNetwork} should be used to modify the network's structure, add constraints, etc.
+ *
+ * @see BayesianNetwork
+ * @author Alec Redmond
  */
 @Data
 public class BayesianNetworkData {
