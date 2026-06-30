@@ -4,7 +4,12 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 
 /** Thrown if a {@link ProbabilityTable} would be constructed in an illegal configuration. */
 public class TableBuilderException extends IllegalArgumentException {
-  public TableBuilderException(String s) {
-    super(s);
+  /**
+   * Constructs a {@code TableBuilderException} with the specified detail message.
+   *
+   * @param message the detail message.
+   */
+  public TableBuilderException(String message) {
+    super(message);
   }
 }

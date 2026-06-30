@@ -2,7 +2,6 @@ package io.github.alecredmond.export.application.probabilitytables;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 
 import java.io.Serializable;

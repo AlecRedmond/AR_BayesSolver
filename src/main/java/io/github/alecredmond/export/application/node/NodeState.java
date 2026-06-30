@@ -26,6 +26,7 @@ import lombok.NonNull;
  * @author Alec Redmond
  * @see Node
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class NodeState {
@@ -51,5 +52,13 @@ public class NodeState {
   @Override
   public String toString() {
     return id.toString();
+  }
+
+  public Serializable getId() {
+    return this.id;
+  }
+
+  public Node getNode() {
+    return this.node;
   }
 }

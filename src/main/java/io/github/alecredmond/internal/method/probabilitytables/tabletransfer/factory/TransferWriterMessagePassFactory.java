@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory;
 
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters.TransferWriterMessagePass;
 
 public class TransferWriterMessagePassFactory

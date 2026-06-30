@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryTool;
 import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;

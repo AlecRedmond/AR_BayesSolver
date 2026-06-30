@@ -4,6 +4,11 @@ import io.github.alecredmond.export.method.sampler.Sampler;
 
 /** Thrown if samples generated in {@link Sampler} failed validation. */
 public class SampleValidationException extends RuntimeException {
+  /**
+   * Constructs a {@code SampleValidationException} with the specified detail message.
+   *
+   * @param message the detail message.
+   */
   public SampleValidationException(String message) {
     super(message);
   }

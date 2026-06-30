@@ -2,21 +2,30 @@ package io.github.alecredmond.export.application.inference;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.inference.BayesSolver;
+import io.github.alecredmond.export.method.inference.SolverAlgorithm;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 /**
- * Contains the results of a {@link BayesSolver} proportional fitting run, including the number of
- * cycles completed, the aggregate R-squared error on the final cycle, and a per-constraint
- * breakdown linking each {@link ProbabilityConstraint} to its associated {@link
- * SolverConstraintResult}.
+ * Contains the results of a {@link BayesSolver} Iterative Proportional Fitting Procedure (IPFP).
  *
+ * <p>This includes the total number of cycles completed, the aggregate R-squared error calculated
+ * on the final cycle, and a per-constraint breakdown linking each active {@link
+ * ProbabilityConstraint} to its respective {@link SolverConstraintResult}.
+ *
+ * @see SolverConstraintResult
+ * @see BayesSolver
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 public class SolverResults {
-  /** The number of cycles completed by the solver */
+
+  /** The total number of cycles completed by the solver. */
   private final int cycles;
 
   /**
@@ -27,12 +36,12 @@ public class SolverResults {
   private final Map<ProbabilityConstraint, SolverConstraintResult> constraintResults;
 
   /**
-   * The aggregate R-squared error between the fitted data and the expected data defined in the
-   * constraints, measured on the solver's final cycle.
+   * The final aggregate R-squared error between the fitted data and the expected constraint data,
+   * measured over the last cycle of the solver's execution.
    */
-  private final double lastError;
+  private final double finalError;
 
-  /** The total duration of the solver's run. */
+  /** The total duration of the solver's IPFP run. */
   private final Duration solverRunDuration;
 
   /**
@@ -48,19 +57,26 @@ public class SolverResults {
   }
 
   /**
-   * Returns constraint results in descending order of final-cycle error, accumulated up to the
-   * given percentage of the total final error. This is useful for identifying constraints that
-   * cannot be satisfied within the data, or that conflict with other constraints. Such constraints
-   * tend to be outliers by several orders of magnitude and are typically found within the worst
-   * 95.45% (2 standard deviations) of the total error.
+   * Returns a list of constraint results responsible for a cumulative percentage of the total
+   * error.
    *
-   * @param percent the cumulative percentage of total error to cover, as a value between 0 and 100
-   *     (e.g., {@code 95} to retrieve the constraints responsible for 95% of the total error).
-   * @return a list of {@link SolverConstraintResult} objects in descending order of final-cycle
-   *     error, whose combined error sums to approximately the given percentage of the total.
+   * <p>The returned elements are structured in descending order of final-cycle error, accumulating
+   * up to the specified percentage threshold. This is useful for identifying constraints that
+   * cannot be satisfied within the data, or that conflict with other constraints.
+   *
+   * <p>Typically, highly conflicting outliers break outward by orders of magnitude and can be found
+   * within the worst 95.45% (2 standard deviations) of total aggregate error. The fewer entries
+   * there are in the returned list, the greater the likelihood that the constraints in the list
+   * have caused overwrite conflicts within the IPFP run.
+   *
+   * @param percent the cumulative percentage threshold of total error to isolate, expressed as a
+   *     value between 0 and 100 (e.g., {@code 95} to isolate the constraints driving 95% of total
+   *     error).
+   * @return a list of {@link SolverConstraintResult}s sorted in descending order of final-cycle
+   *     error whose sum roughly approximates the requested percentage target.
    */
   public List<SolverConstraintResult> getWorstNthPercentile(Number percent) {
-    double goal = lastError * (percent.doubleValue() / 100.0);
+    double goal = finalError * (percent.doubleValue() / 100.0);
     List<SolverConstraintResult> worstResults = new ArrayList<>();
     for (SolverConstraintResult result : constraintResults.values()) {
       if (goal <= 0.0) break;
@@ -68,5 +84,45 @@ public class SolverResults {
       goal -= result.getLastError();
     }
     return worstResults;
+  }
+
+  /**
+   * Returns the total count of execution cycles completed during the IPFP operation.
+   *
+   * @return the total number of integer cycles.
+   */
+  public int getCycles() {
+    return this.cycles;
+  }
+
+  /**
+   * Returns the complete sorted mapping of active constraints to their IPFP metrics.
+   *
+   * @return a new {@link Map} sorted in descending order of final cycle R-squared error.
+   */
+  public Map<ProbabilityConstraint, SolverConstraintResult> getConstraintResults() {
+    return Map.copyOf(this.constraintResults);
+  }
+
+  /**
+   * Returns the aggregate final-cycle R-squared error evaluated across all constraints.
+   *
+   * @return the final aggregate error value as a double.
+   */
+  public double getFinalError() {
+    return this.finalError;
+  }
+
+  /**
+   * Returns the total duration of the solver's IPFP execution. The timer starts immediately before
+   * the construction of the joint probability table(s) and finishes immediately after the final
+   * IPFP cycle completes. This represents the total processing time once control is given to the
+   * specific {@link SolverAlgorithm}, and may be used to compare different IPFP variants under the
+   * same conditions.
+   *
+   * @return a {@link Duration} representing solver execution time.
+   */
+  public Duration getSolverRunDuration() {
+    return this.solverRunDuration;
   }
 }

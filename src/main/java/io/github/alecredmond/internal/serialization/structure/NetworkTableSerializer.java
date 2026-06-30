@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedConditionalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedMarginalTable;
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedNetworkTable;

@@ -3,7 +3,6 @@ package io.github.alecredmond.export.application.constraints;
 import io.github.alecredmond.export.application.node.NodeState;
 import java.util.Collection;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * Defines the joint probability of multiple concurrent events across different nodes, optionally
@@ -24,8 +23,14 @@ import lombok.Getter;
  * @see ProbabilityConstraint
  */
 @EqualsAndHashCode(callSuper = true)
-@Getter
 public class JointProbabilityConstraint extends ProbabilityConstraint {
+  /**
+   * Constructs a {@code JointProbabilityConstraint} representing the intersection of multiple events.
+   *
+   * @param eventStates A collection of concurrent {@link NodeState} values across different nodes.
+   * @param conditionStates A collection of conditioning {@link NodeState} values.
+   * @param probability The joint probability of the events.
+   */
   public JointProbabilityConstraint(
       Collection<NodeState> eventStates,
       Collection<NodeState> conditionStates,

@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters;
 
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferReaderFactory;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;

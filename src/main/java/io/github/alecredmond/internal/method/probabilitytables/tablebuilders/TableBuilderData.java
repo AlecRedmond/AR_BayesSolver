@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.probabilitytables.tablebuilders;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;

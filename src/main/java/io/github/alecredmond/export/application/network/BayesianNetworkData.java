@@ -23,6 +23,7 @@ import lombok.Data;
  * @see BayesianNetwork
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 public class BayesianNetworkData {
   /**
@@ -30,40 +31,50 @@ public class BayesianNetworkData {
    * using {@link BayesianNetwork#buildNetworkData()}, the nodes will be in topological order, with
    * root nodes at the start and leaf nodes at the end.
    */
-  private final List<Node> nodes = new ArrayList<>();
+  private final List<Node> nodes;
 
   /**
    * Returns a map from each {@link Node} id to its corresponding {@link Node} instance within the
    * {@link BayesianNetwork}.
    */
-  private final Map<Serializable, Node> nodeIDsMap = new HashMap<>();
+  private final Map<Serializable, Node> nodeIDsMap;
 
   /**
    * Returns a map from each {@link NodeState} id to its corresponding {@link NodeState} instance
    * within the {@link BayesianNetwork}.
    */
-  private final Map<Serializable, NodeState> nodeStateIDsMap = new HashMap<>();
+  private final Map<Serializable, NodeState> nodeStateIDsMap;
 
   /**
    * Returns a map from each {@link Node} to its corresponding {@link NetworkTable} (CPT) instance
    * within the {@link BayesianNetwork}. These are built when calling {@link
    * BayesianNetwork#buildNetworkData()}.
    */
-  private final Map<Node, NetworkTable> networkTablesMap = new LinkedHashMap<>();
+  private final Map<Node, NetworkTable> networkTablesMap;
 
   /**
    * A {@link LinkedHashSet} of all {@link ProbabilityConstraint}s on the {@link BayesianNetwork}.
    */
-  private final Set<ProbabilityConstraint> constraints = new LinkedHashSet<>();
+  private final Set<ProbabilityConstraint> constraints;
 
   /** The name of the {@link BayesianNetwork} */
-  private String networkName = "UNNAMED NETWORK";
+  private String networkName;
 
   /**
    * {@code true} if a successful {@link BayesSolver} run has been carried out on the {@link
    * BayesianNetwork}, otherwise {@code false}.
    */
-  private boolean solved = false;
+  private boolean solved;
+
+  public BayesianNetworkData() {
+    this.constraints = new LinkedHashSet<>();
+    this.networkTablesMap = new LinkedHashMap<>();
+    this.nodeStateIDsMap = new HashMap<>();
+    this.nodeIDsMap = new HashMap<>();
+    this.nodes = new ArrayList<>();
+    this.networkName = "UNNAMED NETWORK";
+    this.solved = false;
+  }
 
   /**
    * Returns the network's conditional probability table (CPT) associated with the given Node's
@@ -76,5 +87,33 @@ public class BayesianNetworkData {
    */
   public <T extends Serializable> NetworkTable getNetworkTableById(T nodeID) {
     return networkTablesMap.get(nodeIDsMap.get(nodeID));
+  }
+
+  public List<Node> getNodes() {
+    return this.nodes;
+  }
+
+  public Map<Serializable, Node> getNodeIDsMap() {
+    return this.nodeIDsMap;
+  }
+
+  public Map<Serializable, NodeState> getNodeStateIDsMap() {
+    return this.nodeStateIDsMap;
+  }
+
+  public Map<Node, NetworkTable> getNetworkTablesMap() {
+    return this.networkTablesMap;
+  }
+
+  public Set<ProbabilityConstraint> getConstraints() {
+    return this.constraints;
+  }
+
+  public String getNetworkName() {
+    return this.networkName;
+  }
+
+  public boolean isSolved() {
+    return this.solved;
   }
 }

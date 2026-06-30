@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -26,15 +25,39 @@ import lombok.NonNull;
  *
  * @see ProbabilityConstraint
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @EqualsAndHashCode(callSuper = true)
-@Getter
 public class MarginalConstraint extends ProbabilityConstraint {
   private final NodeState eventState;
   private final Node eventNode;
 
+  /**
+   * Constructs a {@code MarginalConstraint} for a single, unconditional event.
+   *
+   * @param eventState The single measured {@link NodeState} {@code E}.
+   * @param probability The unconditional probability of the event {@code p}.
+   */
   public MarginalConstraint(@NonNull NodeState eventState, double probability) {
     super(Set.of(eventState), new HashSet<>(), probability);
     this.eventState = eventState;
     this.eventNode = eventState.getNode();
+  }
+
+  /**
+   * Retrieves the single event state targeted by this marginal constraint.
+   *
+   * @return The measured {@link NodeState}.
+   */
+  public NodeState getEventState() {
+    return this.eventState;
+  }
+
+  /**
+   * Retrieves the node associated with the targeted event state.
+   *
+   * @return The {@link Node} belonging to the event state.
+   */
+  public Node getEventNode() {
+    return this.eventNode;
   }
 }
