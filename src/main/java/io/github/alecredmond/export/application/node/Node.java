@@ -1,22 +1,23 @@
 package io.github.alecredmond.export.application.node;
 
-import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
-
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.BayesianNetworkBuilder;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+
+import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
 
 /**
  * Represents a variable within a {@link BayesianNetwork}.
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see ProbabilityConstraint
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
@@ -236,4 +238,24 @@ public class Node {
   public String toString() {
     return id.toString();
   }
+
+    public Serializable getId() {
+        return this.id;
+    }
+
+    public PropertyChangeSupport getSupport() {
+        return this.support;
+    }
+
+    public List<NodeState> getNodeStates() {
+        return this.nodeStates;
+    }
+
+    public List<Node> getParents() {
+        return this.parents;
+    }
+
+    public List<Node> getChildren() {
+        return this.children;
+    }
 }

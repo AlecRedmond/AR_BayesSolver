@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
 
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import java.util.Collection;

@@ -6,7 +6,6 @@ import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Collection;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -20,7 +19,7 @@ import lombok.ToString;
  *
  * @author Alec Redmond
  */
-@Getter
+@SuppressWarnings("LombokGetterMayBeUsed")
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode
 public abstract class ProbabilityConstraint {
@@ -63,6 +62,13 @@ public abstract class ProbabilityConstraint {
    */
   protected final Set<Node> allNodes;
 
+  /**
+   * Constructs a new {@code ProbabilityConstraint}.
+   *
+   * @param eventStates The collection of measured {@link NodeState} values {@code E}.
+   * @param conditionStates The collection of conditioning {@link NodeState} values {@code C}.
+   * @param probability The probability of the constraint {@code p}.
+   */
   protected ProbabilityConstraint(
       Collection<NodeState> eventStates,
       Collection<NodeState> conditionStates,
@@ -74,5 +80,68 @@ public abstract class ProbabilityConstraint {
     this.eventNodes = NodeUtils.getNodes(eventStates);
     this.conditionNodes = NodeUtils.getNodes(conditionStates);
     this.allNodes = NodeUtils.getNodes(allStates);
+  }
+
+  /**
+   * Retrieves the measured event states associated with this constraint.
+   *
+   * @return A set of {@link NodeState} representing {@code E} in the formula {@code P(E|C) = p}.
+   */
+  public Set<NodeState> getEventStates() {
+    return this.eventStates;
+  }
+
+  /**
+   * Retrieves the conditioning states associated with this constraint.
+   *
+   * @return A set of {@link NodeState} representing {@code C} in the formula {@code P(E|C) = p}.
+   */
+  public Set<NodeState> getConditionStates() {
+    return this.conditionStates;
+  }
+
+  /**
+   * Retrieves all states present in this constraint.
+   *
+   * @return The union of the event states and condition states.
+   */
+  public Set<NodeState> getAllStates() {
+    return this.allStates;
+  }
+
+  /**
+   * Retrieves the probability defined by this constraint.
+   *
+   * @return The probability value, representing {@code p} in the formula {@code P(E|C) = p}.
+   */
+  public double getProbability() {
+    return this.probability;
+  }
+
+  /**
+   * Retrieves the nodes associated with the event states.
+   *
+   * @return A set of {@link Node}s corresponding to the event states.
+   */
+  public Set<Node> getEventNodes() {
+    return this.eventNodes;
+  }
+
+  /**
+   * Retrieves the nodes associated with the conditioning states.
+   *
+   * @return A set of {@link Node}s corresponding to the conditioning states.
+   */
+  public Set<Node> getConditionNodes() {
+    return this.conditionNodes;
+  }
+
+  /**
+   * Retrieves all nodes associated with any state in this constraint.
+   *
+   * @return A set of {@link Node}s corresponding to all states in the constraint.
+   */
+  public Set<Node> getAllNodes() {
+    return this.allNodes;
   }
 }

@@ -9,6 +9,11 @@ import io.github.alecredmond.export.method.inference.InferenceEngine;
  * exceed 2<sup>31</sup>&minus;1 entries.
  */
 public class TreewidthException extends IllegalStateException {
+  /**
+   * Constructs a {@code TreewidthException} with the specified detail message.
+   *
+   * @param message the detail message.
+   */
   public TreewidthException(String message) {
     super(message);
   }

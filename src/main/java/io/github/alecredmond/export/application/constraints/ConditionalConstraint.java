@@ -5,7 +5,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import java.util.Collection;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -27,16 +26,41 @@ import lombok.NonNull;
  *
  * @see ProbabilityConstraint
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @EqualsAndHashCode(callSuper = true)
-@Getter
 public class ConditionalConstraint extends ProbabilityConstraint {
   private final NodeState eventState;
   private final Node eventNode;
 
+  /**
+   * Constructs a {@code ConditionalConstraint} for a single event state given a set of conditions.
+   *
+   * @param eventState The single measured {@link NodeState} {@code E}.
+   * @param conditionStates The collection of conditioning {@link NodeState} values {@code C}.
+   * @param probability The probability of the event given the conditions {@code p}.
+   */
   public ConditionalConstraint(
       @NonNull NodeState eventState, Collection<NodeState> conditionStates, double probability) {
     super(Set.of(eventState), conditionStates, probability);
     this.eventState = eventState;
     this.eventNode = eventState.getNode();
+  }
+
+  /**
+   * Retrieves the single event state targeted by this conditional constraint.
+   *
+   * @return The measured {@link NodeState}.
+   */
+  public NodeState getEventState() {
+    return this.eventState;
+  }
+
+  /**
+   * Retrieves the node associated with the targeted event state.
+   *
+   * @return The {@link Node} belonging to the event state.
+   */
+  public Node getEventNode() {
+    return this.eventNode;
   }
 }

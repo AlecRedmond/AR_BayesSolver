@@ -11,6 +11,7 @@ import lombok.Data;
  * @see SolverResults
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 public class SolverConstraintResult {
   /** The constraint whose fitting results are recorded in this object. */
@@ -34,4 +35,20 @@ public class SolverConstraintResult {
    * value indicates divergence.
    */
   private final double[] losses;
+
+  public ProbabilityConstraint getConstraint() {
+    return this.constraint;
+  }
+
+  public double getLastError() {
+    return this.lastError;
+  }
+
+  public double[] getErrors() {
+    return this.errors;
+  }
+
+  public double[] getLosses() {
+    return this.losses;
+  }
 }

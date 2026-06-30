@@ -3,7 +3,10 @@ package io.github.alecredmond.export.application.inference;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.inference.BayesSolver;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 /**
@@ -12,8 +15,11 @@ import lombok.Data;
  * breakdown linking each {@link ProbabilityConstraint} to its associated {@link
  * SolverConstraintResult}.
  *
+ * @see SolverConstraintResult
+ * @see BayesSolver
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 public class SolverResults {
   /** The number of cycles completed by the solver */
@@ -68,5 +74,21 @@ public class SolverResults {
       goal -= result.getLastError();
     }
     return worstResults;
+  }
+
+  public int getCycles() {
+    return this.cycles;
+  }
+
+  public Map<ProbabilityConstraint, SolverConstraintResult> getConstraintResults() {
+    return this.constraintResults;
+  }
+
+  public double getLastError() {
+    return this.lastError;
+  }
+
+  public Duration getSolverRunDuration() {
+    return this.solverRunDuration;
   }
 }

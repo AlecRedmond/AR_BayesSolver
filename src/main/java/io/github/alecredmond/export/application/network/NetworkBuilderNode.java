@@ -20,23 +20,25 @@ import lombok.NonNull;
  * @see Node
  * @see BayesianNetwork
  * @author Alec Redmond
+ * @param <T> the {@link Serializable} type of the identifiers.
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
-public class NetworkBuilderNode {
+public class NetworkBuilderNode<T extends Serializable> {
   /** The identifier for the {@link Node}. */
-  private final Serializable nodeId;
+  private final T nodeId;
 
   /** The identifiers for the {@link NodeState} values */
-  private final List<? extends Serializable> stateIds;
+  private final List<T> stateIds;
 
   /** The identifiers of the parent {@link Node}s. */
-  private final List<? extends Serializable> parentNodeIds;
+  private final List<T> parentNodeIds;
 
   /**
    * The permutation ordering of the node and parent identifiers. Further documentation may be found
    * here: {@link #NetworkBuilderNode(Serializable, List, List, double[])}.
    */
-  private final List<? extends Serializable> cptNodeOrder;
+  private final List<T> cptNodeOrder;
 
   /** All values of the conditional probability table associated with this {@link Node}. */
   private final double[] cptValues;
@@ -47,11 +49,10 @@ public class NetworkBuilderNode {
    * @param nodeId the identifier for the root {@link Node}.
    * @param stateIds the identifiers for the {@link NodeState} values associated with the {@link
    *     Node}.
-   * @param <T> the {@link Serializable} type of the identifiers.
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
-  public <T extends Serializable> NetworkBuilderNode(@NonNull T nodeId, @NonNull List<T> stateIds) {
+  public NetworkBuilderNode(@NonNull T nodeId, @NonNull List<T> stateIds) {
     assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
@@ -83,12 +84,10 @@ public class NetworkBuilderNode {
    * @param stateIds the identifiers for the {@link NodeState} values associated with the {@link
    *     Node}.
    * @param cptValues the marginal probabilities for this root {@link Node}.
-   * @param <T> the {@link Serializable} type of the identifiers.
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
-  public <T extends Serializable> NetworkBuilderNode(
-      T nodeId, List<T> stateIds, double[] cptValues) {
+  public NetworkBuilderNode(T nodeId, List<T> stateIds, double[] cptValues) {
     assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
@@ -106,11 +105,10 @@ public class NetworkBuilderNode {
    * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
    *     Node}.
    * @param parentNodeIds the identifiers of the parent {@link Node}s.
-   * @param <T> the {@link Serializable} type of the identifiers.
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
-  public <T extends Serializable> NetworkBuilderNode(
+  public NetworkBuilderNode(
       @NonNull T nodeId, @NonNull List<T> stateIds, @NonNull List<T> parentNodeIds) {
     assertStateIdsNotEmpty(nodeId, stateIds);
     this.nodeId = nodeId;
@@ -140,6 +138,9 @@ public class NetworkBuilderNode {
    * List<String> stateIds = List.of("WET_GRASS:T", "WET_GRASS:F");
    * // If the longest stride is "RAIN", and the shortest is "WET_GRASS":
    * List<String> cptNodeOrder = List.of("RAIN", "SPRINKLER", "WET_GRASS");
+   * // "WET_GRASS" will iterate states at each index
+   * // "SPRINKLER" will iterate states when "WET GRASS" cycles all its states (every 2 indices)
+   * // "RAIN" will iterate states when "SPRINKLER" cycles all its states (every 4 indices)
    * double[] wetGrassCpt = new double[]{
    * 0.99, // RAIN:T, SPRINKLER:T, WET_GRASS:T
    * 0.01, // RAIN:T, SPRINKLER:T, WET_GRASS:F
@@ -164,12 +165,11 @@ public class NetworkBuilderNode {
    *     hierarchy used for the {@code cptValues} array.
    * @param cptValues the conditional probabilities mapping to the Cartesian product of the node
    *     states.
-   * @param <T> the {@link Serializable} type of the identifiers.
    * @throws NullPointerException if any input parameter is {@code null}.
    * @throws IllegalArgumentException if {@code stateIds} or empty, or if {@code cptStrideOrderDesc}
    *     does not contain the {@code nodeId}.
    */
-  public <T extends Serializable> NetworkBuilderNode(
+  public NetworkBuilderNode(
       @NonNull T nodeId,
       @NonNull List<T> stateIds,
       @NonNull List<T> cptNodeOrder,
@@ -182,7 +182,7 @@ public class NetworkBuilderNode {
     this.cptValues = cptValues;
   }
 
-  private <T extends Serializable> List<T> buildParentIds(T id, List<T> cptStrideOrderDesc) {
+  private List<T> buildParentIds(T id, List<T> cptStrideOrderDesc) {
     List<T> parents = new ArrayList<>(cptStrideOrderDesc);
     if (parents.remove(id)) {
       return parents.isEmpty() ? null : parents;
@@ -190,5 +190,25 @@ public class NetworkBuilderNode {
     throw new IllegalArgumentException(
         "cptNodeOrder list {%s} does not contain node id {%s}!"
             .formatted(formatIDsToString(cptStrideOrderDesc), id));
+  }
+
+  public Serializable getNodeId() {
+    return this.nodeId;
+  }
+
+  public List<T> getStateIds() {
+    return this.stateIds;
+  }
+
+  public List<T> getParentNodeIds() {
+    return this.parentNodeIds;
+  }
+
+  public List<T> getCptNodeOrder() {
+    return this.cptNodeOrder;
+  }
+
+  public double[] getCptValues() {
+    return this.cptValues;
   }
 }

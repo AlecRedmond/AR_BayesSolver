@@ -1,8 +1,8 @@
-package io.github.alecredmond.export.application.probabilitytables.probabilityvector;
+package io.github.alecredmond.export.application.probabilitytables;
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +24,7 @@ import lombok.Data;
  * @see ProbabilityTable
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Data
 @AllArgsConstructor
 public class ProbabilityVector {
@@ -66,4 +67,32 @@ public class ProbabilityVector {
 
   /** Maps each {@link NodeState} to its index position within its node's state array. */
   private final Map<NodeState, Integer> stateValueMap;
+
+  public Node[] getNodeArray() {
+    return this.nodeArray;
+  }
+
+  public NodeState[][] getStateArrays() {
+    return this.stateArrays;
+  }
+
+  public int[] getNumberOfStates() {
+    return this.numberOfStates;
+  }
+
+  public int[] getStrideLengths() {
+    return this.strideLengths;
+  }
+
+  public double[] getProbabilities() {
+    return this.probabilities;
+  }
+
+  public Map<Node, Integer> getNodeIndexMap() {
+    return this.nodeIndexMap;
+  }
+
+  public Map<NodeState, Integer> getStateValueMap() {
+    return this.stateValueMap;
+  }
 }

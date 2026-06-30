@@ -1,10 +1,9 @@
 package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.NetworkBuilderNode;
 import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.probabilityvector.ProbabilityVector;
+import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
@@ -15,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NetworkInputBuilder {
   private final ProbabilityVectorFactory vectorFactory = new ProbabilityVectorFactory();
-  private List<NetworkBuilderNode> nodeInputs;
+  private List<NetworkBuilderNode<?>> nodeInputs;
   private BayesianNetwork bayesianNetwork;
 
-  public BayesianNetwork buildNetwork(String networkName, List<NetworkBuilderNode> nodeInputs) {
+  public BayesianNetwork buildNetwork(String networkName, List<NetworkBuilderNode<?>> nodeInputs) {
     this.nodeInputs = nodeInputs;
     this.bayesianNetwork = BayesianNetwork.newNetwork(networkName);
     addAllNodes();
@@ -39,7 +38,7 @@ public class NetworkInputBuilder {
   }
 
   private void createCptConstraints() {
-      nodeInputs.parallelStream()
+    nodeInputs.parallelStream()
         .filter(ni -> ni.getCptValues() != null)
         .map(this::buildConstraintBuilderIterator)
         .map(ConstraintBuilderIterator::buildConstraints)
@@ -48,13 +47,14 @@ public class NetworkInputBuilder {
         .forEach(bayesianNetwork.getNetworkData().getConstraints()::add);
   }
 
-  private ConstraintBuilderIterator buildConstraintBuilderIterator(NetworkBuilderNode nodeInput) {
+  private ConstraintBuilderIterator buildConstraintBuilderIterator(
+      NetworkBuilderNode<?> nodeInput) {
     ProbabilityVector vector = buildCPTInputVector(nodeInput);
     Node event = bayesianNetwork.getNode(nodeInput.getNodeId());
     return new ConstraintBuilderIterator(event, vector);
   }
 
-  private ProbabilityVector buildCPTInputVector(NetworkBuilderNode nodeInput) {
+  private ProbabilityVector buildCPTInputVector(NetworkBuilderNode<?> nodeInput) {
     ProbabilityVector vector = vectorFactory.build(convertNodeOrderIdsToNodes(nodeInput));
     double[] cptValues = nodeInput.getCptValues();
     validateArrayLengths(cptValues, vector);
@@ -62,7 +62,7 @@ public class NetworkInputBuilder {
     return vector;
   }
 
-  private List<Node> convertNodeOrderIdsToNodes(NetworkBuilderNode nodeInput) {
+  private List<Node> convertNodeOrderIdsToNodes(NetworkBuilderNode<?> nodeInput) {
     return nodeInput.getCptNodeOrder().stream().map(bayesianNetwork::getNode).toList();
   }
 

@@ -4,7 +4,12 @@ import io.github.alecredmond.export.method.network.BayesianNetwork;
 
 /** Thrown to indicate an illegal identifier was used in a {@link BayesianNetwork}. */
 public class BayesNetIDException extends IllegalArgumentException {
-  public BayesNetIDException(String s) {
-    super(s);
+  /**
+   * Constructs a {@code BayesNetIDException} with the specified detail message.
+   *
+   * @param message the detail message.
+   */
+  public BayesNetIDException(String message) {
+    super(message);
   }
 }

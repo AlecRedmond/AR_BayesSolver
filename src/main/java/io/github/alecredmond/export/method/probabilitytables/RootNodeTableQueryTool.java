@@ -55,7 +55,7 @@ public interface RootNodeTableQueryTool extends NetworkTableQueryTool {
   /**
    * Returns a map of each {@link NodeState} within the table's root {@link Node}, paired to its
    * associated probability value {@code P(X=x)}. The map is a {@link LinkedHashMap} which maintains
-   * the same order as {@link Node#getNodeStates()} for the root node.
+   * the same order as the same order as the {@link NodeState} list within the root {@link Node}.
    *
    * @return a new {@link LinkedHashMap} linking each {@link NodeState} in the root node to its
    *     probability table entry.

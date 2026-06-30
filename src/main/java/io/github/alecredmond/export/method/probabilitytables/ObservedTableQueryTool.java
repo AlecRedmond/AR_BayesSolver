@@ -56,7 +56,7 @@ public interface ObservedTableQueryTool extends TableQueryTool {
   /**
    * Returns a map of each {@link NodeState} within the table's measured {@link Node}, paired to its
    * associated probability value {@code P(X=x|Obs)}. The map is a {@link LinkedHashMap} which
-   * maintains the same order as {@link Node#getNodeStates()} for the measured node.
+   * maintains the same order as the {@link NodeState} list within the measured {@link Node}.
    *
    * @return a new {@link LinkedHashMap} linking each {@link NodeState} in the measured node to its
    *     probability table entry.

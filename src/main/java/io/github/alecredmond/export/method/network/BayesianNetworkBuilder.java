@@ -30,10 +30,11 @@ import lombok.Data;
  * @see BayesianNetwork
  * @author Alec Redmond
  */
+@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "unused"})
 @Data
 public class BayesianNetworkBuilder {
   private String networkName;
-  private List<NetworkBuilderNode> nodeInputs = new ArrayList<>();
+  private List<NetworkBuilderNode<?>> nodeInputs = new ArrayList<>();
 
   /**
    * Constructs an empty {@code BayesianNetworkBuilder} with the default network name {@code
@@ -78,7 +79,7 @@ public class BayesianNetworkBuilder {
    * @throws IllegalArgumentException if {@code stateIds} is null or empty.
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(T nodeId, List<T> stateIds) {
-    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds));
+    nodeInputs.add(new NetworkBuilderNode<>(nodeId, stateIds));
     return this;
   }
 
@@ -107,7 +108,7 @@ public class BayesianNetworkBuilder {
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(
       T nodeId, List<T> stateIds, double[] cptValues) {
-    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, cptValues));
+    nodeInputs.add(new NetworkBuilderNode<>(nodeId, stateIds, cptValues));
     return this;
   }
 
@@ -126,7 +127,7 @@ public class BayesianNetworkBuilder {
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(
       T nodeId, List<T> stateIds, List<T> parentIds) {
-    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, parentIds));
+    nodeInputs.add(new NetworkBuilderNode<>(nodeId, stateIds, parentIds));
     return this;
   }
 
@@ -151,6 +152,9 @@ public class BayesianNetworkBuilder {
    * List<String> stateIds = List.of("WET_GRASS:T", "WET_GRASS:F");
    * // If the longest stride is "RAIN", and the shortest is "WET_GRASS":
    * List<String> cptNodeOrder = List.of("RAIN", "SPRINKLER", "WET_GRASS");
+   * // "WET_GRASS" will iterate states at each index
+   * // "SPRINKLER" will iterate states when "WET GRASS" cycles all its states (every 2 indices)
+   * // "RAIN" will iterate states when "SPRINKLER" cycles all its states (every 4 indices)
    * double[] wetGrassCpt = new double[]{
    * 0.99, // RAIN:T, SPRINKLER:T, WET_GRASS:T
    * 0.01, // RAIN:T, SPRINKLER:T, WET_GRASS:F
@@ -180,7 +184,23 @@ public class BayesianNetworkBuilder {
    */
   public <T extends Serializable> BayesianNetworkBuilder addNode(
       T nodeId, List<T> stateIds, List<T> cptNodeOrder, double[] cptValues) {
-    nodeInputs.add(new NetworkBuilderNode(nodeId, stateIds, cptNodeOrder, cptValues));
+    nodeInputs.add(new NetworkBuilderNode<>(nodeId, stateIds, cptNodeOrder, cptValues));
     return this;
+  }
+
+  public String getNetworkName() {
+    return this.networkName;
+  }
+
+  public void setNetworkName(String networkName) {
+    this.networkName = networkName;
+  }
+
+  public List<NetworkBuilderNode<?>> getNodeInputs() {
+    return this.nodeInputs;
+  }
+
+  public void setNodeInputs(List<NetworkBuilderNode<?>> nodeInputs) {
+    this.nodeInputs = nodeInputs;
   }
 }

@@ -3,7 +3,6 @@ package io.github.alecredmond.export.application.constraints;
 import io.github.alecredmond.export.application.node.NodeState;
 import java.util.Collection;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * A constraint representing the marginalised probability obtained by summing over a subset of
@@ -33,8 +32,14 @@ import lombok.Getter;
  * @see ProbabilityConstraint
  */
 @EqualsAndHashCode(callSuper = true)
-@Getter
 public class SumProbabilityConstraint extends ProbabilityConstraint {
+  /**
+   * Constructs a {@code SumProbabilityConstraint} representing a marginalised probability.
+   *
+   * @param eventStates The collection of {@link NodeState} values to be summed over.
+   * @param conditionStates The collection of conditioning {@link NodeState} values.
+   * @param probability The summed probability of the specified state combinations.
+   */
   public SumProbabilityConstraint(
       Collection<NodeState> eventStates,
       Collection<NodeState> conditionStates,

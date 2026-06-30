@@ -4,7 +4,12 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 
 /** Thrown to indicate an illegal {@link ProbabilityConstraint} configuration was found. */
 public class ConstraintValidationException extends IllegalArgumentException {
-  public ConstraintValidationException(String s) {
-    super(s);
+  /**
+   * Constructs a {@code ConstraintValidationException} with the specified detail message.
+   *
+   * @param message the detail message.
+   */
+  public ConstraintValidationException(String message) {
+    super(message);
   }
 }
