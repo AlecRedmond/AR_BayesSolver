@@ -9,6 +9,7 @@ import io.github.alecredmond.export.method.network.BayesianNetworkBuilder;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -28,7 +29,7 @@ public class NetworkBuilderNode<T extends Serializable> {
   /** The identifier for the {@link Node}. */
   private final T nodeId;
 
-  /** The identifiers for the {@link NodeState} values */
+  /** The identifiers for the {@link NodeState} values. */
   private final List<T> stateIds;
 
   /** The identifiers of the parent {@link Node}s. */
@@ -50,10 +51,10 @@ public class NetworkBuilderNode<T extends Serializable> {
    * @param stateIds the identifiers for the {@link NodeState} values associated with the {@link
    *     Node}.
    * @throws NullPointerException if any input parameter is {@code null}.
-   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
+   * @throws IllegalArgumentException if {@code stateIds} is empty or contains a {@code null} value.
    */
   public NetworkBuilderNode(@NonNull T nodeId, @NonNull List<T> stateIds) {
-    assertStateIdsNotEmpty(nodeId, stateIds);
+    assertStateIdsNotEmptyOrNull(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = null;
@@ -61,9 +62,14 @@ public class NetworkBuilderNode<T extends Serializable> {
     this.cptValues = null;
   }
 
-  private static <T extends Serializable> void assertStateIdsNotEmpty(T id, List<T> stateIds) {
-    if (!stateIds.isEmpty()) return;
-    throw new IllegalArgumentException("STATE IDs EMPTY FOR NODE ID : %s".formatted(id));
+  private static <T extends Serializable> void assertStateIdsNotEmptyOrNull(
+      T id, List<T> stateIds) {
+    if (stateIds.isEmpty()) {
+      throw new IllegalArgumentException("STATE IDs EMPTY FOR NODE ID : %s".formatted(id));
+    }
+    if (stateIds.stream().anyMatch(Objects::isNull)) {
+      throw new IllegalArgumentException("STATE IDs CONTAINED NULL FOR NODE ID %s".formatted(id));
+    }
   }
 
   /**
@@ -85,10 +91,10 @@ public class NetworkBuilderNode<T extends Serializable> {
    *     Node}.
    * @param cptValues the marginal probabilities for this root {@link Node}.
    * @throws NullPointerException if any input parameter is {@code null}.
-   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
+   * @throws IllegalArgumentException if {@code stateIds} is empty or contains a {@code null} value.
    */
   public NetworkBuilderNode(T nodeId, List<T> stateIds, double[] cptValues) {
-    assertStateIdsNotEmpty(nodeId, stateIds);
+    assertStateIdsNotEmptyOrNull(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = List.of();
@@ -97,20 +103,21 @@ public class NetworkBuilderNode<T extends Serializable> {
   }
 
   /**
-   * Constructs a new {@code NetworkBuilderNode} for a conditional (parented) {@link Node}. If the
-   * {@code parentNodeIds} parameter is an empty list, this constructor works identically to {@link
-   * #NetworkBuilderNode(Serializable, List)}.
+   * Constructs a new {@code NetworkBuilderNode} for a conditional (parented) {@link Node}.
+   *
+   * <p>If the {@code parentNodeIds} parameter is an empty list, this constructor works identically
+   * to {@link #NetworkBuilderNode(Serializable, List)}.
    *
    * @param nodeId the identifier for this {@link Node}.
    * @param stateIds the identifiers for the {@link NodeState} values associated with this {@link
    *     Node}.
    * @param parentNodeIds the identifiers of the parent {@link Node}s.
    * @throws NullPointerException if any input parameter is {@code null}.
-   * @throws IllegalArgumentException if {@code stateIds} is null or empty.
+   * @throws IllegalArgumentException if {@code stateIds} is empty or contains a {@code null} value.
    */
   public NetworkBuilderNode(
       @NonNull T nodeId, @NonNull List<T> stateIds, @NonNull List<T> parentNodeIds) {
-    assertStateIdsNotEmpty(nodeId, stateIds);
+    assertStateIdsNotEmptyOrNull(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = parentNodeIds;
@@ -154,8 +161,8 @@ public class NetworkBuilderNode<T extends Serializable> {
    * bayesianNetworkBuilder.addNode(nodeId, stateIds, cptNodeOrder, wetGrassCpt);
    * }</pre>
    *
-   * This can also be used to construct a root node if only the {@code nodeId} is contained within
-   * the {@code cptOrderList}. In this case, it works identically to {@link
+   * <p>This can also be used to construct a root node if only the {@code nodeId} is contained
+   * within the {@code cptNodeOrder}. In this case, it works identically to {@link
    * #NetworkBuilderNode(Serializable, List, double[])}.
    *
    * @param nodeId the identifier for this {@link Node}.
@@ -166,15 +173,15 @@ public class NetworkBuilderNode<T extends Serializable> {
    * @param cptValues the conditional probabilities mapping to the Cartesian product of the node
    *     states.
    * @throws NullPointerException if any input parameter is {@code null}.
-   * @throws IllegalArgumentException if {@code stateIds} or empty, or if {@code cptStrideOrderDesc}
-   *     does not contain the {@code nodeId}.
+   * @throws IllegalArgumentException if {@code stateIds} is null or empty, or if {@code
+   *     cptNodeOrder} does not contain the {@code nodeId}.
    */
   public NetworkBuilderNode(
       @NonNull T nodeId,
       @NonNull List<T> stateIds,
       @NonNull List<T> cptNodeOrder,
       @NonNull double[] cptValues) {
-    assertStateIdsNotEmpty(nodeId, stateIds);
+    assertStateIdsNotEmptyOrNull(nodeId, stateIds);
     this.nodeId = nodeId;
     this.stateIds = stateIds;
     this.parentNodeIds = buildParentIds(nodeId, cptNodeOrder);
@@ -192,22 +199,49 @@ public class NetworkBuilderNode<T extends Serializable> {
             .formatted(formatIDsToString(cptStrideOrderDesc), id));
   }
 
+  /**
+   * Retrieves the identifier for this node.
+   *
+   * @return the {@link Serializable} identifier for the {@link Node}.
+   */
   public Serializable getNodeId() {
     return this.nodeId;
   }
 
+  /**
+   * Retrieves the list of state identifiers associated with this node.
+   *
+   * @return a {@link List} of state identifiers.
+   */
   public List<T> getStateIds() {
     return this.stateIds;
   }
 
+  /**
+   * Retrieves the identifiers of the parent nodes for this node.
+   *
+   * @return a {@link List} of parent node identifiers, or {@code null} if this is a root node.
+   */
   public List<T> getParentNodeIds() {
     return this.parentNodeIds;
   }
 
+  /**
+   * Retrieves the permutation ordering used to construct the conditional probability table.
+   *
+   * @return a {@link List} defining the hierarchy order of the node and its parents, or {@code
+   *     null} if not applicable.
+   */
   public List<T> getCptNodeOrder() {
     return this.cptNodeOrder;
   }
 
+  /**
+   * Retrieves the conditional probability table values associated with this node.
+   *
+   * @return an array of {@code double} values representing the CPT, or {@code null} if not
+   *     applicable.
+   */
   public double[] getCptValues() {
     return this.cptValues;
   }
