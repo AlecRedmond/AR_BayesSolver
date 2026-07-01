@@ -7,4 +7,6 @@ public interface SerializedProbabilityConstraint<T extends ProbabilityConstraint
     extends Serializable {
 
   Class<T> getConstraintClass();
+
+  String getConstraintType();
 }

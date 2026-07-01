@@ -1,6 +1,7 @@
 package io.github.alecredmond.export.serialization.constraint;
 
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import java.io.Serializable;
 import java.util.List;
 import lombok.Data;
@@ -24,5 +25,10 @@ public class SerializedConditionalConstraint
   @Override
   public Class<ConditionalConstraint> getConstraintClass() {
     return ConditionalConstraint.class;
+  }
+
+  @Override
+  public String getConstraintType() {
+    return ConstraintType.CONDITIONAL.name();
   }
 }

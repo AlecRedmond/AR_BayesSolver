@@ -8,7 +8,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
-import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
@@ -21,10 +21,10 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   protected final T networkTable;
   protected final List<P> constraints;
   protected final VectorIterator<VectorOdometer> iterator;
-  protected final CPTConstraintValidator<P> validator;
+  protected final CPTConstraintValidator<P,?> validator;
 
   protected CptMapperIterator(
-      T networkTable, Collection<P> constraints, CPTConstraintValidator<P> validator) {
+      T networkTable, Collection<P> constraints, CPTConstraintValidator<P,?> validator) {
     this.networkTable = networkTable;
     this.validator = validator;
     this.constraints = radixSortConstraints(networkTable, constraints);
@@ -113,8 +113,7 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   }
 
   private void fillMissingEvent(MissingEntryCheck entryCheck, List<P> addedConstraints) {
-    P fillInConstraint = buildMissingFromRow(entryCheck);
-    validator.validateCPTConstraint(fillInConstraint);
+    P fillInConstraint = validator.validateCPTConstraint(buildMissingFromRow(entryCheck)).getConstraint();
     addedConstraints.add(fillInConstraint);
     entryCheck.indexMap.put(fillInConstraint, entryCheck.missingIndex);
   }

@@ -6,7 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
 import io.github.alecredmond.export.method.inference.SolverAlgorithm;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;

@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.constraints.types.conditionalconst
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedConditionalConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;

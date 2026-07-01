@@ -5,6 +5,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.Set;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class ConstraintBuilderData {
   private final double probability;
   private final BayesianNetworkData networkData;
   private ProbabilityConstraint constraint = null;
+  private ValidatedConstraint<?> validatedConstraint = null;
   private ConstraintValidationException exception = null;
 
   public ConstraintBuilderData(

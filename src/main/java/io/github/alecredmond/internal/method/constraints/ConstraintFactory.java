@@ -5,32 +5,31 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
+import io.github.alecredmond.internal.application.constraint.ConstraintFactoryOutput;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ConstraintFactory {
   private final BayesianNetworkData networkData;
-
-  @SuppressWarnings("rawtypes")
-  private final List<ConstraintValidator> validators;
+  private final ConstraintRegistry registry;
 
   public ConstraintFactory(BayesianNetworkData networkData) {
     this.networkData = networkData;
-    this.validators = ConstraintRegistry.buildValidatorList();
+    this.registry = new ConstraintRegistry();
   }
 
-  public ConstraintBuilderData buildConstraint(
+  public ConstraintFactoryOutput buildConstraint(
       Set<NodeState> eventStates, Set<NodeState> conditionStates, double probability) {
     ConstraintBuilderData cbd =
         new ConstraintBuilderData(networkData, eventStates, conditionStates, probability);
     selectValidatorAndBuild(cbd);
-    return cbd;
+    return new ConstraintFactoryOutput(cbd.getValidatedConstraint(), cbd.getException());
   }
 
   private void selectValidatorAndBuild(ConstraintBuilderData cbd) {
-    validators.stream()
+    registry
+        .streamValidators()
         .filter(v -> v.checkInputsValid(cbd))
         .findFirst()
         .ifPresentOrElse(v -> v.buildFromInputs(cbd), () -> addValidatorRefusedException(cbd));
@@ -45,26 +44,21 @@ public class ConstraintFactory {
                     NodeUtils.formatStatesToString(cbd.getConditionStates()))));
   }
 
-  public <T extends ProbabilityConstraint> ConstraintBuilderData verifyConstraint(T constraint) {
+  public <T extends ProbabilityConstraint> ConstraintFactoryOutput verifyConstraint(T constraint) {
     ConstraintBuilderData cbd = new ConstraintBuilderData(networkData, constraint);
     try {
-      getValidator(constraint).verifyConstraint(cbd);
+      getValidator(constraint).validateConstraint(cbd);
     } catch (ConstraintValidationException e) {
       cbd.setException(e);
     }
-    return cbd;
+    return new ConstraintFactoryOutput(cbd.getValidatedConstraint(), cbd.getException());
   }
 
-  @SuppressWarnings("unchecked")
-  private <T extends ProbabilityConstraint> ConstraintValidator<T> getValidator(T constraint) {
-    return validators.stream()
-        .filter(cv -> cv.getConstraintClass().equals(constraint.getClass()))
-        .findAny()
-        .map(cv -> (ConstraintValidator<T>) cv)
+  private <T extends ProbabilityConstraint> ConstraintValidator<?, ?> getValidator(T constraint) {
+    return Optional.ofNullable(registry.getValidator(constraint))
         .orElseThrow(
             () ->
                 new ConstraintValidationException(
-                    "NO VALIDATOR FOR CONSTRAINT CLASS %s"
-                        .formatted(constraint.getClass().getName())));
+                    "NO VALIDATOR FOR CONSTRAINT %s".formatted(constraint)));
   }
 }

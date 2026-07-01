@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.inference.SolverResults;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.inference.SolverConfigs;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.JunctionTreeAlgorithm;
 import java.time.Duration;
 import java.time.Instant;

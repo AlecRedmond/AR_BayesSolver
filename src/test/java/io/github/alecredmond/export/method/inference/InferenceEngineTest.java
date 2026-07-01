@@ -186,7 +186,6 @@ class InferenceEngineTest {
 
     @Test
     void testNetworkAH_NonLocalConstraints() {
-
       BayesianNetwork net = AH_NETWORK.get();
       test = net.buildInferenceEngine();
 

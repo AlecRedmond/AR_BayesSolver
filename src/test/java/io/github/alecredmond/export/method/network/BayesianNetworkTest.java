@@ -378,7 +378,7 @@ class BayesianNetworkTest {
                 Serializable eventStateId = marginalConstraint.getEventState().getId();
                 assertNotNull(net.getConstraint(eventStateId));
                 assertNotNull(net.getConstraint(eventStateId, List.of()));
-                assertEquals(marginalConstraint, net.getConstraint(eventStateId));
+                assertConstraintsAreEqual(marginalConstraint, net.getConstraint(eventStateId));
               });
 
       probabilityConstraints.stream()
@@ -392,9 +392,15 @@ class BayesianNetworkTest {
                         .map(NodeState::getId)
                         .toList();
                 assertNotNull(net.getConstraint(eventStateId, conditionStateIDs));
-                assertEquals(
+                assertConstraintsAreEqual(
                     conditionalConstraint, net.getConstraint(eventStateId, conditionStateIDs));
               });
+    }
+
+    void assertConstraintsAreEqual(ProbabilityConstraint constraintA,ProbabilityConstraint constraintB){
+        assertEquals(constraintA.getProbability(),constraintB.getProbability());
+        assertEquals(constraintA.getEventStates(),constraintB.getEventStates());
+        assertEquals(constraintA.getConditionStates(),constraintB.getConditionStates());
     }
   }
 

@@ -1,37 +1,50 @@
 package io.github.alecredmond.internal.method.constraints;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintStrategy;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintValidator;
+import java.util.*;
+import java.util.stream.Stream;
+import lombok.NonNull;
 
 public class ConstraintRegistry {
-  private static final Map<Class<? extends ProbabilityConstraint>, ConstraintStrategy<?>> REGISTRY =
-      buildRegistry();
+  private final Map<ConstraintType, ConstraintStrategy<?>> registryMap = buildStrategyMap();
 
-  private ConstraintRegistry() {}
+  public <V extends ProbabilityConstraint> ConstraintValidator<?, ?> getValidator(V constraint) {
+    return Optional.ofNullable(ConstraintType.getType(constraint))
+        .map(registryMap::get)
+        .map(ConstraintStrategy::getConstraintValidator)
+        .orElse(null);
+  }
+
+  public Stream<ConstraintValidator<?, ?>> streamValidators() {
+    return registryMap.values().stream().map(ConstraintStrategy::getConstraintValidator);
+  }
 
   @SuppressWarnings("unchecked")
-  public static <T extends ProbabilityConstraint> ConstraintStrategy<T> getStrategy(
-      Class<T> constraintClass) {
-    return (ConstraintStrategy<T>) REGISTRY.get(constraintClass);
+  public <V extends P, P extends ProbabilityConstraint>
+      ConstraintSerializer<ProbabilityConstraint> getSerializer(V constraint) {
+    return (ConstraintSerializer<ProbabilityConstraint>)
+        Optional.ofNullable(ConstraintType.getType(constraint))
+            .map(registryMap::get)
+            .map(ConstraintStrategy::getConstraintSerializer)
+            .orElse(null);
   }
 
-  @SuppressWarnings("rawtypes")
-  public static List<ConstraintValidator> buildValidatorList() {
-    return REGISTRY.values().stream()
-        .map(ConstraintStrategy::buildConstraintValidator)
-        .map(ConstraintValidator.class::cast)
-        .toList();
+  public <T extends ProbabilityConstraint> ConstraintStrategy<?> getStrategy(
+      @NonNull T constraint) {
+    ConstraintType type = ConstraintType.getType(constraint);
+    return getStrategy(type);
   }
 
-  private static Map<Class<? extends ProbabilityConstraint>, ConstraintStrategy<?>>
-      buildRegistry() {
-    return Arrays.stream(ConstraintType.values())
-        .map(type -> Map.entry(type.getConstraintClass(), type.getStrategySupplier().get()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  public ConstraintStrategy<?> getStrategy(ConstraintType type) {
+    return registryMap.get(type);
+  }
+
+  private Map<ConstraintType, ConstraintStrategy<?>> buildStrategyMap() {
+    Map<ConstraintType, ConstraintStrategy<?>> map = new EnumMap<>(ConstraintType.class);
+    Arrays.stream(ConstraintType.values()).forEach(v -> map.put(v, v.getStrategySupplier().get()));
+    return map;
   }
 }

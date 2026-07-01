@@ -1,6 +1,7 @@
 package io.github.alecredmond.export.serialization.constraint;
 
 import io.github.alecredmond.export.application.constraints.MarginalConstraint;
+import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import java.io.Serializable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,10 @@ public class SerializedMarginalConstraint
   @Override
   public Class<MarginalConstraint> getConstraintClass() {
     return MarginalConstraint.class;
+  }
+
+  @Override
+  public String getConstraintType() {
+    return ConstraintType.MARGINAL.name();
   }
 }

@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 public enum ValidatorType {
   ID_VALIDATOR(NetworkIdValidator::new),
-  STRUCTURE_VALIDATOR(NetworkStructureValidator::new);
+  STRUCTURE_VALIDATOR(NetworkStructureValidator::new),
+  CONSTRAINT_VALIDATOR(NetworkConstraintValidator::new);
 
   private final Supplier<NetworkValidator> validatorSupplier;
 

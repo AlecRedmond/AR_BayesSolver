@@ -1,6 +1,7 @@
 package io.github.alecredmond.export.serialization.constraint;
 
 import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
+import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import java.io.Serializable;
 import java.util.List;
 import lombok.Data;
@@ -24,5 +25,10 @@ public class SerializedSumConstraint
   @Override
   public Class<SumProbabilityConstraint> getConstraintClass() {
     return SumProbabilityConstraint.class;
+  }
+
+  @Override
+  public String getConstraintType() {
+    return ConstraintType.SUM.name();
   }
 }
