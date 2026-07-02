@@ -22,4 +22,5 @@ module BayesSolver {
   exports io.github.alecredmond.export.serialization.probabilitytable;
   exports io.github.alecredmond.export.serialization.probabilitytable.probabilityvector;
   exports io.github.alecredmond.exceptions;
+  exports io.github.alecredmond.export.application.probabilitytables.cptentry;
 }

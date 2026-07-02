@@ -4,7 +4,7 @@ import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.ConditionalTableQueryToolImpl;
 
 import java.util.List;
 

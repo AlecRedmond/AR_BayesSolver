@@ -4,7 +4,7 @@ import io.github.alecredmond.exceptions.TableBuilderException;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.RootNodeTableQueryToolImpl;
 
 import java.util.List;
 

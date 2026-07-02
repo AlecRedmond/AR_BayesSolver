@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base;
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;

@@ -4,12 +4,12 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.PermanentLocksResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class TableNormalizer implements BaseOdometerResetLogic, BlankUpdater {
+public class TableNormalizer implements PermanentLocksResetLogic, BlankUpdater {
   private final ProbabilityTable table;
   private final VectorIterator<VectorOdometer> iterator;
   private final double[] adder = {0.0};

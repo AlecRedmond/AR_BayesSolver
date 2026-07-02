@@ -7,13 +7,11 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.PermanentLocksResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.*;
@@ -23,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConstraintSolverBase
-    implements BaseOdometerResetLogic, BlankUpdater, ConstraintSolver {
+    implements PermanentLocksResetLogic, BlankUpdater, ConstraintSolver {
   protected final VectorIterator<VectorOdometer> iterator;
   protected final ProbabilityConstraint constraint;
   protected final double[] eventJointProb = {0.0};
@@ -137,12 +135,6 @@ public class ConstraintSolverBase
   private double storeError(double error) {
     errors.add(error);
     return error;
-  }
-
-  @Override
-  public void updateInnerInitializer(
-      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
   }
 
   @Override

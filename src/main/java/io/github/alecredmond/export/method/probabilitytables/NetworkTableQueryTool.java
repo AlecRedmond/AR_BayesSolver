@@ -3,10 +3,11 @@ package io.github.alecredmond.export.method.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEntry;
+import io.github.alecredmond.export.application.probabilitytables.cptentry.CptRow;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A helper attached to a {@link NetworkTable} which provides additional methods for the table. This
@@ -58,4 +59,25 @@ public interface NetworkTableQueryTool extends TableQueryTool {
    * @return a copy of the current table.
    */
   NetworkTable copyTable();
+
+  /**
+   * Consumes an operation for every condition state combination within this {@code NetworkTable}.
+   * Every {@link CptRow} contains a {@link CptEntry} list of the exact size and order as the {@link
+   * NodeState} ordering in this table's network {@link Node}.
+   *
+   * @param conditionalRowConsumer an operation to be completed for each perturbation of condition
+   *     states.
+   */
+  void iterateOverConditions(Consumer<CptRow> conditionalRowConsumer);
+
+  /**
+   * Returns every {@link CptEntry} within this {@code NetworkTable}. A {@link CptEntry} contains
+   * details of the measured {@link NodeState} within the table's Network {@link Node}, any
+   * conditioning states acting upon it, its conditional probability, and a reference to its index
+   * in the probability {@link double[]} in this {@code NetworkTable}.
+   *
+   * @return A new list of {@link CptEntry} records, ordered identically to this {@code
+   *     NetworkTable}'s probability array.
+   */
+  List<CptEntry> getCptEntries();
 }

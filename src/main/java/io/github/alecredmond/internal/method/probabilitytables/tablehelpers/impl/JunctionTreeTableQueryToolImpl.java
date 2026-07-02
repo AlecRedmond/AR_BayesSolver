@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
 
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
@@ -6,6 +6,8 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base.QueryToolBase;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.JunctionTableSummer;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.ObservationCopier;
 import java.util.Collection;

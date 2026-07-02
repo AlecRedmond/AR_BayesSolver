@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
@@ -8,6 +8,7 @@ import io.github.alecredmond.export.method.probabilitytables.ConditionalTableQue
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ConditionalTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base.NetworkQueryToolBase;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableNormalizer;
 import java.io.Serializable;
 import java.util.*;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ConditionalTableQueryToolImpl extends QueryToolBase<ConditionalTable>
+public class ConditionalTableQueryToolImpl extends NetworkQueryToolBase<ConditionalTable>
     implements ConditionalTableQueryTool {
   private final TableNormalizer normalizer;
 

@@ -11,8 +11,8 @@ import io.github.alecredmond.export.serialization.probabilitytable.SerializedMar
 import io.github.alecredmond.export.serialization.probabilitytable.SerializedNetworkTable;
 import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
 import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ConditionalTableQueryToolImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.RootNodeTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.ConditionalTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.RootNodeTableQueryToolImpl;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.io.Serializable;

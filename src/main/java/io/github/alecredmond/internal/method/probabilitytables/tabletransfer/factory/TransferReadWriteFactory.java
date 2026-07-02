@@ -2,18 +2,15 @@ package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.fa
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
-import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters.TransferIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.PermanentLocksResetLogic;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
 import java.util.Set;
 import java.util.function.Predicate;
 
 public abstract class TransferReadWriteFactory<T extends TransferIterator>
-    implements BaseOdometerResetLogic, BlankUpdater {
+    implements PermanentLocksResetLogic, BlankUpdater {
   protected ProbabilityTable readTable;
   protected ProbabilityTable writeTable;
   protected double[] transferArray;
@@ -37,12 +34,6 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
     this.writeTable = writeTable;
     this.commonNodes = TableUtils.getCommonNodes(readTable, writeTable);
     this.transferArray = transferArray;
-  }
-
-  @Override
-  public void updateInnerInitializer(
-      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
   }
 
   public abstract T build();

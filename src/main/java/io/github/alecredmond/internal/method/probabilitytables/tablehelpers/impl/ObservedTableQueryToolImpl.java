@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
 
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
@@ -6,6 +6,8 @@ import io.github.alecredmond.export.method.probabilitytables.ObservedTableQueryT
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base.QueryToolBase;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
