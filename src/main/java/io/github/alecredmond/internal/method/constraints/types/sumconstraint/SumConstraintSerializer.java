@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.types.combinedconstraint;
+package io.github.alecredmond.internal.method.constraints.types.sumconstraint;
 
 import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
