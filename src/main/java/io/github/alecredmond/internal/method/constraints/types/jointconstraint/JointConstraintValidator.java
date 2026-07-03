@@ -2,18 +2,17 @@ package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintValidatorBase;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintValidator;
 
-public class JointConstraintValidator extends ConstraintValidator<JointProbabilityConstraint> {
+public class JointConstraintValidator
+    extends ConstraintValidatorBase<JointProbabilityConstraint, ValidatedJointConstraint>
+    implements ConstraintValidator<JointProbabilityConstraint, ValidatedJointConstraint> {
 
   public JointConstraintValidator() {
     super();
-  }
-
-  @Override
-  public Class<JointProbabilityConstraint> getConstraintClass() {
-    return JointProbabilityConstraint.class;
   }
 
   @Override
@@ -27,6 +26,24 @@ public class JointConstraintValidator extends ConstraintValidator<JointProbabili
       throw new ConstraintValidationException(
           "A joint constraint cannot have event states sharing the same node!");
     }
+  }
+
+  @Override
+  protected JointProbabilityConstraint safeCastConstraint(ProbabilityConstraint constraint) {
+    if (constraint instanceof JointProbabilityConstraint jpc) return jpc;
+    return null;
+  }
+
+  @Override
+  protected ValidatedJointConstraint validatedConstraintConstructor(
+      JointProbabilityConstraint constraint) {
+    return new ValidatedJointConstraint(
+        constraint.getEventStates(), constraint.getConditionStates(), constraint.getProbability());
+  }
+
+  @Override
+  public Class<JointProbabilityConstraint> getConstraintClass() {
+    return JointProbabilityConstraint.class;
   }
 
   @Override

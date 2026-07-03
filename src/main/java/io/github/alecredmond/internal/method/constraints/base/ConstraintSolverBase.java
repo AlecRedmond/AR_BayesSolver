@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.strategies;
+package io.github.alecredmond.internal.method.constraints.base;
 
 import static io.github.alecredmond.internal.method.utils.DoublePrecision.*;
 
@@ -9,6 +9,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;

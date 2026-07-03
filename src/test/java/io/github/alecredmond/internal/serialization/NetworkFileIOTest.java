@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.serialization;
 
 import static io.github.alecredmond.TestConfigs.*;
-import static io.github.alecredmond.internal.method.utils.AppProperty.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.*;
+import static io.github.alecredmond.internal.method.utils.AppProperty.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.method.network.BayesianNetwork;

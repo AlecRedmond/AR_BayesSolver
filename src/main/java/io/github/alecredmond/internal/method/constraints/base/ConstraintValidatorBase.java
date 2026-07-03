@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.strategies;
+package io.github.alecredmond.internal.method.constraints.base;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
@@ -6,35 +6,33 @@ import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
+import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
+public abstract class ConstraintValidatorBase<
+    P extends ProbabilityConstraint, V extends ValidatedConstraint<P>> {
 
-  protected ConstraintValidator() {}
+  protected ConstraintValidatorBase() {}
 
-  public abstract Class<T> getConstraintClass();
+  public V validateConstraint(ProbabilityConstraint constraint, BayesianNetworkData data) {
+    ConstraintBuilderData cbd = new ConstraintBuilderData(data, constraint);
+    return validateConstraint(cbd);
+  }
 
-  public boolean checkInputsValid(ConstraintBuilderData data) {
-    try {
-      validateInputs(data);
-      return true;
-    } catch (ConstraintValidationException e) {
-      return false;
-    }
+  public V validateConstraint(ConstraintBuilderData data) {
+    validateInputs(data);
+    instanceSpecificValidation(data);
+    validateForNetwork(data);
+    return buildValidatedConstraint(data);
   }
 
   protected abstract void validateInputs(ConstraintBuilderData data)
       throws ConstraintValidationException;
-
-  public void buildFromInputs(ConstraintBuilderData data) {
-    instanceSpecificValidation(data);
-    data.setConstraint(constructConstraint(data));
-    validateForNetwork(data);
-  }
 
   protected void instanceSpecificValidation(ConstraintBuilderData data) {
     notConditionalOnSelf(data);
@@ -42,11 +40,21 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
     probabilityWithinBounds(data);
   }
 
-  protected abstract T constructConstraint(ConstraintBuilderData data);
-
-  public void validateForNetwork(ConstraintBuilderData data) {
+  protected void validateForNetwork(ConstraintBuilderData data) {
     statesExistInNetwork(data);
     noIdenticalConstraintsInNetwork(data);
+  }
+
+  protected V buildValidatedConstraint(ConstraintBuilderData data) {
+    Optional<P> optP = Optional.ofNullable(safeCastConstraint(data.getConstraint()));
+    if (optP.isPresent()) {
+      V validated = validatedConstraintConstructor(optP.get());
+      data.setValidatedConstraint(validated);
+      return validated;
+    }
+    throw new ConstraintValidationException(
+        "Constraint %s could not be safely cast to class %s"
+            .formatted(data.getConstraint(), getConstraintClass()));
   }
 
   protected void notConditionalOnSelf(ConstraintBuilderData data) {
@@ -112,6 +120,12 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
             NodeUtils.formatStatesToString(conditionStates)));
   }
 
+  protected abstract P safeCastConstraint(ProbabilityConstraint constraint);
+
+  protected abstract V validatedConstraintConstructor(P constraint);
+
+  public abstract Class<P> getConstraintClass();
+
   protected static String formatOutput(ConstraintBuilderData data) {
     Set<NodeState> events = data.getEventStates();
     Set<NodeState> conditions = data.getConditionStates();
@@ -126,9 +140,21 @@ public abstract class ConstraintValidator<T extends ProbabilityConstraint> {
             prob);
   }
 
-  public void verifyConstraint(ConstraintBuilderData data) {
-    validateInputs(data);
-    instanceSpecificValidation(data);
-    validateForNetwork(data);
+  public boolean checkInputsValid(ConstraintBuilderData data) {
+    try {
+      validateInputs(data);
+      return true;
+    } catch (ConstraintValidationException e) {
+      return false;
+    }
   }
+
+  public V buildFromInputs(ConstraintBuilderData data) {
+    instanceSpecificValidation(data);
+    data.setConstraint(constructConstraint(data));
+    validateForNetwork(data);
+    return buildValidatedConstraint(data);
+  }
+
+  protected abstract P constructConstraint(ConstraintBuilderData data);
 }

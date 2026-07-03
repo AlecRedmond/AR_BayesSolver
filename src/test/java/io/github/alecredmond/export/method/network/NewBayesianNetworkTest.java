@@ -10,8 +10,11 @@ import io.github.alecredmond.export.application.constraints.*;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.method.inference.BayesSolver;
 import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.ConstraintType;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import java.beans.PropertyChangeListener;
@@ -566,6 +569,7 @@ class NewBayesianNetworkTest {
 
   @Nested
   class ProbabilityConstraintTests {
+    static ConstraintRegistry registry = new ConstraintRegistry();
 
     static Stream<Arguments> successfulAddGetRemove() {
       return Stream.of(
@@ -607,13 +611,16 @@ class NewBayesianNetworkTest {
         List<Serializable> conditions,
         double probability,
         ConstraintType type) {
+      ConstraintStrategy<?> strategy = registry.getStrategy(type);
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
-      assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
+      ProbabilityConstraint constraint = test.getConstraint(events, conditions);
+      assertNotNull(strategy.safeCast(constraint));
       assertTrue(test.removeConstraint(events, conditions));
       assertFalse(test.isSolved());
       ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
       assertDoesNotThrow(() -> test.addConstraint(c));
-      assertInstanceOf(type.getConstraintClass(), test.getConstraint(events, conditions));
+      constraint = test.getConstraint(events, conditions);
+      assertNotNull(strategy.safeCast(constraint));
       assertTrue(test.removeConstraint(events, conditions));
       assertFalse(test.isSolved());
     }
@@ -644,6 +651,50 @@ class NewBayesianNetworkTest {
         Class<Exception> exceptionClass) {
       assertThrows(exceptionClass, () -> test.addConstraint(events, conditions, probability));
       assertFalse(test.isSolved());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsuccessfulAdd")
+    void sneakIllegalIntoNetworkData_shouldThrow(
+        List<Serializable> events,
+        List<Serializable> conditions,
+        double probability,
+        Class<Exception> exceptionClass) {
+      Set<NodeState> eventStates = buildOrCreateStates(events);
+      Set<NodeState> conditionStates = buildOrCreateStates(conditions);
+      if (exceptionClass.equals(NullPointerException.class)) {
+        assertThrows(
+            exceptionClass,
+            () -> new JointProbabilityConstraint(eventStates, conditionStates, probability));
+        return;
+      }
+      JointProbabilityConstraint constraint =
+          new JointProbabilityConstraint(eventStates, conditionStates, probability);
+      BayesianNetworkData networkData = test.getNetworkData();
+      networkData.getConstraints().add(constraint);
+      BayesSolver solver = BayesSolver.create(test);
+      assertFalse(solver.solve());
+      assertFalse(networkData.getConstraints().contains(constraint));
+    }
+
+    Set<NodeState> buildOrCreateStates(List<Serializable> stateIds) {
+      Set<NodeState> states = new HashSet<>();
+      List<Serializable> toCreate = new ArrayList<>();
+      boolean addNull = false;
+      for (Serializable stateId : stateIds) {
+        if (stateId == null) {
+          addNull = true;
+          continue;
+        }
+        NodeState state = test.getNodeState(stateId);
+        if (state == null) toCreate.add(stateId);
+        else states.add(state);
+      }
+      if (addNull) states.add(null);
+      if (toCreate.isEmpty()) return states;
+      Node node = new Node(UUID.randomUUID(), toCreate);
+      states.addAll(node.getNodeStates());
+      return states;
     }
 
     @ParameterizedTest

@@ -6,6 +6,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,6 +25,10 @@ public class SolverValidator {
   }
 
   private boolean checkNetworkBuilt() {
+    return tableDimensionsAreCorrect() && constraintsAreValidated();
+  }
+
+  private boolean tableDimensionsAreCorrect() {
     BayesianNetworkData data = network.getNetworkData();
     Map<Node, NetworkTable> tableMap = data.getNetworkTablesMap();
     Set<Node> nodes = new HashSet<>(data.getNodeIDsMap().values());
@@ -36,6 +41,11 @@ public class SolverValidator {
       if (!allCorrect) return false;
     }
     return true;
+  }
+
+  private boolean constraintsAreValidated() {
+    return network.getNetworkData().getConstraints().stream()
+        .allMatch(ValidatedConstraint.class::isInstance);
   }
 
   private boolean tableContainsAllNodes(NetworkTable table, Set<Node> allNodes, Node node) {

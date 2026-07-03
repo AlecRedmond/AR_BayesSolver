@@ -11,7 +11,7 @@ import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
 import io.github.alecredmond.internal.application.inference.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSolver;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.inference.junctiontree.clique.CliqueBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferIteratorFactory;
@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @NoArgsConstructor
 public class JTADataBuilder {
+
   public JunctionTreeData buildNewSolverConfiguration(
       BayesianNetworkData bayesianNetworkData, SolverConfigs configs) {
     JunctionTreeData junctionTreeData = new JunctionTreeData();
@@ -99,9 +100,10 @@ public class JTADataBuilder {
 
   private List<ConstraintSolver> matchConstraints(
       Clique clique, Collection<ProbabilityConstraint> constraints) {
+    ConstraintRegistry registry = new ConstraintRegistry();
     return constraints.stream()
         .filter(constraint -> clique.getNodes().containsAll(constraint.getAllNodes()))
-        .map(constraint -> buildConstraintHandler(constraint, clique))
+        .map(constraint -> buildConstraintHandler(constraint, clique, registry))
         .toList();
   }
 
@@ -112,11 +114,9 @@ public class JTADataBuilder {
         .orElseThrow();
   }
 
-  @SuppressWarnings("unchecked")
   private <T extends ProbabilityConstraint> ConstraintSolver buildConstraintHandler(
-      @NonNull T constraint, Clique clique) {
-    return ConstraintRegistry.getStrategy((Class<T>) constraint.getClass())
-        .buildSolverHandler(clique.getHandler(), constraint);
+      @NonNull T constraint, Clique clique, ConstraintRegistry registry) {
+    return registry.getStrategy(constraint).buildSolverHandler(clique.getHandler(), constraint);
   }
 
   public JunctionTreeData buildNewInferenceConfiguration(

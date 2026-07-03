@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.constraints.strategies;
+package io.github.alecredmond.internal.method.constraints.strategy;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;

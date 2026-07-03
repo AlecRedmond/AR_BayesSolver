@@ -2,27 +2,25 @@ package io.github.alecredmond.internal.method.constraints.types.conditionalconst
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
-import io.github.alecredmond.internal.method.constraints.strategies.CPTConstraintValidator;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintValidatorBase;
 
-public class ConditionalConstraintValidator extends ConstraintValidator<ConditionalConstraint>
-    implements CPTConstraintValidator<ConditionalConstraint> {
+public class ConditionalConstraintValidator
+    extends ConstraintValidatorBase<ConditionalConstraint, ValidatedConditionalConstraint>
+    implements CPTConstraintValidator<ConditionalConstraint, ValidatedConditionalConstraint> {
 
   public ConditionalConstraintValidator() {
     super();
   }
 
   @Override
-  public Class<ConditionalConstraint> getConstraintClass() {
-    return ConditionalConstraint.class;
-  }
-
-  @Override
-  public void validateCPTConstraint(ConditionalConstraint constraint) {
+  public ValidatedConditionalConstraint validateCPTConstraint(ConditionalConstraint constraint) {
     ConstraintBuilderData data = new ConstraintBuilderData(constraint);
     validateInputs(data);
     instanceSpecificValidation(data);
+    return buildValidatedConstraint(data);
   }
 
   @Override
@@ -33,6 +31,24 @@ public class ConditionalConstraintValidator extends ConstraintValidator<Conditio
     if (data.getConditionStates().isEmpty()) {
       throw new ConstraintValidationException("Conditional Constraints must have conditions!");
     }
+  }
+
+  @Override
+  protected ConditionalConstraint safeCastConstraint(ProbabilityConstraint constraint) {
+    if (constraint instanceof ConditionalConstraint cc) return cc;
+    return null;
+  }
+
+  @Override
+  protected ValidatedConditionalConstraint validatedConstraintConstructor(
+      ConditionalConstraint constraint) {
+    return new ValidatedConditionalConstraint(
+        constraint.getEventState(), constraint.getConditionStates(), constraint.getProbability());
+  }
+
+  @Override
+  public Class<ConditionalConstraint> getConstraintClass() {
+    return ConditionalConstraint.class;
   }
 
   @Override

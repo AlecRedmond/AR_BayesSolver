@@ -4,7 +4,7 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.network.BayesianNetworkData;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
+import io.github.alecredmond.internal.application.constraint.ConstraintFactoryOutput;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;
 import java.util.function.Predicate;
@@ -32,11 +32,10 @@ public class NetworkConstraintHandler {
     return verifyFromData(factory.verifyConstraint(constraint));
   }
 
-  private Optional<ConstraintValidationException> verifyFromData(
-      ConstraintBuilderData builderData) {
-    Optional<ConstraintValidationException> e = Optional.ofNullable(builderData.getException());
+  private Optional<ConstraintValidationException> verifyFromData(ConstraintFactoryOutput output) {
+    Optional<ConstraintValidationException> e = Optional.ofNullable(output.optException());
     if (e.isPresent()) return e;
-    networkData.getConstraints().add(builderData.getConstraint());
+    networkData.getConstraints().add(output.validated().getConstraint());
     return Optional.empty();
   }
 

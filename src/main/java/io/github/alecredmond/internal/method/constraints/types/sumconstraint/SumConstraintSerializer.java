@@ -1,9 +1,9 @@
-package io.github.alecredmond.internal.method.constraints.types.combinedconstraint;
+package io.github.alecredmond.internal.method.constraints.types.sumconstraint;
 
 import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
 import io.github.alecredmond.export.serialization.constraint.SerializedSumConstraint;
-import io.github.alecredmond.internal.method.constraints.strategies.ConstraintSerializer;
+import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;
