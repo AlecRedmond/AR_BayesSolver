@@ -34,14 +34,20 @@ public class NewInferenceEngineTest {
     static final double DELTA = 1e-3;
 
     public static Stream<Arguments> allObservations() {
-      return scenarios.stream()
-          .map(
-              scenario -> {
-                BayesianNetwork network = scenario.get();
-                BayesSolver solver = BayesSolver.create(network);
-                solver.forceSolve();
-                return Arguments.of(network, solver);
-              });
+      return scenarios.stream().flatMap(ObservationTests::getDirectCptEntryAndIPFP);
+    }
+
+    private static Stream<Arguments> getDirectCptEntryAndIPFP(NetworkScenario scenario) {
+      BayesianNetwork network = scenario.get();
+      BayesSolver solver = BayesSolver.create(network);
+      if (!solver.writeCPTsFromConstraints()) {
+        solver.forceSolve(SolverAlgorithm.JUNCTION_TREE_IPFP);
+        return Stream.of(Arguments.of(network, solver));
+      }
+      BayesianNetwork ipfp = scenario.get();
+      BayesSolver ipfpSolver = BayesSolver.create(ipfp);
+      ipfpSolver.forceSolve(SolverAlgorithm.JUNCTION_TREE_IPFP);
+      return Stream.of(Arguments.of(network, solver), Arguments.of(ipfp, ipfpSolver));
     }
 
     @ParameterizedTest

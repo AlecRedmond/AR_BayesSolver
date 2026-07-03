@@ -11,15 +11,18 @@ import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.StateUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetOnlyOnBuild;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateWriteStatesToArray;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
 @Getter
-public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateUpdater {
+public class ConstraintBuilderIterator
+    implements OdometerResetOnlyOnBuild, OdometerUpdateWriteStatesToArray {
   private final VectorIterator<VectorOdometer> iterator;
   private final Node event;
   private final VectorOdometer odometer;
@@ -51,6 +54,11 @@ public class ConstraintBuilderIterator implements BaseOdometerResetLogic, StateU
   @Override
   public Predicate<Node> checkLockInner() {
     return node -> !event.equals(node);
+  }
+
+  @Override
+  public Function<Node, NodeState> initialStatePositionSetter() {
+    return ResetLogicUtils.initializeToFirstNodeStates();
   }
 
   private void createMarginals(double[] probabilities, NodeState[] states) {

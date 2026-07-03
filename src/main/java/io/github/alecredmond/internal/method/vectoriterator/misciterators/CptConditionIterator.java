@@ -7,14 +7,14 @@ import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEn
 import io.github.alecredmond.export.application.probabilitytables.cptentry.CptRow;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.StateUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetDefault;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateWriteStatesToArray;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class CptConditionIterator implements BaseOdometerResetLogic, StateUpdater {
+public class CptConditionIterator implements OdometerResetDefault, OdometerUpdateWriteStatesToArray {
   private final Node eventNode;
   private final Set<Node> conditionNodes;
   private final VectorIterator<VectorOdometer> iterator;

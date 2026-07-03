@@ -10,6 +10,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEntry;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
 import io.github.alecredmond.internal.method.node.NodeUtils;
@@ -50,8 +51,8 @@ class TableQueryToolTest {
                     .flatMap(Optional::get));
   }
 
-  public static Stream<Arguments> provideProbabilitySetMapTables() {
-    return provideTableOnly(ConditionalTable.class::isInstance);
+  public static Stream<Arguments> provideNetworkTables() {
+    return provideTableOnly(NetworkTable.class::isInstance);
   }
 
   static Stream<Arguments> provideTableOnly(Predicate<? super NetworkTable> tableFilter) {
@@ -219,15 +220,36 @@ class TableQueryToolTest {
   }
 
   @ParameterizedTest
-  @MethodSource("provideProbabilitySetMapTables")
-  void buildProbabilitySetMap(ConditionalTable conditionalTable) {
-    ConditionalTableQueryTool helper = conditionalTable.getQueryTool();
-    Map<Set<NodeState>, Double> map = helper.buildProbabilitySetMap();
-    double[] probs = conditionalTable.getProbabilities();
-    int index = 0;
-    for (Double p : map.values()) {
-      assertEquals(probs[index], p, DOUBLE_EQUALITY);
-      index++;
+  @MethodSource("provideNetworkTables")
+  void testListCptEntries(NetworkTable networkTable) {
+    double[] probabilities = networkTable.getProbabilities();
+    NetworkTableQueryTool queryTool = networkTable.getQueryTool();
+    List<CptEntry> entries = networkTable.getQueryTool().getCptEntries();
+    for (int i = 0; i < probabilities.length; i++) {
+      CptEntry entry = entries.get(i);
+      Set<NodeState> allStates = new HashSet<>(entry.conditionStates());
+      allStates.add(entry.eventState());
+      assertEquals(entry.probability(), probabilities[i], DOUBLE_EQUALITY);
+      assertEquals(entry.probability(), queryTool.getProbability(allStates), DOUBLE_EQUALITY);
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideNetworkTables")
+  void testIterateOverConditions(NetworkTable networkTable) {
+    NetworkTableQueryTool queryTool = networkTable.getQueryTool();
+    queryTool.iterateOverConditions(
+        cptRow -> {
+          Set<NodeState> conditions = cptRow.conditionStates();
+          Map<NodeState, Double> conditionalProbMap = queryTool.getConditionalProb(conditions);
+          cptRow
+              .rowEntries()
+              .forEach(
+                  cptEntry -> {
+                    NodeState eventState = cptEntry.eventState();
+                    double probability = cptEntry.probability();
+                    assertEquals(conditionalProbMap.get(eventState), probability, DOUBLE_EQUALITY);
+                  });
+        });
   }
 }

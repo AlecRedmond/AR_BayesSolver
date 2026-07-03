@@ -11,30 +11,28 @@ import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.PermanentLocksResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetOnlyOnBuild;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateBlank;
 import java.util.*;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConstraintSolverBase
-    implements PermanentLocksResetLogic, BlankUpdater, ConstraintSolver {
+    implements OdometerResetOnlyOnBuild, OdometerUpdateBlank, ConstraintSolver {
   protected final VectorIterator<VectorOdometer> iterator;
   protected final ProbabilityConstraint constraint;
-  protected final double[] eventJointProb = {0.0};
-  protected final double[] conditionJointProb = {0.0};
-  protected final double[] complementJointProb = {0.0};
   protected final List<Double> errors = new ArrayList<>();
-  protected final boolean[] isEvidence;
-  protected final int[] isEvidenceIndex = {0};
+  protected final boolean[] outerIterationIsEvidence;
+  protected final Accumulators acm = new Accumulators();
 
   public ConstraintSolverBase(ProbabilityConstraint constraint, JunctionTreeTable table) {
     this.constraint = constraint;
     this.iterator = new VectorIterator<>(table.getVector(), this, VectorOdometer::new);
-    this.isEvidence = ResetLogicUtils.buildIsEvidenceIndex(iterator);
+    this.outerIterationIsEvidence = ResetLogicUtils.preBuildEvidenceCheckArray(iterator);
   }
 
   @Override
@@ -50,21 +48,22 @@ public class ConstraintSolverBase
   }
 
   public double adjustAndReturnError() {
-    resetAccumulators();
+    acm.resetAccumulators();
     VectorOdometer vectorOdometer = iterator.getController().getOdometer();
-    double[] probs = vectorOdometer.getProbabilities();
-    calculateProbability(probs);
+    double[] probabilities = vectorOdometer.getProbabilities();
+    calculateProbability(probabilities);
 
     double expectedProb = constraint.getProbability();
-    double actualProb = getRatio(eventJointProb[0], conditionJointProb[0]);
+    double actualProb = getRatio(acm.eventJointProb, acm.conditionJointProb);
 
-    if (!fuzzyEquals(actualProb, expectedProb)) {
-      double complementProb = getRatio(complementJointProb[0], conditionJointProb[0]);
-      double adjustmentRatio = getRatio(expectedProb, actualProb);
-      double compRatio = getRatio((1 - expectedProb), complementProb);
-      adjustToRatio(adjustmentRatio, compRatio, probs);
+    if (fuzzyEquals(actualProb, expectedProb)) {
+      return storeError(Math.pow(actualProb - expectedProb, 2));
     }
 
+    double complementProb = getRatio(acm.complementJointProb, acm.conditionJointProb);
+    double adjustmentRatio = getRatio(expectedProb, actualProb);
+    double compRatio = getRatio((1 - expectedProb), complementProb);
+    adjustToRatio(adjustmentRatio, compRatio, probabilities);
     return storeError(Math.pow(actualProb - expectedProb, 2));
   }
 
@@ -77,9 +76,10 @@ public class ConstraintSolverBase
     for (double error : errors) {
       errorArray[cycle] += error;
       run++;
-      if (run != runsPerCycle) continue;
-      run = 0;
-      cycle++;
+      if (run == runsPerCycle) {
+        run = 0;
+        cycle++;
+      }
     }
     if (constraintInMapWithHigherError(results, constraint, errorArray)) return;
     results.put(constraint, errorArray);
@@ -95,24 +95,16 @@ public class ConstraintSolverBase
     return previousError > currentError;
   }
 
-  private void resetAccumulators() {
-    eventJointProb[0] = 0.0;
-    conditionJointProb[0] = 0.0;
-    complementJointProb[0] = 0.0;
-  }
-
-  private void calculateProbability(double[] probs) {
-    isEvidenceIndex[0] = 0;
+  private void calculateProbability(double[] probabilities) {
+    acm.resetIndex();
     iterator.iterateOuter(
         () -> {
-          boolean e = isEvidence[isEvidenceIndex[0]];
-          isEvidenceIndex[0] += 1;
-          double[] correctAdder = e ? eventJointProb : complementJointProb;
+          DoubleConsumer correctAccumulator = selectCorrectAccumulator();
           iterator.iterateInner(
               (o, i) -> {
-                double prob = probs[i];
-                conditionJointProb[0] += prob;
-                correctAdder[0] += prob;
+                double prob = probabilities[i];
+                acm.conditionJointProb += prob;
+                correctAccumulator.accept(prob);
               });
         });
   }
@@ -121,20 +113,26 @@ public class ConstraintSolverBase
     return actualProb == 0 ? 0.0 : targetProb / actualProb;
   }
 
-  protected void adjustToRatio(double ratioIfEvent, double ratioOtherwise, double[] probs) {
-    isEvidenceIndex[0] = 0;
-    iterator.iterateOuter(
-        () -> {
-          boolean e = isEvidence[isEvidenceIndex[0]];
-          isEvidenceIndex[0] += 1;
-          double ratio = e ? ratioIfEvent : ratioOtherwise;
-          iterator.iterateInner((o, i) -> probs[i] = probs[i] * ratio);
-        });
-  }
-
   private double storeError(double error) {
     errors.add(error);
     return error;
+  }
+
+  protected void adjustToRatio(double ratioIfEvent, double ratioOtherwise, double[] probabilities) {
+    acm.resetIndex();
+    iterator.iterateOuter(
+        () -> {
+          boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex];
+          acm.outerIterationIndex++;
+          double ratio = isEventPosition ? ratioIfEvent : ratioOtherwise;
+          iterator.iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+        });
+  }
+
+  private DoubleConsumer selectCorrectAccumulator() {
+    boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex];
+    acm.outerIterationIndex++;
+    return isEventPosition ? p -> acm.eventJointProb += p : p -> acm.complementJointProb += p;
   }
 
   @Override
@@ -148,5 +146,22 @@ public class ConstraintSolverBase
     Set<Node> eventNodes = constraint.getEventNodes();
     Set<NodeState> eventStates = constraint.getEventStates();
     return ResetLogicUtils.updateEvidenceArrayFunction(eventNodes, eventStates);
+  }
+
+  protected static class Accumulators {
+    protected double eventJointProb = 0;
+    protected double conditionJointProb = 0;
+    protected double complementJointProb = 0;
+    protected int outerIterationIndex = 0;
+
+    protected void resetAccumulators() {
+      eventJointProb = 0;
+      conditionJointProb = 0;
+      complementJointProb = 0;
+    }
+
+    protected void resetIndex() {
+      outerIterationIndex = 0;
+    }
   }
 }
