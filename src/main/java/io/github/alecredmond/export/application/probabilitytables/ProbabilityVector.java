@@ -3,6 +3,7 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 
 /**
  * Stores the flat probability values for a {@link ProbabilityTable}, mapping the Cartesian product
@@ -16,12 +17,14 @@ import java.util.Map;
  * P(S) = probabilities[index]
  * }</pre>
  *
- * <p>Node ordering is defined by {@link #nodeArray}. The same index positions map
- * consistently across {@link #stateArrays}, {@link #numberOfStates}, and {@link #strideLengths}.
+ * <p>Node ordering is defined by {@link #nodeArray}. The same index positions map consistently
+ * across {@link #stateArrays}, {@link #numberOfStates}, and {@link #strideLengths}.
  *
  * @see ProbabilityTable
  * @author Alec Redmond
  */
+@SuppressWarnings("LombokGetterMayBeUsed")
+@EqualsAndHashCode
 public class ProbabilityVector {
 
   /** The ordered array of nodes managed by this probability vector. */
