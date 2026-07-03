@@ -3,7 +3,7 @@ package io.github.alecredmond.internal.method.probabilitytables.tablebuilders;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
 import io.github.alecredmond.internal.application.probabilitytables.ObservedTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.ObservedTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.ObservedTableQueryToolImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

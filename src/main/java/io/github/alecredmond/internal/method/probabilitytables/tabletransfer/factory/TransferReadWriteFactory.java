@@ -1,19 +1,19 @@
 package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory;
 
 import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
-import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters.TransferIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetOnlyOnBuild;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateBlank;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class TransferReadWriteFactory<T extends TransferIterator>
-    implements BaseOdometerResetLogic, BlankUpdater {
+    implements OdometerResetOnlyOnBuild, OdometerUpdateBlank {
   protected ProbabilityTable readTable;
   protected ProbabilityTable writeTable;
   protected double[] transferArray;
@@ -39,12 +39,6 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
     this.transferArray = transferArray;
   }
 
-  @Override
-  public void updateInnerInitializer(
-      OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.updateStartIndex(innerInitializer, odometer);
-  }
-
   public abstract T build();
 
   @Override
@@ -55,5 +49,10 @@ public abstract class TransferReadWriteFactory<T extends TransferIterator>
   @Override
   public Predicate<Node> checkLockInner() {
     return commonNodes::contains;
+  }
+
+  @Override
+  public Function<Node, NodeState> initialStatePositionSetter() {
+    return ResetLogicUtils.initializeToFirstNodeStates();
   }
 }

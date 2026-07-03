@@ -6,15 +6,15 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetDefault;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateBlank;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-public class JunctionTableSummer implements BaseOdometerResetLogic, BlankUpdater {
+public class JunctionTableSummer implements OdometerResetDefault, OdometerUpdateBlank {
   private final VectorIterator<VectorOdometer> iterator;
   private final JunctionTreeTable table;
   private final double[] adder = {0.0};

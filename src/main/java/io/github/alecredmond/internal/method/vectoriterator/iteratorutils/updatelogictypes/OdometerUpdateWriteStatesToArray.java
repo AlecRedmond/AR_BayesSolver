@@ -6,7 +6,7 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.Odomet
 import java.util.function.ObjIntConsumer;
 import java.util.stream.IntStream;
 
-public interface StateUpdater extends OdometerUpdateLogic<VectorOdometer> {
+public interface OdometerUpdateWriteStatesToArray extends OdometerUpdateLogic<VectorOdometer> {
   default ObjIntConsumer<VectorOdometer> update() {
     return (o, i) -> {
       NodeState[][] stateArrays = o.getStateArrays();

@@ -123,4 +123,8 @@ public class VectorIterator<T extends VectorOdometer> {
   protected void iterateOuter(ObjIntConsumer<T> indexConsumer, ObjIntConsumer<T> updateConsumer) {
     iterate(controller.getOdometer(), indexConsumer, updateConsumer, controller.getInitOuter());
   }
+
+  public void iterateOuter(ObjIntConsumer<T> indexConsumer) {
+    iterateOuter(indexConsumer, controller.getUpdateConsumer());
+  }
 }

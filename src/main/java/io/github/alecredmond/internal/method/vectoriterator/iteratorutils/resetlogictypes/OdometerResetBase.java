@@ -2,16 +2,13 @@ package io.github.alecredmond.internal.method.vectoriterator.iteratorutils.reset
 
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerInitializerUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerResetLogic;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdometer> {
-
+public interface OdometerResetBase extends OdometerResetLogic<VectorOdometer> {
   @Override
   default void resetOdometer(VectorOdometer vectorOdometer) {
     Node[] nodeArray = vectorOdometer.getNodeArray();
@@ -38,17 +35,7 @@ public interface BaseOdometerResetLogic extends OdometerResetLogic<VectorOdomete
     }
   }
 
-  @Override
-  default void updateInnerInitializer(
-          OdometerInitializer innerInitializer, VectorOdometer odometer, boolean[] positionLocks) {
-    OdometerInitializerUtils.resetInitializer(odometer, positionLocks, innerInitializer);
-  }
+  Function<Node, NodeState> initialStatePositionSetter();
 
-  default Function<Node, NodeState> initialStatePositionSetter() {
-    return node -> node.getNodeStates().getFirst();
-  }
-
-  default Function<Node, boolean[]> buildEvidenceMaps() {
-    return node -> null;
-  }
+  Function<Node, boolean[]> buildEvidenceMaps();
 }

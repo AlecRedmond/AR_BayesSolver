@@ -5,15 +5,18 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.StateUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetDefault;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateWriteStatesToArray;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class StateCombinationGenerator implements BaseOdometerResetLogic, StateUpdater {
+public class StateCombinationGenerator
+    implements OdometerResetDefault, OdometerUpdateWriteStatesToArray {
   private final VectorIterator<VectorOdometer> iterator;
   private final VectorOdometer odometer;
   private Set<Node> includedNodes;
@@ -45,6 +48,11 @@ public class StateCombinationGenerator implements BaseOdometerResetLogic, StateU
     return IntStream.range(0, nodeArray.length)
         .filter(x -> includedNodes.contains(nodeArray[x]))
         .toArray();
+  }
+
+  @Override
+  public Function<Node, NodeState> initialStatePositionSetter() {
+    return ResetLogicUtils.initializeToFirstNodeStates();
   }
 
   @Override

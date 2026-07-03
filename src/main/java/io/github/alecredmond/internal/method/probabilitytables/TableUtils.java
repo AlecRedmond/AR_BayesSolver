@@ -14,7 +14,6 @@ import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateC
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -89,9 +88,10 @@ public class TableUtils {
       Collection<NodeState> conditionStates, ConditionalTable table) {
     Map<NodeState, Double> map = new LinkedHashMap<>();
     List<NodeState> events = table.getNetworkNode().getNodeStates();
-    double[] probs = table.getProbabilities();
+    double[] probabilities = table.getProbabilities();
     int firstIndex = getIndex(conditionStates, table);
-    IntStream.range(0, events.size()).forEach(i -> map.put(events.get(i), probs[firstIndex + i]));
+    int bound = events.size();
+    for (int i = 0; i < bound; i++) map.put(events.get(i), probabilities[firstIndex + i]);
     return map;
   }
 

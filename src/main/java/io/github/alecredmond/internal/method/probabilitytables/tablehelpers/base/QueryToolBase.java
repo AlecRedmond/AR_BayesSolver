@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base;
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
@@ -7,7 +7,6 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
-import io.github.alecredmond.internal.method.vectoriterator.misciterators.ProbabilityMapper;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
@@ -55,8 +54,4 @@ public abstract class QueryToolBase<T extends ProbabilityTable> {
   }
 
   protected abstract Supplier<TableBuilder<T>> supplyTableBuilder();
-
-  public Map<Set<NodeState>, Double> buildProbabilitySetMap() {
-    return new ProbabilityMapper(table).getProbabilityMap();
-  }
 }

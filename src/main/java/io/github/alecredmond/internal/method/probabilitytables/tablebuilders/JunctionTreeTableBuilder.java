@@ -5,7 +5,7 @@ import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryToolImpl;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.JunctionTreeTableQueryToolImpl;
 import java.util.*;
 
 public class JunctionTreeTableBuilder extends BaseTableBuilder

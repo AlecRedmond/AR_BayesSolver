@@ -7,8 +7,8 @@ import io.github.alecredmond.internal.application.probabilitytables.JunctionTree
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.BlankUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetDefault;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateBlank;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class ObservationCopier implements BaseOdometerResetLogic, BlankUpdater {
+public class ObservationCopier implements OdometerResetDefault, OdometerUpdateBlank {
   private final ProbabilityVector mainVector;
   private final ProbabilityVector backupVector;
   private final VectorIterator<VectorOdometer> iterator;

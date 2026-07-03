@@ -1,4 +1,4 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers;
+package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
 
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
@@ -6,11 +6,12 @@ import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryT
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.RootNodeTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
+import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base.NetworkQueryToolBase;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class RootNodeTableQueryToolImpl extends QueryToolBase<RootNodeTable>
+public class RootNodeTableQueryToolImpl extends NetworkQueryToolBase<RootNodeTable>
     implements RootNodeTableQueryTool {
 
   public RootNodeTableQueryToolImpl(RootNodeTable table) {

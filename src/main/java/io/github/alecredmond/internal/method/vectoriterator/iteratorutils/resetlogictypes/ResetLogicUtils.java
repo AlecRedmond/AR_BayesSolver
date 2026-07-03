@@ -28,7 +28,7 @@ public class ResetLogicUtils {
     };
   }
 
-  public static <T extends VectorOdometer> boolean[] buildIsEvidenceIndex(
+  public static <T extends VectorOdometer> boolean[] preBuildEvidenceCheckArray(
       VectorIterator<T> iterator) {
     T vectorOdometer = iterator.getController().getOdometer();
     int[] stateIndexes = vectorOdometer.getStateIndexes();
@@ -44,5 +44,9 @@ public class ResetLogicUtils {
     return IntStream.range(0, stateIsEvent.length)
         .filter(x -> stateIsEvent[x].length != 0)
         .allMatch(x -> stateIsEvent[x][stateIndexes[x]]);
+  }
+
+  public static Function<Node, NodeState> initializeToFirstNodeStates() {
+    return node -> node.getNodeStates().getFirst();
   }
 }

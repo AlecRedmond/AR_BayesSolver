@@ -11,20 +11,22 @@ import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.BaseOdometerResetLogic;
-import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.StateUpdater;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetOnlyOnBuild;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
+import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateWriteStatesToArray;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class CptMapperIterator<T extends NetworkTable, P extends ProbabilityConstraint>
-    implements BaseOdometerResetLogic, StateUpdater {
+    implements OdometerResetOnlyOnBuild, OdometerUpdateWriteStatesToArray {
   protected final T networkTable;
   protected final List<P> constraints;
   protected final VectorIterator<VectorOdometer> iterator;
-  protected final CPTConstraintValidator<P,?> validator;
+  protected final CPTConstraintValidator<P, ?> validator;
 
   protected CptMapperIterator(
-      T networkTable, Collection<P> constraints, CPTConstraintValidator<P,?> validator) {
+      T networkTable, Collection<P> constraints, CPTConstraintValidator<P, ?> validator) {
     this.networkTable = networkTable;
     this.validator = validator;
     this.constraints = radixSortConstraints(networkTable, constraints);
@@ -51,6 +53,11 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
                 .findAny()
                 .map(stateValueMap::get)
                 .orElseThrow());
+  }
+
+  @Override
+  public Function<Node, NodeState> initialStatePositionSetter() {
+    return ResetLogicUtils.initializeToFirstNodeStates();
   }
 
   public List<P> directMapCPTs() {
@@ -113,7 +120,8 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
   }
 
   private void fillMissingEvent(MissingEntryCheck entryCheck, List<P> addedConstraints) {
-    P fillInConstraint = validator.validateCPTConstraint(buildMissingFromRow(entryCheck)).getConstraint();
+    P fillInConstraint =
+        validator.validateCPTConstraint(buildMissingFromRow(entryCheck)).getConstraint();
     addedConstraints.add(fillInConstraint);
     entryCheck.indexMap.put(fillInConstraint, entryCheck.missingIndex);
   }
