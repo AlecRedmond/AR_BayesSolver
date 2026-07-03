@@ -5,7 +5,8 @@ import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import java.util.Set;
 
 /**
- * A representation of a single CPT entry within a {@link NetworkTable}.
+ * An immutable representation of a single Conditional Probability Table (CPT) entry within a {@link
+ * NetworkTable}.
  *
  * @param conditionStates the conditioning {@link NodeState}s active on this entry.
  * @param eventState the measured {@link NodeState}.
