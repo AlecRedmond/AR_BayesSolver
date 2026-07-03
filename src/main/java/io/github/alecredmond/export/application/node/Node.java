@@ -1,23 +1,22 @@
 package io.github.alecredmond.export.application.node;
 
+import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
+
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.BayesianNetworkBuilder;
 import io.github.alecredmond.internal.method.node.NodeUtils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static io.github.alecredmond.internal.method.network.changehandlers.NetworkPropertyChangeEvent.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Represents a variable within a {@link BayesianNetwork}.
@@ -41,14 +40,15 @@ import static io.github.alecredmond.internal.method.network.changehandlers.Netwo
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
 public class Node {
+
   /**
-   * The identifier for this {@code Node}. This value must be unique within its {@link
-   * BayesianNetwork}
+   * The identifier for this {@code Node}. This value must be unique within its associated {@link
+   * BayesianNetwork}.
    */
   @EqualsAndHashCode.Include private final Serializable id;
 
   /**
-   * The property change support utility, used within the {@link BayesianNetwork} to listen for
+   * The property change support utility. Used within the {@link BayesianNetwork} to listen for
    * field changes in this {@code Node}.
    */
   private final PropertyChangeSupport support = new PropertyChangeSupport(this);
@@ -56,24 +56,25 @@ public class Node {
   /** The ordered list of {@link NodeState} values that this {@code Node} can exhibit. */
   private List<NodeState> nodeStates;
 
-  /** The parents of this {@code Node} in the {@link BayesianNetwork} structure */
+  /** The parents of this {@code Node} in the {@link BayesianNetwork} structure. */
   private List<Node> parents;
 
-  /** The children of this {@code Node} in the {@link BayesianNetwork} structure */
+  /** The children of this {@code Node} in the {@link BayesianNetwork} structure. */
   private List<Node> children;
 
   /**
    * Constructs a new {@code Node} using its identifier and a collection of state identifiers.
    *
-   * @param nodeId the {@link Serializable} identifier of the {@code Node}
+   * @param nodeId the {@link Serializable} identifier of the {@code Node}.
    * @param stateIDs the collection of {@link Serializable} identifiers for the {@link NodeState}
-   *     values
-   * @param <T> the type of the node identifier
-   * @param <E> the type of the state identifiers
-   * @throws NullPointerException if the node identifier is {@code null}
+   *     values.
+   * @param <T> the type of the node identifier.
+   * @param <E> the type of the state identifiers.
+   * @throws NullPointerException if the node identifier or state identifier collection is {@code
+   *     null}.
    */
   public <T extends Serializable, E extends Serializable> Node(
-      @NonNull T nodeId, Collection<E> stateIDs) {
+      @NonNull T nodeId, @NonNull Collection<E> stateIDs) {
     this.id = nodeId;
     this.parents = List.of();
     this.children = List.of();
@@ -84,8 +85,8 @@ public class Node {
    * Constructs a new {@code Node} using only its identifier.
    *
    * @param nodeId the {@link Serializable} identifier of the {@code Node}
-   * @param <T> the type of the node identifier
-   * @throws NullPointerException if the node identifier is {@code null}
+   * @param <T> the type of the node identifier.
+   * @throws NullPointerException if the node identifier is {@code null}.
    */
   public <T extends Serializable> Node(@NonNull T nodeId) {
     this.id = nodeId;
@@ -144,9 +145,9 @@ public class Node {
   /**
    * Adds a new state to this {@code Node} using the provided identifier.
    *
-   * @param stateID the identifier for the new {@link NodeState}
+   * @param stateID the identifier for the new {@link NodeState}.
    * @param <T> the type of the state identifier.
-   * @return {@code true} if new state was successfully added, or {@code false} if validation
+   * @return {@code true} if the new state was successfully added, or {@code false} if validation
    *     failed.
    */
   public <T extends Serializable> boolean addState(@NonNull T stateID) {
@@ -161,9 +162,9 @@ public class Node {
    * validation of the new list fails, the error will be logged and the previous {@link NodeState}
    * list will be restored.
    *
-   * @param nodeStates the new list of {@link NodeState}s associated with this {@code Node}
+   * @param nodeStates the new list of {@link NodeState}s associated with this {@code Node}.
    * @return {@code true} if the new list was successfully set, or {@code false} if validation
-   *     failed
+   *     failed.
    */
   public boolean setNodeStates(List<NodeState> nodeStates) {
     List<NodeState> oldStates = this.nodeStates;
@@ -184,7 +185,7 @@ public class Node {
    * @param stateID the identifier of the {@link NodeState} to be removed.
    * @param <E> the type of the state identifier.
    * @return {@code true} if the {@link NodeState} was successfully removed, or {@code false} if
-   *     validation failed
+   *     validation failed.
    */
   public <E extends Serializable> boolean removeState(E stateID) {
     return setNodeStates(NodeUtils.statesWithoutId(nodeStates, stateID));
@@ -209,12 +210,12 @@ public class Node {
   }
 
   /**
-   * Adds this {@code Node} to a {@link PropertyChangeListener} and fires the property change event
-   * {@code "NODE_ADDED_TO_NETWORK"}.
+   * Adds this {@code Node} to a {@link PropertyChangeListener} and fires a property change event.
    *
-   * <p>This method is used internally by the implementation of {@link BayesianNetwork}.
+   * <p>Fires {@code "NODE_ADDED_TO_NETWORK"}. This method is used internally by the implementation
+   * of {@link BayesianNetwork}.
    *
-   * @param listener the {@link PropertyChangeListener} instance to attach.
+   * @param listener the {@link PropertyChangeListener} instance to attach
    */
   public void addPropertyChangeListener(PropertyChangeListener listener) {
     support.addPropertyChangeListener(listener);
@@ -222,40 +223,71 @@ public class Node {
   }
 
   /**
-   * Removes this {@code Node} from a {@link PropertyChangeListener} and fires the property change
-   * event {@code "NODE_REMOVED_FROM_NETWORK"}.
+   * Removes this {@code Node} from a {@link PropertyChangeListener} and fires a property change
+   * event.
    *
-   * <p>This method is used internally by the implementation of {@link BayesianNetwork}.
+   * <p>Fires {@code "NODE_REMOVED_FROM_NETWORK"}. This method is used internally by the
+   * implementation of {@link BayesianNetwork}.
    *
-   * @param listener the {@link PropertyChangeListener} instance to remove.
+   * @param listener the {@link PropertyChangeListener} instance to remove
    */
   public void removePropertyChangeListener(PropertyChangeListener listener) {
     support.firePropertyChange(NODE_REMOVED_FROM_NETWORK.name(), this, null);
     support.removePropertyChangeListener(listener);
   }
 
+  /**
+   * Returns a string representation of this node, which corresponds to its identifier.
+   *
+   * @return the string representation of the node identifier.
+   */
   @Override
   public String toString() {
     return id.toString();
   }
 
-    public Serializable getId() {
-        return this.id;
-    }
+  /**
+   * Returns the unique identifier for this {@code Node}.
+   *
+   * @return the {@link Serializable} identifier of this node.
+   */
+  public Serializable getId() {
+    return this.id;
+  }
 
-    public PropertyChangeSupport getSupport() {
-        return this.support;
-    }
+  /**
+   * Returns the property change support utility used to listen for field changes.
+   *
+   * @return the {@link PropertyChangeSupport} instance attached to this node.
+   */
+  public PropertyChangeSupport getSupport() {
+    return this.support;
+  }
 
-    public List<NodeState> getNodeStates() {
-        return this.nodeStates;
-    }
+  /**
+   * Returns the ordered list of {@link NodeState} values that this {@code Node} can exhibit.
+   *
+   * @return an unmodifiable {@link List} of the node's states.
+   */
+  public List<NodeState> getNodeStates() {
+    return this.nodeStates;
+  }
 
-    public List<Node> getParents() {
-        return this.parents;
-    }
+  /**
+   * Returns the parent nodes of this {@code Node} in the network structure.
+   *
+   * @return an unmodifiable {@link List} of parent nodes.
+   */
+  public List<Node> getParents() {
+    return this.parents;
+  }
 
-    public List<Node> getChildren() {
-        return this.children;
-    }
+  /**
+   * Returns the child nodes of this {@code Node} in the network structure.
+   *
+   * @return an unmodifiable {@link List} of child nodes.
+   */
+  public List<Node> getChildren() {
+    return this.children;
+  }
 }

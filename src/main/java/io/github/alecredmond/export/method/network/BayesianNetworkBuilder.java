@@ -33,7 +33,13 @@ import lombok.Data;
 @SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "unused"})
 @Data
 public class BayesianNetworkBuilder {
+  /** The name of the new {@link BayesianNetwork} to be built */
   private String networkName;
+
+  /**
+   * A list of {@link NetworkBuilderNode} objects, each containing the information for a {@link
+   * Node} to be built in the new {@link BayesianNetwork}.
+   */
   private List<NetworkBuilderNode<?>> nodeInputs = new ArrayList<>();
 
   /**
