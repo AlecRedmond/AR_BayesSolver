@@ -44,9 +44,10 @@ public class VectorIterator<T extends VectorOdometer> {
    * This method exists to solve the problem of stepping iteratively through known combinations of
    * states while accessing associated array index of the vector's probability table.
    *
-   * <p>Both the Vector Odometer (which can be read for the current state values) and the index (the
-   * position in the vector's probability array of the combination) can be iterated through and
-   * processed sequentially with a BiConsumer, while locking specific NodeState values in place.
+   * <p>Both the Vector Odometer (which can be read for the current state values) and the
+   * probability index (the position in the vector's probability array of the combination) can be
+   * iterated through and processed sequentially with a BiConsumer, while locking specific NodeState
+   * values in place.
    *
    * <p>It achieves this by advancing the odometer's state index array, starting from the fastest
    * (rightmost) unlocked position and carrying left for every overflow encountered. An overflow
@@ -65,6 +66,15 @@ public class VectorIterator<T extends VectorOdometer> {
    * <p>There is the option for a second consumer which is run at the end of each update. This may
    * be used e.g. for updating the NodeState[] array to be in-line with the given int[]
    * StateIndexes, but is unused in most cases to reduce compute time per iteration.
+   *
+   * @param odometer a {@link VectorOdometer} to be iterated through
+   * @param indexConsumer a consumer supplied with both the odometer and the current probability
+   *     array index at the beginning of each iteration cycle.
+   * @param updateConsumer a consumer supplied with the odometer and the next array index at the end
+   *     of each iteration cycle. Useful for updating the Odometer state array to conform to the
+   *     state indexes.
+   * @param initializer the initializer object that contains the pre-calculated starting index,
+   *     states, and whether the iterator is to fire only once.
    */
   protected void iterate(
       T odometer,
@@ -78,7 +88,9 @@ public class VectorIterator<T extends VectorOdometer> {
       return;
     }
 
+    /* The rightmost Node in the odometer which isn't locked... */
     int fastestPosition = initializer.getFastestPosition();
+    /* ... And the probability index stride to address its next state, while preserving all other states. */
     int baseStride = initializer.getBaseStride();
     int[] numberOfStates = odometer.getNumberOfStates();
     int[] strideIfLocked = initializer.getStrideIfLocked();
@@ -86,30 +98,30 @@ public class VectorIterator<T extends VectorOdometer> {
     boolean[] positionLocked = initializer.getLockedPositions();
     boolean overflow = false;
 
+    /* While the overflow has not carried fully left... */
     while (!overflow) {
+      /* Accept the active consumer and stride to the next probability index... */
       indexConsumer.accept(odometer, currentIndex);
       currentIndex += baseStride;
+      /* Then, from the rightmost unlocked Node... */
       for (int position = fastestPosition; position >= 0; position--) {
+        /* And striding over any locked Node... */
         if (positionLocked[position]) {
           currentIndex += strideIfLocked[position];
           continue;
         }
-        overflow = setNewPos(position, stateIndexes, numberOfStates);
-        updateConsumer.accept(odometer, currentIndex);
+        /* Increment the current Node's state index... */
+        overflow = ++stateIndexes[position] >= numberOfStates[position];
+        /* Stopping if it's within bounds... */
         if (!overflow) {
           break;
         }
+        /* Or carrying left if it overflows... */
+        stateIndexes[position] = 0;
       }
+      /* And notify the update consumer of the new state and probability indexes. */
+      updateConsumer.accept(odometer, currentIndex);
     }
-  }
-
-  private boolean setNewPos(int position, int[] stateIndexes, int[] numberOfStates) {
-    if (stateIndexes[position] == numberOfStates[position] - 1) {
-      stateIndexes[position] = 0;
-      return true;
-    }
-    stateIndexes[position] += 1;
-    return false;
   }
 
   public void reset() {

@@ -15,7 +15,6 @@ import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetl
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.ResetLogicUtils;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.updatelogictypes.OdometerUpdateBlank;
 import java.util.*;
-import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
@@ -99,13 +98,9 @@ public class ConstraintSolverBase
     acm.resetIndex();
     iterator.iterateOuter(
         () -> {
-          DoubleConsumer correctAccumulator = selectCorrectAccumulator();
-          iterator.iterateInner(
-              (o, i) -> {
-                double prob = probabilities[i];
-                acm.conditionJointProb += prob;
-                correctAccumulator.accept(prob);
-              });
+          acm.partialSum = 0;
+          iterator.iterateInner((o, i) -> acm.partialSum += probabilities[i]);
+          addToCorrectAccumulators(acm.partialSum);
         });
   }
 
@@ -122,17 +117,20 @@ public class ConstraintSolverBase
     acm.resetIndex();
     iterator.iterateOuter(
         () -> {
-          boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex];
-          acm.outerIterationIndex++;
+          boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex++];
           double ratio = isEventPosition ? ratioIfEvent : ratioOtherwise;
-          iterator.iterateInner((o, i) -> probabilities[i] = probabilities[i] * ratio);
+          iterator.iterateInner((o, i) -> probabilities[i] *= ratio);
         });
   }
 
-  private DoubleConsumer selectCorrectAccumulator() {
-    boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex];
-    acm.outerIterationIndex++;
-    return isEventPosition ? p -> acm.eventJointProb += p : p -> acm.complementJointProb += p;
+  protected void addToCorrectAccumulators(double partialSum) {
+    boolean isEventPosition = outerIterationIsEvidence[acm.outerIterationIndex++];
+    acm.conditionJointProb += partialSum;
+    if (isEventPosition) {
+      acm.eventJointProb += partialSum;
+    } else {
+      acm.complementJointProb += partialSum;
+    }
   }
 
   @Override
@@ -152,12 +150,14 @@ public class ConstraintSolverBase
     protected double eventJointProb = 0;
     protected double conditionJointProb = 0;
     protected double complementJointProb = 0;
+    protected double partialSum = 0;
     protected int outerIterationIndex = 0;
 
     protected void resetAccumulators() {
       eventJointProb = 0;
       conditionJointProb = 0;
       complementJointProb = 0;
+      partialSum = 0;
     }
 
     protected void resetIndex() {
