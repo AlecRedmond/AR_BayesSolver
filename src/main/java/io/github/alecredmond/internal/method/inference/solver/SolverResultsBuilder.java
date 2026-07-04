@@ -23,7 +23,7 @@ public class SolverResultsBuilder {
                     Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
 
     double lastError =
-        solverResultMap.values().stream().mapToDouble(SolverConstraintResult::getLastError).sum();
+        solverResultMap.values().stream().mapToDouble(SolverConstraintResult::lastError).sum();
     return new SolverResults(cycle, solverResultMap, lastError, duration);
   }
 
@@ -41,7 +41,7 @@ public class SolverResultsBuilder {
       byLastErrorReversed() {
     return Comparator.comparingDouble(
             (Map.Entry<ProbabilityConstraint, SolverConstraintResult> e) ->
-                e.getValue().getLastError())
+                e.getValue().lastError())
         .reversed();
   }
 }

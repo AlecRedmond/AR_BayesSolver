@@ -2,7 +2,8 @@ package io.github.alecredmond.export.application.inference;
 
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.method.inference.BayesSolver;
-import lombok.Data;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Holds the per-cycle error and loss data for a single {@link ProbabilityConstraint} from a {@link
@@ -10,39 +11,24 @@ import lombok.Data;
  *
  * @see SolverResults
  * @author Alec Redmond
+ * @param constraint The constraint whose fitting results are recorded in this object.
+ * @param lastError The R-squared error between the constraint's target probability and the fitted
+ *     value on the final solver cycle.
+ * @param errors The R-squared error between the constraint's target probability and the fitted
+ *     value at each solver cycle. Index {@code i} corresponds to cycle {@code i}.
+ * @param losses The change in R-squared error between consecutive solver cycles. Index {@code i}
+ *     corresponds to cycle {@code i}.
+ *     <p>A negative value indicates the fit is improving; a positive value indicates divergence.
  */
-@SuppressWarnings("LombokGetterMayBeUsed")
-@Data
-public class SolverConstraintResult {
-  /** The constraint whose fitting results are recorded in this object. */
-  private final ProbabilityConstraint constraint;
-
-  /**
-   * The R-squared error between the constraint's target probability and the fitted value on the
-   * final solver cycle.
-   */
-  private final double lastError;
-
-  /**
-   * The R-squared error between the constraint's target probability and the fitted value at each
-   * solver cycle. Index {@code i} corresponds to cycle {@code i}.
-   */
-  private final double[] errors;
-
-  /**
-   * The change in R-squared error between consecutive solver cycles. Index {@code i} corresponds to
-   * cycle {@code i}.
-   *
-   * <p>A negative value indicates the fit is improving; a positive value indicates divergence.
-   */
-  private final double[] losses;
-
+public record SolverConstraintResult(
+    ProbabilityConstraint constraint, double lastError, double[] errors, double[] losses) {
   /**
    * Returns the probability constraint associated with these solver results.
    *
    * @return the {@link ProbabilityConstraint} instance.
    */
-  public ProbabilityConstraint getConstraint() {
+  @Override
+  public ProbabilityConstraint constraint() {
     return this.constraint;
   }
 
@@ -51,7 +37,8 @@ public class SolverConstraintResult {
    *
    * @return the final cycle's R-squared error as a double.
    */
-  public double getLastError() {
+  @Override
+  public double lastError() {
     return this.lastError;
   }
 
@@ -61,7 +48,8 @@ public class SolverConstraintResult {
    * @return an array of doubles representing per-cycle errors, where index {@code i} maps to cycle
    *     {@code i}.
    */
-  public double[] getErrors() {
+  @Override
+  public double[] errors() {
     return this.errors;
   }
 
@@ -71,7 +59,37 @@ public class SolverConstraintResult {
    * @return an array of doubles representing consecutive cycle error changes, where index {@code i}
    *     maps to cycle {@code i}.
    */
-  public double[] getLosses() {
+  @Override
+  public double[] losses() {
     return this.losses;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) return false;
+    SolverConstraintResult that = (SolverConstraintResult) object;
+    return Double.compare(lastError, that.lastError) == 0
+        && Objects.deepEquals(errors, that.errors)
+        && Objects.deepEquals(losses, that.losses)
+        && Objects.equals(constraint, that.constraint);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(constraint, lastError, Arrays.hashCode(errors), Arrays.hashCode(losses));
+  }
+
+  @Override
+  public String toString() {
+    return "SolverConstraintResult{"
+        + "constraint="
+        + constraint
+        + ", lastError="
+        + lastError
+        + ", errors="
+        + Arrays.toString(errors)
+        + ", losses="
+        + Arrays.toString(losses)
+        + '}';
   }
 }

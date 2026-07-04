@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 
 /**
  * Contains the results of a {@link BayesSolver} Iterative Proportional Fitting Procedure (IPFP).
@@ -20,29 +19,20 @@ import lombok.Data;
  * @see SolverConstraintResult
  * @see BayesSolver
  * @author Alec Redmond
+ * @param cycles The total number of cycles completed by the solver.
+ * @param constraintResults A map that connects each constraint to its specific result, including
+ *     details of per-cycle error and loss rates. The map is a {@link LinkedHashMap}, sorted in
+ *     reverse order of final cycle R-squared error.
+ * @param finalError The final aggregate R-squared error between the fitted data and the expected
+ *     constraint data, measured over the last cycle of the solver's execution.
+ * @param solverRunDuration The total duration of the solver's IPFP run.
  */
-@SuppressWarnings("LombokGetterMayBeUsed")
-@Data
-public class SolverResults {
-
-  /** The total number of cycles completed by the solver. */
-  private final int cycles;
-
-  /**
-   * A map that connects each constraint to its specific result, including details of per-cycle
-   * error and loss rates. The map is a {@link LinkedHashMap}, sorted in reverse order of final
-   * cycle R-squared error.
-   */
-  private final Map<ProbabilityConstraint, SolverConstraintResult> constraintResults;
-
-  /**
-   * The final aggregate R-squared error between the fitted data and the expected constraint data,
-   * measured over the last cycle of the solver's execution.
-   */
-  private final double finalError;
-
-  /** The total duration of the solver's IPFP run. */
-  private final Duration solverRunDuration;
+@SuppressWarnings("unused")
+public record SolverResults(
+    int cycles,
+    Map<ProbabilityConstraint, SolverConstraintResult> constraintResults,
+    double finalError,
+    Duration solverRunDuration) {
 
   /**
    * Returns the detailed result for a single constraint over the course of the solver run,
@@ -81,7 +71,7 @@ public class SolverResults {
     for (SolverConstraintResult result : constraintResults.values()) {
       if (goal <= 0.0) break;
       worstResults.add(result);
-      goal -= result.getLastError();
+      goal -= result.lastError();
     }
     return worstResults;
   }
@@ -91,7 +81,8 @@ public class SolverResults {
    *
    * @return the total number of integer cycles.
    */
-  public int getCycles() {
+  @Override
+  public int cycles() {
     return this.cycles;
   }
 
@@ -100,7 +91,8 @@ public class SolverResults {
    *
    * @return a new {@link Map} sorted in descending order of final cycle R-squared error.
    */
-  public Map<ProbabilityConstraint, SolverConstraintResult> getConstraintResults() {
+  @Override
+  public Map<ProbabilityConstraint, SolverConstraintResult> constraintResults() {
     return Map.copyOf(this.constraintResults);
   }
 
@@ -109,7 +101,8 @@ public class SolverResults {
    *
    * @return the final aggregate error value as a double.
    */
-  public double getFinalError() {
+  @Override
+  public double finalError() {
     return this.finalError;
   }
 
@@ -122,7 +115,8 @@ public class SolverResults {
    *
    * @return a {@link Duration} representing solver execution time.
    */
-  public Duration getSolverRunDuration() {
+  @Override
+  public Duration solverRunDuration() {
     return this.solverRunDuration;
   }
 }

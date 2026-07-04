@@ -1,3 +1,9 @@
+/**
+ * Defines the API for AR_BayesSolver, containing tools for construction, solving, and inference on
+ * Bayesian Networks.
+ *
+ * @author Alec Redmond
+ */
 module BayesSolver {
   requires java.datatransfer;
   requires static lombok;
