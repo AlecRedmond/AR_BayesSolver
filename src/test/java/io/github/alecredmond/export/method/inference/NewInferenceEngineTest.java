@@ -65,7 +65,7 @@ public class NewInferenceEngineTest {
                 double expected = constraint.getProbability();
                 double actual = test.getPosteriorProbability(constraint.getEventStates());
                 if (results != null) {
-                  assertTrue(results.getResult(constraint).getLastError() < DELTA);
+                  assertTrue(results.getResult(constraint).lastError() < DELTA);
                 }
                 assertEquals(expected, actual, DELTA);
               });

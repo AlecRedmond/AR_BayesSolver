@@ -30,6 +30,7 @@ import lombok.NonNull;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class NodeState {
+
   /** The unique identifier for this state. */
   @EqualsAndHashCode.Include private final Serializable id;
 
@@ -49,15 +50,30 @@ public class NodeState {
     this.node = node;
   }
 
+  /**
+   * Returns a string representation of this state, which corresponds to its identifier.
+   *
+   * @return the string representation of the state identifier
+   */
   @Override
   public String toString() {
     return id.toString();
   }
 
+  /**
+   * Returns the unique identifier for this {@code NodeState}.
+   *
+   * @return the {@link Serializable} identifier of this state
+   */
   public Serializable getId() {
     return this.id;
   }
 
+  /**
+   * Returns the parent {@link Node} associated with this state.
+   *
+   * @return the {@link Node} instance that exhibits this state
+   */
   public Node getNode() {
     return this.node;
   }

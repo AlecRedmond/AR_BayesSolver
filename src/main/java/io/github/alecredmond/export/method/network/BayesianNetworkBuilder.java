@@ -10,7 +10,6 @@ import io.github.alecredmond.internal.method.network.NetworkInputBuilder;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
 
 /**
  * Streamlines the construction of a {@link BayesianNetwork}.
@@ -31,10 +30,14 @@ import lombok.Data;
  * @author Alec Redmond
  */
 @SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "unused"})
-@Data
 public class BayesianNetworkBuilder {
+  /**
+   * A list of {@link NetworkBuilderNode} objects, each containing the information for a {@link
+   * Node} to be built in the new {@link BayesianNetwork}.
+   */
+  private final List<NetworkBuilderNode<?>> nodeInputs = new ArrayList<>();
+  /** The name of the new {@link BayesianNetwork} to be built. */
   private String networkName;
-  private List<NetworkBuilderNode<?>> nodeInputs = new ArrayList<>();
 
   /**
    * Constructs an empty {@code BayesianNetworkBuilder} with the default network name {@code
@@ -188,19 +191,32 @@ public class BayesianNetworkBuilder {
     return this;
   }
 
+  /**
+   * Retrieves the name of the {@link BayesianNetwork} this builder will construct.
+   *
+   * @return the name of the new network.
+   */
   public String getNetworkName() {
     return this.networkName;
   }
 
+  /**
+   * Sets the name of the {@link BayesianNetwork} this builder will construct.
+   *
+   * @param networkName the name of the new network.
+   */
   public void setNetworkName(String networkName) {
     this.networkName = networkName;
   }
 
+  /**
+   * Returns the list of node builder objects in this {@code BayesianNetworkBuilder}. Each {@link
+   * NetworkBuilderNode} contains all the information required to construct a single {@link Node}
+   * within the new {@link BayesianNetwork}.
+   *
+   * @return the current list of {@link NetworkBuilderNode}s.
+   */
   public List<NetworkBuilderNode<?>> getNodeInputs() {
     return this.nodeInputs;
-  }
-
-  public void setNodeInputs(List<NetworkBuilderNode<?>> nodeInputs) {
-    this.nodeInputs = nodeInputs;
   }
 }

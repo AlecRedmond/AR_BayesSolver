@@ -3,15 +3,14 @@ package io.github.alecredmond.export.application.probabilitytables;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.probabilitytables.NetworkTableQueryTool;
 import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryTool;
 
 /**
  * An unconditional probability table for a root {@link Node} within a {@link BayesianNetwork}. Root
- * nodes have no parents, so this table contains one entry per {@link NodeState} of the associated
- * {@link Node}, representing the prior probability of each state.
+ * nodes have no parents; therefore, this table contains exactly one entry per {@link NodeState} of
+ * the associated node, defining the explicit prior probability distribution of each state.
  *
- * <p>Instances of this interface are not thread-safe. External synchronisation is required for
+ * <p>Instances of this interface are not thread-safe. External synchronization is required for
  * concurrent access.
  *
  * @see ProbabilityTable
@@ -20,11 +19,14 @@ import io.github.alecredmond.export.method.probabilitytables.RootNodeTableQueryT
  * @author Alec Redmond
  */
 public interface RootNodeTable extends NetworkTable {
+
   /**
-   * Returns the {@link RootNodeTableQueryTool} for this table. {@link RootNodeTableQueryTool} extends
-   * {@link NetworkTableQueryTool} with additional methods specific to unconditional root node tables.
+   * {@inheritDoc}
    *
-   * @return the {@link RootNodeTableQueryTool} for this {@code RootNodeTable}.
+   * <p>Returns a specialized {@link RootNodeTableQueryTool} containing additional utility methods
+   * specific to unconditional root node tables.
+   *
+   * @return the root node table query tool for this table.
    */
   @Override
   RootNodeTableQueryTool getQueryTool();
