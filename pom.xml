@@ -50,6 +50,12 @@
             <version>3.20.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>7.34.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

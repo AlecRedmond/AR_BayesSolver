@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum ValidatorType {
+  ALL_NODES_HAVE_STATES(NetworkStatesValidator::new),
   ID_VALIDATOR(NetworkIdValidator::new),
   STRUCTURE_VALIDATOR(NetworkStructureValidator::new),
   CONSTRAINT_VALIDATOR(NetworkConstraintValidator::new);
