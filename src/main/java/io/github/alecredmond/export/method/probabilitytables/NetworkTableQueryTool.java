@@ -74,7 +74,7 @@ public interface NetworkTableQueryTool extends TableQueryTool {
    * Returns every {@link CptEntry} within this {@code NetworkTable}. A {@link CptEntry} contains
    * details of the measured {@link NodeState} within the table's Network {@link Node}, any
    * conditioning states acting upon it, its conditional probability, and a reference to its index
-   * in the probability {@link double[]} in this {@code NetworkTable}.
+   * in the probability {@code double[]} in this {@code NetworkTable}.
    *
    * @return A new list of {@link CptEntry} records, ordered identically to this {@code
    *     NetworkTable}'s probability array.
