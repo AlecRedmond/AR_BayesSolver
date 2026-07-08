@@ -8,6 +8,8 @@
     <artifactId>ar-bayes-solver</artifactId>
     <version>1.0.0</version>
     <name>AR_BayesSolver</name>
+    <description>A library for Bayesian Network solving and inference.</description>
+    <url>https://github.com/AlecRedmond/AR_BayesSolver/tree/master/</url>
     <licenses>
         <license>
             <name>MIT License</name>
