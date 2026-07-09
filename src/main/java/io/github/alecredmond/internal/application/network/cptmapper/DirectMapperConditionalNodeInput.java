@@ -4,8 +4,8 @@ import io.github.alecredmond.export.application.constraints.ConditionalConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
-import io.github.alecredmond.internal.method.inference.solver.cptmapper.ConditionalCPTMapperIterator;
-import io.github.alecredmond.internal.method.inference.solver.cptmapper.CptMapperIterator;
+import io.github.alecredmond.internal.method.inference.solver.cptmapper.iterator.ConditionalCPTMapperIterator;
+import io.github.alecredmond.internal.method.inference.solver.cptmapper.iterator.CptMapperIterator;
 
 public class DirectMapperConditionalNodeInput
     extends DirectMapperNodeInput<

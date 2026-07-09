@@ -4,7 +4,7 @@ import io.github.alecredmond.export.application.constraints.ProbabilityConstrain
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
-import io.github.alecredmond.internal.method.inference.solver.cptmapper.CptMapperIterator;
+import io.github.alecredmond.internal.method.inference.solver.cptmapper.iterator.CptMapperIterator;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

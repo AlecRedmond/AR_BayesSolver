@@ -13,6 +13,7 @@ import io.github.alecredmond.internal.application.network.cptmapper.CptMapperDat
 import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperConditionalNodeInput;
 import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperNodeInput;
 import io.github.alecredmond.internal.application.network.cptmapper.DirectMapperRootNodeInput;
+import io.github.alecredmond.internal.method.inference.solver.cptmapper.report.CptMappingReport;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class DirectCptMapper {
   }
 
   public boolean tryDirectImpute() {
+    List<CptMappingReport> reports = performDirectImpute();
+
     if (!onlyConditionalAndMarginalConstraintsInNetwork()) return false;
     fillMapperNodes();
     return marginalConstraintsMatchRootNodeTables()
@@ -37,7 +40,11 @@ public class DirectCptMapper {
         && directCPTMappingRanSuccessfully();
   }
 
-  private boolean onlyConditionalAndMarginalConstraintsInNetwork() {
+    private List<CptMappingReport> performDirectImpute() {
+      //TODO =THIS
+    }
+
+    private boolean onlyConditionalAndMarginalConstraintsInNetwork() {
     return mapperData.getAllConstraints().stream()
         .allMatch(p -> p instanceof MarginalConstraint || p instanceof ConditionalConstraint);
   }
