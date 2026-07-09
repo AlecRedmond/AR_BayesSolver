@@ -4,7 +4,7 @@ package io.github.alecredmond.export.method.inference;
  * The variants of direct inference an {@code InferenceEngine} can perform. These are set on the
  * creation of an {@code InferenceEngine} instance and cannot be changed. There are currently two
  * variants of inference that can be used, and the default can be configured in {@code
- * app.properties} using {@code app.inference.defaultInferenceAlgorithm}.
+ * app.properties} using {@code app.bayes.inference.defaultInferenceAlgorithm}.
  *
  * <ul>
  *   <li><b>JUNCTION_TREE_ALGORITHM</b> (JTA) is the default inference algorithm and its use is

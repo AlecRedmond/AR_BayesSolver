@@ -6,7 +6,7 @@
 
     <groupId>io.github.alecredmond</groupId>
     <artifactId>ar-bayes-solver</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>AR_BayesSolver</name>
     <description>A library for Bayesian Network solving and inference.</description>
     <url>https://github.com/AlecRedmond/AR_BayesSolver/tree/master/</url>

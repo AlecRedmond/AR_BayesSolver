@@ -5,7 +5,7 @@ package io.github.alecredmond.export.method.inference;
  * These can be manually specified in a {@link BayesSolver} instance using {@link
  * BayesSolver#solve(SolverAlgorithm)} or {@link BayesSolver#forceSolve(SolverAlgorithm)}. When not
  * manually specified, the solver will use the default variant in {@code app.properties} under
- * {@code app.solver.defaultSolverAlgorithm}.
+ * {@code app.bayes.solver.defaultSolverAlgorithm}.
  *
  * <p>There are two IPFP variants:
  *
