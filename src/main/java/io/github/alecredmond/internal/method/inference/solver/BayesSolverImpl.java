@@ -70,9 +70,6 @@ public class BayesSolverImpl extends JTASolver implements BayesSolver {
   private boolean tryDirectCPTInput() {
     boolean mapped = directCptMapper.tryDirectImpute();
     if (mapped) {
-      log.info(
-          "Constraints on Network '{}' match a complete CPT entry set and were written directly to the network.",
-          network.getNetworkData().getNetworkName());
       network.getNetworkData().setSolved(true);
     }
     return mapped;

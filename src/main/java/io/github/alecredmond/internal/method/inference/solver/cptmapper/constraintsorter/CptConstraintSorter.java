@@ -10,8 +10,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public abstract class CptConstraintSorter<
-    P extends ProbabilityConstraint, T extends NetworkTable> {
+public abstract class CptConstraintSorter<P extends ProbabilityConstraint, T extends NetworkTable> {
   private final Function<ProbabilityConstraint, P> conversionFunc;
   private final Predicate<ProbabilityConstraint> instanceOfP;
   private final BiPredicate<P, T> constraintIsCptEntry;
@@ -37,7 +36,6 @@ public abstract class CptConstraintSorter<
             .map(conversionFunc)
             .filter(p -> constraintIsCptEntry.test(p, networkTable))
             .toList();
-
     return radixSortConstraints(cptEntryConstraints);
   }
 

@@ -1,12 +1,12 @@
 package io.github.alecredmond.internal.method.inference.solver.cptmapper.iterator;
 
-import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.application.node.Node;
 import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
+import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import io.github.alecredmond.internal.method.inference.solver.cptmapper.constraintsorter.CptConstraintSorter;
 import io.github.alecredmond.internal.method.inference.solver.cptmapper.report.CptMappingReport;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;
@@ -66,18 +66,16 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     if (constraintOpt.isPresent()) {
       P constraint = constraintOpt.get();
       double probability = constraint.getProbability();
-      validateProbability(probability, constraint);
       entryCheck.remainder = entryCheck.remainder.subtract(BigDecimal.valueOf(probability));
       entryCheck.addConstraint(constraint, index);
     } else {
-      entryCheck.missingInRow++;
       entryCheck.addMissingConstraint(states, index);
     }
   }
 
   private boolean validateRowAndBuildMissing(
       MissingEntryCheck entryCheck, List<P> addedConstraints, VectorOdometer odometer) {
-    return switch (entryCheck.missingInRow) {
+    return switch (entryCheck.missingRowIndexes.size()) {
       case 0 -> directMapFullRow(entryCheck, odometer);
       case 1 -> directMapWithOneMissing(entryCheck, addedConstraints, odometer);
       default -> directMapOnlyIfRemainderIsZero(entryCheck, addedConstraints, odometer);
@@ -91,13 +89,6 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
         .map(c -> entryCheck.constraintQueue.poll());
   }
 
-  private void validateProbability(double probability, P constraint) {
-    if (probability > 1.0 || probability < 0.0) {
-      throw new ConstraintValidationException(
-          "Constraint %s had an illegal probability!".formatted(constraint));
-    }
-  }
-
   private boolean directMapFullRow(MissingEntryCheck entryCheck, VectorOdometer odometer) {
     if (!DoublePrecision.fuzzyEquals(entryCheck.remainder.doubleValue(), 0)) {
       throw new IllegalStateException(getIllegalSumString(entryCheck));
@@ -107,7 +98,7 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
 
   private boolean directMapWithOneMissing(
       MissingEntryCheck entryCheck, List<P> addedConstraints, VectorOdometer odometer) {
-    addedConstraints.add(validateAndInsertMissing(entryCheck, validator));
+    addedConstraints.add(validateAndInsertMissing(entryCheck));
     return writeFullConstraintRow(entryCheck, odometer);
   }
 
@@ -116,7 +107,7 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     if (!DoublePrecision.fuzzyEquals(entryCheck.remainder.doubleValue(), 0.0)) {
       return writeNormalizedConstraintRow(entryCheck, odometer);
     }
-    addedConstraints.addAll(addZeroProbabilityConstraints(entryCheck, validator));
+    addedConstraints.addAll(addZeroProbabilityConstraints(entryCheck));
     return writeFullConstraintRow(entryCheck, odometer);
   }
 
@@ -124,24 +115,30 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
 
   private boolean writeFullConstraintRow(MissingEntryCheck entryCheck, VectorOdometer odometer) {
     double[] probabilities = odometer.getProbabilities();
-    P[] constraints = entryCheck.rowConstraints;
-    for (int i = 0; i < constraints.length; i++) {
-      probabilities[i + entryCheck.rowStartIndex] = constraints[i].getProbability();
+    P[] rowConstraints = entryCheck.rowConstraints;
+    for (int i = 0; i < rowConstraints.length; i++) {
+      probabilities[i + entryCheck.rowStartIndex] = rowConstraints[i].getProbability();
     }
     return true;
   }
 
-  protected abstract P validateAndInsertMissing(
-      MissingEntryCheck entryCheck, CPTConstraintValidator<P, ?> validator);
+  protected P validateAndInsertMissing(MissingEntryCheck entryCheck) {
+    double probability = entryCheck.remainder.doubleValue();
+    int missingRowIndex = entryCheck.missingRowIndexes.getFirst();
+    NodeState[] missingStates = entryCheck.statesMissingConstraints[missingRowIndex];
+    P constraint = buildAndValidateConstraint(missingStates, probability).getConstraint();
+    entryCheck.rowConstraints[missingRowIndex] = constraint;
+    return constraint;
+  }
 
   private boolean writeNormalizedConstraintRow(
       MissingEntryCheck entryCheck, VectorOdometer odometer) {
     double[] probabilities = odometer.getProbabilities();
-    P[] constraints = entryCheck.rowConstraints;
+    P[] rowConstraints = entryCheck.rowConstraints;
     double normalizedRemainder = getNormalizedRemainder(entryCheck);
-    for (int i = 0; i < constraints.length; i++) {
-      if (constraints[i] != null) {
-        probabilities[i + entryCheck.rowStartIndex] = constraints[i].getProbability();
+    for (int i = 0; i < rowConstraints.length; i++) {
+      if (rowConstraints[i] != null) {
+        probabilities[i + entryCheck.rowStartIndex] = rowConstraints[i].getProbability();
       } else {
         probabilities[i + entryCheck.rowStartIndex] = normalizedRemainder;
       }
@@ -149,11 +146,22 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     return DoublePrecision.fuzzyEquals(normalizedRemainder, 0.0);
   }
 
-  protected abstract Collection<P> addZeroProbabilityConstraints(
-      MissingEntryCheck entryCheck, CPTConstraintValidator<P, ?> validator);
+  protected Collection<P> addZeroProbabilityConstraints(MissingEntryCheck entryCheck) {
+    List<P> added = new ArrayList<>();
+    for (int missingRowIndex : entryCheck.missingRowIndexes) {
+      NodeState[] missingStates = entryCheck.statesMissingConstraints[missingRowIndex];
+      P constraint = buildAndValidateConstraint(missingStates, 0.0).getConstraint();
+      entryCheck.rowConstraints[missingRowIndex] = constraint;
+      added.add(constraint);
+    }
+    return added;
+  }
+
+  protected abstract ValidatedConstraint<P> buildAndValidateConstraint(
+      NodeState[] missingStates, double probability);
 
   private double getNormalizedRemainder(MissingEntryCheck entryCheck) {
-    return entryCheck.remainder.doubleValue() / entryCheck.missingInRow;
+    return entryCheck.remainder.doubleValue() / entryCheck.missingRowIndexes.size();
   }
 
   @Override
@@ -171,13 +179,14 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     protected BigDecimal remainder;
     protected int rowStartIndex;
     protected P[] rowConstraints;
-    protected NodeState[][] missingConstraints;
-    protected int missingInRow;
+    protected NodeState[][] statesMissingConstraints;
+    protected List<Integer> missingRowIndexes;
 
     protected MissingEntryCheck(List<P> constraints, P[] rowConstraintsArray) {
       constraintQueue = new ArrayDeque<>(constraints);
       rowConstraints = rowConstraintsArray;
-      missingConstraints = new NodeState[rowConstraints.length][];
+      statesMissingConstraints = new NodeState[rowConstraints.length][];
+      missingRowIndexes = new ArrayList<>();
     }
 
     public void addConstraint(P constraint, int index) {
@@ -185,14 +194,17 @@ public abstract class CptMapperIterator<T extends NetworkTable, P extends Probab
     }
 
     public void addMissingConstraint(NodeState[] states, int index) {
-      missingConstraints[index - rowStartIndex] = states;
+      int rowIndex = index - rowStartIndex;
+      statesMissingConstraints[rowIndex] = Arrays.copyOf(states, states.length);
+      missingRowIndexes.add(rowIndex);
     }
 
     protected void setNewRow(int rowStartIndex) {
       this.rowStartIndex = rowStartIndex;
       this.remainder = BigDecimal.ONE;
+      this.missingRowIndexes.clear();
       Arrays.fill(rowConstraints, null);
-      Arrays.fill(missingConstraints, null);
+      Arrays.fill(statesMissingConstraints, null);
     }
   }
 }
