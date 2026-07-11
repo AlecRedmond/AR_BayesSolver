@@ -5,40 +5,39 @@ import lombok.Getter;
 @Getter
 public enum AppProperty {
   // Directory Properties
-  DIRECTORY_ROOT("app.directory.rootDirectory"),
-  DIRECTORY_PRINTER("app.directory.printerDirectory"),
-  DIRECTORY_SAVE("app.directory.saveDirectory"),
+  DIRECTORY_ROOT("app.bayes.directory.rootDirectory"),
+  DIRECTORY_PRINTER("app.bayes.directory.printerDirectory"),
+  DIRECTORY_SAVE("app.bayes.directory.saveDirectory"),
 
   // Inference Properties
-  INFERENCE_ALGORITHM("app.inference.defaultInferenceAlgorithm"),
+  INFERENCE_ALGORITHM("app.bayes.inference.defaultInferenceAlgorithm"),
 
   // Solver Properties
-  SOLVER_ALGORITHM("app.solver.defaultSolverAlgorithm"),
-  SOLVER_CYCLES_LIMIT("app.solver.cyclesLimit"),
-  SOLVER_TIME_LIMIT_SECONDS("app.solver.timeLimitSeconds"),
-  SOLVER_LOG_PROGRESS("app.solver.logSolverProgress"),
-  SOLVER_LOG_INTERVAL_SECONDS("app.solver.logIntervalSeconds"),
-  SOLVER_CONVERGE_THRESHOLD("app.solver.convergeThreshold"),
+  SOLVER_ALGORITHM("app.bayes.solver.defaultSolverAlgorithm"),
+  SOLVER_CYCLES_LIMIT("app.bayes.solver.cyclesLimit"),
+  SOLVER_TIME_LIMIT_SECONDS("app.bayes.solver.timeLimitSeconds"),
+  SOLVER_LOG_PROGRESS("app.bayes.solver.logSolverProgress"),
+  SOLVER_LOG_INTERVAL_SECONDS("app.bayes.solver.logIntervalSeconds"),
+  SOLVER_CONVERGE_THRESHOLD("app.bayes.solver.convergeThreshold"),
 
   // Internal Properties
-  INTERNAL_DOUBLE_EQUALITY("app.internal.doubleEqualityPrecision"),
+  INTERNAL_DOUBLE_EQUALITY("app.bayes.internal.doubleEqualityPrecision"),
 
   // Printer Properties
-  PRINTER_OPEN_FILE_ON_CREATION("app.printer.openFileOnCreation"),
-  PRINTER_OPEN_FOLDER_ON_CREATION("app.printer.openFolderOnCreation"),
-  PRINTER_PRINT_TO_CONSOLE("app.printer.printToConsole"),
-  PRINTER_PRINT_TO_TEXT_FILE("app.printer.printToTextFile"),
-  PRINTER_OBSERVED_FILE_TITLE("app.printer.observedFileTitle"),
-  PRINTER_NETWORK_FILE_TITLE("app.printer.networkFileTitle"),
-  PRINTER_PROB_DECIMAL_PLACES("app.printer.probDecimalPlaces"),
+  PRINTER_OPEN_FILE_ON_CREATION("app.bayes.printer.openFileOnCreation"),
+  PRINTER_OPEN_FOLDER_ON_CREATION("app.bayes.printer.openFolderOnCreation"),
+  PRINTER_PRINT_TO_CONSOLE("app.bayes.printer.printToConsole"),
+  PRINTER_PRINT_TO_TEXT_FILE("app.bayes.printer.printToTextFile"),
+  PRINTER_OBSERVED_FILE_TITLE("app.bayes.printer.observedFileTitle"),
+  PRINTER_NETWORK_FILE_TITLE("app.bayes.printer.networkFileTitle"),
+  PRINTER_PROB_DECIMAL_PLACES("app.bayes.printer.probDecimalPlaces"),
 
   // Extension Properties
-  EXTENSION_FILE_TYPE("app.extension.fileExtension");
+  EXTENSION_FILE_TYPE("app.bayes.extension.fileExtension");
 
   private final String key;
 
   AppProperty(String key) {
     this.key = key;
   }
-
 }

@@ -20,11 +20,11 @@ import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
  * <p>Two IPFP variants are currently available; a full joint-distribution procedure ({@link
  * SolverAlgorithm#SINGLE_TABLE_IPFP}), and a Junction Tree Algorithm-derived procedure ({@link
  * SolverAlgorithm#JUNCTION_TREE_IPFP}). The default variant is controlled by {@code
- * app.solver.defaultSolverAlgorithm} in {@code app.properties} (default: {@code
+ * app.bayes.solver.defaultSolverAlgorithm} in {@code app.properties} (default: {@code
  * JUNCTION_TREE_IPFP}).
  *
  * <p>Additional solver properties - including the maximum number of cycles, time limits, and
- * convergence thresholds - are configurable under the {@code app.solver} section of {@code
+ * convergence thresholds - are configurable under the {@code app.bayes.solver} section of {@code
  * app.properties}.
  *
  * @see SolverResults
@@ -46,7 +46,7 @@ public interface BayesSolver {
   /**
    * Runs the solver using the IPFP variant configured in {@code app.properties}, unless the network
    * has already been solved. The active variant is controlled by {@code
-   * app.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
+   * app.bayes.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
    * during the process is caught and logged rather than propagated.
    *
    * <p><i>Note: This method will first call {@link #writeCPTsFromConstraints()}, which will run in
@@ -72,7 +72,7 @@ public interface BayesSolver {
   /**
    * Runs the solver using the IPFP variant configured in {@code app.properties}, regardless of
    * whether the network has already been solved. The active variant is controlled by {@code
-   * app.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
+   * app.bayes.solver.defaultSolverAlgorithm} (default: {@code JUNCTION_TREE_IPFP}). Any exception thrown
    * during the solving process is caught and logged rather than propagated.
    *
    * <p><i>Note: This method will first call {@link #writeCPTsFromConstraints()}, which will run in

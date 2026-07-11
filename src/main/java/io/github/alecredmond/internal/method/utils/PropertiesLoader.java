@@ -2,23 +2,44 @@ package io.github.alecredmond.internal.method.utils;
 
 import io.github.alecredmond.exceptions.PropertiesLoaderException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PropertiesLoader {
-  private static final String PROPERTIES_FILE = "/app.properties";
+  private static final String DEFAULT_PROPERTIES = "/app-default.properties";
+  private static final String USER_PROPERTIES = "app.properties";
   private static final Pattern SYSTEM_PROPS_REGEX = Pattern.compile("\\$\\$(.*?)\\$\\$");
   private final Properties properties;
 
   public PropertiesLoader() {
     properties = new Properties();
-    try {
-      properties.load(PropertiesLoader.class.getResourceAsStream(PROPERTIES_FILE));
+    loadDefaultProps();
+    loadUserProps();
+  }
+
+  private void loadDefaultProps() {
+    try (InputStream defaultStream =
+        PropertiesLoader.class.getResourceAsStream(DEFAULT_PROPERTIES)) {
+      properties.load(defaultStream);
     } catch (IOException e) {
       throw new PropertiesLoaderException(e);
+    }
+  }
+
+  private void loadUserProps() {
+    try (InputStream userStream =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(USER_PROPERTIES)) {
+      properties.load(userStream);
+    } catch (IOException e) {
+      log.warn("User Properties Warning: {}", e.getMessage());
+    } catch (NullPointerException e) {
+      log.warn("User Properties file {} does not exist! Using defaults...", USER_PROPERTIES);
     }
   }
 

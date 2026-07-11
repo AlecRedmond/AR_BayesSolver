@@ -26,7 +26,28 @@ can be expected for Bayesian Networks with fewer than ~200 Nodes.
 
 # Installation
 
-- Planned release on Maven Central soon.
+## Maven
+
+Add the latest release as a dependency in your pom.xml:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.github.alecredmond</groupId>
+        <artifactId>ar-bayes-solver</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+</dependencies>
+```
+
+And add BayesSolver as a requirement to your module-info:
+
+```java
+module MyNewProject {
+    requires BayesSolver;
+}
+```
+
 
 # Quick Start
 
@@ -244,7 +265,7 @@ System.out.printf("%.2f", directInferenceProb * numberOfSamples);
 
 ### 9. Using ProbabilityTables from the network.
 
-You can extract the raw probability tables for use in your application.
+You can extract the probability tables for use in your application.
 
 ```Java
 // Extract and query a CPT from the BayesianNetwork
@@ -267,9 +288,5 @@ System.out.printf("%.2f", rainFalsePosterior);
 
 # API
 
-// TODO
-
-# How It Works
-
-// TODO
+[The API documentation can be found here.](https://www.javadoc.io/doc/io.github.alecredmond/ar-bayes-solver/latest/BayesSolver/module-summary.html)
 
