@@ -9,7 +9,7 @@ import io.github.alecredmond.export.application.node.NodeState;
 import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
 import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
+import io.github.alecredmond.internal.method.solver.BayesSolverImpl;
 
 /**
  * A solver that provides the best fit solution for a {@link BayesianNetwork} given its constraints.
