@@ -39,7 +39,7 @@ public interface InferenceEngine {
   /**
    * Creates an {@code InferenceEngine} from the given {@link BayesianNetwork}, using the default
    * inference variant configured in {@code app.properties}. The active variant is controlled by
-   * {@code app.inference.defaultInferenceAlgorithm} (default: {@code JUNCTION_TREE_ALGORITHM}).
+   * {@code app.bayes.inference.defaultInferenceAlgorithm} (default: {@code JUNCTION_TREE_ALGORITHM}).
    * This will automatically solve the network if it is unsolved.
    *
    * @param network the network where inference is to be run.
@@ -244,7 +244,7 @@ public interface InferenceEngine {
   /**
    * Prints the posterior probability values from all {@link ObservedTable} entries, either to a
    * {@code .txt} file or to the console. Parameters for the printer can be defined within {@code
-   * app.properties} under the {@code app.printer} section.
+   * app.properties} under the {@code app.bayes.printer} section.
    *
    * @return this instance for chaining.
    * @throws NetworkPrinterException if the printer is unable to successfully complete the
@@ -255,7 +255,7 @@ public interface InferenceEngine {
   /**
    * Prints the posterior probability values from the {@link ObservedTable} entries associated with
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * printer can be defined within {@code app.properties} under the {@code app.bayes.printer} section.
    *
    * @param nodeIds the identifiers of all {@link Node} values where the associated {@link
    *     ObservedTable} should be printed.
@@ -270,7 +270,7 @@ public interface InferenceEngine {
   /**
    * Prints the posterior probability values from the {@link ObservedTable} entries associated with
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * printer can be defined within {@code app.properties} under the {@code app.bayes.printer} section.
    *
    * @param nodeId the identifier of the {@link Node} where the associated {@link ObservedTable}
    *     should be printed.
@@ -285,7 +285,7 @@ public interface InferenceEngine {
   /**
    * Prints the posterior probability values from the {@link ObservedTable} entries associated with
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * printer can be defined within {@code app.properties} under the {@code app.bayes.printer} section.
    *
    * @param nodes all {@link Node} values where the associated {@link ObservedTable} should be
    *     printed.
@@ -298,7 +298,7 @@ public interface InferenceEngine {
   /**
    * Prints the posterior probability values from the {@link ObservedTable} entries associated with
    * the given {@link Node}, either to a {@code .txt} file or to the console. Parameters for the
-   * printer can be defined within {@code app.properties} under the {@code app.printer} section.
+   * printer can be defined within {@code app.properties} under the {@code app.bayes.printer} section.
    *
    * @param node a {@link Node} where the associated {@link ObservedTable} should be printed.
    * @return this instance for chaining.

@@ -700,7 +700,7 @@ public interface BayesianNetwork {
   /**
    * Prints the CPTs of this {@code BayesianNetwork}, either to a {@code .txt} file or to the
    * console. Parameters for the printer can be defined within {@code app.properties} under the
-   * {@code app.printer} section.
+   * {@code app.bayes.printer} section.
    *
    * @return this instance for method chaining.
    */
