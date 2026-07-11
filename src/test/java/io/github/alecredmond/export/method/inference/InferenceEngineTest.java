@@ -10,9 +10,9 @@ import io.github.alecredmond.export.application.probabilitytables.ProbabilityTab
 import io.github.alecredmond.export.method.network.BayesianNetwork;
 import io.github.alecredmond.export.method.sampler.SampleCollection;
 import io.github.alecredmond.export.method.sampler.Sampler;
-import io.github.alecredmond.internal.application.inference.junctiontree.Clique;
-import io.github.alecredmond.internal.method.inference.engine.InferenceEngineImpl;
-import io.github.alecredmond.internal.method.inference.solver.BayesSolverImpl;
+import io.github.alecredmond.internal.application.junctiontree.Clique;
+import io.github.alecredmond.internal.method.inference.InferenceEngineImpl;
+import io.github.alecredmond.internal.method.solver.BayesSolverImpl;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
