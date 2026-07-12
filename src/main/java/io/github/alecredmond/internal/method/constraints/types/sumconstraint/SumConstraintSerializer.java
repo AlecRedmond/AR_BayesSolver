@@ -23,14 +23,14 @@ public class SumConstraintSerializer
       SerializedSumConstraint serialized, SerializationData serializationData) {
     return new SumProbabilityConstraint(
         SerializerUtils.deSerializeNodeStates(
-            serialized.getEventIds(), ArrayList::new, serializationData),
+            serialized.eventIds(), ArrayList::new, serializationData),
         SerializerUtils.deSerializeNodeStates(
-            serialized.getConditionIds(), ArrayList::new, serializationData),
-        serialized.getProbability());
+            serialized.conditionIds(), ArrayList::new, serializationData),
+        serialized.probability());
   }
 
   @Override
-  protected SerializedSumConstraint safeCast(SerializedProbabilityConstraint<?> serialized) {
+  public SerializedSumConstraint safeCast(SerializedProbabilityConstraint serialized) {
     return serialized instanceof SerializedSumConstraint cast ? cast : null;
   }
 }

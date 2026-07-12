@@ -25,15 +25,15 @@ public class JointConstraintSerializer
       SerializedJointProbabilityConstraint serialized, SerializationData serializationData) {
     return new JointProbabilityConstraint(
         SerializerUtils.deSerializeNodeStates(
-            serialized.getEventIds(), ArrayList::new, serializationData),
+            serialized.eventIds(), ArrayList::new, serializationData),
         SerializerUtils.deSerializeNodeStates(
-            serialized.getConditionIds(), ArrayList::new, serializationData),
-        serialized.getProbability());
+            serialized.conditionIds(), ArrayList::new, serializationData),
+        serialized.probability());
   }
 
   @Override
-  protected SerializedJointProbabilityConstraint safeCast(
-      SerializedProbabilityConstraint<?> serialized) {
+  public SerializedJointProbabilityConstraint safeCast(
+      SerializedProbabilityConstraint serialized) {
     return serialized instanceof SerializedJointProbabilityConstraint cast ? cast : null;
   }
 }

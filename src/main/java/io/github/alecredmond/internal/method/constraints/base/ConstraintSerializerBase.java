@@ -10,12 +10,12 @@ import io.github.alecredmond.internal.serialization.SerializationData;
 import java.util.Optional;
 
 public abstract class ConstraintSerializerBase<
-        P extends ProbabilityConstraint, S extends SerializedProbabilityConstraint<P>>
+        P extends ProbabilityConstraint, S extends SerializedProbabilityConstraint>
     implements ConstraintSerializer<P, S> {
 
   @Override
   public P deSerializeAndValidate(
-      SerializedProbabilityConstraint<?> serialized,
+      SerializedProbabilityConstraint serialized,
       ConstraintValidator<P, ?> validator,
       SerializationData serializationData) {
     return Optional.ofNullable(safeCast(serialized))
@@ -25,12 +25,10 @@ public abstract class ConstraintSerializerBase<
         .orElseThrow(() -> supplyWrongTypeException(serialized));
   }
 
-  protected abstract S safeCast(SerializedProbabilityConstraint<?> serialized);
-
   protected ConstraintValidationException supplyWrongTypeException(
-      SerializedProbabilityConstraint<?> serialized) {
+      SerializedProbabilityConstraint serialized) {
     return new ConstraintValidationException(
-        "Serialized Constraint %s had type %s, which was invalid for Constraint Serializer %s"
-            .formatted(serialized, serialized.getConstraintType(), this.getClass()));
+        "Serialized Constraint %s is invalid for Constraint Serializer %s"
+            .formatted(serialized.getClass(), this.getClass()));
   }
 }

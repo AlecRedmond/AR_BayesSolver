@@ -1,37 +1,23 @@
 package io.github.alecredmond.internal.method.constraints;
 
-import io.github.alecredmond.export.constraints.*;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
-import io.github.alecredmond.internal.method.constraints.types.sumconstraint.SumConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.types.jointconstraint.JointConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.types.marginalconstraint.MarginalConstraintStrategy;
-import java.util.Arrays;
-import java.util.function.Predicate;
+import io.github.alecredmond.internal.method.constraints.types.sumconstraint.SumConstraintStrategy;
 import java.util.function.Supplier;
 import lombok.Getter;
 
 @Getter
 public enum ConstraintType {
-  MARGINAL(MarginalConstraint.class::isInstance, MarginalConstraintStrategy::new),
-  CONDITIONAL(ConditionalConstraint.class::isInstance, ConditionalConstraintStrategy::new),
-  JOINT(JointProbabilityConstraint.class::isInstance, JointConstraintStrategy::new),
-  SUM(SumProbabilityConstraint.class::isInstance, SumConstraintStrategy::new);
+  MARGINAL(MarginalConstraintStrategy::new),
+  CONDITIONAL(ConditionalConstraintStrategy::new),
+  JOINT(JointConstraintStrategy::new),
+  SUM(SumConstraintStrategy::new);
 
-  private final Predicate<ProbabilityConstraint> isInstance;
   private final Supplier<ConstraintStrategy<?>> strategySupplier;
 
-  ConstraintType(
-      Predicate<ProbabilityConstraint> isInstance,
-      Supplier<ConstraintStrategy<?>> strategySupplier) {
-    this.isInstance = isInstance;
+  ConstraintType(Supplier<ConstraintStrategy<?>> strategySupplier) {
     this.strategySupplier = strategySupplier;
-  }
-
-  public static <P extends ProbabilityConstraint> ConstraintType getType(P constraint) {
-    return Arrays.stream(ConstraintType.values())
-        .filter(v -> v.isInstance.test(constraint))
-        .findAny()
-        .orElse(null);
   }
 }

@@ -1,6 +1,5 @@
 package io.github.alecredmond.export.network.serialized;
 
-import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.network.BayesianNetworkData;
@@ -34,6 +33,6 @@ public record SerializedBayesianNetwork(
     String networkName,
     List<SerializedNode> serializedNodes,
     Map<Serializable, SerializedNetworkTable> serializedCptMap,
-    List<SerializedProbabilityConstraint<?>> serializedConstraints,
+    List<SerializedProbabilityConstraint> serializedConstraints,
     boolean solved)
     implements Serializable {}

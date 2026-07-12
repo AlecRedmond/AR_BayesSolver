@@ -28,7 +28,7 @@ import java.util.Map;
  * <p>Unlike Monte Carlo sampling (as used in {@link MonteCarloSampler}), which will give an approximate
  * solution, the results of direct inference are both exact and deterministic.
  *
- * <p>Instances of this interface are not thread-safe. External synchronisation is required for
+ * <p>Instances of this interface are not thread-safe. External synchronization is required for
  * concurrent access.
  *
  * @see BayesSolver

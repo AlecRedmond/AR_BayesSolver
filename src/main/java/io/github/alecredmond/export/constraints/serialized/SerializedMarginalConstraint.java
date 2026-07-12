@@ -1,30 +1,19 @@
 package io.github.alecredmond.export.constraints.serialized;
 
 import io.github.alecredmond.export.constraints.MarginalConstraint;
-import io.github.alecredmond.internal.method.constraints.ConstraintType;
+import io.github.alecredmond.export.node.NodeState;
 import java.io.Serializable;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-public class SerializedMarginalConstraint
-    implements SerializedProbabilityConstraint<MarginalConstraint> {
-  private Serializable eventStateId;
-  private double probability;
-
-  public SerializedMarginalConstraint(Serializable eventStateId, double probability) {
-    this.eventStateId = eventStateId;
-    this.probability = probability;
-  }
-
-  @Override
-  public Class<MarginalConstraint> getConstraintClass() {
-    return MarginalConstraint.class;
-  }
-
-  @Override
-  public String getConstraintType() {
-    return ConstraintType.MARGINAL.name();
-  }
-}
+/**
+ * A {@link Serializable} representation of a {@link MarginalConstraint}. {@code
+ * SerializedProbabilityConstraint} records are flattened to contain only the identifiers of the
+ * relevant {@link NodeState}s and the constraint's probability. Compatible with File I/O
+ * operations.
+ *
+ * @param eventStateId the identifier of the measured {@link NodeState}.
+ * @param probability the marginal probability of the measured state.
+ * @see MarginalConstraint
+ * @author Alec Redmond
+ */
+public record SerializedMarginalConstraint(Serializable eventStateId, double probability)
+    implements SerializedProbabilityConstraint {}

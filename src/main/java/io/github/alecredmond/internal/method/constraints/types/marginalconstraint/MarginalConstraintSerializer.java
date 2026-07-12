@@ -19,12 +19,12 @@ public class MarginalConstraintSerializer
   public MarginalConstraint deSerialize(
       SerializedMarginalConstraint serialized, SerializationData serializationData) {
     return new MarginalConstraint(
-        serializationData.getNodeStateIdMap().get(serialized.getEventStateId()),
-        serialized.getProbability());
+        serializationData.getNodeStateIdMap().get(serialized.eventStateId()),
+        serialized.probability());
   }
 
   @Override
-  protected SerializedMarginalConstraint safeCast(SerializedProbabilityConstraint<?> serialized) {
+  public SerializedMarginalConstraint safeCast(SerializedProbabilityConstraint serialized) {
     return serialized instanceof SerializedMarginalConstraint cast ? cast : null;
   }
 }

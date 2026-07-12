@@ -5,7 +5,6 @@ import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableImpl;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.RootNodeTableQueryToolImpl;
-
 import java.util.List;
 
 public class RootNodeTableBuilder extends BaseTableBuilder implements TableBuilder<RootNodeTable> {

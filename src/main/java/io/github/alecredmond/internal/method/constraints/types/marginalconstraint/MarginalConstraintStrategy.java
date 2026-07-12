@@ -2,6 +2,8 @@ package io.github.alecredmond.internal.method.constraints.types.marginalconstrai
 
 import io.github.alecredmond.export.constraints.MarginalConstraint;
 import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedMarginalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import lombok.Getter;
 
@@ -15,10 +17,19 @@ public class MarginalConstraintStrategy implements ConstraintStrategy<MarginalCo
     constraintValidator = new MarginalConstraintValidator();
   }
 
-    @Override
+  @Override
+  public boolean constraintIsInstance(ProbabilityConstraint constraint) {
+    return constraint instanceof MarginalConstraint;
+  }
+
+  @Override
+  public boolean serializedIsInstance(SerializedProbabilityConstraint serialized) {
+    return serialized instanceof SerializedMarginalConstraint;
+  }
+
+  @Override
   public MarginalConstraint safeCastConstraint(ProbabilityConstraint constraint) {
     if (constraint instanceof MarginalConstraint mc) return mc;
     return null;
   }
-
 }

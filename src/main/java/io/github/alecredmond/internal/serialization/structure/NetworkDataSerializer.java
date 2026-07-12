@@ -1,6 +1,5 @@
 package io.github.alecredmond.internal.serialization.structure;
 
-import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
@@ -37,7 +36,7 @@ public class NetworkDataSerializer {
     return convertMap(data.getNetworkTablesMap(), Node::getId, serializer::serialize);
   }
 
-  private List<SerializedProbabilityConstraint<?>>
+  private List<SerializedProbabilityConstraint>
       buildSerializedProbabilityConstraints(BayesianNetworkData data) {
     return new ProbabilityConstraintSerializer().serializeAll(data);
   }
@@ -82,7 +81,7 @@ public class NetworkDataSerializer {
   }
 
   private void deSerializeConstraints(
-      List<SerializedProbabilityConstraint<?>> serializedConstraints, SerializationData data) {
+          List<SerializedProbabilityConstraint> serializedConstraints, SerializationData data) {
     new ProbabilityConstraintSerializer().deserialize(serializedConstraints, data);
   }
 

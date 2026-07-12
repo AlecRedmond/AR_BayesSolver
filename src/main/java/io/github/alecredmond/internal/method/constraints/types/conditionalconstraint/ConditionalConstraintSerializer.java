@@ -23,14 +23,14 @@ public class ConditionalConstraintSerializer
   public ConditionalConstraint deSerialize(
       SerializedConditionalConstraint serialized, SerializationData serializationData) {
     return new ConditionalConstraint(
-        serializationData.getNodeStateIdMap().get(serialized.getEventStateId()),
+        serializationData.getNodeStateIdMap().get(serialized.eventStateId()),
         SerializerUtils.deSerializeNodeStates(
-            serialized.getConditionStateIds(), ArrayList::new, serializationData),
-        serialized.getProbability());
+            serialized.conditionStateIds(), ArrayList::new, serializationData),
+        serialized.probability());
   }
 
   @Override
-  public SerializedConditionalConstraint safeCast(SerializedProbabilityConstraint<?> serialized) {
+  public SerializedConditionalConstraint safeCast(SerializedProbabilityConstraint serialized) {
     return serialized instanceof SerializedConditionalConstraint cast ? cast : null;
   }
 }
