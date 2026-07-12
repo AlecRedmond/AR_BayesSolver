@@ -1,11 +1,17 @@
 package io.github.alecredmond.internal.method.constraints.strategy;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.serialization.SerializationData;
 
-public interface ConstraintSerializer<T extends ProbabilityConstraint> {
-  SerializedProbabilityConstraint<T> serialize(T constraint);
+public interface ConstraintSerializer<
+    T extends ProbabilityConstraint, S extends SerializedProbabilityConstraint<T>> {
+  S serialize(T constraint);
 
-  T deSerialize(SerializedProbabilityConstraint<T> serialized, SerializationData serializationData);
+  T deSerializeAndValidate(
+      SerializedProbabilityConstraint<?> serialized,
+      ConstraintValidator<T, ?> validator,
+      SerializationData serializationData);
+
+  T deSerialize(S serialized, SerializationData serializationData);
 }

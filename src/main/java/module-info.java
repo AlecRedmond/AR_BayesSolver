@@ -13,20 +13,17 @@ module BayesSolver {
   requires java.rmi;
   requires org.apache.commons.lang3;
 
-  exports io.github.alecredmond.export.application.constraints;
-  exports io.github.alecredmond.export.application.inference;
-  exports io.github.alecredmond.export.application.network;
-  exports io.github.alecredmond.export.application.node;
-  exports io.github.alecredmond.export.application.probabilitytables;
-  exports io.github.alecredmond.export.application.probabilitytables.cptentry;
-  exports io.github.alecredmond.export.method.inference;
-  exports io.github.alecredmond.export.method.network;
-  exports io.github.alecredmond.export.method.probabilitytables;
-  exports io.github.alecredmond.export.method.sampler;
-  exports io.github.alecredmond.export.serialization.constraint;
-  exports io.github.alecredmond.export.serialization.network;
-  exports io.github.alecredmond.export.serialization.node;
-  exports io.github.alecredmond.export.serialization.probabilitytable;
-  exports io.github.alecredmond.export.serialization.probabilitytable.probabilityvector;
   exports io.github.alecredmond.exceptions;
+  exports io.github.alecredmond.export.constraints;
+  exports io.github.alecredmond.export.constraints.serialized;
+  exports io.github.alecredmond.export.inference;
+  exports io.github.alecredmond.export.network;
+  exports io.github.alecredmond.export.network.serialized;
+  exports io.github.alecredmond.export.node;
+  exports io.github.alecredmond.export.node.serialized;
+  exports io.github.alecredmond.export.probabilitytables;
+  exports io.github.alecredmond.export.probabilitytables.cptentry;
+  exports io.github.alecredmond.export.probabilitytables.serialized;
+  exports io.github.alecredmond.export.sampler;
+  exports io.github.alecredmond.export.solver;
 }

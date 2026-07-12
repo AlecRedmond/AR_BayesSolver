@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.readwriters.TransferIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetOnlyOnBuild;

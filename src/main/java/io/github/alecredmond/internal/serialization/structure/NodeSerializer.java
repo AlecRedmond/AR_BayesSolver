@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.serialization.structure;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.serialization.node.SerializedNode;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.serialized.SerializedNode;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 

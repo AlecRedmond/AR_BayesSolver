@@ -3,9 +3,9 @@ package io.github.alecredmond.internal.method.printer;
 import static io.github.alecredmond.internal.application.printer.PrinterConfigs.LEFT_PAD_FORMAT;
 import static io.github.alecredmond.internal.application.printer.PrinterConfigs.RIGHT_PAD_FORMAT;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;

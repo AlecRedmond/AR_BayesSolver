@@ -3,6 +3,8 @@ package io.github.alecredmond.export.method.network;
 import static io.github.alecredmond.export.method.network.NetworkScenarioBuilder.*;
 
 import java.util.function.Supplier;
+
+import io.github.alecredmond.export.network.BayesianNetwork;
 import lombok.Getter;
 
 @Getter

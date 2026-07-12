@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.application.probabilitytables;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.method.probabilitytables.ObservedTableQueryTool;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ObservedTable;
+import io.github.alecredmond.export.probabilitytables.ObservedTableQueryTool;
 import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.util.LinkedHashMap;

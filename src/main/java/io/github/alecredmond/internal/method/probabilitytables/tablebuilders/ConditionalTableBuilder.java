@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.tablebuilders;
 
 import io.github.alecredmond.exceptions.TableBuilderException;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.application.probabilitytables.ConditionalTableImpl;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.ConditionalTableQueryToolImpl;
 

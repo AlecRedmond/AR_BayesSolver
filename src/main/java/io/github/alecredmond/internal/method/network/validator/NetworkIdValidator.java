@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.method.network.validator;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.internal.method.network.changehandlers.CollectionChangeAnalyzer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.io.Serializable;

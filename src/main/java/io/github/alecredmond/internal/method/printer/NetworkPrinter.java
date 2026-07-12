@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.printer;
 
 import io.github.alecredmond.exceptions.NetworkPrinterException;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.inference.InferenceEngine;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import java.util.*;
 import java.util.List;

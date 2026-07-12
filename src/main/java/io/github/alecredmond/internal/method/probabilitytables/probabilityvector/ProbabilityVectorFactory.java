@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.method.probabilitytables.probabilityvector;
 
 import io.github.alecredmond.exceptions.ProbabilityVectorFactoryException;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.method.junctiontree.treebuilding.TreewidthValidator;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;

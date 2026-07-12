@@ -6,12 +6,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.export.application.constraints.*;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.inference.BayesSolver;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.constraints.*;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.inference.InferenceEngine;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
@@ -611,16 +612,16 @@ class NewBayesianNetworkTest {
         List<Serializable> conditions,
         double probability,
         ConstraintType type) {
-      ConstraintStrategy<?> strategy = registry.getStrategy(type);
+      ConstraintStrategy<?> strategy = registry.getTypedStrategy(type);
       assertDoesNotThrow(() -> test.addConstraint(events, conditions, probability));
       ProbabilityConstraint constraint = test.getConstraint(events, conditions);
-      assertNotNull(strategy.safeCast(constraint));
+      assertNotNull(strategy.safeCastConstraint(constraint));
       assertTrue(test.removeConstraint(events, conditions));
       assertFalse(test.isSolved());
       ProbabilityConstraint c = createConstraint(events, conditions, probability, test, type);
       assertDoesNotThrow(() -> test.addConstraint(c));
       constraint = test.getConstraint(events, conditions);
-      assertNotNull(strategy.safeCast(constraint));
+      assertNotNull(strategy.safeCastConstraint(constraint));
       assertTrue(test.removeConstraint(events, conditions));
       assertFalse(test.isSolved());
     }

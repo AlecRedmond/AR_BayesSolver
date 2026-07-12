@@ -1,11 +1,11 @@
 package io.github.alecredmond.internal.application.junctiontree;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
-import io.github.alecredmond.export.method.inference.SolverAlgorithm;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ObservedTable;
+import io.github.alecredmond.export.inference.InferenceAlgorithm;
+import io.github.alecredmond.export.solver.SolverAlgorithm;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import java.util.List;
 import java.util.Map;

@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.serialization;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
 import java.io.Serializable;
 import java.util.Map;
 import lombok.Data;

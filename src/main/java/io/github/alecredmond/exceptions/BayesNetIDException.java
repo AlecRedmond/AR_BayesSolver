@@ -1,6 +1,6 @@
 package io.github.alecredmond.exceptions;
 
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.network.BayesianNetwork;
 
 /** Thrown to indicate an illegal identifier was used in a {@link BayesianNetwork}. */
 public class BayesNetIDException extends IllegalArgumentException {

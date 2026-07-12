@@ -5,11 +5,12 @@ import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.SampleCollection;
-import io.github.alecredmond.export.method.sampler.Sampler;
+import io.github.alecredmond.export.inference.InferenceEngine;
+import io.github.alecredmond.export.probabilitytables.ObservedTable;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.sampler.SampleCollection;
+import io.github.alecredmond.export.sampler.MonteCarloSampler;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.method.inference.InferenceEngineImpl;
 import io.github.alecredmond.internal.method.solver.BayesSolverImpl;
@@ -169,7 +170,7 @@ class InferenceEngineTest {
       long upperBound = (long) (expected + expectedDelta);
 
       SampleCollection sampleCollection =
-          Sampler.create(engine.getNetwork()).generateSamples(engine, NUMBER_OF_SAMPLES);
+          MonteCarloSampler.create(engine.getNetwork()).generateSamples(engine, NUMBER_OF_SAMPLES);
       sampleCollection.setDisplayedNodesById(List.of(includedNode));
       int count = sampleCollection.countSamplesIncludingStateIds(List.of(testState));
 

@@ -1,18 +1,19 @@
 package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 
-import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedJointProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
+import io.github.alecredmond.export.constraints.JointProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedJointProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintSerializerBase;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;
 
-public class JointConstraintSerializer implements ConstraintSerializer<JointProbabilityConstraint> {
+public class JointConstraintSerializer
+    extends ConstraintSerializerBase<
+        JointProbabilityConstraint, SerializedJointProbabilityConstraint> {
 
   @Override
-  public SerializedProbabilityConstraint<JointProbabilityConstraint> serialize(
-      JointProbabilityConstraint constraint) {
+  public SerializedJointProbabilityConstraint serialize(JointProbabilityConstraint constraint) {
     return new SerializedJointProbabilityConstraint(
         SerializerUtils.serializeNodeStates(constraint.getEventStates()),
         SerializerUtils.serializeNodeStates(constraint.getConditionStates()),
@@ -21,13 +22,18 @@ public class JointConstraintSerializer implements ConstraintSerializer<JointProb
 
   @Override
   public JointProbabilityConstraint deSerialize(
-      SerializedProbabilityConstraint<JointProbabilityConstraint> serialized,
-      SerializationData serializationData) {
-    SerializedJointProbabilityConstraint sc = (SerializedJointProbabilityConstraint) serialized;
+      SerializedJointProbabilityConstraint serialized, SerializationData serializationData) {
     return new JointProbabilityConstraint(
-        SerializerUtils.deSerializeNodeStates(sc.getEventIds(), ArrayList::new, serializationData),
         SerializerUtils.deSerializeNodeStates(
-            sc.getConditionIds(), ArrayList::new, serializationData),
-        sc.getProbability());
+            serialized.getEventIds(), ArrayList::new, serializationData),
+        SerializerUtils.deSerializeNodeStates(
+            serialized.getConditionIds(), ArrayList::new, serializationData),
+        serialized.getProbability());
+  }
+
+  @Override
+  protected SerializedJointProbabilityConstraint safeCast(
+      SerializedProbabilityConstraint<?> serialized) {
+    return serialized instanceof SerializedJointProbabilityConstraint cast ? cast : null;
   }
 }

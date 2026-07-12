@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.fileio;
 
-import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.serialization.BayesianNetworkSerializer;
 import java.io.*;
 import javax.swing.*;

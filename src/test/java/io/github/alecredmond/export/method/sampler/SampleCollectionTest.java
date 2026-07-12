@@ -4,10 +4,13 @@ import static io.github.alecredmond.TestConfigs.*;
 import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.inference.InferenceEngine;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.sampler.MonteCarloSampler;
+import io.github.alecredmond.export.sampler.Sample;
+import io.github.alecredmond.export.sampler.SampleCollection;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.io.Serializable;
 import java.util.*;
@@ -179,7 +182,7 @@ class SampleCollectionTest {
               .addConstraint("X+", 0.25)
               .addConstraint("Y+", "X-", 0.0)
               .solveNetwork();
-      Sampler sampler = Sampler.create(net);
+      MonteCarloSampler sampler = MonteCarloSampler.create(net);
       SampleCollection collection = sampler.generateSamplesById(List.of("X-", "Y+"), 100);
       assertEquals(0,collection.countSamples());
       assertTrue(collection.getSamples().isEmpty());

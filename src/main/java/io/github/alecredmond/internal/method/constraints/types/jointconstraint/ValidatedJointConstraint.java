@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 
-import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.constraints.JointProbabilityConstraint;
+import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import java.util.Collection;
 import lombok.EqualsAndHashCode;

@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.serialization.structure;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.export.serialization.probabilitytable.probabilityvector.SerializedProbabilityVector;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.probabilitytables.serialized.SerializedProbabilityVector;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
 import io.github.alecredmond.internal.serialization.SerializationData;

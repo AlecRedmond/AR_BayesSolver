@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.vectoriterator.misciterators;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEntry;
-import io.github.alecredmond.export.application.probabilitytables.cptentry.CptRow;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.probabilitytables.cptentry.CptEntry;
+import io.github.alecredmond.export.probabilitytables.cptentry.CptRow;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.resetlogictypes.OdometerResetDefault;

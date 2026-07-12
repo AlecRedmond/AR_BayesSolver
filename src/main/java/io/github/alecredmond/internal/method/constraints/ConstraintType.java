@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.constraints;
 
-import io.github.alecredmond.export.application.constraints.*;
+import io.github.alecredmond.export.constraints.*;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.types.sumconstraint.SumConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintStrategy;

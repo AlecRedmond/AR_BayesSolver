@@ -2,9 +2,9 @@ package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.imp
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.method.probabilitytables.ConditionalTableQueryTool;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.probabilitytables.ConditionalTableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ConditionalTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;

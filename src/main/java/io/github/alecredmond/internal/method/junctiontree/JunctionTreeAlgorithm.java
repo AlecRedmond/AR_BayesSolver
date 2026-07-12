@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.method.junctiontree;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.inference.InferenceAlgorithm;
 import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;

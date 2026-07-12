@@ -3,8 +3,11 @@ package io.github.alecredmond.export.method.inference;
 import static io.github.alecredmond.export.method.network.NetworkScenario.RAIN_NETWORK;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.inference.SolverResults;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.inference.InferenceEngine;
+import io.github.alecredmond.export.solver.SolverAlgorithm;
+import io.github.alecredmond.export.solver.SolverResults;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
 import java.util.ArrayList;
 import java.util.Arrays;

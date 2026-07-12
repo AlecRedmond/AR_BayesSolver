@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.method.probabilitytables.tabletransfer.re
 
 import static io.github.alecredmond.internal.method.utils.DoublePrecision.fuzzyEquals;
 
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.factory.TransferWriterMarginalFactory;
 import io.github.alecredmond.internal.method.vectoriterator.VectorIterator;

@@ -1,15 +1,15 @@
 package io.github.alecredmond.internal.method.constraints.types.conditionalconstraint;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedConditionalConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedConditionalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintSerializerBase;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;
 
 public class ConditionalConstraintSerializer
-    implements ConstraintSerializer<ConditionalConstraint> {
+    extends ConstraintSerializerBase<ConditionalConstraint, SerializedConditionalConstraint> {
 
   @Override
   public SerializedConditionalConstraint serialize(ConditionalConstraint constraint) {
@@ -21,16 +21,16 @@ public class ConditionalConstraintSerializer
 
   @Override
   public ConditionalConstraint deSerialize(
-      SerializedProbabilityConstraint<ConditionalConstraint> serialized,
-      SerializationData serializationData) {
+      SerializedConditionalConstraint serialized, SerializationData serializationData) {
     return new ConditionalConstraint(
-        serializationData
-            .getNodeStateIdMap()
-            .get(((SerializedConditionalConstraint) serialized).getEventStateId()),
+        serializationData.getNodeStateIdMap().get(serialized.getEventStateId()),
         SerializerUtils.deSerializeNodeStates(
-            ((SerializedConditionalConstraint) serialized).getConditionStateIds(),
-            ArrayList::new,
-            serializationData),
-        ((SerializedConditionalConstraint) serialized).getProbability());
+            serialized.getConditionStateIds(), ArrayList::new, serializationData),
+        serialized.getProbability());
+  }
+
+  @Override
+  public SerializedConditionalConstraint safeCast(SerializedProbabilityConstraint<?> serialized) {
+    return serialized instanceof SerializedConditionalConstraint cast ? cast : null;
   }
 }

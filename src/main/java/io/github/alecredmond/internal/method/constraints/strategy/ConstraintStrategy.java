@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.constraints.strategy;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.base.ConstraintSolverBase;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
 
@@ -12,9 +12,7 @@ public interface ConstraintStrategy<T extends ProbabilityConstraint> {
 
   ConstraintValidator<T, ?> getConstraintValidator();
 
-  ConstraintSerializer<T> getConstraintSerializer();
+  ConstraintSerializer<T, ?> getConstraintSerializer();
 
-  <P extends ProbabilityConstraint> T safeCast(P constraint);
-
-  Class<T> constraintClass();
+  <P extends ProbabilityConstraint> T safeCastConstraint(P constraint);
 }

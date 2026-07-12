@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.constraints.types.marginalconstraint;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 import io.github.alecredmond.internal.method.constraints.strategy.CPTConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.base.ConstraintValidatorBase;
