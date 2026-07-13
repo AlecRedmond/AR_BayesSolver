@@ -4,6 +4,7 @@ import io.github.alecredmond.exceptions.ConstraintValidationException;
 import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
@@ -37,8 +38,8 @@ public class ProbabilityConstraintSerializer {
             "Object %s mapped to no valid ConstraintType".formatted(object));
   }
 
-  public void deserialize(
-      List<SerializedProbabilityConstraint> serializedConstraints, SerializationData data) {
+  public void deserialize(SerializedBayesianNetwork sbn, SerializationData data) {
+    List<SerializedProbabilityConstraint> serializedConstraints = sbn.serializedConstraints();
     Set<ProbabilityConstraint> constraints = data.getNetworkData().getConstraints();
     serializedConstraints.stream()
         .map(serialized -> deSerializeConstraint(serialized, data))

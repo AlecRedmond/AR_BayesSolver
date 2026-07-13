@@ -3,12 +3,12 @@ package io.github.alecredmond.internal.method.constraints.strategy;
 import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.base.ConstraintSolverBase;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTable;
 
 public interface ConstraintStrategy<T extends ProbabilityConstraint> {
   default ConstraintSolver buildSolverHandler(
-      JunctionTreeTableQueryTool tableHelper, ProbabilityConstraint constraint) {
-    return new ConstraintSolverBase(constraint, tableHelper.getTable());
+      JunctionTreeTable table, ProbabilityConstraint constraint) {
+    return new ConstraintSolverBase(constraint, table);
   }
 
   ConstraintValidator<T, ?> getConstraintValidator();

@@ -5,10 +5,10 @@ import static io.github.alecredmond.internal.method.node.NodeUtils.formatIDsToSt
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.export.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
+import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableData;
+import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTableData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
 import java.io.Serializable;
@@ -21,12 +21,14 @@ public class TableUtils {
 
   private TableUtils() {}
 
-  public static double getProbability(Collection<NodeState> states, ProbabilityTable table) {
-    return table.getProbabilities()[getIndex(states, table)];
+  public static <T extends ProbabilityTableData> double getProbability(
+      Collection<NodeState> states, T tableData) {
+    return tableData.getProbabilities()[getIndex(states, tableData)];
   }
 
-  public static int getIndex(Collection<NodeState> states, ProbabilityTable table) {
-    ProbabilityVector vector = table.getVector();
+  public static <T extends ProbabilityTableData> int getIndex(
+      Collection<NodeState> states, T tableData) {
+    ProbabilityVector vector = tableData.getVector();
     int[] strideLengths = vector.getStrideLengths();
     int index = 0;
     for (NodeState state : states) {
@@ -37,9 +39,10 @@ public class TableUtils {
     return index;
   }
 
-  public static <S extends Serializable> Collection<NodeState> assertAllIdsPresent(
-      Collection<S> stateIds, Set<Node> expected, ProbabilityTable table) {
-    return assertAllNodesPresent(convertIdsToStates(stateIds, table), expected);
+  public static <S extends Serializable, T extends ProbabilityTableData>
+      Collection<NodeState> assertAllIdsPresent(
+          Collection<S> stateIds, Set<Node> expected, T tableData) {
+    return assertAllNodesPresent(convertIdsToStates(stateIds, tableData), expected);
   }
 
   public static Collection<NodeState> assertAllNodesPresent(
@@ -52,9 +55,9 @@ public class TableUtils {
                 NodeUtils.formatStatesToString(states), NodeUtils.formatNodesToString(allNodes)));
   }
 
-  public static <S extends Serializable> List<NodeState> convertIdsToStates(
-      Collection<S> ids, ProbabilityTable table) {
-    Map<Serializable, NodeState> idMap = table.getNodeStateIDMap();
+  public static <S extends Serializable, T extends ProbabilityTableData>
+      List<NodeState> convertIdsToStates(Collection<S> ids, T tableData) {
+    Map<Serializable, NodeState> idMap = tableData.getNodeStateIDMap();
     List<Serializable> missing = new ArrayList<>();
     List<NodeState> states = new ArrayList<>();
     ids.forEach(
@@ -62,7 +65,7 @@ public class TableUtils {
             Optional.ofNullable(idMap.get(id)).ifPresentOrElse(states::add, () -> missing.add(id)));
     if (missing.isEmpty()) return states;
     throw new ProbabilityTableRequestException(
-        "IDs %s not found in table %s!".formatted(formatIDsToString(missing), table));
+        "IDs %s not found in table %s!".formatted(formatIDsToString(missing), tableData));
   }
 
   public static void marginalizeJointTable(ProbabilityTable table) {
@@ -84,21 +87,20 @@ public class TableUtils {
     return NodeUtils.getOverlap(tableA.getNodes(), tableB.getNodes());
   }
 
-  public static Map<NodeState, Double> buildConditionalProbMap(
-      Collection<NodeState> conditionStates, ConditionalTable table) {
+  public static <T extends SingleEventTableData> Map<NodeState, Double> buildConditionalProbMap(
+      Collection<NodeState> conditionStates, T tableData) {
     Map<NodeState, Double> map = new LinkedHashMap<>();
-    List<NodeState> events = table.getNetworkNode().getNodeStates();
-    double[] probabilities = table.getProbabilities();
-    int firstIndex = getIndex(conditionStates, table);
+    List<NodeState> events = tableData.getEventNode().getNodeStates();
+    double[] probabilities = tableData.getProbabilities();
+    int firstIndex = getIndex(conditionStates, tableData);
     int bound = events.size();
     for (int i = 0; i < bound; i++) map.put(events.get(i), probabilities[firstIndex + i]);
     return map;
   }
 
-  public static Map<NodeState, Double> buildMarginalProbMap(ProbabilityTable table) {
-    if (!(table instanceof SingleEventTable<?> singleEventTable)) return new HashMap<>();
-    List<NodeState> states = singleEventTable.getEventNode().getNodeStates();
-    double[] prob = table.getProbabilities();
+  public static Map<NodeState, Double> buildMarginalProbMap(SingleEventTableData tableData) {
+    List<NodeState> states = tableData.getEventNode().getNodeStates();
+    double[] prob = tableData.getProbabilities();
     Map<NodeState, Double> map = new LinkedHashMap<>();
     for (int i = 0; i < prob.length; i++) {
       map.put(states.get(i), prob[i]);

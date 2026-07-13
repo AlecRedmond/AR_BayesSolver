@@ -3,7 +3,6 @@ package io.github.alecredmond.internal.application.probabilitytables.base;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
 import java.util.Map;
@@ -13,16 +12,16 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public abstract class SingleEventTable<R extends ProbabilityTableQueryTool>
-    extends ProbabilityTableBase<R> {
+public abstract class SingleEventTableData
+        extends ProbabilityTableData {
   protected final Node eventNode;
 
-  protected SingleEventTable(TableBuilderData tableBuilderData) {
+  protected SingleEventTableData(TableBuilderData tableBuilderData) {
     super(tableBuilderData);
     this.eventNode = tableBuilderData.getEventNode();
   }
 
-  protected SingleEventTable(
+  protected SingleEventTableData(
       Map<Serializable, NodeState> nodeStateIDMap,
       Map<Serializable, Node> nodeIDMap,
       ProbabilityVector vector,

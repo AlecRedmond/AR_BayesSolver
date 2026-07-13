@@ -56,7 +56,7 @@ public class NetworkDataBuilder {
               List<Node> events = List.of(node);
               List<Node> conditions = orderConditions(node.getParents(), layerMap);
               NetworkTable table = tableBuilder.buildTable(events, conditions);
-              table.getQueryTool().normalizeTable();
+              table.normalizeTable();
               networkData.getNetworkTablesMap().put(node, table);
             });
   }

@@ -1,8 +1,8 @@
 package io.github.alecredmond.export.probabilitytables;
 
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.export.network.BayesianNetwork;
 
 /**
  * A conditional probability table (CPT) within a {@link BayesianNetwork}. CPTs map the probability
@@ -19,13 +19,11 @@ import io.github.alecredmond.export.network.BayesianNetwork;
 public interface ConditionalTable extends NetworkTable {
 
   /**
-   * {@inheritDoc}
+   * Builds a copy of this {@code ConditionalTable}. This deep-copies everything except the {@link
+   * Node} and {@link NodeState} values, which maintain the original references.
    *
-   * <p>Returns a specialized {@link ConditionalTableQueryTool} containing additional utility
-   * methods specific to {@code ConditionalTable}.
-   *
-   * @return the conditional table query tool for this table
+   * @return a copy of the current table.
    */
   @Override
-  ConditionalTableQueryTool getQueryTool();
+  ConditionalTable copyTable();
 }

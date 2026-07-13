@@ -1,11 +1,10 @@
 package io.github.alecredmond.internal.method.sampler;
 
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.network.BayesianNetwork;
-import io.github.alecredmond.export.probabilitytables.NetworkTableQueryTool;
 import io.github.alecredmond.internal.application.sampler.LikelihoodWeightingSamplerData;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -23,11 +22,10 @@ public class LikelihoodWeightingSampler extends MonteCarloSamplerImpl {
   private LikelihoodWeightingSamplerData buildSamplerData() {
     BayesianNetworkData networkData = network.getNetworkData();
     Node[] nodes = networkData.getNodes().toArray(Node[]::new);
-    NetworkTableQueryTool[] helpers = new NetworkTableQueryTool[nodes.length];
+    NetworkTable[] tables = new NetworkTable[nodes.length];
     Map<Node, NetworkTable> networkTables = networkData.getNetworkTablesMap();
-    IntStream.range(0, nodes.length)
-        .forEach(i -> helpers[i] = networkTables.get(nodes[i]).getQueryTool());
-    return new LikelihoodWeightingSamplerData(nodes, helpers);
+    IntStream.range(0, nodes.length).forEach(i -> tables[i] = networkTables.get(nodes[i]));
+    return new LikelihoodWeightingSamplerData(nodes, tables);
   }
 
   @Override
@@ -62,20 +60,20 @@ public class LikelihoodWeightingSampler extends MonteCarloSamplerImpl {
   }
 
   private void setHelperSafeMode(boolean safeMode) {
-    Arrays.stream(samplerData.getTableHelpers()).forEach(t -> t.setSafeMode(safeMode));
+    Arrays.stream(samplerData.getTables()).forEach(t -> t.setSafeMode(safeMode));
   }
 
   private void generateWeightedStateSets() {
     NodeState[] defaultSample = samplerData.getDefaultSample();
     Node[] nodes = samplerData.getNodes();
-    NetworkTableQueryTool[] helpers = samplerData.getTableHelpers();
+    NetworkTable[] tables = samplerData.getTables();
     Map<Set<NodeState>, Double> weightedStateSets = samplerData.getWeightedStateSets();
 
     for (int s = 0; s < samplerData.getNumberOfSamples(); s++) {
       Set<NodeState> newSet = new LinkedHashSet<>();
       double weight = 1.0;
       for (int i = 0; i < nodes.length; i++) {
-        weight *= selectNextState(newSet, defaultSample[i], helpers[i]);
+        weight *= selectNextState(newSet, defaultSample[i], tables[i]);
       }
       weightedStateSets.putIfAbsent(newSet, 0.0);
       weightedStateSets.put(newSet, weightedStateSets.get(newSet) + weight);
@@ -123,12 +121,12 @@ public class LikelihoodWeightingSampler extends MonteCarloSamplerImpl {
   }
 
   private double selectNextState(
-      Set<NodeState> newSample, NodeState observedNextState, NetworkTableQueryTool helper) {
+      Set<NodeState> newSample, NodeState observedNextState, NetworkTable table) {
     if (observedNextState != null) {
       newSample.add(observedNextState);
-      return helper.getProbability(newSample);
+      return table.getProbability(newSample);
     }
-    Map<NodeState, Double> probabilityMap = helper.getConditionalProb(newSample);
+    Map<NodeState, Double> probabilityMap = table.getConditionalProb(newSample);
     newSample.add(nextRandom(probabilityMap));
     return 1.0;
   }

@@ -1,19 +1,17 @@
 package io.github.alecredmond.internal.application.probabilitytables;
 
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableBase;
+import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableData;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class JunctionTreeTableImpl extends ProbabilityTableBase<JunctionTreeTableQueryTool>
-    implements JunctionTreeTable {
+public class JunctionTreeTableData extends ProbabilityTableData {
   @EqualsAndHashCode.Exclude private final ProbabilityVector backupVector;
 
-  public JunctionTreeTableImpl(TableBuilderData tableBuilderData, ProbabilityVector backupVector) {
+  public JunctionTreeTableData(TableBuilderData tableBuilderData, ProbabilityVector backupVector) {
     super(tableBuilderData);
     this.backupVector = backupVector;
   }

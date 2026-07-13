@@ -2,10 +2,8 @@ package io.github.alecredmond.internal.application.probabilitytables;
 
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.export.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.export.probabilitytables.ConditionalTableQueryTool;
-import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTable;
+import io.github.alecredmond.internal.application.probabilitytables.base.SingleEventTableData;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
 import java.util.Map;
@@ -15,13 +13,12 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ConditionalTableImpl extends SingleEventTable<ConditionalTableQueryTool>
-    implements ConditionalTable {
-  public ConditionalTableImpl(TableBuilderData tableBuilderData) {
+public class RootNodeTableData extends SingleEventTableData {
+  public RootNodeTableData(TableBuilderData tableBuilderData) {
     super(tableBuilderData);
   }
 
-  public ConditionalTableImpl(
+  public RootNodeTableData(
       Map<Serializable, NodeState> nodeStateIDMap,
       Map<Serializable, Node> nodeIDMap,
       ProbabilityVector vector,
@@ -32,7 +29,6 @@ public class ConditionalTableImpl extends SingleEventTable<ConditionalTableQuery
     super(nodeStateIDMap, nodeIDMap, vector, nodes, events, conditions, eventNode);
   }
 
-  @Override
   public Node getNetworkNode() {
     return eventNode;
   }

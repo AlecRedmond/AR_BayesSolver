@@ -9,7 +9,7 @@ import io.github.alecredmond.export.inference.InferenceAlgorithm;
 import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;
 import io.github.alecredmond.internal.method.junctiontree.treebuilding.CliqueBuilder;
@@ -116,7 +116,7 @@ public class JTADataBuilder {
 
   private <T extends ProbabilityConstraint> ConstraintSolver buildConstraintHandler(
       @NonNull T constraint, Clique clique, ConstraintRegistry registry) {
-    return registry.getStrategy(constraint).buildSolverHandler(clique.getHandler(), constraint);
+    return registry.getStrategy(constraint).buildSolverHandler(clique.getTable(), constraint);
   }
 
   public JunctionTreeData buildNewInferenceConfiguration(

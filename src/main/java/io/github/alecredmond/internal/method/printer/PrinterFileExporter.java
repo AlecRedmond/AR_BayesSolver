@@ -8,18 +8,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FileExporter {
+public class PrinterFileExporter {
   private static final String TXT_EXTENSION = ".txt";
   private static final String FILE_PATH_FORMAT = "%s%s-%s_%s%s";
   private static final String DATE_TIME_FORMAT = "yyyy_MMdd/HHmmssSSS";
   private final PrinterConfigs configs;
 
-  public FileExporter(PrinterConfigs configs) {
+  public PrinterFileExporter(PrinterConfigs configs) {
     this.configs = configs;
   }
 
@@ -90,6 +91,7 @@ public class FileExporter {
   }
 
   private String generateDateTimeString() {
-    return LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+    return LocalDateTime.now(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
   }
 }

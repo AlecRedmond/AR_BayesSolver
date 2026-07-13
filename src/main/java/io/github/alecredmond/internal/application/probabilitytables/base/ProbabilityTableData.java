@@ -2,7 +2,6 @@ package io.github.alecredmond.internal.application.probabilitytables.base;
 
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
@@ -14,17 +13,16 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public abstract class ProbabilityTableBase<R extends ProbabilityTableQueryTool> {
+public abstract class ProbabilityTableData {
   protected final Map<Serializable, NodeState> nodeStateIDMap;
   protected final Map<Serializable, Node> nodeIDMap;
   protected final ProbabilityVector vector;
   protected final Set<Node> nodes;
   protected final Set<Node> events;
   protected final Set<Node> conditions;
-  @EqualsAndHashCode.Exclude protected R queryTool;
   @EqualsAndHashCode.Exclude protected Serializable tableName;
 
-  protected ProbabilityTableBase(
+  protected ProbabilityTableData(
       Map<Serializable, NodeState> nodeStateIDMap,
       Map<Serializable, Node> nodeIDMap,
       ProbabilityVector vector,
@@ -39,7 +37,7 @@ public abstract class ProbabilityTableBase<R extends ProbabilityTableQueryTool> 
     this.conditions = conditions;
   }
 
-  protected ProbabilityTableBase(TableBuilderData tableBuilderData) {
+  protected ProbabilityTableData(TableBuilderData tableBuilderData) {
     this.nodeStateIDMap = tableBuilderData.getNodeStateIDMap();
     this.nodeIDMap = tableBuilderData.getNodeIDMap();
     this.vector = tableBuilderData.getVector();

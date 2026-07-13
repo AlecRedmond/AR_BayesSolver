@@ -6,15 +6,13 @@ import static io.github.alecredmond.export.method.network.NetworkScenario.FANTAS
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.method.network.NetworkScenario;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.ConditionalTable;
 import io.github.alecredmond.export.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.probabilitytables.NetworkTableQueryTool;
-import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
 import io.github.alecredmond.export.probabilitytables.cptentry.CptEntry;
-import io.github.alecredmond.export.network.BayesianNetwork;
-import io.github.alecredmond.export.method.network.NetworkScenario;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
 import java.io.Serializable;
@@ -136,24 +134,21 @@ class TableQueryToolTest {
   @MethodSource("provideGetProbArgs")
   void getProbability_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     Set<NodeState> allStates = constraint.getAllStates();
-    ProbabilityTableQueryTool helper = table.getQueryTool();
-    assertEquals(constraint.getProbability(), helper.getProbability(allStates), DOUBLE_EQUALITY);
+    assertEquals(constraint.getProbability(), table.getProbability(allStates), DOUBLE_EQUALITY);
   }
 
   @ParameterizedTest
   @MethodSource("provideGetProbArgs")
   void getProbabilityFromIDs_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     List<Serializable> stateIds = NodeUtils.getNodeStateIds(constraint.getAllStates());
-    ProbabilityTableQueryTool helper = table.getQueryTool();
     assertEquals(
-        constraint.getProbability(), helper.getProbabilityFromIDs(stateIds), DOUBLE_EQUALITY);
+        constraint.getProbability(), table.getProbabilityFromIDs(stateIds), DOUBLE_EQUALITY);
   }
 
   @ParameterizedTest
   @MethodSource("provideCopyTableArgs")
   void copyTable(NetworkTable networkTable) {
-    NetworkTableQueryTool helper = networkTable.getQueryTool();
-    NetworkTable copied = helper.copyTable();
+    NetworkTable copied = networkTable.copyTable();
     assertNotSame(copied, networkTable);
     assertEquals(copied, networkTable);
   }
@@ -161,10 +156,9 @@ class TableQueryToolTest {
   @ParameterizedTest
   @MethodSource("provideNormalizeTableArgs")
   void normalizeTable(NetworkTable networkTable) {
-    ProbabilityTableQueryTool helper = networkTable.getQueryTool();
     double[] probs = networkTable.getProbabilities();
     Arrays.fill(probs, 1.0);
-    helper.normalizeTable();
+    networkTable.normalizeTable();
     int numOfConditionCombos =
         networkTable.getConditions().stream()
             .mapToInt(c -> c.getNodeStates().size())
@@ -179,8 +173,7 @@ class TableQueryToolTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    NetworkTableQueryTool helper = networkTable.getQueryTool();
-    Map<NodeState, Double> probs = helper.getConditionalProb(conditionStates);
+    Map<NodeState, Double> probs = networkTable.getConditionalProb(conditionStates);
     constraintMap.forEach(
         (event, constraint) ->
             assertEquals(constraint.getProbability(), probs.get(event), DOUBLE_EQUALITY));
@@ -192,9 +185,8 @@ class TableQueryToolTest {
       NetworkTable networkTable,
       Map<NodeState, ProbabilityConstraint> constraintMap,
       Collection<NodeState> conditionStates) {
-    NetworkTableQueryTool helper = networkTable.getQueryTool();
     Map<NodeState, Double> probs =
-        helper.getConditionalProbByIds(NodeUtils.getNodeStateIds(conditionStates));
+        networkTable.getConditionalProbByIds(NodeUtils.getNodeStateIds(conditionStates));
     constraintMap.forEach(
         (event, constraint) ->
             assertEquals(constraint.getProbability(), probs.get(event), DOUBLE_EQUALITY));
@@ -203,21 +195,20 @@ class TableQueryToolTest {
   @ParameterizedTest
   @MethodSource("provideSafeModeArgs")
   void setSafeMode(NetworkTable networkTable) {
-    NetworkTableQueryTool helper = networkTable.getQueryTool();
     Node networkNode = networkTable.getNetworkNode();
     double[] probs = networkTable.getProbabilities();
     List<NodeState> eventStates = networkNode.getNodeStates();
     eventStates.forEach(
         state -> {
-          assertTrue(helper.getConditionalProb(List.of(state)).isEmpty());
-          assertNull(helper.getProbability(List.of(state)));
+          assertTrue(networkTable.getConditionalProb(List.of(state)).isEmpty());
+          assertNull(networkTable.getProbability(List.of(state)));
         });
-    helper.setSafeMode(false);
+    networkTable.setSafeMode(false);
     IntStream.range(0, eventStates.size())
         .forEach(
             i -> {
               NodeState state = eventStates.get(i);
-              assertEquals(probs[i], helper.getProbability(List.of(state)), DOUBLE_EQUALITY);
+              assertEquals(probs[i], networkTable.getProbability(List.of(state)), DOUBLE_EQUALITY);
             });
   }
 
@@ -225,25 +216,23 @@ class TableQueryToolTest {
   @MethodSource("provideNetworkTables")
   void testListCptEntries(NetworkTable networkTable) {
     double[] probabilities = networkTable.getProbabilities();
-    NetworkTableQueryTool queryTool = networkTable.getQueryTool();
-    List<CptEntry> entries = networkTable.getQueryTool().getCptEntries();
+    List<CptEntry> entries = networkTable.getCptEntries();
     for (int i = 0; i < probabilities.length; i++) {
       CptEntry entry = entries.get(i);
       Set<NodeState> allStates = new HashSet<>(entry.conditionStates());
       allStates.add(entry.eventState());
       assertEquals(entry.probability(), probabilities[i], DOUBLE_EQUALITY);
-      assertEquals(entry.probability(), queryTool.getProbability(allStates), DOUBLE_EQUALITY);
+      assertEquals(entry.probability(), networkTable.getProbability(allStates), DOUBLE_EQUALITY);
     }
   }
 
   @ParameterizedTest
   @MethodSource("provideNetworkTables")
   void testIterateOverConditions(NetworkTable networkTable) {
-    NetworkTableQueryTool queryTool = networkTable.getQueryTool();
-    queryTool.iterateOverConditions(
+    networkTable.iterateOverConditions(
         cptRow -> {
           Set<NodeState> conditions = cptRow.conditionStates();
-          Map<NodeState, Double> conditionalProbMap = queryTool.getConditionalProb(conditions);
+          Map<NodeState, Double> conditionalProbMap = networkTable.getConditionalProb(conditions);
           cptRow
               .rowEntries()
               .forEach(
