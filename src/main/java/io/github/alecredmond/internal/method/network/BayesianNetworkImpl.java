@@ -2,17 +2,17 @@ package io.github.alecredmond.internal.method.network;
 
 import io.github.alecredmond.exceptions.BayesNetIDException;
 import io.github.alecredmond.exceptions.NetworkStructureException;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.method.inference.BayesSolver;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.method.sampler.Sampler;
-import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.sampler.MonteCarloSampler;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.inference.InferenceEngine;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.application.network.NetworkErrorPolicy;
 import io.github.alecredmond.internal.fileio.NetworkFileIO;
 import io.github.alecredmond.internal.method.constraints.NetworkConstraintHandler;
@@ -354,7 +354,7 @@ public class BayesianNetworkImpl implements BayesianNetwork, PropertyChangeListe
     return InferenceEngine.create(this);
   }
 
-  public Sampler buildSampler() {
+  public MonteCarloSampler buildSampler() {
     return new LikelihoodWeightingSampler(this);
   }
 

@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.vectoriterator;
 
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.OdometerInitializer;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.vectoriterator.iteratorutils.OdometerController;

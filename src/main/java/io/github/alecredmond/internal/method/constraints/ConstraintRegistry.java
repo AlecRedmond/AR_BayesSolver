@@ -1,6 +1,7 @@
 package io.github.alecredmond.internal.method.constraints;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintValidator;
@@ -11,10 +12,18 @@ import lombok.NonNull;
 public class ConstraintRegistry {
   private final Map<ConstraintType, ConstraintStrategy<?>> registryMap = buildStrategyMap();
 
-  public <V extends ProbabilityConstraint> ConstraintValidator<?, ?> getValidator(V constraint) {
-    return Optional.ofNullable(ConstraintType.getType(constraint))
+  public <P extends ProbabilityConstraint> ConstraintValidator<?, ?> getValidator(P constraint) {
+    return Optional.ofNullable(getConstraintType(constraint))
         .map(registryMap::get)
         .map(ConstraintStrategy::getConstraintValidator)
+        .orElse(null);
+  }
+
+  private <P extends ProbabilityConstraint> ConstraintType getConstraintType(P constraint) {
+    return registryMap.entrySet().stream()
+        .filter(entry -> entry.getValue().constraintIsInstance(constraint))
+        .findAny()
+        .map(Map.Entry::getKey)
         .orElse(null);
   }
 
@@ -24,22 +33,41 @@ public class ConstraintRegistry {
 
   @SuppressWarnings("unchecked")
   public <V extends P, P extends ProbabilityConstraint>
-      ConstraintSerializer<ProbabilityConstraint> getSerializer(V constraint) {
-    return (ConstraintSerializer<ProbabilityConstraint>)
-        Optional.ofNullable(ConstraintType.getType(constraint))
+      ConstraintSerializer<ProbabilityConstraint, ?> getSerializer(V constraint) {
+    return (ConstraintSerializer<ProbabilityConstraint, ?>)
+        Optional.ofNullable(getConstraintType(constraint))
             .map(registryMap::get)
             .map(ConstraintStrategy::getConstraintSerializer)
             .orElse(null);
   }
 
-  public <T extends ProbabilityConstraint> ConstraintStrategy<?> getStrategy(
+  public <T extends ProbabilityConstraint> ConstraintStrategy<T> getStrategy(
       @NonNull T constraint) {
-    ConstraintType type = ConstraintType.getType(constraint);
-    return getStrategy(type);
+    return getTypedStrategy(getConstraintType(constraint));
   }
 
-  public ConstraintStrategy<?> getStrategy(ConstraintType type) {
-    return registryMap.get(type);
+  @SuppressWarnings("unchecked")
+  public <T extends ProbabilityConstraint> ConstraintStrategy<T> getTypedStrategy(
+      ConstraintType type) {
+    try {
+      return (ConstraintStrategy<T>) registryMap.get(type);
+    } catch (ClassCastException e) {
+      return null;
+    }
+  }
+
+  public <S extends SerializedProbabilityConstraint, T extends ProbabilityConstraint>
+      ConstraintStrategy<T> getStrategy(@NonNull S serialized) {
+    return getTypedStrategy(getConstraintType(serialized));
+  }
+
+  private <S extends SerializedProbabilityConstraint> ConstraintType getConstraintType(
+      S serialized) {
+    return registryMap.entrySet().stream()
+        .filter(entry -> entry.getValue().serializedIsInstance(serialized))
+        .findAny()
+        .map(Map.Entry::getKey)
+        .orElse(null);
   }
 
   private Map<ConstraintType, ConstraintStrategy<?>> buildStrategyMap() {

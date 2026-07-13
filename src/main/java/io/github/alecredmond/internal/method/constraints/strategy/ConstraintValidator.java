@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.constraints.strategy;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 
 public interface ConstraintValidator<

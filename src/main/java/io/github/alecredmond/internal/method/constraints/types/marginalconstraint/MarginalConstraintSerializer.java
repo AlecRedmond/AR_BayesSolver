@@ -1,12 +1,13 @@
 package io.github.alecredmond.internal.method.constraints.types.marginalconstraint;
 
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedMarginalConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedMarginalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintSerializerBase;
 import io.github.alecredmond.internal.serialization.SerializationData;
 
-public class MarginalConstraintSerializer implements ConstraintSerializer<MarginalConstraint> {
+public class MarginalConstraintSerializer
+    extends ConstraintSerializerBase<MarginalConstraint, SerializedMarginalConstraint> {
 
   @Override
   public SerializedMarginalConstraint serialize(MarginalConstraint constraint) {
@@ -16,12 +17,14 @@ public class MarginalConstraintSerializer implements ConstraintSerializer<Margin
 
   @Override
   public MarginalConstraint deSerialize(
-      SerializedProbabilityConstraint<MarginalConstraint> serialized,
-      SerializationData serializationData) {
+      SerializedMarginalConstraint serialized, SerializationData serializationData) {
     return new MarginalConstraint(
-        serializationData
-            .getNodeStateIdMap()
-            .get(((SerializedMarginalConstraint) serialized).getEventStateId()),
-        ((SerializedMarginalConstraint) serialized).getProbability());
+        serializationData.getNodeStateIdMap().get(serialized.eventStateId()),
+        serialized.probability());
+  }
+
+  @Override
+  public SerializedMarginalConstraint safeCast(SerializedProbabilityConstraint serialized) {
+    return serialized instanceof SerializedMarginalConstraint cast ? cast : null;
   }
 }

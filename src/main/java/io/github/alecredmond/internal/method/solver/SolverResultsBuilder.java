@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.solver;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.inference.SolverConstraintResult;
-import io.github.alecredmond.export.application.inference.SolverResults;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.solver.SolverConstraintResult;
+import io.github.alecredmond.export.solver.SolverResults;
 
 import java.time.Duration;
 import java.util.Comparator;

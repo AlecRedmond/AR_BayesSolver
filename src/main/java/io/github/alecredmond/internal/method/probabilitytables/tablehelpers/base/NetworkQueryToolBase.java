@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base;
 
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEntry;
-import io.github.alecredmond.export.application.probabilitytables.cptentry.CptRow;
+import io.github.alecredmond.export.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.probabilitytables.cptentry.CptEntry;
+import io.github.alecredmond.export.probabilitytables.cptentry.CptRow;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.CptConditionIterator;
 import java.util.*;
 import java.util.function.Consumer;

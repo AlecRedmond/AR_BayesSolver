@@ -3,9 +3,9 @@ package io.github.alecredmond.internal.method.probabilitytables.probabilityvecto
 import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.NetworkTableBuilder;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.TableNormalizer;
 import java.io.Serializable;

@@ -5,13 +5,15 @@ import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
 import static io.github.alecredmond.export.method.network.NetworkScenario.FANTASY_GRAPH;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.cptentry.CptEntry;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.probabilitytables.NetworkTableQueryTool;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
+import io.github.alecredmond.export.probabilitytables.cptentry.CptEntry;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.StateCombinationGenerator;
@@ -134,7 +136,7 @@ class TableQueryToolTest {
   @MethodSource("provideGetProbArgs")
   void getProbability_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     Set<NodeState> allStates = constraint.getAllStates();
-    TableQueryTool helper = table.getQueryTool();
+    ProbabilityTableQueryTool helper = table.getQueryTool();
     assertEquals(constraint.getProbability(), helper.getProbability(allStates), DOUBLE_EQUALITY);
   }
 
@@ -142,7 +144,7 @@ class TableQueryToolTest {
   @MethodSource("provideGetProbArgs")
   void getProbabilityFromIDs_shouldSucceed(NetworkTable table, ProbabilityConstraint constraint) {
     List<Serializable> stateIds = NodeUtils.getNodeStateIds(constraint.getAllStates());
-    TableQueryTool helper = table.getQueryTool();
+    ProbabilityTableQueryTool helper = table.getQueryTool();
     assertEquals(
         constraint.getProbability(), helper.getProbabilityFromIDs(stateIds), DOUBLE_EQUALITY);
   }
@@ -159,7 +161,7 @@ class TableQueryToolTest {
   @ParameterizedTest
   @MethodSource("provideNormalizeTableArgs")
   void normalizeTable(NetworkTable networkTable) {
-    TableQueryTool helper = networkTable.getQueryTool();
+    ProbabilityTableQueryTool helper = networkTable.getQueryTool();
     double[] probs = networkTable.getProbabilities();
     Arrays.fill(probs, 1.0);
     helper.normalizeTable();

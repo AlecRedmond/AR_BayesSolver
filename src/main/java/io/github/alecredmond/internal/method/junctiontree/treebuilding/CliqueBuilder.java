@@ -1,11 +1,11 @@
 package io.github.alecredmond.internal.method.junctiontree.treebuilding;
 
-import static io.github.alecredmond.export.method.inference.InferenceAlgorithm.JUNCTION_TREE_ALGORITHM;
-import static io.github.alecredmond.export.method.inference.SolverAlgorithm.JUNCTION_TREE_IPFP;
+import static io.github.alecredmond.export.inference.InferenceAlgorithm.JUNCTION_TREE_ALGORITHM;
+import static io.github.alecredmond.export.solver.SolverAlgorithm.JUNCTION_TREE_IPFP;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;

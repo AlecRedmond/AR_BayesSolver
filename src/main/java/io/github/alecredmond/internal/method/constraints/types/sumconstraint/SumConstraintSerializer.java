@@ -1,17 +1,17 @@
 package io.github.alecredmond.internal.method.constraints.types.sumconstraint;
 
-import io.github.alecredmond.export.application.constraints.SumProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
-import io.github.alecredmond.export.serialization.constraint.SerializedSumConstraint;
-import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
+import io.github.alecredmond.export.constraints.SumProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedSumConstraint;
+import io.github.alecredmond.internal.method.constraints.base.ConstraintSerializerBase;
 import io.github.alecredmond.internal.serialization.SerializationData;
 import io.github.alecredmond.internal.serialization.SerializerUtils;
 import java.util.ArrayList;
 
-public class SumConstraintSerializer implements ConstraintSerializer<SumProbabilityConstraint> {
+public class SumConstraintSerializer
+    extends ConstraintSerializerBase<SumProbabilityConstraint, SerializedSumConstraint> {
   @Override
-  public SerializedProbabilityConstraint<SumProbabilityConstraint> serialize(
-      SumProbabilityConstraint constraint) {
+  public SerializedSumConstraint serialize(SumProbabilityConstraint constraint) {
     return new SerializedSumConstraint(
         SerializerUtils.serializeNodeStates(constraint.getEventStates()),
         SerializerUtils.serializeNodeStates(constraint.getConditionStates()),
@@ -20,13 +20,17 @@ public class SumConstraintSerializer implements ConstraintSerializer<SumProbabil
 
   @Override
   public SumProbabilityConstraint deSerialize(
-      SerializedProbabilityConstraint<SumProbabilityConstraint> serialized,
-      SerializationData serializationData) {
-    SerializedSumConstraint sc = (SerializedSumConstraint) serialized;
+      SerializedSumConstraint serialized, SerializationData serializationData) {
     return new SumProbabilityConstraint(
-        SerializerUtils.deSerializeNodeStates(sc.getEventIds(), ArrayList::new, serializationData),
         SerializerUtils.deSerializeNodeStates(
-            sc.getConditionIds(), ArrayList::new, serializationData),
-        sc.getProbability());
+            serialized.eventIds(), ArrayList::new, serializationData),
+        SerializerUtils.deSerializeNodeStates(
+            serialized.conditionIds(), ArrayList::new, serializationData),
+        serialized.probability());
+  }
+
+  @Override
+  public SerializedSumConstraint safeCast(SerializedProbabilityConstraint serialized) {
+    return serialized instanceof SerializedSumConstraint cast ? cast : null;
   }
 }

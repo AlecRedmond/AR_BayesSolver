@@ -1,12 +1,12 @@
 package io.github.alecredmond.internal.method.vectoriterator.misciterators;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.vectoriterator.VectorOdometer;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.utils.DoublePrecision;

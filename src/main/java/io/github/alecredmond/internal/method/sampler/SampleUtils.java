@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.sampler;
 
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.sampler.Sample;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.sampler.Sample;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;

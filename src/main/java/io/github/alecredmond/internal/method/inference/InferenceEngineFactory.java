@@ -3,10 +3,10 @@ package io.github.alecredmond.internal.method.inference;
 import static io.github.alecredmond.internal.method.utils.AppProperty.INFERENCE_ALGORITHM;
 
 import io.github.alecredmond.exceptions.PropertiesLoaderException;
-import io.github.alecredmond.export.method.inference.BayesSolver;
-import io.github.alecredmond.export.method.inference.InferenceAlgorithm;
-import io.github.alecredmond.export.method.inference.InferenceEngine;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.inference.InferenceAlgorithm;
+import io.github.alecredmond.export.inference.InferenceEngine;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.internal.method.junctiontree.JunctionTreeAlgorithm;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import java.util.Arrays;

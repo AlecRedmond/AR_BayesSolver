@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.network.validator;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
 import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import java.util.*;

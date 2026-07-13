@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.method.solver.cptmapper.iterator;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ConditionalTable;
 import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
 import io.github.alecredmond.internal.method.solver.cptmapper.constraintsorter.ConditionalTableConstraintSorter;

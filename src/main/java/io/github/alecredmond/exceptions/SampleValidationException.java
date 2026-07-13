@@ -1,8 +1,8 @@
 package io.github.alecredmond.exceptions;
 
-import io.github.alecredmond.export.method.sampler.Sampler;
+import io.github.alecredmond.export.sampler.MonteCarloSampler;
 
-/** Thrown if samples generated in {@link Sampler} failed validation. */
+/** Thrown if samples generated in {@link MonteCarloSampler} failed validation. */
 public class SampleValidationException extends RuntimeException {
   /**
    * Constructs a {@code SampleValidationException} with the specified detail message.

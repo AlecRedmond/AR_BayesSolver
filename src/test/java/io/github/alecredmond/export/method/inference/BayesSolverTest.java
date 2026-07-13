@@ -4,8 +4,10 @@ import static io.github.alecredmond.TestConfigs.DOUBLE_EQUALITY;
 import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.solver.SolverAlgorithm;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
 import java.util.Arrays;
 import java.util.List;

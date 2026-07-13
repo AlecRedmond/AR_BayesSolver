@@ -1,7 +1,9 @@
 package io.github.alecredmond.internal.method.constraints.types.conditionalconstraint;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedConditionalConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import lombok.Getter;
 
@@ -16,13 +18,18 @@ public class ConditionalConstraintStrategy implements ConstraintStrategy<Conditi
   }
 
   @Override
-  public ConditionalConstraint safeCast(ProbabilityConstraint constraint) {
-    if (constraint instanceof ConditionalConstraint cc) return cc;
-    return null;
+  public boolean constraintIsInstance(ProbabilityConstraint constraint) {
+    return constraint instanceof ConditionalConstraint;
   }
 
   @Override
-  public Class<ConditionalConstraint> constraintClass() {
-    return ConditionalConstraint.class;
+  public boolean serializedIsInstance(SerializedProbabilityConstraint serialized) {
+    return serialized instanceof SerializedConditionalConstraint;
+  }
+
+  @Override
+  public ConditionalConstraint safeCastConstraint(ProbabilityConstraint constraint) {
+    if (constraint instanceof ConditionalConstraint cc) return cc;
+    return null;
   }
 }

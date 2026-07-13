@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.sampler;
 
 import io.github.alecredmond.exceptions.SampleValidationException;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.sampler.Sample;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.sampler.Sample;
 import io.github.alecredmond.internal.application.sampler.SampleCollectionData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import java.util.*;

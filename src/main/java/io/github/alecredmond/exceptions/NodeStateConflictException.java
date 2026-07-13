@@ -1,7 +1,7 @@
 package io.github.alecredmond.exceptions;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
 
 /**
  * Thrown when two or more {@link NodeState} objects share a common {@link Node} under circumstances

@@ -1,19 +1,15 @@
 package io.github.alecredmond.internal.serialization.structure;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.serialization.constraint.SerializedProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.internal.method.constraints.ConstraintRegistry;
-import io.github.alecredmond.internal.method.constraints.ConstraintType;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSerializer;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
-import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import io.github.alecredmond.internal.method.network.validator.NetworkConstraintValidator;
 import io.github.alecredmond.internal.serialization.SerializationData;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import lombok.NoArgsConstructor;
 
@@ -21,28 +17,28 @@ import lombok.NoArgsConstructor;
 public class ProbabilityConstraintSerializer {
   private final ConstraintRegistry registry = new ConstraintRegistry();
 
-  public List<SerializedProbabilityConstraint<ProbabilityConstraint>> serializeAll(
-      BayesianNetworkData data) {
+  public List<SerializedProbabilityConstraint> serializeAll(BayesianNetworkData data) {
     new NetworkConstraintValidator().validateData(data);
-    return data.getConstraints().stream().map(this::serializeConstraint).toList();
+    List<SerializedProbabilityConstraint> list = new ArrayList<>();
+    data.getConstraints().stream().map(this::serializeConstraint).forEach(list::add);
+    return Collections.unmodifiableList(list);
   }
 
-  private <T extends ProbabilityConstraint>
-      SerializedProbabilityConstraint<ProbabilityConstraint> serializeConstraint(T constraint) {
-    ConstraintSerializer<ProbabilityConstraint> serializer = registry.getSerializer(constraint);
-    return Optional.ofNullable(serializer)
+  private <T extends ProbabilityConstraint> SerializedProbabilityConstraint serializeConstraint(
+      T constraint) {
+    return Optional.ofNullable(registry.getSerializer(constraint))
         .map(s -> s.serialize(constraint))
-        .orElseThrow(throwSerializerNotFound(constraint));
+        .orElseThrow(supplySerializerNotFoundException(constraint));
   }
 
-  private Supplier<ConstraintValidationException> throwSerializerNotFound(Object object) {
+  private Supplier<ConstraintValidationException> supplySerializerNotFoundException(Object object) {
     return () ->
         new ConstraintValidationException(
             "Object %s mapped to no valid ConstraintType".formatted(object));
   }
 
-  public <T extends ProbabilityConstraint> void deserialize(
-      List<SerializedProbabilityConstraint<T>> serializedConstraints, SerializationData data) {
+  public void deserialize(
+      List<SerializedProbabilityConstraint> serializedConstraints, SerializationData data) {
     Set<ProbabilityConstraint> constraints = data.getNetworkData().getConstraints();
     serializedConstraints.stream()
         .map(serialized -> deSerializeConstraint(serialized, data))
@@ -51,26 +47,12 @@ public class ProbabilityConstraintSerializer {
   }
 
   private <P extends ProbabilityConstraint> ProbabilityConstraint deSerializeConstraint(
-      SerializedProbabilityConstraint<P> serialized, SerializationData data) {
-    ConstraintStrategy<P> strategy = getStrategy(serialized);
-    P constraint = strategy.getConstraintSerializer().deSerialize(serialized, data);
-    ValidatedConstraint<P> validated =
-        strategy.getConstraintValidator().validateConstraint(constraint, data.getNetworkData());
-    return validated.getConstraint();
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends ProbabilityConstraint> ConstraintStrategy<T> getStrategy(
-      SerializedProbabilityConstraint<T> serialized) {
-    ConstraintType type = ConstraintType.valueOf(serialized.getConstraintType());
-    ConstraintStrategy<?> strategy = registry.getStrategy(type);
+      SerializedProbabilityConstraint serialized, SerializationData data) {
+    ConstraintStrategy<P> strategy = registry.getStrategy(serialized);
     if (strategy == null) {
-      throw throwSerializerNotFound(serialized).get();
+      throw supplySerializerNotFoundException(serialized).get();
     }
-    if (!strategy.constraintClass().equals(serialized.getConstraintClass())) {
-      throw new ConstraintValidationException(
-          "Strategy %s does not match constraint type %s!".formatted(strategy, type));
-    }
-    return (ConstraintStrategy<T>) strategy;
+    ConstraintSerializer<P, ?> serializer = strategy.getConstraintSerializer();
+    return serializer.deSerializeAndValidate(serialized, strategy.getConstraintValidator(), data);
   }
 }

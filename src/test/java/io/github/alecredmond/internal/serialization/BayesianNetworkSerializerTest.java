@@ -4,10 +4,10 @@ import static io.github.alecredmond.TestConfigs.SOLVE_LONG_TESTS;
 import static io.github.alecredmond.export.method.network.NetworkScenario.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.export.method.network.NetworkScenario;
-import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;

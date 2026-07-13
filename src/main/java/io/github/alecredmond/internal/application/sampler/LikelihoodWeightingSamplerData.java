@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.application.sampler;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.method.probabilitytables.NetworkTableQueryTool;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.NetworkTableQueryTool;
 import io.github.alecredmond.internal.method.sampler.SampleImpl;
 import java.util.Map;
 import java.util.Set;

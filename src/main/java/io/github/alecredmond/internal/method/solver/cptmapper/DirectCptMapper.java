@@ -1,12 +1,12 @@
 package io.github.alecredmond.internal.method.solver.cptmapper;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.probabilitytables.ConditionalTable;
-import io.github.alecredmond.export.application.probabilitytables.NetworkTable;
-import io.github.alecredmond.export.application.probabilitytables.RootNodeTable;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.probabilitytables.ConditionalTable;
+import io.github.alecredmond.export.probabilitytables.NetworkTable;
+import io.github.alecredmond.export.probabilitytables.RootNodeTable;
 import io.github.alecredmond.internal.method.constraints.types.conditionalconstraint.ConditionalConstraintValidator;
 import io.github.alecredmond.internal.method.constraints.types.marginalconstraint.MarginalConstraintValidator;
 import io.github.alecredmond.internal.method.solver.cptmapper.iterator.ConditionalCPTMapperIterator;

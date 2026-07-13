@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.application.junctiontree;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;

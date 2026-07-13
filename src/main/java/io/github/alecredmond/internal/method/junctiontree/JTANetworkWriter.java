@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.junctiontree;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.junctiontree.Separator;
@@ -67,7 +67,7 @@ class JTANetworkWriter {
 
     jtd.getObservedTablesMap().values().parallelStream()
         .map(ProbabilityTable::getQueryTool)
-        .forEach(TableQueryTool::normalizeTable);
+        .forEach(ProbabilityTableQueryTool::normalizeTable);
 
     Map<Node, NodeState> observationMap = Collections.unmodifiableMap(jtd.getObservedEvidence());
     networkData.getNodes().forEach(node -> updateObservedTables(node, observationMap));
@@ -92,6 +92,6 @@ class JTANetworkWriter {
 
     bnd.getNetworkTablesMap().values().parallelStream()
         .map(ProbabilityTable::getQueryTool)
-        .forEach(TableQueryTool::normalizeTable);
+        .forEach(ProbabilityTableQueryTool::normalizeTable);
   }
 }

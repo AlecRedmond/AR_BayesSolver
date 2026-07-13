@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.solver;
 
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
-import io.github.alecredmond.export.application.inference.SolverResults;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.solver.SolverResults;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintSolver;

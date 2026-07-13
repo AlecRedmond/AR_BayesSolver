@@ -2,9 +2,9 @@ package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.bas
 
 import io.github.alecredmond.exceptions.NodeStateConflictException;
 import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityTable;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
 import java.io.Serializable;

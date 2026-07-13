@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.serialization;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
-import io.github.alecredmond.export.serialization.network.SerializedBayesianNetwork;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import io.github.alecredmond.internal.method.network.BayesianNetworkImpl;
 import io.github.alecredmond.internal.serialization.structure.NetworkDataSerializer;
 import io.github.alecredmond.internal.serialization.structure.NodeSerializer;
@@ -25,7 +25,7 @@ public class BayesianNetworkSerializer {
 
   private void createNodes(SerializedBayesianNetwork sbn, SerializationData serializationData) {
     NodeSerializer serializer = new NodeSerializer();
-    sbn.getSerializedNodes()
+    sbn.serializedNodes()
         .forEach(
             serializedNode -> {
               Node node = serializer.createNewBase(serializedNode);

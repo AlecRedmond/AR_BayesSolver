@@ -1,5 +1,8 @@
 package io.github.alecredmond.export.method.network;
 
+import io.github.alecredmond.export.network.BayesianNetwork;
+import io.github.alecredmond.export.network.BayesianNetworkBuilder;
+
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;

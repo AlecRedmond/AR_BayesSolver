@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.method.junctiontree.treebuilding;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
+import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.junctiontree.Separator;

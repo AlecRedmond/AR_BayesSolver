@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.tablebuilders;
 
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableImpl;
 import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.JunctionTreeTableQueryToolImpl;

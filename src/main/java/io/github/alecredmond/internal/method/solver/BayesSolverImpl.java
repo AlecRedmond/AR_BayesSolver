@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.solver;
 
-import io.github.alecredmond.export.application.inference.SolverResults;
-import io.github.alecredmond.export.application.network.BayesianNetworkData;
-import io.github.alecredmond.export.method.inference.BayesSolver;
-import io.github.alecredmond.export.method.inference.SolverAlgorithm;
-import io.github.alecredmond.export.method.network.BayesianNetwork;
+import io.github.alecredmond.export.solver.SolverResults;
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.solver.BayesSolver;
+import io.github.alecredmond.export.solver.SolverAlgorithm;
+import io.github.alecredmond.export.network.BayesianNetwork;
 import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.method.solver.cptmapper.DirectCptMapper;
 import lombok.extern.slf4j.Slf4j;

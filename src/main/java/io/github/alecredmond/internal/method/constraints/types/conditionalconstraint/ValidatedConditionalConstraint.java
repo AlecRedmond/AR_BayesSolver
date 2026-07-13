@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.constraints.types.conditionalconstraint;
 
-import io.github.alecredmond.export.application.constraints.ConditionalConstraint;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.constraints.ConditionalConstraint;
+import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import java.util.Collection;
 import lombok.EqualsAndHashCode;

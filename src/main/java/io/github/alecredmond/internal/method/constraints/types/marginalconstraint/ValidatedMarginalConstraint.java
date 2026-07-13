@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.constraints.types.marginalconstraint;
 
-import io.github.alecredmond.export.application.constraints.MarginalConstraint;
-import io.github.alecredmond.export.application.node.NodeState;
+import io.github.alecredmond.export.constraints.MarginalConstraint;
+import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.internal.method.constraints.strategy.ValidatedConstraint;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;

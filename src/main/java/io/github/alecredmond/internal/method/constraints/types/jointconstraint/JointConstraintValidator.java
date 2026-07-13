@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 
 import io.github.alecredmond.exceptions.ConstraintValidationException;
-import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.JointProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
 import io.github.alecredmond.internal.application.constraint.ConstraintBuilderData;
 import io.github.alecredmond.internal.method.constraints.base.ConstraintValidatorBase;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintValidator;

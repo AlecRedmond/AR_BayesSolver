@@ -2,7 +2,7 @@ package io.github.alecredmond.internal.application.solver;
 
 import static io.github.alecredmond.internal.method.utils.AppProperty.*;
 
-import io.github.alecredmond.export.method.inference.SolverAlgorithm;
+import io.github.alecredmond.export.solver.SolverAlgorithm;
 import io.github.alecredmond.internal.method.utils.PropertiesLoader;
 import lombok.AllArgsConstructor;
 import lombok.Data;

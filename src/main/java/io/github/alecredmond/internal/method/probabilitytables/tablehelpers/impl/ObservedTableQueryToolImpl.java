@@ -1,8 +1,8 @@
 package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
 
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ObservedTable;
-import io.github.alecredmond.export.method.probabilitytables.ObservedTableQueryTool;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ObservedTable;
+import io.github.alecredmond.export.probabilitytables.ObservedTableQueryTool;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.ObservedTableBuilder;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;

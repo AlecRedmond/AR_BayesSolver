@@ -1,6 +1,6 @@
 package io.github.alecredmond.internal.application.junctiontree;
 
-import io.github.alecredmond.export.application.node.Node;
+import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
 import java.util.Arrays;

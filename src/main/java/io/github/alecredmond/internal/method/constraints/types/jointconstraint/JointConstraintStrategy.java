@@ -1,7 +1,9 @@
 package io.github.alecredmond.internal.method.constraints.types.jointconstraint;
 
-import io.github.alecredmond.export.application.constraints.JointProbabilityConstraint;
-import io.github.alecredmond.export.application.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.JointProbabilityConstraint;
+import io.github.alecredmond.export.constraints.ProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedJointProbabilityConstraint;
+import io.github.alecredmond.export.constraints.serialized.SerializedProbabilityConstraint;
 import io.github.alecredmond.internal.method.constraints.strategy.ConstraintStrategy;
 import lombok.Getter;
 
@@ -16,13 +18,19 @@ public class JointConstraintStrategy implements ConstraintStrategy<JointProbabil
   }
 
   @Override
-  public <P extends ProbabilityConstraint> JointProbabilityConstraint safeCast(P constraint) {
-    if (constraint instanceof JointProbabilityConstraint jpc) return jpc;
-    return null;
+  public boolean constraintIsInstance(ProbabilityConstraint constraint) {
+    return constraint instanceof JointProbabilityConstraint;
   }
 
   @Override
-  public Class<JointProbabilityConstraint> constraintClass() {
-    return JointProbabilityConstraint.class;
+  public boolean serializedIsInstance(SerializedProbabilityConstraint serialized) {
+    return serialized instanceof SerializedJointProbabilityConstraint;
+  }
+
+  @Override
+  public <P extends ProbabilityConstraint> JointProbabilityConstraint safeCastConstraint(
+      P constraint) {
+    if (constraint instanceof JointProbabilityConstraint jpc) return jpc;
+    return null;
   }
 }

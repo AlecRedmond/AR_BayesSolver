@@ -1,9 +1,9 @@
 package io.github.alecredmond.internal.application.probabilitytables.base;
 
-import io.github.alecredmond.export.application.node.Node;
-import io.github.alecredmond.export.application.node.NodeState;
-import io.github.alecredmond.export.application.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.export.method.probabilitytables.TableQueryTool;
+import io.github.alecredmond.export.node.Node;
+import io.github.alecredmond.export.node.NodeState;
+import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
+import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilderData;
 import java.io.Serializable;
 import java.util.Map;
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public abstract class ProbabilityTableBase<R extends TableQueryTool> {
+public abstract class ProbabilityTableBase<R extends ProbabilityTableQueryTool> {
   protected final Map<Serializable, NodeState> nodeStateIDMap;
   protected final Map<Serializable, Node> nodeIDMap;
   protected final ProbabilityVector vector;
