@@ -4,8 +4,7 @@ import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.export.probabilitytables.ProbabilityTableQueryTool;
-import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableBase;
+import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableData;
 import io.github.alecredmond.internal.method.node.NodeUtils;
 import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
 import io.github.alecredmond.internal.method.probabilitytables.probabilityvector.ProbabilityVectorFactory;
@@ -24,15 +23,14 @@ import lombok.NoArgsConstructor;
 public abstract class BaseTableBuilder {
   private final ProbabilityVectorFactory vectorFactory = new ProbabilityVectorFactory();
 
-  protected <R extends ProbabilityTableQueryTool, S extends ProbabilityTableBase<R>> S buildTable(
+  protected <T extends ProbabilityTable, S extends ProbabilityTableData> T buildTable(
       List<Node> events,
       List<Node> conditions,
-      Function<TableBuilderData, S> constructor,
-      Function<S, R> helperConstructor) {
+      Function<TableBuilderData, S> tableDataConstructor,
+      Function<S, T> tableConstructor) {
     TableBuilderData data = buildData(events, conditions);
-    S table = constructor.apply(data);
-    table.setQueryTool(helperConstructor.apply(table));
-    return table;
+    S tableData = tableDataConstructor.apply(data);
+    return tableConstructor.apply(tableData);
   }
 
   public TableBuilderData buildData(List<Node> events, List<Node> conditions) {

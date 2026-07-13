@@ -1,5 +1,7 @@
 package io.github.alecredmond.internal.serialization.structure;
 
+import io.github.alecredmond.export.network.BayesianNetworkData;
+import io.github.alecredmond.export.network.serialized.SerializedBayesianNetwork;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.probabilitytables.NetworkTable;
 import io.github.alecredmond.export.probabilitytables.serialized.SerializedNetworkTable;
@@ -14,7 +16,14 @@ import java.util.stream.IntStream;
 
 public class NetworkTableSerializer {
 
-  public SerializedNetworkTable serialize(NetworkTable table) {
+  public List<SerializedNetworkTable> serializeAllTables(BayesianNetworkData networkData) {
+    return networkData.getNodes().stream()
+        .map(node -> networkData.getNetworkTablesMap().get(node))
+        .map(this::serialize)
+        .toList();
+  }
+
+  private SerializedNetworkTable serialize(NetworkTable table) {
     return new SerializedNetworkTable(
         table.getNetworkNode().getId(),
         SerializerUtils.serializeNodes(table.getConditions()),
@@ -26,7 +35,15 @@ public class NetworkTableSerializer {
     return Arrays.stream(table.getProbabilities()).boxed().toList();
   }
 
-  public NetworkTable deSerialize(SerializedNetworkTable serialized, SerializationData data) {
+  public void deSerializeNetworkTables(
+      SerializedBayesianNetwork serializedBayesianNetwork, SerializationData serializationData) {
+    Map<Node, NetworkTable> tableMap = serializationData.getNetworkData().getNetworkTablesMap();
+    serializedBayesianNetwork.serializedCPTs().stream()
+        .map(serializedTable -> deSerialize(serializedTable, serializationData))
+        .forEach(networkTable -> tableMap.put(networkTable.getNetworkNode(), networkTable));
+  }
+
+  private NetworkTable deSerialize(SerializedNetworkTable serialized, SerializationData data) {
     Node event = data.getNodeIdMap().get(serialized.networkNodeId());
     List<Node> conditions = nodeDeSerialize(serialized.conditionNodeIds(), data);
     NetworkTable table = selectBuilder(conditions).buildTable(List.of(event), conditions);

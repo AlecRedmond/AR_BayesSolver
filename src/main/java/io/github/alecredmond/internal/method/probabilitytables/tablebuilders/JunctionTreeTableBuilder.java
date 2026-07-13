@@ -3,9 +3,9 @@ package io.github.alecredmond.internal.method.probabilitytables.tablebuilders;
 import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableImpl;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl.JunctionTreeTableQueryToolImpl;
+import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableData;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTableImpl;
 import java.util.*;
 
 public class JunctionTreeTableBuilder extends BaseTableBuilder
@@ -20,9 +20,8 @@ public class JunctionTreeTableBuilder extends BaseTableBuilder
   public JunctionTreeTable buildTable(List<Node> events, List<Node> conditions) {
     TableBuilderData data = buildData(events, conditions);
     ProbabilityVector backupVector = buildProbabilityVector(events);
-    JunctionTreeTableImpl table = new JunctionTreeTableImpl(data, backupVector);
-    table.setQueryTool(new JunctionTreeTableQueryToolImpl(table));
-    return table;
+    JunctionTreeTableData tableData = new JunctionTreeTableData(data, backupVector);
+    return new JunctionTreeTableImpl(tableData);
   }
 
   @Override

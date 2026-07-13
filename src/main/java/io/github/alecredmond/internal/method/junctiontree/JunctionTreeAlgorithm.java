@@ -1,15 +1,15 @@
 package io.github.alecredmond.internal.method.junctiontree;
 
+import io.github.alecredmond.export.inference.InferenceAlgorithm;
 import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.export.inference.InferenceAlgorithm;
-import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.application.junctiontree.Clique;
 import io.github.alecredmond.internal.application.junctiontree.JunctionTreeData;
 import io.github.alecredmond.internal.application.junctiontree.Separator;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
+import io.github.alecredmond.internal.application.solver.SolverConfigs;
 import io.github.alecredmond.internal.method.node.NodeUtils;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -95,8 +95,7 @@ public class JunctionTreeAlgorithm {
       T[] array, Function<T, JunctionTreeTable> tableFunction, Collection<NodeState> newEvidence) {
     return Arrays.stream(array)
         .map(tableFunction)
-        .map(JunctionTreeTable::getQueryTool)
-        .mapToDouble(helper -> helper.sumProbabilities(newEvidence))
+        .mapToDouble(table -> table.sumProbabilities(newEvidence))
         .reduce(1.0, (x, y) -> x * y);
   }
 

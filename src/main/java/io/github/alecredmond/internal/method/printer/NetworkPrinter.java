@@ -1,10 +1,10 @@
 package io.github.alecredmond.internal.method.printer;
 
 import io.github.alecredmond.exceptions.NetworkPrinterException;
+import io.github.alecredmond.export.inference.InferenceEngine;
 import io.github.alecredmond.export.network.BayesianNetworkData;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
-import io.github.alecredmond.export.inference.InferenceEngine;
 import io.github.alecredmond.internal.application.printer.PrinterConfigs;
 import java.util.*;
 import java.util.List;
@@ -16,13 +16,13 @@ public class NetworkPrinter {
   private final BayesianNetworkData networkData;
   private final PrinterConfigs configs;
   private final TableFormatter tableFormatter;
-  private final FileExporter fileExporter;
+  private final PrinterFileExporter printerFileExporter;
 
   public NetworkPrinter(BayesianNetworkData networkData) {
     this.engine = null;
     this.networkData = networkData;
     this.configs = new PrinterConfigs();
-    this.fileExporter = new FileExporter(configs);
+    this.printerFileExporter = new PrinterFileExporter(configs);
     this.tableFormatter = new TableFormatter(configs);
   }
 
@@ -30,7 +30,7 @@ public class NetworkPrinter {
     this.engine = engine;
     this.networkData = engine.getNetwork().getNetworkData();
     this.configs = new PrinterConfigs();
-    this.fileExporter = new FileExporter(configs);
+    this.printerFileExporter = new PrinterFileExporter(configs);
     this.tableFormatter = new TableFormatter(configs);
   }
 
@@ -61,7 +61,8 @@ public class NetworkPrinter {
       outputLines.forEach(log::info);
     }
     if (configs.isPrintToTextFile()) {
-      fileExporter.exportLinesToFile(outputLines, documentTitle, networkData.getNetworkName());
+      printerFileExporter.exportLinesToFile(
+          outputLines, documentTitle, networkData.getNetworkName());
     }
   }
 

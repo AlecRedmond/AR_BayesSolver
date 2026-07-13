@@ -2,8 +2,7 @@ package io.github.alecredmond.internal.application.junctiontree;
 
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
-import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTable;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.JunctionTreeTableQueryTool;
+import io.github.alecredmond.internal.method.probabilitytables.JunctionTreeTable;
 import io.github.alecredmond.internal.method.probabilitytables.tabletransfer.TableTransfer;
 import java.util.*;
 import lombok.Data;
@@ -29,20 +28,16 @@ public class Clique {
     this.writeToObserved = new ArrayList<>();
   }
 
-  public JunctionTreeTableQueryTool getHandler() {
-    return table.getQueryTool();
-  }
-
   public void normalizeTable() {
-    table.getQueryTool().normalizeTable();
+    table.normalizeTable();
   }
 
   public void resetObservations() {
-    table.getQueryTool().resetObservations();
+    table.resetObservations();
   }
 
   public void setObserved(Set<NodeState> observedStates) {
-    table.getQueryTool().setObserved(observedStates);
+    table.setObserved(observedStates);
   }
 
   @Override

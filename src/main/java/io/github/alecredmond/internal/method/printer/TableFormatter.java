@@ -158,7 +158,7 @@ public class TableFormatter {
 
     eventCombos.stream()
         .map(events -> NodeUtils.combineStates(events, currentConditions))
-        .map(states -> table.getQueryTool().getProbability(states))
+        .map(table::getProbability)
         .map(probability -> String.format(probFormatter, probability))
         .map(probString -> padLeft(probString, eventWidth))
         .forEach(padded -> row.append(padded).append("|"));

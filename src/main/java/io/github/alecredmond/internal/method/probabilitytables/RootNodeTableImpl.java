@@ -1,26 +1,25 @@
-package io.github.alecredmond.internal.method.probabilitytables.tablehelpers.impl;
+package io.github.alecredmond.internal.method.probabilitytables;
 
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.RootNodeTable;
-import io.github.alecredmond.export.probabilitytables.RootNodeTableQueryTool;
-import io.github.alecredmond.internal.method.probabilitytables.TableUtils;
+import io.github.alecredmond.internal.application.probabilitytables.RootNodeTableData;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.RootNodeTableBuilder;
-import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.TableBuilder;
-import io.github.alecredmond.internal.method.probabilitytables.tablehelpers.base.NetworkQueryToolBase;
+import io.github.alecredmond.internal.method.vectoriterator.misciterators.CptConditionIterator;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Supplier;
+import lombok.EqualsAndHashCode;
 
-public class RootNodeTableQueryToolImpl extends NetworkQueryToolBase<RootNodeTable>
-    implements RootNodeTableQueryTool {
+@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
+public class RootNodeTableImpl extends NetworkTableBase<RootNodeTableData>
+    implements RootNodeTable {
 
-  public RootNodeTableQueryToolImpl(RootNodeTable table) {
+  public RootNodeTableImpl(RootNodeTableData table) {
     super(table);
   }
 
   @Override
   public void normalizeTable() {
-    TableUtils.marginalizeJointTable(table);
+    TableUtils.marginalizeJointTable(this);
   }
 
   @Override
@@ -36,7 +35,12 @@ public class RootNodeTableQueryToolImpl extends NetworkQueryToolBase<RootNodeTab
 
   @Override
   public Map<NodeState, Double> buildProbabilityMap() {
-    return TableUtils.buildMarginalProbMap(table);
+    return TableUtils.buildMarginalProbMap(tableData);
+  }
+
+  @Override
+  public RootNodeTable copyTable() {
+    return new RootNodeTableBuilder().copyTable(this);
   }
 
   @Override
@@ -50,7 +54,7 @@ public class RootNodeTableQueryToolImpl extends NetworkQueryToolBase<RootNodeTab
   }
 
   @Override
-  protected Supplier<TableBuilder<RootNodeTable>> supplyTableBuilder() {
-    return RootNodeTableBuilder::new;
+  protected CptConditionIterator supplyConditionIterator() {
+    return new CptConditionIterator(this);
   }
 }

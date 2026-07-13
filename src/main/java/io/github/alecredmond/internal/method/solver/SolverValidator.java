@@ -73,7 +73,7 @@ public class SolverValidator {
         .forEach(
             table -> {
               Arrays.fill(table.getProbabilities(), 1.0);
-              table.getQueryTool().normalizeTable();
+              table.normalizeTable();
             });
   }
 }
