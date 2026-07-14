@@ -10,11 +10,12 @@
 
 # Overview
 
-AR_BayesSolver is a Java library providing a high-level toolset for working with Bayesian Networks. Bayesian Networks
-can be constructed from either full or partial domain knowledge of the network's Conditional Probability Tables (CPTs),
-solved using an Iterative Proportional Fitting Procedure (IPFP), and queried with direct inference or Monte Carlo
-sampling. The solving and inference processes are accelerated using the Junction Tree Algorithm, and high performance
-can be expected for Bayesian Networks with fewer than ~200 Nodes. 
+AR_BayesSolver is a Java library providing a high-level, easy-use toolset for working with Bayesian Networks. Bayesian 
+Networks can be constructed from either full or partial domain knowledge of the network's Conditional Probability Tables 
+(CPTs), and queried using direct inference or Monte Carlo sampling. Networks with only partial domain knowledge are 
+solved using an Iterative Proportional Fitting Procedure (IPFP). The solving and inference processes are accelerated 
+using the Junction Tree Algorithm by default, and high performance can be expected for networks into the low hundreds 
+of nodes.
 
 # Features
 
@@ -35,7 +36,7 @@ Add the latest release as a dependency in your pom.xml:
     <dependency>
         <groupId>io.github.alecredmond</groupId>
         <artifactId>ar-bayes-solver</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </dependency>
 </dependencies>
 ```
@@ -124,7 +125,7 @@ Networks can be solved from the instance, or we can create a BayesSolver for mor
 control:
 
 ```java
-// Uses default configurations found in app.properties.solver
+// Uses default configurations found in app.properties under app.bayes.solver
 wetGrassNetwork.solveNetwork(); 
 
 BayesSolver solver = BayesSolver.create(wetGrassNetwork);
@@ -225,7 +226,7 @@ P(SPRINKLER|WET_GRASS:TRUE)
 [...]
 ```
 
-Settings for the printer can be modified within `app.properties`.
+Settings for the printer can be modified within `app.properties` under the section `app.bayes.printer`.
 
 ### 8. Generating Random Samples
 
@@ -271,7 +272,7 @@ You can extract the probability tables for use in your application.
 // Extract and query a CPT from the BayesianNetwork
 NetworkTable wetGrassCpt = wetGrassNetwork.getNetworkTable("WET_GRASS");
 List<String> cptRequestIds = List.of("RAIN:TRUE","SPRINKLER:FALSE","WET_GRASS:TRUE");
-double cptRequestProb = wetGrassCpt.getQueryTool().getProbabilityFromIDs(cptRequestIds);
+double cptRequestProb = wetGrassCpt.getProbabilityFromIDs(cptRequestIds);
 System.out.printf("%.2f",cptRequestProb);
 
 // P(WET_GRASS:TRUE|RAIN:TRUE, SPRINKLER:FALSE)
@@ -279,7 +280,7 @@ System.out.printf("%.2f",cptRequestProb);
 
 // Extract and query a posterior table from the InferenceEngine.
 ObservedTable rainObservedTable = engine.getObservedTableById("RAIN");
-double rainFalsePosterior = rainObservedTable.getHelper().getProbabilityById("RAIN:FALSE");
+double rainFalsePosterior = rainObservedTable.getProbabilityById("RAIN:FALSE");
 System.out.printf("%.2f", rainFalsePosterior);
 
 // P(RAIN:FALSE|WET_GRASS:TRUE)
