@@ -11,7 +11,7 @@
     <description>A library providing a high-level, easy-use toolset for Bayesian Network construction, proportional
         fitting, sampling, and inference.
     </description>
-    <url>https://github.com/AlecRedmond/AR_BayesSolver/tree/master/</url>
+    <url>https://github.com/AlecRedmond/AR-Bayesian-Network-Tools/tree/master/</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -27,9 +27,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git:://github.com/AlecRedmond/AR_BayesSolver.git</connection>
-        <developerConnection>scm:git:ssh:://github.com:AlecRedmond/AR_BayesSolver.git</developerConnection>
-        <url>https://github.com/AlecRedmond/AR_BayesSolver/tree/master</url>
+        <connection>scm:git:git:://github.com/AlecRedmond/AR-Bayesian-Network-Tools.git</connection>
+        <developerConnection>scm:git:ssh:://github.com:AlecRedmond/AR-Bayesian-Network-Tools.git</developerConnection>
+        <url>https://github.com/AlecRedmond/AR-Bayesian-Network-Tools/tree/master</url>
     </scm>
 
     <properties>
