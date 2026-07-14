@@ -77,7 +77,7 @@ public class TableFormatter {
     return Arrays.stream(matrix.columnLabels())
         .map(this::stringifyHeaderLine)
         .map(xAxisLabel -> alignRight(xAxisLabel, totalLineLength))
-        .map(string -> string.replaceFirst(" ", "|"))
+        .map(TableFormatter::addBarIfNecessary)
         .toList();
   }
 
@@ -106,6 +106,12 @@ public class TableFormatter {
 
   private String alignRight(String text, int width) {
     return String.format(RIGHT_ALIGN_FORMAT.formatted(width), text);
+  }
+
+  private static String addBarIfNecessary(String string) {
+    if (string.isEmpty()) return string;
+    if (string.charAt(0) == '|') return string;
+    return string.replaceFirst(" ", "|");
   }
 
   private void addRowStateLabels(String[] rowLabel, StringBuilder sb) {
