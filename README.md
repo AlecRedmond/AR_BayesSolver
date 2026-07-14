@@ -1,8 +1,8 @@
 <div align="center">
 
-# AR_BayesSolver
+# AR Bayesian Network Tools
 
-### A Java library for solving and inference on partially constrained Bayesian Networks.
+### A Java library for Bayesian Network construction, proportional fitting, sampling, and inference.
 
 ![Java](https://img.shields.io/badge/Java-21+-orange)
 
@@ -10,12 +10,12 @@
 
 # Overview
 
-AR_BayesSolver is a Java library providing a high-level, easy-use toolset for working with Bayesian Networks. Bayesian 
-Networks can be constructed from either full or partial domain knowledge of the network's Conditional Probability Tables 
-(CPTs), and queried using direct inference or Monte Carlo sampling. Networks with only partial domain knowledge are 
-solved using an Iterative Proportional Fitting Procedure (IPFP). The solving and inference processes are accelerated 
-using the Junction Tree Algorithm by default, and high performance can be expected for networks into the low hundreds 
-of nodes.
+AR Bayesian Network Tools is a Java library providing a high-level, easy-use toolset for working with Bayesian Networks. 
+Bayesian Networks can be constructed from either full or partial domain knowledge of the network's Conditional 
+Probability Tables (CPTs), and queried using direct inference or Monte Carlo sampling. Networks with only partial domain 
+knowledge are solved using an Iterative Proportional Fitting Procedure (IPFP). The solving and inference processes are 
+accelerated using the Junction Tree Algorithm by default, and high performance can be expected for networks into 
+the low hundreds of nodes.
 
 # Features
 
