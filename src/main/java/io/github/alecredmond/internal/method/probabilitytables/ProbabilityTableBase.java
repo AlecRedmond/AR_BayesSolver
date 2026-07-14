@@ -88,8 +88,10 @@ public abstract class ProbabilityTableBase<D extends ProbabilityTableData> {
         : TableUtils.convertIdsToStates(stateIds, tableData);
   }
 
-  public PrinterStringMatrix generateStringMatrix(PrinterPropertyConfigs configs) {
-    return buildMatrixGenerator().generate(configs);
+  public PrinterStringMatrix generatePrinterMatrix(PrinterPropertyConfigs configs) {
+    return Optional.ofNullable(buildMatrixGenerator())
+            .map(g -> g.generate(configs))
+            .orElse(null);
   }
 
   protected abstract PrinterMatrixGeneratorBase buildMatrixGenerator();

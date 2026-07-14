@@ -23,32 +23,12 @@ public abstract class PrinterMatrixGeneratorBase {
 
   protected abstract PrinterStateMatrix buildPrinterStateMatrix();
 
-  private AxisLabels buildRowLabels(PrinterStateMatrix matrix) {
-    NodeState[][] rowStates = matrix.rowStates();
-    String[][] labels = new String[rowStates.length][];
-    if (labels.length == 0) {
-      return new AxisLabels(labels, new int[0]);
+  private static void fillLabelArray(NodeState[][] states, int[] labelWidths, String[][] labels) {
+    for (int row = 0; row < states.length; row++) {
+      String[] subStrings = statesToString(states[row]);
+      checkReplaceMaxWidth(subStrings, labelWidths);
+      labels[row] = subStrings;
     }
-    int[] labelWidths = new int[rowStates[0].length];
-    for (int i = 0; i < rowStates.length; i++) {
-      String[] substrings = statesToString(rowStates[i]);
-      checkReplaceMaxWidth(substrings, labelWidths);
-      labels[i] = substrings;
-    }
-    return new AxisLabels(labels, labelWidths);
-  }
-
-  private AxisLabels buildColumnLabels(PrinterStateMatrix matrix, PrinterPropertyConfigs configs) {
-    NodeState[][] columnStates = matrix.columnStates();
-    String[][] labels = new String[columnStates.length][];
-    int[] labelWidths = new int[columnStates.length];
-    int probabilityCharLength = configs.getProbabilityCharLength();
-    for (int i = 0; i < columnStates.length; i++) {
-      String[] subStrings = statesToString(columnStates[i]);
-      labelWidths[i] = maximumWidthOfStateStrings(subStrings, probabilityCharLength);
-      labels[i] = subStrings;
-    }
-    return new AxisLabels(labels, labelWidths);
   }
 
   private static String[] statesToString(NodeState[] states) {
@@ -66,9 +46,24 @@ public abstract class PrinterMatrixGeneratorBase {
     }
   }
 
-  private static int maximumWidthOfStateStrings(String[] subStrings, int probabilityCharLength) {
-    int maxStringLength = Arrays.stream(subStrings).mapToInt(String::length).max().orElse(0);
-    return Math.max(probabilityCharLength, maxStringLength);
+  private AxisLabels buildRowLabels(PrinterStateMatrix matrix) {
+    NodeState[][] rowStates = matrix.rowStates();
+    String[][] labels = new String[rowStates.length][];
+    if (labels.length == 0) {
+      return new AxisLabels(labels, new int[0]);
+    }
+    int[] labelWidths = new int[rowStates[0].length];
+    fillLabelArray(rowStates, labelWidths, labels);
+    return new AxisLabels(labels, labelWidths);
+  }
+
+  private AxisLabels buildColumnLabels(PrinterStateMatrix matrix, PrinterPropertyConfigs configs) {
+    NodeState[][] columnStates = matrix.columnStates();
+    String[][] labels = new String[columnStates.length][];
+    int[] labelWidths = new int[columnStates[0].length];
+    Arrays.fill(labelWidths, configs.getProbabilityCharLength());
+    fillLabelArray(columnStates, labelWidths, labels);
+    return new AxisLabels(labels, labelWidths);
   }
 
   protected record AxisLabels(String[][] labels, int[] widths) {}

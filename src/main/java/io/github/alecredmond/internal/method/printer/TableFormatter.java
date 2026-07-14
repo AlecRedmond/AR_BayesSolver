@@ -6,6 +6,7 @@ import io.github.alecredmond.internal.application.printer.PrinterPropertyConfigs
 import io.github.alecredmond.internal.application.printer.PrinterStringMatrix;
 import io.github.alecredmond.internal.method.probabilitytables.ProbabilityTableBase;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Data;
 
@@ -21,103 +22,100 @@ public class TableFormatter {
 
   public List<String> generateTableLines(ProbabilityTable table) {
     PrinterStringMatrix matrix = generateMatrix(table);
-    padRowLabels(matrix);
-    padColLabels(matrix);
-    List<String> rowLines = buildRowLines(matrix);
-    int lineLength = rowLines.getFirst().length();
-    List<String> columnLabelLines = buildColumnLabelLines(matrix, lineLength);
+    padLabels(matrix.rowLabels(), matrix.rowLabelWidths());
+    padLabels(matrix.columnLabels(), matrix.columnLabelWidths());
+
+    String tableTitle = matrix.tableTitle();
+    List<String> dataLines = buildDataLines(matrix);
+    int lineLength = dataLines.getFirst().length();
+    List<String> headerLines = buildHeaderLines(matrix, lineLength);
     String divider = "-".repeat(lineLength);
 
     List<String> tableLines = new ArrayList<>();
-    tableLines.add(table.getTableName().toString());
+    tableLines.add(tableTitle);
     tableLines.add(divider);
-    tableLines.addAll(columnLabelLines);
+    tableLines.addAll(headerLines);
     tableLines.add(divider);
-    tableLines.addAll(rowLines);
+    tableLines.addAll(dataLines);
     tableLines.add(divider);
     tableLines.add("");
     return tableLines;
   }
 
   private PrinterStringMatrix generateMatrix(ProbabilityTable table) {
-    if (table instanceof ProbabilityTableBase<?> tableBase) {
-      return tableBase.generateStringMatrix(configs);
-    }
-    throw new NetworkPrinterException(
-        "Table %s had no means to generate a printer matrix!".formatted(table.getTableName()));
+    return Optional.of(table)
+        .filter(ProbabilityTableBase.class::isInstance)
+        .map(ProbabilityTableBase.class::cast)
+        .map(tableBase -> tableBase.generatePrinterMatrix(configs))
+        .orElseThrow(() -> noMeansToGenerateException(table));
   }
 
-  private void padRowLabels(PrinterStringMatrix matrix) {
-    String[][] rowLabels = matrix.rowLabels();
-    int[] rowLabelWidths = matrix.rowLabelWidths();
-    for (int row = 0; row < rowLabels.length; row++) {
-      for (int col = 0; col < rowLabelWidths.length; col++) {
-        int width = rowLabelWidths[col];
-        rowLabels[row][col] = alignLeft(rowLabels[row][col], width);
+  private void padLabels(String[][] labels, int[] labelWidths) {
+    for (int row = 0; row < labels.length; row++) {
+      for (int col = 0; col < labelWidths.length; col++) {
+        labels[row][col] = alignLeft(labels[row][col], labelWidths[col]);
       }
     }
   }
 
-  private void padColLabels(PrinterStringMatrix matrix) {
-    String[][] colLabels = matrix.columnLabels();
-    int[] colLabelWidths = matrix.columnLabelWidths();
-    for (int col = 0; col < colLabelWidths.length; col++) {
-      String[] labelStack = colLabels[col];
-      int width = colLabelWidths[col];
-      for (int i = 0; i < labelStack.length; i++) {
-        labelStack[i] = alignLeft(labelStack[i], width);
-      }
-    }
-  }
-
-  private List<String> buildRowLines(PrinterStringMatrix matrix) {
-    double[][] probabilities2D = matrix.probabilities2D();
-    String probabilityFormatter = configs.getProbabilityFormatter();
-    String[][] rowLabels = matrix.rowLabels();
+  private List<String> buildDataLines(PrinterStringMatrix matrix) {
+    double[][] probs2D = matrix.probabilities2D();
+    String pFormat = configs.getProbabilityFormatter();
+    String[][] stateLabels = matrix.rowLabels();
     int[] columnWidths = matrix.columnLabelWidths();
-    List<String> strings = new ArrayList<>();
-    if (rowLabels.length == 0) {
-      strings.add(
-          buildSingleRow(new String[0], probabilities2D[0], columnWidths, probabilityFormatter));
-      return strings;
+
+    if (stateLabels.length == 0) {
+      return List.of(stringifyDataRow(new String[0], probs2D[0], columnWidths, pFormat));
     }
-    for (int row = 0; row < rowLabels.length; row++) {
-      strings.add(
-          buildSingleRow(rowLabels[row], probabilities2D[row], columnWidths, probabilityFormatter));
-    }
-    return strings;
+
+    return IntStream.range(0, stateLabels.length)
+        .mapToObj(row -> stringifyDataRow(stateLabels[row], probs2D[row], columnWidths, pFormat))
+        .toList();
   }
 
-  private List<String> buildColumnLabelLines(PrinterStringMatrix matrix, int totalLineLength) {
-    String[][] columnLabels = matrix.columnLabels();
-    int rows = columnLabels[0].length;
-    List<String> strings = new ArrayList<>();
-    for (int row = 0; row < rows; row++) {
-      StringBuilder sb = new StringBuilder("|");
-      for (String[] columnLabel : columnLabels) {
-        sb.append(columnLabel[row]).append("|");
-      }
-      strings.add(alignRight(sb.toString(), totalLineLength).replaceFirst(" ", "|"));
-    }
-    return strings;
+  private List<String> buildHeaderLines(PrinterStringMatrix matrix, int totalLineLength) {
+    return Arrays.stream(matrix.columnLabels())
+        .map(this::stringifyHeaderLine)
+        .map(xAxisLabel -> alignRight(xAxisLabel, totalLineLength))
+        .map(string -> string.replaceFirst(" ", "|"))
+        .toList();
+  }
+
+  private static NetworkPrinterException noMeansToGenerateException(ProbabilityTable table) {
+    return new NetworkPrinterException(
+        "Table %s had no means to generate a printer matrix!".formatted(table.getTableName()));
   }
 
   private String alignLeft(String text, int width) {
     return String.format(LEFT_ALIGN_FORMAT.formatted(width), text);
   }
 
-  private String buildSingleRow(
-      String[] rowLabel, double[] rowProbs, int[] columnWidths, String probabilityFormatter) {
+  private String stringifyDataRow(
+      String[] stateLabels, double[] rowProbabilities, int[] columnWidths, String pFormatter) {
     StringBuilder sb = new StringBuilder("|");
-    Arrays.stream(rowLabel).forEach(label -> sb.append(label).append("|"));
-    IntStream.range(0, rowProbs.length)
-        .mapToObj(
-            i -> alignRight(String.format(probabilityFormatter, rowProbs[i]), columnWidths[i]))
-        .forEach(s -> sb.append(s).append("|"));
+    addRowStateLabels(stateLabels, sb);
+    addRowProbabilities(rowProbabilities, columnWidths, pFormatter, sb);
     return sb.toString();
+  }
+
+  private String stringifyHeaderLine(String[] headerRow) {
+    return Arrays.stream(headerRow)
+        .map(label -> label + "|")
+        .collect(Collectors.joining("", "|", ""));
   }
 
   private String alignRight(String text, int width) {
     return String.format(RIGHT_ALIGN_FORMAT.formatted(width), text);
+  }
+
+  private void addRowStateLabels(String[] rowLabel, StringBuilder sb) {
+    Arrays.stream(rowLabel).forEach(label -> sb.append(label).append("|"));
+  }
+
+  private void addRowProbabilities(
+      double[] probabilities, int[] columnWidths, String pFormatter, StringBuilder sb) {
+    IntStream.range(0, probabilities.length)
+        .mapToObj(i -> alignRight(String.format(pFormatter, probabilities[i]), columnWidths[i]))
+        .forEach(s -> sb.append(s).append("|"));
   }
 }
