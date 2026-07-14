@@ -1,6 +1,6 @@
 /**
- * Defines the API for AR_BayesSolver, containing tools for construction, solving, and inference on
- * Bayesian Networks.
+ * Defines the API for AR_BayesSolver, containing tools for construction, proportional fitting,
+ * solving, and inference on Bayesian Networks.
  *
  * @author Alec Redmond
  */
