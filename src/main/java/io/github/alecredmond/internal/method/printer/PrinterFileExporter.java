@@ -1,7 +1,7 @@
 package io.github.alecredmond.internal.method.printer;
 
 import io.github.alecredmond.exceptions.NetworkPrinterException;
-import io.github.alecredmond.internal.application.printer.PrinterConfigs;
+import io.github.alecredmond.internal.application.printer.PrinterPropertyConfigs;
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -18,9 +18,9 @@ public class PrinterFileExporter {
   private static final String TXT_EXTENSION = ".txt";
   private static final String FILE_PATH_FORMAT = "%s%s-%s_%s%s";
   private static final String DATE_TIME_FORMAT = "yyyy_MMdd/HHmmssSSS";
-  private final PrinterConfigs configs;
+  private final PrinterPropertyConfigs configs;
 
-  public PrinterFileExporter(PrinterConfigs configs) {
+  public PrinterFileExporter(PrinterPropertyConfigs configs) {
     this.configs = configs;
   }
 

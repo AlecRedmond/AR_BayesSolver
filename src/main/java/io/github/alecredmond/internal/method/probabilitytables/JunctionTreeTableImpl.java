@@ -4,18 +4,17 @@ import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.ProbabilityTable;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
 import io.github.alecredmond.internal.application.probabilitytables.JunctionTreeTableData;
+import io.github.alecredmond.internal.method.probabilitytables.printerformat.PrinterMatrixGeneratorBase;
 import io.github.alecredmond.internal.method.probabilitytables.tablebuilders.JunctionTreeTableBuilder;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.JunctionTableSummer;
 import io.github.alecredmond.internal.method.vectoriterator.misciterators.ObservationCopier;
-import lombok.EqualsAndHashCode;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
-public class JunctionTreeTableImpl
-    extends ProbabilityTableBase<JunctionTreeTableData>
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class JunctionTreeTableImpl extends ProbabilityTableBase<JunctionTreeTableData>
     implements JunctionTreeTable {
   private final JunctionTableSummer summer;
   private final ObservationCopier copier;
@@ -39,6 +38,11 @@ public class JunctionTreeTableImpl
   @Override
   public ProbabilityVector getVector() {
     return tableData.getVector();
+  }
+
+  @Override
+  protected PrinterMatrixGeneratorBase buildMatrixGenerator() {
+    return null;
   }
 
   @Override

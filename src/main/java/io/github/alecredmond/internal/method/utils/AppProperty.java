@@ -28,8 +28,6 @@ public enum AppProperty {
   PRINTER_OPEN_FOLDER_ON_CREATION("app.bayes.printer.openFolderOnCreation"),
   PRINTER_PRINT_TO_CONSOLE("app.bayes.printer.printToConsole"),
   PRINTER_PRINT_TO_TEXT_FILE("app.bayes.printer.printToTextFile"),
-  PRINTER_OBSERVED_FILE_TITLE("app.bayes.printer.observedFileTitle"),
-  PRINTER_NETWORK_FILE_TITLE("app.bayes.printer.networkFileTitle"),
   PRINTER_PROB_DECIMAL_PLACES("app.bayes.printer.probDecimalPlaces"),
 
   // Extension Properties

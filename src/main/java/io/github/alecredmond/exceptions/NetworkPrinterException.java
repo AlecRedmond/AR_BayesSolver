@@ -18,4 +18,13 @@ public class NetworkPrinterException extends RuntimeException {
   public NetworkPrinterException(Throwable cause) {
     super(cause);
   }
+
+  /**
+   * Constructs a {@code NetworkPrinterException} with the specified message.
+   *
+   * @param message the cause of the exception.
+   */
+  public NetworkPrinterException(String message) {
+    super(message);
+  }
 }
