@@ -5,8 +5,10 @@ import io.github.alecredmond.exceptions.ProbabilityTableRequestException;
 import io.github.alecredmond.export.node.Node;
 import io.github.alecredmond.export.node.NodeState;
 import io.github.alecredmond.export.probabilitytables.ProbabilityVector;
+import io.github.alecredmond.internal.application.printer.PrinterPropertyConfigs;
+import io.github.alecredmond.internal.application.printer.PrinterStringMatrix;
 import io.github.alecredmond.internal.application.probabilitytables.base.ProbabilityTableData;
-
+import io.github.alecredmond.internal.method.probabilitytables.printerformat.PrinterMatrixGeneratorBase;
 import java.io.Serializable;
 import java.util.*;
 import lombok.EqualsAndHashCode;
@@ -85,4 +87,12 @@ public abstract class ProbabilityTableBase<D extends ProbabilityTableData> {
         ? TableUtils.assertAllIdsPresent(stateIds, expectedNodes, tableData)
         : TableUtils.convertIdsToStates(stateIds, tableData);
   }
+
+  public PrinterStringMatrix generatePrinterMatrix(PrinterPropertyConfigs configs) {
+    return Optional.ofNullable(buildMatrixGenerator())
+            .map(g -> g.generate(configs))
+            .orElse(null);
+  }
+
+  protected abstract PrinterMatrixGeneratorBase buildMatrixGenerator();
 }
